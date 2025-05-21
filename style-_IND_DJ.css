@@ -10,7 +10,7 @@
 }
 /* Brick background for entire page */
 html, body {
-  background: url("/images/bricks.png") center center / cover no-repeat fixed;
+background: url("/images/bricks.png") center center / cover no-repeat fixed;
   background-color: var(--dark);
   color: var(--light);
   font-family: Arial, sans-serif;

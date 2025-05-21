@@ -1,36 +1,39 @@
 :root {
-  --teal: #5A8785;
-  --dark: #000;
+  --teal:  #5A8785;
+  --dark:  #000;
   --light: #fafafa;
 }
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
-/* Brick background for entire page */
+
+/* ─── BRICK BACKGROUND FOR ENTIRE PAGE ──────────────────────────────────── */
 html, body {
-  background: url("https://i.imgur.com/JHiiSW4.png") center center / cover no-repeat fixed;
+  background: url("/images/bricks.png") center center / cover no-repeat fixed;
   background-color: var(--dark);
   color: var(--light);
   font-family: Arial, sans-serif;
   height: 100%;
 }
-/* Profile wrapper */
+
+/* ─── PROFILE WRAPPER ───────────────────────────────────────────────────── */
 .profile-wrapper {
   margin: 20px;
   border: 2px solid var(--teal);
   background: rgba(0,0,0,0.7); /* optional overlay for readability */
 }
 
-/* Grid container */
+/* ─── GRID CONTAINER ────────────────────────────────────────────────────── */
 .container {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
   gap: 20px;
 }
 
-/* BIO */
+/* ─── BIO SECTION ───────────────────────────────────────────────────────── */
 .bio-section {
   padding: 20px;
   border-right: 2px solid var(--teal);
@@ -47,12 +50,13 @@ html, body {
   line-height: 1.5;
 }
 
-/* MIDDLE: ARTWORK + SOCIALS + REMINDER */
+/* ─── MIDDLE COLUMN: ARTWORK + SOCIALS + REMINDER ─────────────────────── */
 .column-mid {
   border-right: 2px solid var(--teal);
   display: flex;
   flex-direction: column;
 }
+
 .artwork-block {
   padding: 20px;
   border-bottom: 2px solid var(--teal);
@@ -62,6 +66,7 @@ html, body {
   display: block;
   border: 2px solid var(--teal);
 }
+
 .info-block {
   flex: 1;
   display: flex;
@@ -91,7 +96,7 @@ html, body {
   text-decoration: none;
 }
 
-/* Reminder */
+/* Reminder line + button */
 .reminder-section {
   margin-top: auto;
   display: flex;
@@ -102,7 +107,6 @@ html, body {
   border-bottom: 2px dashed var(--teal);
   margin: 0 10px;
 }
-/* Calendar button styling */
 #calendar-btn {
   padding: 0.5rem 1rem;
   background: var(--teal);
@@ -112,7 +116,6 @@ html, body {
   cursor: pointer;
   text-transform: uppercase;
   margin-top: 0.5rem;
-  /* Align to the right of the dashed line */
   align-self: flex-end;
 }
 #calendar-btn:disabled {
@@ -120,19 +123,22 @@ html, body {
   cursor: default;
 }
 
-/* RIGHT: MIXES */
+/* ─── RIGHT COLUMN: MIXES ──────────────────────────────────────────────── */
 .column-right {
   display: flex;
   flex-direction: column;
 }
+
 .mixes-section {
   padding: 20px;
 }
+
 .mixes-list {
   flex: 1;
   overflow-y: auto;
   margin-bottom: 20px;
 }
+
 .mix-show {
   background: #111;
   padding: 10px;
@@ -154,7 +160,7 @@ html, body {
   margin-top: 5px;
 }
 
-/* Mix input */
+/* Mix-add controls */
 .mix-input input {
   width: 100%;
   padding: 10px;
@@ -175,7 +181,7 @@ html, body {
   cursor: pointer;
 }
 
-/* MOBILE RESPONSIVE */
+/* ─── MOBILE RESPONSIVE (≤768px) ───────────────────────────────────────── */
 @media (max-width: 768px) {
   .container {
     display: block;

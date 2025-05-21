@@ -1,7 +1,7 @@
 :root {
   --teal:  #5A8785;
   --dark:  #000;
-  --light: #fafafa;
+  --light:#fafafa;
 }
 
 * {
@@ -10,30 +10,30 @@
   padding: 0;
 }
 
-/* ─── BRICK BACKGROUND FOR ENTIRE PAGE ──────────────────────────────────── */
+/* Brick background for entire page */
 html, body {
   background: url("/images/bricks.png") center center / cover no-repeat fixed;
   background-color: var(--dark);
-  color: var(--light);
-  font-family: Arial, sans-serif;
-  height: 100%;
+  color:            var(--light);
+  font-family:      Arial, sans-serif;
+  height:           100%;
 }
 
-/* ─── PROFILE WRAPPER ───────────────────────────────────────────────────── */
+/* Profile wrapper */
 .profile-wrapper {
   margin: 20px;
   border: 2px solid var(--teal);
   background: rgba(0,0,0,0.7); /* optional overlay for readability */
 }
 
-/* ─── GRID CONTAINER ────────────────────────────────────────────────────── */
+/* Grid container */
 .container {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
   gap: 20px;
 }
 
-/* ─── BIO SECTION ───────────────────────────────────────────────────────── */
+/* BIO */
 .bio-section {
   padding: 20px;
   border-right: 2px solid var(--teal);
@@ -50,13 +50,12 @@ html, body {
   line-height: 1.5;
 }
 
-/* ─── MIDDLE COLUMN: ARTWORK + SOCIALS + REMINDER ─────────────────────── */
+/* MIDDLE: ARTWORK + SOCIALS + REMINDER */
 .column-mid {
   border-right: 2px solid var(--teal);
   display: flex;
   flex-direction: column;
 }
-
 .artwork-block {
   padding: 20px;
   border-bottom: 2px solid var(--teal);
@@ -66,7 +65,6 @@ html, body {
   display: block;
   border: 2px solid var(--teal);
 }
-
 .info-block {
   flex: 1;
   display: flex;
@@ -96,7 +94,7 @@ html, body {
   text-decoration: none;
 }
 
-/* Reminder line + button */
+/* Reminder */
 .reminder-section {
   margin-top: auto;
   display: flex;
@@ -107,6 +105,7 @@ html, body {
   border-bottom: 2px dashed var(--teal);
   margin: 0 10px;
 }
+/* Calendar button styling */
 #calendar-btn {
   padding: 0.5rem 1rem;
   background: var(--teal);
@@ -123,22 +122,19 @@ html, body {
   cursor: default;
 }
 
-/* ─── RIGHT COLUMN: MIXES ──────────────────────────────────────────────── */
+/* RIGHT: MIXES */
 .column-right {
   display: flex;
   flex-direction: column;
 }
-
 .mixes-section {
   padding: 20px;
 }
-
 .mixes-list {
   flex: 1;
   overflow-y: auto;
   margin-bottom: 20px;
 }
-
 .mix-show {
   background: #111;
   padding: 10px;
@@ -160,7 +156,7 @@ html, body {
   margin-top: 5px;
 }
 
-/* Mix-add controls */
+/* Mix input */
 .mix-input input {
   width: 100%;
   padding: 10px;
@@ -181,7 +177,7 @@ html, body {
   cursor: pointer;
 }
 
-/* ─── MOBILE RESPONSIVE (≤768px) ───────────────────────────────────────── */
+/* MOBILE RESPONSIVE */
 @media (max-width: 768px) {
   .container {
     display: block;

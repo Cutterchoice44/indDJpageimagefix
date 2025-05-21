@@ -1,24 +1,21 @@
 :root {
-  --teal:  #5A8785;
-  --dark:  #000;
-  --light:#fafafa;
+  --teal: #5A8785;
+  --dark: #000;
+  --light: #fafafa;
 }
-
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
-
 /* Brick background for entire page */
 html, body {
   background: url("/images/bricks.png") center center / cover no-repeat fixed;
   background-color: var(--dark);
-  color:            var(--light);
-  font-family:      Arial, sans-serif;
-  height:           100%;
+  color: var(--light);
+  font-family: Arial, sans-serif;
+  height: 100%;
 }
-
 /* Profile wrapper */
 .profile-wrapper {
   margin: 20px;
@@ -115,6 +112,7 @@ html, body {
   cursor: pointer;
   text-transform: uppercase;
   margin-top: 0.5rem;
+  /* Align to the right of the dashed line */
   align-self: flex-end;
 }
 #calendar-btn:disabled {

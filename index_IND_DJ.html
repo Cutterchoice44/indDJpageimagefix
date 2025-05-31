@@ -11,14 +11,109 @@
   <title>DJ Profile – Cutters Choice Radio</title>
 
   <!-- Global styles -->
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=1748649274040">
   <!-- Profile-specific styles -->
-  <link rel="stylesheet" href="style-_IND_DJ.css">
+  <link rel="stylesheet" href="style-_IND_DJ.css?v=1748649274040">
+
+  <!-- Bebas Neue (for nav) -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap"
+    rel="stylesheet"
+  >
+  <!-- FontAwesome (for the social icons in nav) -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    integrity="sha512-papVjzx2kwRr2jD+M6jXwHzB+vOavVxI1x5nC0Kp4xQkn8kDjgkZJ+6o7tXf3UcZ5TrTpdyja6a0bTnzlAAKlg=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+
+  <!-- INLINE NAV STYLING -->
+  <style>
+    :root { --brand-teal: #5A8785; }
+
+    /* ─── NAV ───────────────────────────────────────────────────────── */
+    #main-nav {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      width: 100% !important;
+
+      /* ↓ Make the bar thinner by reducing top/bottom padding */
+      padding: 0.25rem 0.75rem !important;
+      margin: 0 !important;
+      box-sizing: border-box !important;
+
+      /* Force a solid teal background so bricks never show through */
+      background-color: var(--brand-teal) !important;
+      /* Sit above the brick‐patterned <html> background */
+      position: relative;
+      z-index: 1000;
+
+      border-top:    2px solid var(--brand-teal) !important;
+      border-bottom: 2px solid var(--brand-teal) !important;
+    }
+    #main-nav .nav-item { flex: 1 !important; }
+    #main-nav .nav-left   { text-align: left   !important; }
+    #main-nav .nav-center { text-align: center !important; }
+    #main-nav .nav-right  { text-align: right  !important; }
+
+    #main-nav a {
+      color: #fff !important;
+      font-family: 'Bebas Neue', sans-serif !important;
+      font-size: 2rem !important;
+      text-transform: uppercase !important;
+      text-decoration: none !important;
+      margin: 0 0.5rem !important;
+    }
+    #main-nav .social-icon {
+      margin-left: 0.5rem !important;
+      font-size: 1.2rem !important;
+      vertical-align: middle !important;
+    }
+
+    @media (max-width: 768px) {
+      #main-nav .nav-left,
+      #main-nav .nav-right {
+        display: none !important;
+      }
+      #main-nav .nav-center {
+        display: block      !important;
+        width: 100%         !important;
+        text-align: center !important;
+      }
+      #main-nav .nav-center a {
+        display: inline-block !important;
+        margin: 0 auto       !important;
+      }
+    }
+  </style>
 </head>
+
 <body>
+  <!-- ─── NAV (Exact same as on your main site) ─────────────────────────────────────────────────── -->
+  <nav id="main-nav">
+    <div class="nav-item nav-left">
+      <a href="our-story.html">OUR STORY</a>
+    </div>
+    <div class="nav-item nav-center">
+      <a href="index-ourDJS.html">OUR DJS</a>
+    </div>
+    <div class="nav-item nav-right">
+      <a href="merch.html">MERCH</a>
+      <a href="https://facebook.com/cutterschoiceradio" target="_blank" class="social-icon">
+        <i class="fab fa-facebook-f"></i>
+      </a>
+      <a href="https://instagram.com/cutterschoiceradio" target="_blank" class="social-icon">
+        <i class="fab fa-instagram"></i>
+      </a>
+    </div>
+  </nav>
+
+  <!-- ─── REST OF YOUR DJ PROFILE CONTENT ───────────────────────────────────────────────────── -->
   <div class="profile-wrapper">
     <div class="container">
-
       <!-- LEFT COLUMN: BIO -->
       <section class="bio-section">
         <h1 id="dj-name">Loading…</h1>
@@ -65,11 +160,10 @@
           <button id="add-show-btn">Add Show</button>
         </div>
       </section>
-
     </div> <!-- /.container -->
   </div> <!-- /.profile-wrapper -->
 
   <!-- Profile script (reads ?id=, fetches data, populates page) -->
-  <script src="script_IND_DJ.js" defer></script>
+  <script src="script_IND_DJ.js?v=1748649274040" defer></script>
 </body>
 </html>

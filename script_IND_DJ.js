@@ -1,4 +1,4 @@
-/* DJ SELECTS — click-to-select strips + artist-specific next-show lookup */
+/* DJ SELECTS — artist-id first, robust next-show detection, click-to-select strips */
 
 document.addEventListener('DOMContentLoaded', () => {
   const DEFAULTS = {
@@ -18,7 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
     profileImg:  $('djProfileThumb'),
     trackList:   $('stripList'),
     preview:     $('mainPreview'),
-    // admin
     adminBtn:    $('adminBtn'),
     adminPanel:  $('adminPanel'),
     adminClose:  $('adminClose'),
@@ -41,15 +40,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const fmt=new Intl.DateTimeFormat(undefined,{weekday:'short',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
 
-  /* ----------------- YouTube helpers ----------------- */
+  /* ---------- YouTube ---------- */
   function toEmbed(url){
     if(!url) return null;
     try{
       const u = new URL(url.trim());
       const host = u.hostname.replace(/^m\./,'');
       let id = '';
-      if (u.pathname.startsWith('/results')) return null; // search pages
-      if (host.includes('youtu.be')) { id = u.pathname.slice(1).split('/')[0]; }
+      if (u.pathname.startsWith('/results')) return null;
+      if (host.includes('youtu.be')) id = u.pathname.slice(1).split('/')[0];
       else if (host.includes('youtube.com') || host.includes('music.youtube.com')){
         if (u.searchParams.get('v')) id = u.searchParams.get('v');
         else if (u.pathname.includes('/shorts/')) id = u.pathname.split('/shorts/')[1].split('/')[0];
@@ -60,13 +59,10 @@ document.addEventListener('DOMContentLoaded', () => {
       return id ? `https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1` : null;
     }catch{ return null; }
   }
-  function firstValidTrackIndex(){
-    const t = normalizeTracks(CONFIG.tracks);
-    for (let i=0;i<t.length;i++){ if (toEmbed(t[i])) return i; }
-    return 0;
-  }
+  const firstValidTrackIndex=()=>normalizeTracks(CONFIG.tracks).findIndex(u=>toEmbed(u))>=0
+      ? normalizeTracks(CONFIG.tracks).findIndex(u=>toEmbed(u))
+      : 0;
 
-  /* ----------------- Renderers ----------------- */
   function updatePreview(autoplay){
     if(!els.preview) return;
     const embed = toEmbed(normalizeTracks(CONFIG.tracks)[SELECTED]);
@@ -79,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const url = embed + (autoplay ? '&autoplay=1' : '');
     const wrap = document.createElement('div');
-    wrap.className='ratio big'; // CSS controls the 50% height
+    wrap.className='ratio big';
     const ifr = document.createElement('iframe');
     ifr.src = url;
     ifr.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
@@ -121,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updatePreview(false);
   }
 
-  /* ----------------- Radio Cult (via proxy) ----------------- */
+  /* ---------- Radio Cult via proxy ---------- */
   const EP={
     artists:(id,key)=> `/rc-proxy.php?fn=artists&stationId=${encodeURIComponent(id)}&key=${encodeURIComponent(key)}&t=${Date.now()}`,
     artistSchedule:(stationId,artistId,key,from,to)=> `/rc-proxy.php?fn=artist_schedule&stationId=${encodeURIComponent(stationId)}&artistId=${encodeURIComponent(artistId)}&startDate=${encodeURIComponent(from)}&endDate=${encodeURIComponent(to)}&key=${encodeURIComponent(key)}&t=${Date.now()}`,
@@ -131,33 +127,41 @@ document.addEventListener('DOMContentLoaded', () => {
   const jget = async url => { const r=await fetch(url,{headers:{'Accept':'application/json'}}); const t=await r.text(); try{ return JSON.parse(t);}catch{ return {error:'parse_failed', body:t, status:r.status}; } };
   const pickImage = o => !o? '' : (o.logo?.['1024x1024'] || o.logo?.default || o.logo?.['512x512'] || o.imageUrl || o.avatar || o.photoUrl || o.artworkUrl || '');
 
-  // tolerant name match (covers title/show/program/artist lists)
-  function matchByDj(ev, name){
-    const n = (name||'').toLowerCase();
-    const fields = [
-      ev.title, ev.name, ev.programName, ev.showTitle, ev.show?.name, ev.show?.title,
-      ev.artist?.name, ev.artist?.title, ev.artist?.displayName,
-      ...(Array.isArray(ev.artists)?ev.artists.map(a=>a?.name||a?.title||a?.displayName):[]),
-      ev.presenter?.name, ev.host?.name
-    ].filter(Boolean).map(x=>String(x).toLowerCase());
-    return fields.some(x => x.includes(n));
-  }
-  function getStartDateAny(obj){
-    if(!obj || typeof obj !== 'object') return null;
-    const tryKeys = [
-      'startDateUtc','startDate','startDateLocal','start','startsAt','startAt',
-      'start_time','start_time_utc','startTime','starts','timeStart'
-    ];
-    for(const k of tryKeys){ if(obj[k]) return obj[k]; }
+  const toDate = d => {
+    if(typeof d==='number'){ const ms = d>1e12 ? d : d*1000; return new Date(ms); }
+    const dt = new Date(d); return isNaN(+dt) ? null : dt;
+  };
+  const getStartDateAny = obj => {
+    if(!obj || typeof obj!=='object') return null;
+    const keys = ['startDateUtc','startDate','startDateLocal','start','startsAt','startAt','start_time','start_time_utc','startTime','starts','timeStart'];
+    for(const k of keys){ if(obj[k]) return obj[k]; }
     for(const k of Object.keys(obj)){ if(/start/i.test(k)) return obj[k]; }
     for(const v of Object.values(obj)){
       if(v && typeof v==='object'){ for(const k of Object.keys(v)){ if(/start/i.test(k)) return v[k]; } }
     }
     return null;
-  }
-  function toDate(d){
-    if(typeof d==='number'){ const ms = d > 1e12 ? d : d*1000; return new Date(ms); }
-    const dt = new Date(d); return isNaN(+dt) ? null : dt;
+  };
+
+  // match by id OR name (covers many shapes)
+  function matchesArtist(ev, artistId, name){
+    const idHits = [
+      ev.artist?.id, ev.artistId,
+      ...(Array.isArray(ev.artistIds)?ev.artistIds:[]),
+      ...(Array.isArray(ev.artists)?ev.artists.map(a=>a?.id):[]),
+      ...(Array.isArray(ev.presenters)?ev.presenters.map(p=>p?.id):[]),
+      ev.presenterId, ev.hostId
+    ].filter(Boolean);
+    if (artistId && idHits.some(x => String(x)===String(artistId))) return true;
+
+    const n = (name||'').toLowerCase();
+    const fields = [
+      ev.title, ev.name, ev.programName, ev.showTitle, ev.show?.name, ev.show?.title,
+      ev.artist?.name, ev.artist?.title, ev.artist?.displayName,
+      ...(Array.isArray(ev.artists)?ev.artists.map(a=>a?.name||a?.title||a?.displayName):[]),
+      ...(Array.isArray(ev.presenters)?ev.presenters.map(p=>p?.name||p?.title||p?.displayName):[]),
+      ev.presenter?.name, ev.host?.name
+    ].filter(Boolean).map(x=>String(x).toLowerCase());
+    return fields.some(x => x.includes(n));
   }
 
   async function hydrateFromAPI(){
@@ -167,9 +171,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const now=new Date();
       const from=now.toISOString();
-      const to=new Date(now.getTime()+1000*60*60*24*120).toISOString(); // 120 days
+      const to=new Date(now.getTime()+1000*60*60*24*120).toISOString();
 
-      // 1) Find artist by name + get profile image + id
+      // 1) Find artist (id + image)
       let artistId=null, img='';
       const list = await jget(EP.artists(CONFIG.stationId, CONFIG.apiKey));
       if (Array.isArray(list?.artists)){
@@ -177,12 +181,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const artist = list.artists.find(a => (a.name||'').toLowerCase()===needle) ||
                        list.artists.find(a => (a.name||'').toLowerCase().includes(needle));
         if (artist){
-          img = pickImage(artist);
           artistId = artist.id || artist._id || artist.artistId || null;
+          img = pickImage(artist);
         }
       }
 
-      // 2) If we have an artist id, ask for THAT ARTIST'S schedule; pick earliest future event
+      // 2) Try that artist's personal schedule first
       let next=null;
       if (artistId){
         const sched = await jget(EP.artistSchedule(CONFIG.stationId, artistId, CONFIG.apiKey, from, to));
@@ -196,38 +200,47 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // 3) Still nothing? Fallback to station-level upcoming/range
+      // 3) Fallback: upcoming (match by id or name)
       if (!next){
         const up = await jget(EP.upcoming(CONFIG.stationId, CONFIG.apiKey));
         const upItems = up?.events || up?.items || (Array.isArray(up)?up:[]);
         if (upItems?.length){
-          next = upItems.find(ev => matchByDj(ev, CONFIG.djName)) || upItems[0];
+          const future = upItems
+            .filter(ev => matchesArtist(ev, artistId, CONFIG.djName))
+            .map(ev => ({ev, d: toDate(getStartDateAny(ev))}))
+            .filter(x => x.d && x.d.getTime() > now.getTime())
+            .sort((a,b)=>a.d-b.d);
+          next = (future[0]?.ev) || null;
         }
       }
+
+      // 4) Fallback: time-range scan (match by id or name)
       if (!next){
         const rng=await jget(EP.range(CONFIG.stationId, CONFIG.apiKey, from, to));
         const items = rng?.events || rng?.items || (Array.isArray(rng)?rng:[]);
         if (items?.length){
           const future = items
+            .filter(ev => matchesArtist(ev, artistId, CONFIG.djName))
             .map(ev => ({ev, d: toDate(getStartDateAny(ev))}))
             .filter(x => x.d && x.d.getTime() > now.getTime())
             .sort((a,b)=>a.d-b.d);
-          if (future.length) next = future[0].ev;
+          next = (future[0]?.ev) || null;
         }
       }
 
       const s = next ? toDate(getStartDateAny(next)) : null;
-      if (s) els.nextWhen.textContent = fmt.format(s);
-      else   els.nextWhen.textContent = 'No upcoming show found';
+      els.nextWhen.textContent = s ? fmt.format(s) : 'No upcoming show found';
 
       // profile image (override wins)
       const override=(CONFIG.profileImageOverride||'').trim();
-      const useImg = override || img || pickImage(next?.artist) || (Array.isArray(next?.artists) ? pickImage(next.artists[0]) : '');
+      const useImg = override || img || pickImage(next?.artist) ||
+                     (Array.isArray(next?.artists) ? pickImage(next.artists[0]) : '') ||
+                     (Array.isArray(next?.presenters) ? pickImage(next.presenters[0]) : '');
       if (useImg && els.profileImg){ els.profileImg.src = useImg; els.profileImg.alt = CONFIG.djName || 'DJ'; }
     }catch(e){ console.warn('Hydrate failed', e); }
   }
 
-  /* ----------------- Admin ----------------- */
+  /* ---------- Admin ---------- */
   function openAdmin(){
     els.adminPanel?.classList.add('open');
     if(els.adminDjName)   els.adminDjName.value   = CONFIG.djName || '';
@@ -294,14 +307,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  /* ----------------- Boot ----------------- */
   function boot(){
     CONFIG = loadConfig();
     if(els.djNameText) els.djNameText.textContent = CONFIG.djName || 'DJ NAME';
     SELECTED = firstValidTrackIndex();
-    renderTracks();      // page always renders
-    hydrateFromAPI();    // enrich with API
+    renderTracks();
+    hydrateFromAPI();
   }
-
   boot();
 });

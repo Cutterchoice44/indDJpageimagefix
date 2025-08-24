@@ -1,4 +1,4 @@
-/* DJ SELECTS — artist-id first, robust next-show detection, click-to-select strips */
+/* DJ SELECTS — presenter-first next-show lookup + artist fallback + click-to-select strips */
 
 document.addEventListener('DOMContentLoaded', () => {
   const DEFAULTS = {
@@ -59,9 +59,11 @@ document.addEventListener('DOMContentLoaded', () => {
       return id ? `https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1` : null;
     }catch{ return null; }
   }
-  const firstValidTrackIndex=()=>normalizeTracks(CONFIG.tracks).findIndex(u=>toEmbed(u))>=0
-      ? normalizeTracks(CONFIG.tracks).findIndex(u=>toEmbed(u))
-      : 0;
+  function firstValidTrackIndex(){
+    const t=normalizeTracks(CONFIG.tracks);
+    for(let i=0;i<t.length;i++) if(toEmbed(t[i])) return i;
+    return 0;
+  }
 
   function updatePreview(autoplay){
     if(!els.preview) return;
@@ -73,43 +75,34 @@ document.addEventListener('DOMContentLoaded', () => {
       els.preview.appendChild(ph);
       return;
     }
-    const url = embed + (autoplay ? '&autoplay=1' : '');
-    const wrap = document.createElement('div');
-    wrap.className='ratio big';
+    const wrap = document.createElement('div'); wrap.className='ratio big';
     const ifr = document.createElement('iframe');
-    ifr.src = url;
+    ifr.src = embed + (autoplay ? '&autoplay=1' : '');
     ifr.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
     ifr.loading = 'lazy';
-    wrap.appendChild(ifr);
-    els.preview.appendChild(wrap);
+    wrap.appendChild(ifr); els.preview.appendChild(wrap);
   }
 
   function renderTracks(){
     if(!els.trackList) return;
     els.trackList.innerHTML='';
-    const t = normalizeTracks(CONFIG.tracks);
-    t.forEach((u, i)=>{
+    const t=normalizeTracks(CONFIG.tracks);
+    t.forEach((u,i)=>{
       const embed = toEmbed(u);
       const strip = document.createElement('div');
-      strip.className = 'strip' + (i===SELECTED ? ' selected' : '');
+      strip.className = 'strip' + (i===SELECTED?' selected':'');
       if (embed){
-        const ifr = document.createElement('iframe');
-        ifr.src = embed;
-        ifr.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
-        ifr.loading = 'lazy';
+        const ifr=document.createElement('iframe');
+        ifr.src=embed; ifr.loading='lazy';
+        ifr.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
         strip.appendChild(ifr);
-      } else {
-        const ph = document.createElement('div');
-        ph.className = 'yt-placeholder';
-        ph.textContent = 'Add YouTube URL';
+      }else{
+        const ph=document.createElement('div'); ph.className='yt-placeholder'; ph.textContent='Add YouTube URL';
         strip.appendChild(ph);
       }
-      const overlay = document.createElement('div');
-      overlay.className = 'select-overlay';
-      overlay.addEventListener('click', ()=>{
-        SELECTED = i;
-        updatePreview(true);
-        [...els.trackList.children].forEach((c,idx)=>c.classList.toggle('selected', idx===SELECTED));
+      const overlay=document.createElement('div'); overlay.className='select-overlay';
+      overlay.addEventListener('click',()=>{ SELECTED=i; updatePreview(true);
+        [...els.trackList.children].forEach((c,idx)=>c.classList.toggle('selected',idx===SELECTED));
       });
       strip.appendChild(overlay);
       els.trackList.appendChild(strip);
@@ -119,6 +112,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ---------- Radio Cult via proxy ---------- */
   const EP={
+    presenters:(id,key)=> `/rc-proxy.php?fn=presenters&stationId=${encodeURIComponent(id)}&key=${encodeURIComponent(key)}&t=${Date.now()}`,
+    presenterSchedule:(stationId,presenterId,key,from,to)=> `/rc-proxy.php?fn=presenter_schedule&stationId=${encodeURIComponent(stationId)}&presenterId=${encodeURIComponent(presenterId)}&startDate=${encodeURIComponent(from)}&endDate=${encodeURIComponent(to)}&key=${encodeURIComponent(key)}&t=${Date.now()}`,
     artists:(id,key)=> `/rc-proxy.php?fn=artists&stationId=${encodeURIComponent(id)}&key=${encodeURIComponent(key)}&t=${Date.now()}`,
     artistSchedule:(stationId,artistId,key,from,to)=> `/rc-proxy.php?fn=artist_schedule&stationId=${encodeURIComponent(stationId)}&artistId=${encodeURIComponent(artistId)}&startDate=${encodeURIComponent(from)}&endDate=${encodeURIComponent(to)}&key=${encodeURIComponent(key)}&t=${Date.now()}`,
     upcoming:(id,key)=> `/rc-proxy.php?fn=upcoming&stationId=${encodeURIComponent(id)}&key=${encodeURIComponent(key)}&limit=50&t=${Date.now()}`,
@@ -142,26 +137,24 @@ document.addEventListener('DOMContentLoaded', () => {
     return null;
   };
 
-  // match by id OR name (covers many shapes)
-  function matchesArtist(ev, artistId, name){
-    const idHits = [
-      ev.artist?.id, ev.artistId,
-      ...(Array.isArray(ev.artistIds)?ev.artistIds:[]),
-      ...(Array.isArray(ev.artists)?ev.artists.map(a=>a?.id):[]),
+  function matchesByIdOrName(ev, id, name){
+    const ids = [
+      ev.presenterId, ev.hostId, ev.artistId,
+      ev.presenter?.id, ev.host?.id, ev.artist?.id,
       ...(Array.isArray(ev.presenters)?ev.presenters.map(p=>p?.id):[]),
-      ev.presenterId, ev.hostId
-    ].filter(Boolean);
-    if (artistId && idHits.some(x => String(x)===String(artistId))) return true;
+      ...(Array.isArray(ev.artists)?ev.artists.map(a=>a?.id):[]),
+      ...(Array.isArray(ev.artistIds)?ev.artistIds:[])
+    ].filter(Boolean).map(String);
+    if (id && ids.includes(String(id))) return true;
 
-    const n = (name||'').toLowerCase();
-    const fields = [
+    const n=(name||'').toLowerCase();
+    const fields=[
       ev.title, ev.name, ev.programName, ev.showTitle, ev.show?.name, ev.show?.title,
-      ev.artist?.name, ev.artist?.title, ev.artist?.displayName,
-      ...(Array.isArray(ev.artists)?ev.artists.map(a=>a?.name||a?.title||a?.displayName):[]),
-      ...(Array.isArray(ev.presenters)?ev.presenters.map(p=>p?.name||p?.title||p?.displayName):[]),
-      ev.presenter?.name, ev.host?.name
-    ].filter(Boolean).map(x=>String(x).toLowerCase());
-    return fields.some(x => x.includes(n));
+      ev.presenter?.name, ev.host?.name,
+      ev.artist?.name, ...(Array.isArray(ev.artists)?ev.artists.map(a=>a?.name):[]),
+      ...(Array.isArray(ev.presenters)?ev.presenters.map(p=>p?.name):[])
+    ].filter(Boolean).map(s=>String(s).toLowerCase());
+    return fields.some(s=>s.includes(n));
   }
 
   async function hydrateFromAPI(){
@@ -173,70 +166,86 @@ document.addEventListener('DOMContentLoaded', () => {
       const from=now.toISOString();
       const to=new Date(now.getTime()+1000*60*60*24*120).toISOString();
 
-      // 1) Find artist (id + image)
-      let artistId=null, img='';
-      const list = await jget(EP.artists(CONFIG.stationId, CONFIG.apiKey));
-      if (Array.isArray(list?.artists)){
+      let next=null, img='', personId=null, personType=null; // 'presenter' | 'artist'
+
+      // 1) Try PRESENTERS first (this mirrors DJ profile cards)
+      const pres = await jget(EP.presenters(CONFIG.stationId, CONFIG.apiKey));
+      if (Array.isArray(pres?.presenters) || Array.isArray(pres)){
+        const list = pres.presenters || pres;
         const needle=(CONFIG.djName||'').toLowerCase();
-        const artist = list.artists.find(a => (a.name||'').toLowerCase()===needle) ||
-                       list.artists.find(a => (a.name||'').toLowerCase().includes(needle));
-        if (artist){
-          artistId = artist.id || artist._id || artist.artistId || null;
-          img = pickImage(artist);
+        const hit = list.find(p => (p.name||'').toLowerCase()===needle) ||
+                    list.find(p => (p.name||'').toLowerCase().includes(needle));
+        if (hit){
+          personId = hit.id || hit._id || hit.presenterId || null;
+          personType = 'presenter';
+          img = pickImage(hit);
+          // presenter schedule
+          const sched = await jget(EP.presenterSchedule(CONFIG.stationId, personId, CONFIG.apiKey, from, to));
+          const items = sched?.events || sched?.items || (Array.isArray(sched)?sched:[]);
+          if (items?.length){
+            const future = items.map(ev=>({ev,d:toDate(getStartDateAny(ev))}))
+                                .filter(x=>x.d && x.d>now)
+                                .sort((a,b)=>a.d-b.d);
+            if (future.length) next=future[0].ev;
+          }
         }
       }
 
-      // 2) Try that artist's personal schedule first
-      let next=null;
-      if (artistId){
-        const sched = await jget(EP.artistSchedule(CONFIG.stationId, artistId, CONFIG.apiKey, from, to));
-        const items = sched?.events || sched?.items || (Array.isArray(sched)?sched:[]);
-        if (items?.length){
-          const future = items
-            .map(ev => ({ev, d: toDate(getStartDateAny(ev))}))
-            .filter(x => x.d && x.d.getTime() > now.getTime())
-            .sort((a,b)=>a.d-b.d);
-          if (future.length) next = future[0].ev;
+      // 2) If none, try ARTISTS
+      if (!next){
+        const arts = await jget(EP.artists(CONFIG.stationId, CONFIG.apiKey));
+        if (Array.isArray(arts?.artists)){
+          const needle=(CONFIG.djName||'').toLowerCase();
+          const a = arts.artists.find(x => (x.name||'').toLowerCase()===needle) ||
+                    arts.artists.find(x => (x.name||'').toLowerCase().includes(needle));
+          if (a){
+            personId = a.id || a._id || a.artistId || personId;
+            personType = personType || 'artist';
+            img = img || pickImage(a);
+            const sched = await jget(EP.artistSchedule(CONFIG.stationId, personId, CONFIG.apiKey, from, to));
+            const items = sched?.events || sched?.items || (Array.isArray(sched)?sched:[]);
+            if (items?.length){
+              const future = items.map(ev=>({ev,d:toDate(getStartDateAny(ev))}))
+                                  .filter(x=>x.d && x.d>now)
+                                  .sort((a,b)=>a.d-b.d);
+              if (future.length) next=future[0].ev;
+            }
+          }
         }
       }
 
-      // 3) Fallback: upcoming (match by id or name)
+      // 3) Still nothing? Station-level upcoming/range matched by id or name
       if (!next){
         const up = await jget(EP.upcoming(CONFIG.stationId, CONFIG.apiKey));
         const upItems = up?.events || up?.items || (Array.isArray(up)?up:[]);
         if (upItems?.length){
-          const future = upItems
-            .filter(ev => matchesArtist(ev, artistId, CONFIG.djName))
-            .map(ev => ({ev, d: toDate(getStartDateAny(ev))}))
-            .filter(x => x.d && x.d.getTime() > now.getTime())
-            .sort((a,b)=>a.d-b.d);
-          next = (future[0]?.ev) || null;
+          const future = upItems.filter(ev=>matchesByIdOrName(ev, personId, CONFIG.djName))
+                                .map(ev=>({ev,d:toDate(getStartDateAny(ev))}))
+                                .filter(x=>x.d && x.d>now).sort((a,b)=>a.d-b.d);
+          if (future.length) next = future[0].ev;
         }
       }
-
-      // 4) Fallback: time-range scan (match by id or name)
       if (!next){
-        const rng=await jget(EP.range(CONFIG.stationId, CONFIG.apiKey, from, to));
+        const rng = await jget(EP.range(CONFIG.stationId, CONFIG.apiKey, from, to));
         const items = rng?.events || rng?.items || (Array.isArray(rng)?rng:[]);
         if (items?.length){
-          const future = items
-            .filter(ev => matchesArtist(ev, artistId, CONFIG.djName))
-            .map(ev => ({ev, d: toDate(getStartDateAny(ev))}))
-            .filter(x => x.d && x.d.getTime() > now.getTime())
-            .sort((a,b)=>a.d-b.d);
-          next = (future[0]?.ev) || null;
+          const future = items.filter(ev=>matchesByIdOrName(ev, personId, CONFIG.djName))
+                              .map(ev=>({ev,d:toDate(getStartDateAny(ev))}))
+                              .filter(x=>x.d && x.d>now).sort((a,b)=>a.d-b.d);
+          if (future.length) next = future[0].ev;
         }
       }
 
+      // 4) Display
       const s = next ? toDate(getStartDateAny(next)) : null;
       els.nextWhen.textContent = s ? fmt.format(s) : 'No upcoming show found';
-
-      // profile image (override wins)
       const override=(CONFIG.profileImageOverride||'').trim();
-      const useImg = override || img || pickImage(next?.artist) ||
-                     (Array.isArray(next?.artists) ? pickImage(next.artists[0]) : '') ||
-                     (Array.isArray(next?.presenters) ? pickImage(next.presenters[0]) : '');
+      const useImg = override || img;
       if (useImg && els.profileImg){ els.profileImg.src = useImg; els.profileImg.alt = CONFIG.djName || 'DJ'; }
+
+      // Optional: console diagnostics (useful if still no show)
+      console.debug('[DJ SELECTS] resolved',
+        { personType, personId, nextEvent: next, start:s?.toISOString() });
     }catch(e){ console.warn('Hydrate failed', e); }
   }
 
@@ -274,26 +283,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   els.adminTracks?.addEventListener('input', (e)=>{
     if(e.target.tagName==='INPUT'){
-      const idx = +e.target.getAttribute('data-idx');
-      const t = normalizeTracks(CONFIG.tracks);
-      t[idx] = e.target.value.trim();
-      CONFIG.tracks = t; saveConfig(CONFIG);
-      SELECTED = firstValidTrackIndex();
-      renderTracks();
+      const idx=+e.target.getAttribute('data-idx');
+      const t=normalizeTracks(CONFIG.tracks); t[idx]=e.target.value.trim();
+      CONFIG.tracks=t; saveConfig(CONFIG);
+      SELECTED = firstValidTrackIndex(); renderTracks();
     }
   });
   els.adminTracks?.addEventListener('click', (e)=>{
-    const up=e.target.getAttribute('data-up'); const down=e.target.getAttribute('data-down');
-    if(up!==null) reorderTracks(+up, +up-1);
-    if(down!==null) reorderTracks(+down, +down+1);
+    const up=e.target.getAttribute('data-up'), down=e.target.getAttribute('data-down');
+    if(up!==null)  reorderTracks(+up, +up-1);
+    if(down!==null)reorderTracks(+down, +down+1);
   });
 
   els.adminSave?.addEventListener('click', ()=>{
     const pass = (els.adminPass?.value || '').trim();
-    if(!ADMIN.authed){
-      if(pass !== ADMIN.passphrase){ alert('Incorrect passphrase'); return; }
-      ADMIN.authed = true;
-    }
+    if(!ADMIN.authed){ if(pass!=='scissors'){ alert('Incorrect passphrase'); return; } ADMIN.authed=true; }
     CONFIG.djName = (els.adminDjName?.value || DEFAULTS.djName).trim() || DEFAULTS.djName;
     CONFIG.stationId = (els.adminStationId?.value || DEFAULTS.stationId).trim() || DEFAULTS.stationId;
     CONFIG.apiKey = (els.adminApiKey?.value || DEFAULTS.apiKey).trim() || DEFAULTS.apiKey;

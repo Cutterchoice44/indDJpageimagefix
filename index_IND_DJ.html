@@ -1,44 +1,36 @@
 <?php
-// DJ SELECTS — Radio Cult server-side proxy
-// Protects the API key and avoids CORS.
-// Usage:
-//   /rc-proxy.php?fn=upcoming&slug=cutters-choice-radio
-//   /rc-proxy.php?fn=djs&slug=cutters-choice-radio
-
 header('Content-Type: application/json; charset=utf-8');
-// If you want to lock this to your domain, replace * with https://www.cutterschoiceradio.com
 header('Access-Control-Allow-Origin: *');
 header('Cache-Control: public, max-age=60, s-maxage=60');
 
 $API_KEY = getenv('RC_API_KEY');
-if (!$API_KEY) {
-  // Fallback to hardcoded key (you can delete this line once you set RC_API_KEY in DreamHost)
-  $API_KEY = 'pk_0b8abc6f834b444f949f727e88a728e0';
-}
+if (!$API_KEY) { $API_KEY = 'pk_0b8abc6f834b444f949f727e88a728e0'; }
 
 $fn   = $_GET['fn']   ?? '';
 $slug = $_GET['slug'] ?? '';
 
 if (!preg_match('/^[a-z0-9-]+$/', $slug)) {
   http_response_code(400);
-  echo json_encode(['error' => 'bad_slug']);
+  echo json_encode(['error'=>'bad_slug']);
   exit;
 }
 
 $base = "https://app.radiocult.fm/api/v1/stations/$slug";
 
-switch ($fn) {
-  case 'upcoming':
-    $url = "$base/schedule/upcoming?limit=25";
-    break;
-  case 'djs':
-    $url = "$base/djs?limit=200";
-    break;
-  default:
-    http_response_code(400);
-    echo json_encode(['error' => 'bad_fn']);
-    exit;
+$allow = [
+  'upcoming'   => "$base/schedule/upcoming?limit=25",
+  'djs'        => "$base/djs?limit=200",
+  'artists'    => "$base/artists?limit=200",
+  'presenters' => "$base/presenters?limit=200"
+];
+
+if (!array_key_exists($fn, $allow)) {
+  http_response_code(400);
+  echo json_encode(['error'=>'bad_fn','allowed'=>array_keys($allow)]);
+  exit;
 }
+
+$url = $allow[$fn];
 
 $ch = curl_init($url);
 curl_setopt_array($ch, [
@@ -47,8 +39,8 @@ curl_setopt_array($ch, [
     'Authorization: Bearer ' . $API_KEY,
     'Accept: application/json'
   ],
-  CURLOPT_USERAGENT => 'CuttersChoiceRadio-Proxy/1.0',
-  CURLOPT_TIMEOUT => 12,
+  CURLOPT_USERAGENT => 'CuttersChoiceRadio-Proxy/1.1',
+  CURLOPT_TIMEOUT => 15,
 ]);
 $out  = curl_exec($ch);
 $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -57,9 +49,18 @@ curl_close($ch);
 
 if ($out === false) {
   http_response_code(502);
-  echo json_encode(['error' => 'proxy_failed', 'detail' => $err]);
+  echo json_encode(['error'=>'proxy_failed','detail'=>$err]);
+  exit;
+}
+
+// If upstream didn’t return JSON, wrap it so the client can handle it
+$json = json_decode($out, true);
+if ($json === null && json_last_error() !== JSON_ERROR_NONE) {
+  http_response_code($http ?: 200);
+  echo json_encode(['error'=>'upstream_non_json','body'=>substr($out,0,2048),'status'=>$http]);
   exit;
 }
 
 http_response_code($http ?: 200);
-echo $out;
+echo json_encode($json);
+?>

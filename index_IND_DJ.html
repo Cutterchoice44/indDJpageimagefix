@@ -1,344 +1,65 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <!-- Prevent browser caching -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<?php
+// DJ SELECTS — Radio Cult server-side proxy
+// Protects the API key and avoids CORS.
+// Usage:
+//   /rc-proxy.php?fn=upcoming&slug=cutters-choice-radio
+//   /rc-proxy.php?fn=djs&slug=cutters-choice-radio
 
-  <!-- Enable Cast -->
-  <meta name="google-cast-enabled" content="true">
+header('Content-Type: application/json; charset=utf-8');
+// If you want to lock this to your domain, replace * with https://www.cutterschoiceradio.com
+header('Access-Control-Allow-Origin: *');
+header('Cache-Control: public, max-age=60, s-maxage=60');
 
-  <title>Cutters Choice Radio</title>
+$API_KEY = getenv('RC_API_KEY');
+if (!$API_KEY) {
+  // Fallback to hardcoded key (you can delete this line once you set RC_API_KEY in DreamHost)
+  $API_KEY = 'pk_0b8abc6f834b444f949f727e88a728e0';
+}
 
-  <!-- Main stylesheet -->
-  <link rel="stylesheet" href="style.css?v=1756013024396">
+$fn   = $_GET['fn']   ?? '';
+$slug = $_GET['slug'] ?? '';
 
-  <!-- Bebas Neue & FontAwesome -->
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+if (!preg_match('/^[a-z0-9-]+$/', $slug)) {
+  http_response_code(400);
+  echo json_encode(['error' => 'bad_slug']);
+  exit;
+}
 
-  <!-- INLINE NAV + MOBILE LINEUP STYLING -->
-  <style>
-    :root { --brand-teal: #5A8785; }
+$base = "https://app.radiocult.fm/api/v1/stations/$slug";
 
-    /* NAV BAR */
-    #main-nav{
-      display:flex !important;
-      align-items:center !important;
-      gap:.5rem !important;
-      width:100% !important;
-      padding:.10rem .65rem !important;
-      margin:0 !important;
-      box-sizing:border-box !important;
-      background-color:var(--brand-teal) !important;
-      position:relative !important;
-      z-index:1000 !important;
-      border-top:2px solid #000;   /* thin black line */
-      border-bottom:2px solid #000;/* thin black line */
-    }
+switch ($fn) {
+  case 'upcoming':
+    $url = "$base/schedule/upcoming?limit=25";
+    break;
+  case 'djs':
+    $url = "$base/djs?limit=200";
+    break;
+  default:
+    http_response_code(400);
+    echo json_encode(['error' => 'bad_fn']);
+    exit;
+}
 
-    /* Evenly spaced links occupy full available width before icons */
-    #main-nav .nav-menu{
-      display:flex !important;
-      align-items:center !important;
-      justify-content:space-evenly !important; /* even spacing */
-      gap:clamp(.25rem,2vw,1.5rem) !important;
-      flex:1 1 auto !important;
-      min-width:0 !important;
-    }
-    #main-nav a.nav-link{
-      color:#fff !important;
-      font-family:'Bebas Neue',sans-serif !important;
-      font-size:2rem !important;
-      text-transform:uppercase !important;
-      text-decoration:none !important;
-      white-space:nowrap !important;
-    }
+$ch = curl_init($url);
+curl_setopt_array($ch, [
+  CURLOPT_RETURNTRANSFER => true,
+  CURLOPT_HTTPHEADER => [
+    'Authorization: Bearer ' . $API_KEY,
+    'Accept: application/json'
+  ],
+  CURLOPT_USERAGENT => 'CuttersChoiceRadio-Proxy/1.0',
+  CURLOPT_TIMEOUT => 12,
+]);
+$out  = curl_exec($ch);
+$http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+$err  = curl_error($ch);
+curl_close($ch);
 
-    /* Icons cluster on the right */
-    #main-nav .nav-actions{
-      display:flex !important;
-      align-items:center !important;
-      justify-content:flex-end !important;
-      gap:.6rem !important;
-      flex:0 0 auto !important;
-    }
+if ($out === false) {
+  http_response_code(502);
+  echo json_encode(['error' => 'proxy_failed', 'detail' => $err]);
+  exit;
+}
 
-    /* SOCIAL ICONS (Font Awesome) */
-    #main-nav .social-icon{
-      display:inline-flex !important;
-      align-items:center !important;
-      justify-content:center !important;
-      line-height:1 !important;
-      text-decoration:none !important;
-      color:#fff !important;
-    }
-    #main-nav .social-icon i{
-      font-size:2.1rem !important;
-    }
-
-    /* IMAGE ICONS (Alexa / TuneIn) */
-    #main-nav .icon-img{
-      width:2.6rem !important;
-      height:auto !important;
-      margin-left:.25rem !important;
-      vertical-align:middle !important;
-      display:inline-block !important;
-    }
-
-    /* OneMusic badge */
-    #main-nav .nav-onemusic{ display:flex; align-items:center; }
-    #main-nav .nav-onemusic img{ max-height:2rem; width:auto; height:auto; display:block; }
-
-    /* Cast fallback button */
-    #manualCastBtn{
-      background:none;border:none;color:#fff;font-size:1.8rem;cursor:pointer;margin-left:.25rem;
-    }
-
-    /* MOBILE tweaks */
-    @media (max-width:768px){
-      #main-nav a.nav-link{ font-size:1rem !important; }
-      #main-nav .nav-menu{ justify-content:space-between !important; gap:.5rem !important; }
-
-      /* shrink social glyphs slightly on mobile */
-      #main-nav .social-icon i{ font-size:1.4rem !important; }
-
-      /* hide bulky images on mobile to prevent overflow */
-      #main-nav .icon-img, #main-nav .nav-onemusic{ display:none !important; }
-
-      /* Show ~2 days of the lineup, scroll for more */
-      #schedule-container{
-        max-height:55vh;
-        overflow-y:auto;
-        padding-right:6px;
-        scroll-behavior:smooth;
-        -webkit-overflow-scrolling:touch;
-      }
-      /* Keep day strips visible while scrolling (works with h3 or .day-title) */
-      #schedule-container h3,
-      #schedule-container .day-title{
-        position:sticky;
-        top:0;
-        z-index:2;
-      }
-    }
-  </style>
-
-  <!-- Chromecast Init & SDK -->
-  <script>
-    window.__onGCastApiAvailable = isAvailable => {
-      if (isAvailable) {
-        cast.framework.CastContext.getInstance().setOptions({
-          receiverApplicationId: '77E0F81B',
-          autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
-        });
-      }
-    };
-  </script>
-  <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
-
-  <!-- Other head scripts -->
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" defer></script>
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-3MSGZZ5QL6"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}  
-    gtag('js', new Date());
-    gtag('config', 'G-3MSGZZ5QL6');
-  </script>
-</head>
-
-<body>
-  <!-- HEADER -->
-  <header class="header-banner">
-    <div class="header-gif-right"></div>
-    <div class="header-gif-left"></div>
-    <div class="logo-container">
-      <img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="lazy">
-    </div>
-    <div class="title">
-      <h1>Cutters Choice Radio</h1>
-      <p class="tagline">The home of relentless flavas and significant bangers!</p>
-    </div>
-    <div class="logo-container">
-      <img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="lazy">
-    </div>
-  </header>
-
-  <div style="height:2px;background-color:var(--brand-teal);"></div>
-
-  <!-- NAVIGATION -->
-  <nav id="main-nav">
-    <div class="nav-menu">
-      <a href="our-story.html"    class="nav-link">OUR STORY</a>
-      <a href="index-ourDJS.html" class="nav-link">OUR DJS</a>
-      <a href="dj-selects.html"   class="nav-link">DJ SELECTS</a>  <!-- NEW LINK -->
-      <a href="schedule.html"     class="nav-link">SCHEDULE</a>
-      <a href="merch.html"        class="nav-link">MERCH</a>
-    </div>
-
-    <div class="nav-actions">
-      <a href="https://facebook.com/cutterschoiceradio"  target="_blank" class="social-icon" aria-label="Facebook">
-        <i class="fab fa-facebook-f"></i>
-      </a>
-      <a href="https://instagram.com/cutterschoiceradio" target="_blank" class="social-icon" aria-label="Instagram">
-        <i class="fab fa-instagram"></i>
-      </a>
-
-      <!-- Alexa logo -->
-      <img src="/images/alexa-logo.webp" alt="Alexa" class="icon-img" loading="lazy">
-
-      <!-- TuneIn logo -->
-      <a href="https://tunein.com/radio/Cutters-Choice-Radio-s344746/" target="_blank" aria-label="TuneIn">
-        <img src="/images/tunein-logo.png" alt="TuneIn" class="icon-img" loading="lazy">
-      </a>
-
-      <!-- OneMusic badge -->
-      <div class="nav-onemusic">
-        <a href="https://onemusicnz.com" target="_blank" rel="noopener">
-          <img src="/images/ONEMUSICLOGO.png" alt="We’re licensed to play OneMusic NZ" loading="lazy">
-        </a>
-      </div>
-
-      <google-cast-button></google-cast-button>
-      <button id="manualCastBtn" title="Cast this stream">
-        <i class="fab fa-chromecast"></i>
-      </button>
-    </div>
-  </nav>
-
-  <div style="height:2px;background-color:var(--brand-teal);"></div>
-
-  <!-- MAIN GRID CONTENT -->
-  <div class="grid-container">
-    <!-- CHAT SECTION -->
-    <section class="chat">
-      <h2>Cutters Chat</h2>
-      <iframe title="Cutters Choice Radio Chat"
-              src="https://app.radiocult.fm/embed/chat/cutters-choice-radio?theme=midnight&primaryColor=%235A8785&corners=sharp"
-              width="100%" height="700" frameborder="0"
-              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" seamless>
-      </iframe>
-      <div class="chat-actions"><button class="popout-btn" onclick="openChatPopup()">Pop Out Chat</button></div>
-      <div class="rc-user-list-container"><div class="rc-user-list"></div></div>
-    </section>
-
-    <!-- LIVE PLAYER SECTION -->
-    <section class="live-player">
-      <h2 id="now-dj">Live Now</h2>
-      <div class="player-container">
-        <iframe id="inlinePlayer" title="Cutters Choice Radio player"
-                src="https://app.radiocult.fm/embed/square-player/cutters-choice-radio?theme=midnight&primaryColor=%235A8785&corners=sharp"
-                allow="autoplay; encrypted-media" loading="lazy"></iframe>
-        <div id="now-archive">Loading archive show…</div>
-        <button id="popOutBtn" class="popout-btn">Pop Out Player</button>
-        <button id="chatPopupBtn" class="popout-btn chat-btn-mobile" onclick="openChatPopup()">Chat</button>
-      </div>
-      <h3>This Week’s Shows</h3>
-      <img id="now-art" src="https://i.imgur.com/EHhS47F.png" alt="Current DJ Artwork" loading="lazy">
-    </section>
-
-    <!-- SCHEDULE SECTION -->
-    <section class="schedule">
-      <h2 class="schedule-heading">This Week’s Lineup</h2>
-      <div class="schedule-scroll" id="schedule-container">
-        <p>Loading this week’s schedule…</p>
-      </div>
-    </section>
-
-    <!-- MIXCLOUD ARCHIVE SECTION -->
-    <section class="mixcloud">
-      <h2>Latest Archived Shows</h2>
-      <div id="mixcloud-list"></div>
-      <div class="add-mixcloud">
-        <input id="mixcloud-url" type="text" placeholder="Paste Mixcloud URL here…">
-        <button onclick="addMixcloud()">Add Show</button>
-      </div>
-    </section>
-  </div>
-
-  <!-- FOOTER -->
-  <footer class="banner">
-    <div style="
-      background-color: var(--brand-teal);
-      padding: 0.10rem 0.65rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    ">
-      <a href="privacy-policy.html"
-         style="
-           color: #fff;
-           font-family: 'Bebas Neue', sans-serif;
-           font-size: 2rem;
-           text-transform: uppercase;
-           text-decoration: none;
-         ">PRIVACY POLICY</a>
-      <span style="
-        color: #fff;
-        font-family: 'Bebas Neue', sans-serif;
-        font-size: 0.8rem;
-        text-transform: uppercase;
-      ">
-        Amazon, Alexa and all related logos are trademarks of Amazon.com, Inc. or its affiliates.
-      </span>
-    </div>
-  </footer>
-
-  <!-- YOUR SCRIPTS -->
-  <script src="script.js?v=1756013024396" defer></script>
-  <script src="slideshow.js?v=1756013024396" defer></script>
-
-  <!-- Chromecast Handler & Manual Fallback -->
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const context = cast.framework.CastContext.getInstance();
-      const manualBtn = document.getElementById('manualCastBtn');
-      const officialBtn = document.querySelector('google-cast-button');
-      context.addEventListener(cast.framework.CastContextEventType.CAST_STATE_CHANGED, e => {
-        officialBtn.style.display = e.castState !== cast.framework.CastState.NO_DEVICES_AVAILABLE
-          ? 'inline-block' : 'none';
-      });
-      manualBtn.addEventListener('click', () => {
-        context.requestSession().catch(err => console.error('Fallback session error', err));
-      });
-      officialBtn.addEventListener('click', async () => {
-        const session = context.getCurrentSession();
-        if (!session) return console.warn('No Chromecast session');
-        const mediaInfo = new chrome.cast.media.MediaInfo(
-          'https://cutters-choice-radio.radiocult.fm/stream',
-          'application/x-mpegurl'
-        );
-        mediaInfo.streamType = chrome.cast.media.StreamType.LIVE;
-        mediaInfo.metadata = new chrome.cast.media.MusicTrackMediaMetadata();
-        mediaInfo.metadata.title = document.getElementById('now-dj').textContent;
-        mediaInfo.metadata.albumName = 'Cutters Choice Radio';
-        const request = new chrome.cast.media.LoadRequest(mediaInfo);
-        await session.loadMedia(request).catch(err => console.error('Chromecast error:', err));
-      });
-    });
-  </script>
-
-  <!-- GIF-SWAP SCRIPT -->
-  <script>
-    (function() {
-      const right = document.querySelector('.header-gif-right');
-      const left = document.querySelector('.header-gif-left');
-      let loop = 0;
-      const set1 = ["url('/images/Untitled%20design(4).gif')", "url('/images/Untitled%20design(5).gif')"];
-      const set2 = ["url('/images/Untitled%20design(7).gif')", "url('/images/Untitled%20design(8).gif')"];
-      right.style.backgroundImage = set1[0];
-      left.style.backgroundImage = set1[1];
-      right.addEventListener('animationiteration', () => {
-        loop++;
-        const s = (loop % 4 < 2) ? set1 : set2;
-        right.style.backgroundImage = s[0];
-        left.style.backgroundImage = s[1];
-      });
-    })();
-  </script>
-</body>
-</html>
+http_response_code($http ?: 200);
+echo $out;

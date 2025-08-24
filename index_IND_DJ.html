@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
   <!-- Page styles -->
-  <link rel="stylesheet" href="dj-selects.css?v=3" />
+  <link rel="stylesheet" href="dj-selects.css?v=5" />
 </head>
 <body>
   <!-- Header (same structure as home) -->
@@ -28,7 +28,7 @@
 
   <div style="height:2px;background-color:var(--brand-teal)"></div>
 
-  <!-- Nav (even spacing, includes DJ SELECTS) -->
+  <!-- Nav -->
   <nav id="main-nav">
     <div class="nav-menu">
       <a href="our-story.html"    class="nav-link">OUR STORY</a>
@@ -46,7 +46,7 @@
   <!-- Hero: strap + month line + small profile thumb -->
   <section class="djselects-hero condensed">
     <div class="hero-left">
-      <div class="strap">When we get around to it a rotating Cutters DJs will be listing their 5 tracks of the month</div>
+      <div class="strap">Each month a different Cutters DJ selects 5 tracks of the month</div>
       <div class="monthline">THIS MONTH : <span id="djNameText">DJ NAME</span></div>
     </div>
     <div class="hero-right">
@@ -64,53 +64,27 @@
 
   <!-- Compact layout: left strips, right big preview -->
   <main class="compact-grid">
-    <aside id="stripList" class="strip-list"></aside>
+    <aside id="stripList" class="strip-list" aria-label="Selected tracks (click to preview)"></aside>
 
-    <section class="preview" id="mainPreview">
+    <section class="preview" id="mainPreview" aria-live="polite">
       <div class="big-placeholder">Select a track</div>
     </section>
   </main>
 
-  <!-- Admin -->
-  <button class="admin-btn" id="adminBtn" title="Admin"><i class="fa-solid fa-gear"></i></button>
-  <div class="admin-panel" id="adminPanel">
-    <div class="admin-head">
-      <strong>DJ SELECTS — Admin</strong>
-      <button id="adminClose" class="admin-close">&times;</button>
-    </div>
-    <div class="admin-body">
-      <label>Admin Passphrase
-        <input type="password" id="adminPass" placeholder="Enter passphrase">
-      </label>
+  <!-- Admin UI (not visible until authenticated) -->
+  <div id="adminMount" hidden></div>
 
-      <label>DJ Name (as listed in Radio Cult)
-        <input type="text" id="adminDjName" placeholder="e.g., MARIONETTE">
-      </label>
-
-      <div class="two-col">
-        <label>Station ID (from Radio Cult)
-          <input type="text" id="adminStationId" placeholder="cutters-choice-radio">
-        </label>
-        <label>Publishable API Key (pk_…)
-          <input type="text" id="adminApiKey" placeholder="pk_...">
-        </label>
-      </div>
-
-      <label>Profile Image Override (optional)
-        <input type="text" id="profileOverride" placeholder="https://...">
-      </label>
-
-      <div class="admin-subhead">YouTube Track URLs (up to 5)</div>
-      <div id="adminTracks"></div>
-
-      <div class="admin-actions">
-        <button id="adminSave" class="primary">Save</button>
-        <button id="adminLogout" class="ghost">Logout Admin</button>
-        <button id="adminReset" class="danger">Reset</button>
-      </div>
-    </div>
-  </div>
-
-  <script src="dj-selects.js?v=3" defer></script>
+  <script>
+    /* Configure endpoints */
+    window.DJ_SELECTS = {
+      CONFIG_ENDPOINT: 'dj-selects-config.php',  // new: shared config (load/save)
+      PROXY_ENDPOINT:  'rc-proxy.php',           // radio cult proxy
+      // SHA-256 of your passphrase (use any offline hasher). Example is for: ccr2025!
+      ADMIN_HASH_HEX: 'a00af6bfc41c33b69f2d34e8ea296a9e6ae9d22a904200b0a5b8df4a0c0278f7',
+      // Server-side token must be set in dj-selects-config.php; leave blank here unless you want client-initiated saves
+      SAVE_TOKEN: ''
+    };
+  </script>
+  <script src="dj-selects.js?v=5" defer></script>
 </body>
 </html>

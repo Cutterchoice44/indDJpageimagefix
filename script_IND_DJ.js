@@ -1,4 +1,4 @@
-/* DJ SELECTS — compact UI + robust next-show lookup + 50% preview height */
+/* DJ SELECTS — click-to-select strips + robust next-show detection (works with varied API shapes) */
 
 document.addEventListener('DOMContentLoaded', () => {
   const DEFAULTS = {
@@ -18,6 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
     profileImg:  $('djProfileThumb'),
     trackList:   $('stripList'),
     preview:     $('mainPreview'),
+
+    // admin
     adminBtn:    $('adminBtn'),
     adminPanel:  $('adminPanel'),
     adminClose:  $('adminClose'),
@@ -40,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const fmt=new Intl.DateTimeFormat(undefined,{weekday:'short',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
 
-  /* ---------- YouTube helpers ---------- */
+  /* ----------------- YouTube helpers ----------------- */
   function toEmbed(url){
     if(!url) return null;
     try{
@@ -59,13 +61,13 @@ document.addEventListener('DOMContentLoaded', () => {
       return id ? `https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1` : null;
     }catch{ return null; }
   }
-
   function firstValidTrackIndex(){
     const t = normalizeTracks(CONFIG.tracks);
     for (let i=0;i<t.length;i++){ if (toEmbed(t[i])) return i; }
     return 0;
   }
 
+  /* ----------------- Renderers ----------------- */
   function updatePreview(autoplay){
     if(!els.preview) return;
     const embed = toEmbed(normalizeTracks(CONFIG.tracks)[SELECTED]);
@@ -78,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const url = embed + (autoplay ? '&autoplay=1' : '');
     const wrap = document.createElement('div');
-    wrap.className='ratio big';  // CSS defines the 50% height
+    wrap.className='ratio big';
     const ifr = document.createElement('iframe');
     ifr.src = url;
     ifr.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
@@ -107,17 +109,23 @@ document.addEventListener('DOMContentLoaded', () => {
         ph.textContent = 'Add YouTube URL';
         strip.appendChild(ph);
       }
-      strip.addEventListener('click', ()=>{
+
+      // clickable overlay so the whole strip selects the preview
+      const overlay = document.createElement('div');
+      overlay.className = 'select-overlay';
+      overlay.addEventListener('click', ()=>{
         SELECTED = i;
         updatePreview(true);
         [...els.trackList.children].forEach((c,idx)=>c.classList.toggle('selected', idx===SELECTED));
       });
+      strip.appendChild(overlay);
+
       els.trackList.appendChild(strip);
     });
     updatePreview(false);
   }
 
-  /* ---------- Radio Cult (via proxy) ---------- */
+  /* ----------------- Radio Cult (via proxy) ----------------- */
   const EP={
     artists:(id,key)=> `/rc-proxy.php?fn=artists&stationId=${encodeURIComponent(id)}&key=${encodeURIComponent(key)}&t=${Date.now()}`,
     upcoming:(id,key)=> `/rc-proxy.php?fn=upcoming&stationId=${encodeURIComponent(id)}&key=${encodeURIComponent(key)}&limit=50&t=${Date.now()}`,
@@ -126,19 +134,53 @@ document.addEventListener('DOMContentLoaded', () => {
   const jget = async url => { const r=await fetch(url,{headers:{'Accept':'application/json'}}); const t=await r.text(); try{ return JSON.parse(t);}catch{ return {error:'parse_failed', body:t, status:r.status}; } };
   const pickImage = o => !o? '' : (o.logo?.['1024x1024'] || o.logo?.default || o.logo?.['512x512'] || o.imageUrl || o.avatar || o.photoUrl || o.artworkUrl || '');
 
-  function getStartDate(ev){
-    // tolerate multiple shapes
-    return ev.startDateUtc || ev.startDate || ev.startTime || ev.start || ev.startsAt || null;
+  // very tolerant name match
+  function matchByDj(ev, name){
+    const n = (name||'').toLowerCase();
+    const fields = [
+      ev.title, ev.name, ev.programName, ev.showTitle, ev.show?.name, ev.show?.title,
+      ev.artist?.name, ev.artist?.title, ev.artist?.displayName,
+      ...(Array.isArray(ev.artists)?ev.artists.map(a=>a?.name||a?.title||a?.displayName):[]),
+      ev.presenter?.name, ev.host?.name
+    ].filter(Boolean).map(x=>String(x).toLowerCase());
+    return fields.some(x => x.includes(n));
   }
 
-  function matchByDj(ev, needle){
-    const n = needle.toLowerCase();
-    const a  = ev.artist && (ev.artist.name || ev.artist.title || ev.artist.displayName || '');
-    const as = Array.isArray(ev.artists) ? ev.artists.map(x => x.name || x.title || x.displayName || '') : [];
-    const t  = ev.title || ev.name || '';
-    return (a && a.toLowerCase().includes(n)) ||
-           as.some(s => (s||'').toLowerCase().includes(n)) ||
-           (t && t.toLowerCase().includes(n));
+  // pull something that looks like a start date, even if the key is weird
+  function getStartDateAny(obj){
+    if(!obj || typeof obj !== 'object') return null;
+    const candidates = [];
+
+    // common keys first
+    const wellKnown = [
+      'startDateUtc','startDate','startDateLocal','start','startsAt','startAt',
+      'start_time','start_time_utc','startTime','starts','timeStart'
+    ];
+    for(const k of wellKnown){
+      if(obj[k]) candidates.push(obj[k]);
+    }
+    // generic scan: any key containing "start"
+    for(const k of Object.keys(obj)){
+      if(/start/i.test(k) && !wellKnown.includes(k)) candidates.push(obj[k]);
+    }
+    // shallow scan nested objects (one level)
+    for(const v of Object.values(obj)){
+      if(v && typeof v === 'object'){
+        for(const k of Object.keys(v)){
+          if(/start/i.test(k)) candidates.push(v[k]);
+        }
+      }
+    }
+
+    for(const c of candidates){
+      if(typeof c === 'string' && !isNaN(Date.parse(c))) return c;
+      if(typeof c === 'number'){
+        // seconds vs ms heuristic
+        const ms = c > 1e12 ? c : c*1000;
+        return new Date(ms).toISOString();
+      }
+    }
+    return null;
   }
 
   async function hydrateFromAPI(){
@@ -146,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if(!els.nextWhen) return;
       if(!CONFIG.stationId){ els.nextWhen.textContent='Set Station ID in admin'; return; }
 
-      // profile image (from artists list)
+      // profile image
       let img='';
       const list = await jget(EP.artists(CONFIG.stationId, CONFIG.apiKey));
       if (Array.isArray(list?.artists)){
@@ -156,37 +198,35 @@ document.addEventListener('DOMContentLoaded', () => {
         img = pickImage(artist);
       }
 
-      // 1) try upcoming first
+      // upcoming first
       let next=null;
       const up = await jget(EP.upcoming(CONFIG.stationId, CONFIG.apiKey));
       const upItems = up?.events || up?.items || (Array.isArray(up)?up:[]);
-      if (upItems && upItems.length){
+      if (upItems?.length){
         next = upItems.find(ev => matchByDj(ev, CONFIG.djName)) || upItems[0];
       }
 
-      // 2) fallback to 60-day range scan
+      // fallback: 60-day range
       if (!next){
         const now=new Date(); const from=now.toISOString(); const to=new Date(now.getTime()+1000*60*60*24*60).toISOString();
         const rng=await jget(EP.range(CONFIG.stationId, CONFIG.apiKey, from, to));
         const items = rng?.events || rng?.items || (Array.isArray(rng)?rng:[]);
-        if (items && items.length){
+        if (items?.length){
           next = items.find(ev => matchByDj(ev, CONFIG.djName)) || items[0];
         }
       }
 
-      // fill UI
-      const s = next ? getStartDate(next) : null;
+      const s = next ? getStartDateAny(next) : null;
       if (s) els.nextWhen.textContent = fmt.format(new Date(s));
-      else   els.nextWhen.textContent = 'No upcoming show found';
+      else   els.nextWhen.textContent = 'No upcoming show found'; // still shows page
 
-      // profile image (override wins)
       const override=(CONFIG.profileImageOverride||'').trim();
       const useImg = override || img || pickImage(next?.artist) || (Array.isArray(next?.artists) ? pickImage(next.artists[0]) : '');
       if (useImg && els.profileImg){ els.profileImg.src = useImg; els.profileImg.alt = CONFIG.djName || 'DJ'; }
     }catch(e){ console.warn('Hydrate failed', e); }
   }
 
-  /* ---------- Admin ---------- */
+  /* ----------------- Admin ----------------- */
   function openAdmin(){
     els.adminPanel?.classList.add('open');
     if(els.adminDjName)   els.adminDjName.value   = CONFIG.djName || '';
@@ -254,13 +294,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  /* ---------- Boot ---------- */
+  /* ----------------- Boot ----------------- */
   function boot(){
     CONFIG = loadConfig();
     if(els.djNameText) els.djNameText.textContent = CONFIG.djName || 'DJ NAME';
     SELECTED = firstValidTrackIndex();
-    renderTracks();     // UI shows even w/o API
-    hydrateFromAPI();   // best-effort enrichment
+    renderTracks();
+    hydrateFromAPI();
   }
 
   boot();

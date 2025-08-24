@@ -1,4 +1,4 @@
-/* DJ Selects — front-end (proxy + artist schedule; viewer-local times) */
+/* DJ Selects — robust schedule + equal-height strips (viewer-local times) */
 (() => {
   const CFG = window.DJ_SELECTS || {};
 
@@ -16,7 +16,7 @@
     djName: 'DJ NAME',
     profileImage: '/images/default-dj.png',
     stationId: 'cutters-choice-radio',
-    apiKey: '',           // not needed if the PHP proxy has the key
+    apiKey: '',
     tracks: []
   };
 
@@ -52,6 +52,7 @@
 
   const setPreview = (src) => {
     mainPreview.innerHTML = `<div class="ratio big">${iframeAttrs(src, true)}</div>`;
+    sizeStripsSoon();
   };
 
   const renderStrips = (embeds) => {
@@ -69,6 +70,7 @@
       if (i === 0) { el.classList.add('selected'); setPreview(src); }
     });
     if (!embeds.length) mainPreview.innerHTML = '<div class="big-placeholder">Select a track</div>';
+    sizeStripsSoon();
   };
 
   const fmtLocal = (iso) => {
@@ -121,64 +123,124 @@
   }
 
   /* ---------- Radio Cult via proxy ---------- */
-
-  async function findArtist() {
+  // Return {kind:'artist'|'presenter', id, obj}
+  async function findContributor() {
     const base = `${CFG.PROXY_ENDPOINT}?stationId=${encodeURIComponent(shared.stationId)}`;
     const [artists, presenters] = await Promise.all([
       fetchJSON(`${base}&fn=artists`).then(j => j?.artists || j?.data || j || []).catch(()=>[]),
       fetchJSON(`${base}&fn=presenters`).then(j => j?.presenters || j?.data || j || []).catch(()=>[])
     ]);
+
     const nm = shared.djName;
-    const pool = [...artists, ...presenters];
-    const hit = pool.find(x => nameEq(x?.name, nm)) ||
-                pool.find(x => slug(x?.name) === slug(nm)) ||
-                pool.find(x => (x?.name||'').toLowerCase().includes(nm.toLowerCase()));
-    return hit || null;
+
+    const from = (arr, kind) => {
+      const hit = arr.find(x => nameEq(x?.name, nm))
+              || arr.find(x => slug(x?.name) === slug(nm))
+              || arr.find(x => (x?.name||'').toLowerCase().includes(nm.toLowerCase()));
+      return hit ? { kind, id: hit.id || hit._id || hit.slug || hit.uuid || hit.name, obj: hit } : null;
+    };
+
+    return from(artists, 'artist') || from(presenters, 'presenter');
   }
 
   async function loadDjImage() {
-    if (shared.profileImage && !/default-dj\.png$/i.test(shared.profileImage)) return; // manual override
+    if (shared.profileImage && !/default-dj\.png$/i.test(shared.profileImage)) return; // manual override in admin
     try {
-      const artist = await findArtist();
-      const img = firstImageUrl(artist);
+      const who = await findContributor();
+      const img = firstImageUrl(who?.obj);
       if (img) djProfile.src = img;
-    } catch { /* keep default */ }
+    } catch {/* keep default */}
   }
 
   async function loadNextShow() {
     nextWhen.textContent = 'Loading…';
-    try {
-      const artist = await findArtist();
-      if (!artist?.id) { nextWhen.textContent = 'No upcoming show found'; return; }
 
+    const pickSoonest = (arr) => {
+      const getIso = (s) => s.startDateUtc || s.startDate || s.start || s.scheduledStart || s.start_time || s.start_at;
       const now = new Date();
-      const end = new Date(now.getTime() + 365*24*60*60*1000);
-      const url = `${CFG.PROXY_ENDPOINT}?fn=artist_schedule&stationId=${encodeURIComponent(shared.stationId)}&artistId=${encodeURIComponent(artist.id)}&startDate=${encodeURIComponent(now.toISOString())}&endDate=${encodeURIComponent(end.toISOString())}`;
+      return arr
+        .map(s => ({ raw:s, t: new Date(getIso(s) || 0) }))
+        .filter(x => x.t instanceof Date && !isNaN(x.t) && x.t > now)
+        .sort((a,b)=> a.t - b.t)[0]?.raw || null;
+    };
 
-      const payload = await fetchJSON(url);
-      const schedules = payload?.schedules || payload?.data || [];
-      if (!Array.isArray(schedules) || !schedules.length) { nextWhen.textContent = 'TBA'; return; }
+    try {
+      const who = await findContributor();
 
-      const getIso = (s) => s.startDateUtc || s.startDate || s.start || s.scheduledStart;
-      const future = schedules
-        .map(s => ({ s, t: new Date(getIso(s) || 0) }))
-        .filter(x => x.t instanceof Date && !isNaN(x.t) && x.t > new Date())
-        .sort((a,b)=> a.t - b.t);
+      // 1) Prefer direct schedule on artist/presenter
+      if (who?.id) {
+        const now = new Date().toISOString();
+        const end = new Date(Date.now() + 365*24*60*60*1000).toISOString();
+        const fn  = who.kind === 'presenter' ? 'presenter_schedule' : 'artist_schedule';
+        const url = `${CFG.PROXY_ENDPOINT}?fn=${fn}&stationId=${encodeURIComponent(shared.stationId)}&${who.kind}Id=${encodeURIComponent(who.id)}&startDate=${encodeURIComponent(now)}&endDate=${encodeURIComponent(end)}`;
 
-      const chosen = (future[0] || { s: schedules[0] }).s;
-      const whenISO = getIso(chosen);
+        const j = await fetchJSON(url);
+        const schedules = j?.schedules || j?.data || j?.items || [];
+        const next = pickSoonest(schedules) || schedules[0] || null;
+
+        const whenISO = next && (next.startDateUtc || next.startDate || next.start || next.scheduledStart);
+        if (whenISO) {
+          nextWhen.textContent = fmtLocal(whenISO);
+          nextWhen.setAttribute('data-utc', whenISO);
+          nextWhen.title = `Start (UTC): ${new Date(whenISO).toUTCString()}`;
+          // opportunistic image
+          if (/default-dj\.png$/i.test(djProfile.src||'')) {
+            const img = firstImageUrl(j?.artist) || firstImageUrl(j?.presenter) || firstImageUrl(who.obj);
+            if (img) djProfile.src = img;
+          }
+          return;
+        }
+      }
+
+      // 2) Fallback to station /upcoming expanded and match by name or tag
+      const u = `${CFG.PROXY_ENDPOINT}?fn=upcoming&stationId=${encodeURIComponent(shared.stationId)}&limit=200&expand=artist,presenter`;
+      const up = await fetchJSON(u);
+      const list = up?.data || up?.items || up || [];
+      const nm = shared.djName, djSlug = slug(nm);
+
+      const byNameOrTag = list.filter(e => {
+        const n = (e?.artist?.name || e?.presenter?.name || e?.name || e?.title || '').toLowerCase();
+        const tagHit = (e?.tags || e?.categories || [])
+          .map(t => typeof t === 'string' ? t : (t?.slug || t?.name || ''))
+          .map(slug)
+          .includes(djSlug);
+        return n.includes(nm.toLowerCase()) || tagHit;
+      });
+
+      const next = pickSoonest(byNameOrTag) || pickSoonest(list);
+      const whenISO = next && (next.startDate || next.start || next.startDateUtc || next.scheduledStart || next.start_time || next.start_at);
 
       if (whenISO) {
         nextWhen.textContent = fmtLocal(whenISO);
         nextWhen.setAttribute('data-utc', whenISO);
         nextWhen.title = `Start (UTC): ${new Date(whenISO).toUTCString()}`;
+        if (/default-dj\.png$/i.test(djProfile.src||'')) {
+          const img = firstImageUrl(next.artist) || firstImageUrl(next.presenter) || next.image || '';
+          if (img) djProfile.src = img;
+        }
       } else {
-        nextWhen.textContent = 'TBA';
+        nextWhen.textContent = 'No upcoming show found';
       }
     } catch {
       nextWhen.textContent = 'Unable to load schedule';
     }
   }
+
+  /* ---------- even 5-row strips that fill the column ---------- */
+  function sizeStrips() {
+    // match the preview column height
+    const h = mainPreview.getBoundingClientRect().height;
+    if (h > 0) {
+      stripList.style.height = `${h}px`;
+      stripList.style.display = 'grid';
+      stripList.style.gridTemplateRows = 'repeat(5, 1fr)';
+    }
+  }
+  const sizeStripsSoon = () => setTimeout(sizeStrips, 60);
+  window.addEventListener('resize', sizeStripsSoon);
+  // in case the iframe reflows later
+  const ro = new ResizeObserver(sizeStripsSoon);
+  ro.observe(mainPreview);
 
   /* ---------- admin ---------- */
   function renderAdmin() {
@@ -288,7 +350,7 @@
     if (sessionStorage.getItem('dj-selects-auth') === '1') renderAdmin();
   }
 
-  /* ---------- apply ---------- */
+  /* ---------- apply + boot ---------- */
   function apply() {
     djNameText.textContent = shared.djName || 'DJ NAME';
     if (shared.profileImage) djProfile.src = shared.profileImage;
@@ -300,10 +362,10 @@
     loadNextShow();
   }
 
-  /* ---------- boot ---------- */
   window.addEventListener('DOMContentLoaded', async () => {
     await loadSharedConfig();
     apply();
     ensureAdmin();
+    sizeStripsSoon();
   });
 })();

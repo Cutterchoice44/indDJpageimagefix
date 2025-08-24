@@ -1,166 +1,105 @@
-<?php
-/**
- * Cutters Choice Radio — Radio Cult API proxy
- *
- * Why a proxy?
- * - Keeps your API key out of client JS
- * - Normalizes response shape (always JSON)
- * - Adds short caching and CORS
- *
- * Usage examples:
- *   /rc-proxy.php?fn=presenters&stationId=cutters-choice-radio
- *   /rc-proxy.php?fn=presenter_schedule&stationId=cutters-choice-radio&presenterId=abc123&startDate=2025-01-01T00:00:00Z&endDate=2026-01-01T00:00:00Z
- *   /rc-proxy.php?fn=artists&stationId=cutters-choice-radio
- *   /rc-proxy.php?fn=artist_schedule&stationId=cutters-choice-radio&artistId=abc123&startDate=...&endDate=...
- *   /rc-proxy.php?fn=upcoming&stationId=cutters-choice-radio&limit=50
- *   /rc-proxy.php?fn=schedule_range&stationId=cutters-choice-radio&startDate=...&endDate=...
- *
- * Provide the key either as ?key=pk_xxx or set env RC_PUBLISHABLE_KEY.
- */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DJ SELECTS — Cutters Choice Radio</title>
 
-header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: *');
-header('Vary: Origin');
-header('Cache-Control: public, max-age=60, s-maxage=60');
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
 
-$envKey = getenv('RC_PUBLISHABLE_KEY');  // optional, can be set server-side
-$key    = $_GET['key'] ?? $envKey ?? '';
-$fn     = $_GET['fn'] ?? '';
-$stationId = $_GET['stationId'] ?? '';
+  <!-- Page CSS -->
+  <link rel="stylesheet" href="dj-selects.css?v=1" />
+</head>
+<body>
 
-$startDate = $_GET['startDate'] ?? ($_GET['from'] ?? '');
-$endDate   = $_GET['endDate']   ?? ($_GET['to']   ?? '');
-$artistId      = $_GET['artistId'] ?? '';
-$presenterId   = $_GET['presenterId'] ?? '';
-$limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 50;
-$limit = max(1, min(200, $limit));
+  <!-- NAVIGATION (evenly spaced) -->
+  <nav id="main-nav">
+    <div class="nav-menu">
+      <a class="nav-link" href="our-story.html">OUR STORY</a>
+      <a class="nav-link" href="index.html">HOME</a>
+      <a class="nav-link" href="index-ourDJS.html">OUR DJS</a>
+      <a class="nav-link is-active" href="dj-selects.html">DJ SELECTS</a>
+      <a class="nav-link" href="schedule.html">SCHEDULE</a>
+      <a class="nav-link" href="merch.html">MERCH</a>
+    </div>
+  </nav>
 
-/* ---------- validation ---------- */
+  <!-- HERO STRIP -->
+  <section class="djselects-hero">
+    <div class="kicker">Each month a different Cutters DJ selects 5 tracks of the month</div>
+    <h1 class="title">THIS MONTH : <span id="djNameText" class="dj">DJ NAME</span></h1>
+    <img id="djProfileThumb" alt="DJ profile" src="" />
+  </section>
 
-// publishable key (pk_...) — allow empty only for local tests
-if ($key !== '' && !preg_match('/^pk_[A-Za-z0-9]+$/', $key)) {
-  http_response_code(400);
-  echo json_encode(['error' => 'bad_key']);
-  exit;
-}
+  <!-- NEXT SHOW BAR -->
+  <div class="next-bar">
+    <div class="label">NEXT SCHEDULED SHOW</div>
+    <div id="nextShowWhen" class="when">Loading…</div>
+  </div>
 
-// station id like "cutters-choice-radio"
-if ($stationId === '' || !preg_match('/^[a-z0-9-_.]{3,}$/i', $stationId)) {
-  http_response_code(400);
-  echo json_encode(['error' => 'bad_stationId']);
-  exit;
-}
+  <!-- MAIN CONTENT -->
+  <main class="layout">
+    <!-- Left: 5 YouTube strips (click to select) -->
+    <aside class="strips">
+      <div id="stripList" class="strip-list"><!-- populated by js --></div>
+    </aside>
 
-// id format used by RC (alphanumeric + _ -)
-$validId = '/^[A-Za-z0-9_-]{4,}$/';
+    <!-- Right: preview/player -->
+    <section class="preview">
+      <div id="mainPreview" class="preview-inner">
+        <div class="big-placeholder">Select a track</div>
+      </div>
+    </section>
+  </main>
 
-/* ---------- route mapping ---------- */
+  <!-- ADMIN FLOATING BUTTON -->
+  <button id="adminBtn" class="fab" title="Admin">⚙</button>
 
-$base = "https://api.radiocult.fm/api/station/" . rawurlencode($stationId);
-$url  = null;
+  <!-- ADMIN PANEL -->
+  <div id="adminPanel" class="admin-panel">
+    <div class="admin-header">
+      <strong>DJ SELECTS — Admin</strong>
+      <button id="adminClose" class="admin-close" title="Close">✕</button>
+    </div>
 
-switch ($fn) {
-  /* People listings */
-  case 'presenters':
-    $url = "$base/presenters";
-    break;
+    <div class="admin-body">
+      <label class="lbl">Admin Passphrase
+        <input id="adminPass" type="password" placeholder="Enter passphrase" />
+      </label>
 
-  case 'artists':
-    $url = "$base/artists";
-    break;
+      <label class="lbl">DJ Name (as listed in Radio Cult)
+        <input id="adminDjName" type="text" placeholder="DJ name" />
+      </label>
 
-  /* Individual schedules */
-  case 'presenter_schedule':
-    if ($presenterId === '' || !preg_match($validId, $presenterId)) {
-      http_response_code(400); echo json_encode(['error'=>'bad_presenterId']); exit;
-    }
-    if ($startDate === '' || $endDate === '') {
-      http_response_code(400); echo json_encode(['error'=>'missing_dates']); exit;
-    }
-    $url = "$base/presenters/" . rawurlencode($presenterId)
-         . "/schedule?startDate=" . rawurlencode($startDate)
-         . "&endDate=" . rawurlencode($endDate);
-    break;
+      <div class="row-2">
+        <label class="lbl">Station ID (from Radio Cult)
+          <input id="adminStationId" type="text" placeholder="cutters-choice-radio" />
+        </label>
+        <label class="lbl">Publishable API Key (pk_…)
+          <input id="adminApiKey" type="text" placeholder="pk_…" />
+        </label>
+      </div>
 
-  case 'artist_schedule':
-    if ($artistId === '' || !preg_match($validId, $artistId)) {
-      http_response_code(400); echo json_encode(['error'=>'bad_artistId']); exit;
-    }
-    if ($startDate === '' || $endDate === '') {
-      http_response_code(400); echo json_encode(['error'=>'missing_dates']); exit;
-    }
-    $url = "$base/artists/" . rawurlencode($artistId)
-         . "/schedule?startDate=" . rawurlencode($startDate)
-         . "&endDate=" . rawurlencode($endDate);
-    break;
+      <label class="lbl">Profile Image Override (optional)
+        <input id="profileOverride" type="url" placeholder="https://…" />
+      </label>
 
-  /* Station schedules */
-  case 'schedule_live':
-    $url = "$base/schedule/live";
-    break;
+      <div class="lbl">YouTube Track URLs (up to 5)</div>
+      <div id="adminTracks" class="tracks"><!-- populated by js --></div>
 
-  case 'upcoming':
-    // expand=artist helps name matching on the front-end
-    $url = "$base/schedule/upcoming?limit=$limit&expand=artist";
-    break;
+      <div class="admin-actions">
+        <button id="adminSave" class="btn primary">Save</button>
+        <button id="adminLogout" class="btn">Logout Admin</button>
+        <button id="adminReset" class="btn danger">Reset</button>
+      </div>
+    </div>
+  </div>
 
-  case 'schedule_range':
-    if ($startDate === '' || $endDate === '') {
-      http_response_code(400); echo json_encode(['error'=>'missing_dates']); exit;
-    }
-    $url = "$base/schedule?startDate=" . rawurlencode($startDate)
-         . "&endDate=" . rawurlencode($endDate)
-         . "&expand=artist";
-    break;
-
-  default:
-    http_response_code(400);
-    echo json_encode(['error' => 'bad_fn', 'allowed' =>
-      ['presenters','presenter_schedule','artists','artist_schedule','schedule_live','upcoming','schedule_range']
-    ]);
-    exit;
-}
-
-/* ---------- upstream call ---------- */
-
-$ch = curl_init($url);
-$headers = ['Accept: application/json'];
-if ($key !== '') { $headers[] = 'x-api-key: ' . $key; }
-
-curl_setopt_array($ch, [
-  CURLOPT_RETURNTRANSFER => true,
-  CURLOPT_HTTPHEADER     => $headers,
-  CURLOPT_USERAGENT      => 'CuttersChoiceRadio-Proxy/3.0',
-  CURLOPT_TIMEOUT        => 15,
-  CURLOPT_CONNECTTIMEOUT => 8,
-]);
-
-$out  = curl_exec($ch);
-$http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-$err  = curl_error($ch);
-curl_close($ch);
-
-if ($out === false) {
-  http_response_code(502);
-  echo json_encode(['error' => 'proxy_failed', 'detail' => $err, 'upstream' => $url]);
-  exit;
-}
-
-/* ---------- normalize to JSON ---------- */
-
-$decoded = json_decode($out, true);
-if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
-  // Upstream might have returned HTML (e.g., an error page).
-  http_response_code($http ?: 200);
-  echo json_encode([
-    'error'  => 'upstream_non_json',
-    'status' => $http,
-    'body'   => substr($out, 0, 4000)  // truncate to be safe
-  ]);
-  exit;
-}
-
-/* ---------- success ---------- */
-
-http_response_code($http ?: 200);
-echo json_encode($decoded, JSON_UNESCAPED_SLASHES);
+  <!-- PAGE JS (use the latest you have working) -->
+  <script src="dj-selects.js?v=1" defer></script>
+</body>
+</html>

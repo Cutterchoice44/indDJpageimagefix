@@ -1,116 +1,73 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cutters Choice Radio — DJ Selects</title>
+<?php
+// Radio Cult proxy -> https://api.radiocult.fm with x-api-key + stationId
+header('Content-Type: application/json; charset=utf-8');
+header('Access-Control-Allow-Origin: *');
+header('Cache-Control: public, max-age=60, s-maxage=60');
 
-  <!-- Base site styling -->
-  <link rel="stylesheet" href="style.css?v=1756013024396" />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+$envKey = getenv('RC_PUBLISHABLE_KEY');
+$key = $_GET['key'] ?? $envKey ?? 'pk_0b8abc6f834b444f949f727e88a728e0';
 
-  <!-- Page styles -->
-  <link rel="stylesheet" href="dj-selects.css?v=3" />
-</head>
-<body>
-  <!-- Header (same structure as home) -->
-  <header class="header-banner">
-    <div class="header-gif-right"></div>
-    <div class="header-gif-left"></div>
-    <div class="logo-container"><img class="logo" src="/images/logo.png" alt=""></div>
-    <div class="title"><h1>Cutters Choice Radio</h1><p class="tagline">The home of relentless flavas and significant bangers!</p></div>
-    <div class="logo-container"><img class="logo" src="/images/logo.png" alt=""></div>
-  </header>
+$fn        = $_GET['fn'] ?? '';
+$stationId = $_GET['stationId'] ?? '';
+$startDate = $_GET['startDate'] ?? ($_GET['from'] ?? '');
+$endDate   = $_GET['endDate']   ?? ($_GET['to']   ?? '');
+$artistId  = $_GET['artistId'] ?? '';
 
-  <div style="height:2px;background-color:var(--brand-teal)"></div>
+if (!preg_match('/^pk_[A-Za-z0-9]+$/', $key)) {
+  http_response_code(400); echo json_encode(['error'=>'bad_key']); exit;
+}
+if (!preg_match('/^[A-Za-z0-9-_.]{3,}$/', $stationId)) {
+  http_response_code(400); echo json_encode(['error'=>'bad_stationId']); exit;
+}
 
-  <!-- Nav (even spacing, includes DJ SELECTS) -->
-  <nav id="main-nav">
-    <div class="nav-menu">
-      <a href="our-story.html"    class="nav-link">OUR STORY</a>
-      <a href="index.html"        class="nav-link">HOME</a>
-      <a href="index-ourDJS.html" class="nav-link">OUR DJS</a>
-      <a href="dj-selects.html"   class="nav-link">DJ SELECTS</a>
-      <a href="schedule.html"     class="nav-link">SCHEDULE</a>
-      <a href="merch.html"        class="nav-link">MERCH</a>
-    </div>
-    <div class="nav-actions"></div>
-  </nav>
+$base = "https://api.radiocult.fm/api/station/$stationId";
 
-  <div style="height:2px;background-color:var(--brand-teal)"></div>
+switch ($fn) {
+  case 'artists':           $url = "$base/artists"; break;
+  case 'schedule_live':     $url = "$base/schedule/live"; break;
+  case 'upcoming':          // NEW: most reliable for “next show”
+    $limit = intval($_GET['limit'] ?? 50);
+    $url = "$base/schedule/upcoming?limit=$limit&expand=artist";
+    break;
+  case 'schedule_range':
+    if (!$startDate || !$endDate) { http_response_code(400); echo json_encode(['error'=>'missing_dates']); exit; }
+    $url = "$base/schedule?startDate=".rawurlencode($startDate)."&endDate=".rawurlencode($endDate)."&expand=artist";
+    break;
+  case 'artist_schedule':
+    if (!preg_match('/^[A-Za-z0-9_-]{6,}$/', $artistId)) { http_response_code(400); echo json_encode(['error'=>'bad_artistId']); exit; }
+    if (!$startDate || !$endDate) { http_response_code(400); echo json_encode(['error'=>'missing_dates']); exit; }
+    $url = "$base/artists/$artistId/schedule?startDate=".rawurlencode($startDate)."&endDate=".rawurlencode($endDate);
+    break;
+  default:
+    http_response_code(400); echo json_encode(['error'=>'bad_fn']); exit;
+}
 
-  <!-- Hero: strap + month line + small profile thumb -->
-  <section class="djselects-hero condensed">
-    <div class="hero-left">
-      <div class="strap">Each month a different Cutters DJ selects 5 tracks of the month</div>
-      <div class="monthline">THIS MONTH : <span id="djNameText">DJ NAME</span></div>
-    </div>
-    <div class="hero-right">
-      <img id="djProfileThumb" src="/images/default-dj.png" alt="DJ profile" />
-    </div>
-  </section>
+$ch = curl_init($url);
+curl_setopt_array($ch, [
+  CURLOPT_RETURNTRANSFER => true,
+  CURLOPT_HTTPHEADER => [
+    'x-api-key: ' . $key,
+    'Accept: application/json'
+  ],
+  CURLOPT_USERAGENT => 'CuttersChoiceRadio-Proxy/2.1',
+  CURLOPT_TIMEOUT => 15,
+]);
 
-  <!-- Top bar: Next Scheduled Show -->
-  <section class="nextbar">
-    <div class="nextbar-inner">
-      <span class="label">Next Scheduled Show</span>
-      <span class="when" id="nextShowWhen">Loading…</span>
-    </div>
-  </section>
+$out  = curl_exec($ch);
+$http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+$err  = curl_error($ch);
+curl_close($ch);
 
-  <!-- Compact layout: left strips, right big preview -->
-  <main class="compact-grid">
-    <aside id="stripList" class="strip-list"></aside>
+if ($out === false) {
+  http_response_code(502); echo json_encode(['error'=>'proxy_failed','detail'=>$err]); exit;
+}
 
-    <section class="preview" id="mainPreview">
-      <div class="big-placeholder">Select a track</div>
-    </section>
-  </main>
+$json = json_decode($out, true);
+if ($json === null && json_last_error() !== JSON_ERROR_NONE) {
+  http_response_code($http ?: 200);
+  echo json_encode(['error'=>'upstream_non_json','status'=>$http,'body'=>substr($out,0,2048)]);
+  exit;
+}
 
-  <!-- Admin -->
-  <button class="admin-btn" id="adminBtn" title="Admin"><i class="fa-solid fa-gear"></i></button>
-  <div class="admin-panel" id="adminPanel">
-    <div class="admin-head">
-      <strong>DJ SELECTS — Admin</strong>
-      <button id="adminClose" class="admin-close">&times;</button>
-    </div>
-    <div class="admin-body">
-      <label>Admin Passphrase
-        <input type="password" id="adminPass" placeholder="Enter passphrase">
-      </label>
-
-      <label>DJ Name (as listed in Radio Cult)
-        <input type="text" id="adminDjName" placeholder="e.g., MARIONETTE">
-      </label>
-
-      <div class="two-col">
-        <label>Station ID (from Radio Cult)
-          <input type="text" id="adminStationId" placeholder="cutters-choice-radio">
-        </label>
-        <label>Publishable API Key (pk_…)
-          <input type="text" id="adminApiKey" placeholder="pk_...">
-        </label>
-      </div>
-
-      <label>Profile Image Override (optional)
-        <input type="text" id="profileOverride" placeholder="https://...">
-      </label>
-
-      <div class="admin-subhead">YouTube Track URLs (up to 5)</div>
-      <div id="adminTracks"></div>
-
-      <div class="admin-actions">
-        <button id="adminSave" class="primary">Save</button>
-        <button id="adminLogout" class="ghost">Logout Admin</button>
-        <button id="adminReset" class="danger">Reset</button>
-      </div>
-    </div>
-  </div>
-
-  <script src="dj-selects.js?v=3" defer></script>
-</body>
-</html>
+http_response_code($http ?: 200);
+echo json_encode($json);

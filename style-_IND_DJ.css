@@ -21,14 +21,12 @@
   color: #fff;
   text-align: left;
 }
-.djselects-hero #djNameText {
-  color: var(--brand-teal);
-}
+.djselects-hero #djNameText { color: var(--brand-teal); }
 
 /* --- Grid layout to echo your mock --- */
 .djselects-grid {
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr 1.4fr 0.4fr; /* left tracks / next / profile / spacer  */
+  grid-template-columns: 1.2fr 0.8fr 1.4fr 0.4fr; /* tracks / next / profile / spacer  */
   gap: 0.75rem;
   padding: 0.6rem;
 }
@@ -36,7 +34,7 @@
 /* Left column — track widgets */
 .tracklist {
   display: grid;
-  grid-template-rows: repeat(5, minmax(120px, 1fr));
+  grid-template-rows: repeat(5, minmax(180px, 1fr));
   gap: 0.5rem;
   border: 2px solid var(--brand-teal);
   padding: 0.4rem;
@@ -56,6 +54,13 @@
   position: absolute; inset: 0;
   width: 100%; height: 100%;
   border: 0;
+}
+.yt-placeholder{
+  display:grid; place-items:center;
+  color:#7d9b99; text-transform:uppercase;
+  letter-spacing:.04em;
+  font-family:'Bebas Neue',sans-serif;
+  font-size: clamp(1rem, 2.2vw, 1.4rem);
 }
 
 /* Centre-left — next show block */
@@ -92,7 +97,7 @@
   max-height: 70vh; border-radius: 4px;
 }
 .profile .credit {
-  color: #888; font-size: 0.9rem; margin-top: 0.25rem; text-align: center;
+  color: #bfc9c8; font-size: 0.95rem; margin-top: 0.25rem; text-align: center;
 }
 
 /* Far-right spacer */
@@ -102,16 +107,17 @@
 .admin-btn {
   position: fixed; right: 12px; bottom: 12px;
   background: var(--brand-teal);
-  color: #fff; border: none; border-radius: 999px;
+  color: #000; border: none; border-radius: 999px;
   width: 48px; height: 48px; cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center;
-  z-index: 9999;
+  z-index: 9999; box-shadow: 0 6px 18px rgba(0,0,0,.35);
 }
 .admin-panel {
   position: fixed; right: 12px; bottom: 72px;
-  width: min(520px, 94vw); max-height: 80vh;
+  width: min(560px, 94vw); max-height: 82vh;
   background: #0c0c0c; color: #fff; border: 2px solid var(--brand-teal);
   border-radius: 10px; display: none; flex-direction: column; z-index: 9999;
+  box-shadow: 0 10px 30px rgba(0,0,0,.45);
 }
 .admin-panel.open { display: flex; }
 .admin-head {
@@ -121,23 +127,12 @@
 .admin-close {
   background: none; border: none; color: #fff; font-size: 1.6rem; cursor: pointer;
 }
-.admin-body { padding: 0.8rem; overflow-y: auto; }
+.admin-body { padding: 0.8rem; overflow-y: auto; padding-bottom: 5.5rem; } /* extra bottom padding so content isn't hidden */
 .admin-body label { display: block; margin-bottom: 0.65rem; font-size: 0.95rem; }
 .admin-body input {
-  width: 100%; padding: 0.5rem; background: #111; color: #fff; border: 1px solid #264745; border-radius: 6px;
+  width: 100%; padding: 0.55rem; background: #111; color: #fff; border: 1px solid #264745; border-radius: 6px;
   margin-top: 0.25rem;
 }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
 .admin-subhead { margin-top: 0.6rem; margin-bottom: 0.3rem; font-weight: 700; }
-#adminTracks .track-input { display: grid; grid-template-columns: 1fr auto auto; gap: 0.5rem; margin-bottom: 0.5rem; }
-#adminTracks .track-input button { padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid #264745; background: #121212; color: #fff; cursor: pointer; }
-.admin-actions { display: flex; gap: 0.5rem; margin-top: 0.8rem; }
-.admin-actions .primary { background: var(--brand-teal); color: #000; border: none; }
-.admin-actions .ghost { background: #0f0f0f; }
-.admin-actions .danger { background: #301616; border-color: #5a2020; }
-
-/* --- Responsive tweaks --- */
-@media (max-width: 960px) {
-  .djselects-grid { grid-template-columns: 1fr; }
-  .spacer { display: none; }
-  .profile img { max-height: none; }
-}
+#adminTracks .track-input {

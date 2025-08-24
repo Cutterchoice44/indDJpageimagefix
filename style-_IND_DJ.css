@@ -47,8 +47,10 @@
 
 /* Strips: full-click overlay */
 .strip-list{
-  display:grid; grid-template-rows:repeat(5,90px);
-  gap:.45rem; border:2px solid var(--brand-teal); padding:.35rem; background:#000;
+  display:grid;
+  grid-template-rows:repeat(5,1fr);
+  gap:.45rem;
+  height:100%;
 }
 .strip{
   position:relative;

@@ -1,57 +1,98 @@
 <?php
 /**
- * dj-selects-config.php — simple config store for DJ Selects
- * GET  ?action=load
- * POST ?action=save   body: {"token":"...","data":{...}}
+ * rc-proxy.php — Radio Cult server-side proxy (with schedule fallback)
+ * - Calls RC from your server with x-api-key and returns JSON.
+ * - For artist/presenter schedules: try station-scoped first, then global path.
  */
 declare(strict_types=1);
+
+const RC_BASE    = 'https://api.radiocult.fm/api';
+const RC_API_KEY = 'pk_0b8abc6f834b444f949f727e88a728e0';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, must-revalidate');
 header('Access-Control-Allow-Origin: *');
 
-$DATA_FILE    = __DIR__ . '/dj-selects-data.json';
-$SERVER_TOKEN = 'CCR_TEMP_TOKEN_!2025';   // must match SAVE_TOKEN in the HTML
-
+function build_url(string $base, string $path, array $qs = []): string {
+  $q = http_build_query(array_filter($qs, static fn($v) => $v !== '' && $v !== null));
+  return rtrim($base, '/') . $path . ($q ? ('?' . $q) : '');
+}
 function out($arr, $code=200){ http_response_code($code); echo json_encode($arr, JSON_UNESCAPED_SLASHES); exit; }
 
-$action = $_GET['action'] ?? '';
-if ($action === 'load') {
-  if (!is_file($DATA_FILE)) out([]);
-  $raw = @file_get_contents($DATA_FILE);
-  if ($raw === false) out(['error'=>'read_failed'], 500);
-  $json = json_decode($raw, true);
-  // don’t leak anything unexpected
-  $allow = ['djName','profileImage','stationId','tracks','apiKey'];
-  $safe  = array_intersect_key((array)$json, array_flip($allow));
-  out($safe ?: []);
+function fetch_upstream(string $url): array {
+  $ch = curl_init($url);
+  curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_FOLLOWLOCATION => true,
+    CURLOPT_TIMEOUT        => 15,
+    CURLOPT_HTTPHEADER     => ['Accept: application/json', 'x-api-key: '.RC_API_KEY],
+  ]);
+  $resp = curl_exec($ch);
+  $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+  $err  = curl_error($ch);
+  curl_close($ch);
+  return [$code, $resp, $err];
 }
 
-if ($action === 'save') {
-  $body = json_decode(file_get_contents('php://input') ?: '[]', true);
-  $token = $body['token'] ?? '';
-  if ($token !== $SERVER_TOKEN) out(['error'=>'forbidden'], 403);
+$fn        = $_GET['fn']        ?? 'ping';
+$stationId = $_GET['stationId'] ?? '';
+$limit     = isset($_GET['limit']) ? max(1, (int)$_GET['limit']) : 50;
+$expand    = $_GET['expand']    ?? '';
 
-  $data = $body['data'] ?? [];
-  if (!is_array($data)) out(['error'=>'bad_data'], 400);
+if ($fn === 'ping') out(['ok'=>true]);
+if (!$stationId && !in_array($fn, ['ping'])) out(['error'=>'stationId_required'], 400);
 
-  // whitelist keys
-  $allow = ['djName','profileImage','stationId','tracks','apiKey'];
-  $clean = array_intersect_key($data, array_flip($allow));
+switch ($fn) {
+  case 'artists': {
+    [$code,$resp,$err] = fetch_upstream(build_url(RC_BASE, '/station/'.rawurlencode($stationId).'/artists'));
+    if ($resp === false || $code >= 400) out(['error'=>'upstream_error','status'=>$code,'detail'=>$err ?: $resp], 502);
+    echo $resp; exit;
+  }
+  case 'presenters': {
+    [$code,$resp,$err] = fetch_upstream(build_url(RC_BASE, '/station/'.rawurlencode($stationId).'/presenters'));
+    if ($resp === false || $code >= 400) out(['error'=>'upstream_error','status'=>$code,'detail'=>$err ?: $resp], 502);
+    echo $resp; exit;
+  }
+  case 'upcoming': {
+    $u = build_url(RC_BASE, '/station/'.rawurlencode($stationId).'/upcoming', ['limit'=>$limit, 'expand'=>$expand]);
+    [$code,$resp,$err] = fetch_upstream($u);
+    if ($resp === false || $code >= 400) out(['error'=>'upstream_error','status'=>$code,'detail'=>$err ?: $resp], 502);
+    echo $resp; exit;
+  }
+  case 'artist_schedule': {
+    $artistId  = $_GET['artistId']  ?? '';
+    $startDate = $_GET['startDate'] ?? '';
+    $endDate   = $_GET['endDate']   ?? '';
+    if (!$artistId) out(['error'=>'artistId_required'], 400);
 
-  // basic normalisation
-  $clean['djName']       = trim((string)($clean['djName'] ?? 'DJ NAME'));
-  $clean['profileImage'] = trim((string)($clean['profileImage'] ?? '/images/default-dj.png'));
-  $clean['stationId']    = trim((string)($clean['stationId'] ?? 'cutters-choice-radio'));
-  $clean['tracks']       = array_values(array_slice(array_filter((array)($clean['tracks'] ?? []), 'strlen'), 0, 5));
+    // Try station-scoped first
+    $u1 = build_url(RC_BASE, '/station/'.rawurlencode($stationId).'/artists/'.rawurlencode($artistId).'/schedule', ['startDate'=>$startDate,'endDate'=>$endDate]);
+    [$c1,$r1,$e1] = fetch_upstream($u1);
+    if ($r1 !== false && $c1 < 400) { echo $r1; exit; }
 
-  $tmp = $DATA_FILE . '.tmp';
-  if (@file_put_contents($tmp, json_encode($clean, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)) === false)
-    out(['error'=>'write_failed'], 500);
+    // Fallback to global path
+    $u2 = build_url(RC_BASE, '/artists/'.rawurlencode($artistId).'/schedule', ['startDate'=>$startDate,'endDate'=>$endDate]);
+    [$c2,$r2,$e2] = fetch_upstream($u2);
+    if ($r2 !== false && $c2 < 400) { echo $r2; exit; }
 
-  @rename($tmp, $DATA_FILE);
-  @chmod($DATA_FILE, 0644);
-  out(['ok'=>true]);
+    out(['error'=>'upstream_error','status'=>$c2,'detail'=>$e2 ?: $r2], 502);
+  }
+  case 'presenter_schedule': {
+    $presenterId  = $_GET['presenterId']  ?? '';
+    $startDate = $_GET['startDate'] ?? '';
+    $endDate   = $_GET['endDate']   ?? '';
+    if (!$presenterId) out(['error'=>'presenterId_required'], 400);
+
+    $u1 = build_url(RC_BASE, '/station/'.rawurlencode($stationId).'/presenters/'.rawurlencode($presenterId).'/schedule', ['startDate'=>$startDate,'endDate'=>$endDate]);
+    [$c1,$r1,$e1] = fetch_upstream($u1);
+    if ($r1 !== false && $c1 < 400) { echo $r1; exit; }
+
+    $u2 = build_url(RC_BASE, '/presenters/'.rawurlencode($presenterId).'/schedule', ['startDate'=>$startDate,'endDate'=>$endDate]);
+    [$c2,$r2,$e2] = fetch_upstream($u2);
+    if ($r2 !== false && $c2 < 400) { echo $r2; exit; }
+
+    out(['error'=>'upstream_error','status'=>$c2,'detail'=>$e2 ?: $r2], 502);
+  }
+  default:
+    out(['error'=>'bad_fn'], 400);
 }
-
-out(['error'=>'bad_action'], 400);

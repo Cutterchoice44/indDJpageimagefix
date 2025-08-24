@@ -1,71 +1,121 @@
 <?php
 /**
- * DJ Selects config store (JSON file)
+ * Radio Cult proxy for DJ Selects
+ * - Calls RC from the server with x-api-key
+ * - Avoids 403s/CORS
+ * Supported fn:
+ *   artists, presenters, upcoming, artist_schedule, presenter_schedule
  */
 declare(strict_types=1);
+
 header('Content-Type: application/json; charset=utf-8');
-header('Cache-Control: no-store');
+header('Cache-Control: no-store, must-revalidate');
 header('Access-Control-Allow-Origin: *');
 
-$DATA_FILE = __DIR__ . '/dj-selects-data.json';
+$RC_BASE = 'https://api.radiocult.fm/api';
 
-/* Change this to your own long random string */
-$SERVER_TOKEN = 'CCR_TEMP_TOKEN_!2025';
+/* === SET YOUR KEY HERE OR USE ENV ===
+   Option A: put your pk_ key here (recommended quick fix)
+*/
+$RC_API_KEY = ''; // e.g. 'pk_xxxxxxxxxxxxxxxxxxxxx'
 
-$action = $_GET['action'] ?? 'load';
+/* Option B: use env var RC_PUBLISHABLE_KEY (DreamHost Panel → Environment Variables) */
+if (!$RC_API_KEY) {
+  $env = getenv('RC_PUBLISHABLE_KEY');
+  if ($env) $RC_API_KEY = $env;
+}
 
-if ($action === 'load') {
-  if (!file_exists($DATA_FILE)) {
-    echo json_encode([
-      'djName' => 'DJ NAME',
-      'profileImage' => '/images/default-dj.png',
-      'stationId' => 'cutters-choice-radio',
-      'apiKey' => '',
-      'tracks' => []
-    ], JSON_UNESCAPED_SLASHES);
-    exit;
-  }
-  $raw = file_get_contents($DATA_FILE);
-  echo $raw ?: '{}';
+/* (Optional) also allow a ?key= override for testing */
+if (!$RC_API_KEY && !empty($_GET['key'])) {
+  $RC_API_KEY = $_GET['key'];
+}
+
+$fn        = $_GET['fn']        ?? '';
+$stationId = $_GET['stationId'] ?? '';
+$limit     = isset($_GET['limit']) ? (int)$_GET['limit'] : 50;
+$expand    = $_GET['expand']    ?? '';
+
+if (!$stationId) {
+  http_response_code(400);
+  echo json_encode(['error' => 'stationId_required']);
   exit;
 }
 
-if ($action === 'save') {
-  $body = json_decode(file_get_contents('php://input'), true);
-  $token = $body['token'] ?? '';
-  if ($token !== $SERVER_TOKEN) {
-    http_response_code(403);
-    echo json_encode(['error'=>'forbidden']);
-    exit;
+function build_url($base, $path, $qs=[]) {
+  $q = http_build_query(array_filter($qs, fn($v)=>$v!=='' && $v!==null));
+  return rtrim($base, '/') . $path . ($q ? ('?' . $q) : '');
+}
+
+$upstream = '';
+switch ($fn) {
+  case 'artists':
+    $upstream = build_url($RC_BASE, '/station/' . rawurlencode($stationId) . '/artists');
+    break;
+
+  case 'presenters':
+    $upstream = build_url($RC_BASE, '/station/' . rawurlencode($stationId) . '/presenters');
+    break;
+
+  case 'upcoming':
+    $upstream = build_url(
+      $RC_BASE,
+      '/station/' . rawurlencode($stationId) . '/upcoming',
+      ['limit' => $limit, 'expand' => $expand]
+    );
+    break;
+
+  case 'artist_schedule': {
+    $artistId  = $_GET['artistId']  ?? '';
+    $startDate = $_GET['startDate'] ?? '';
+    $endDate   = $_GET['endDate']   ?? '';
+    if (!$artistId) { http_response_code(400); echo json_encode(['error'=>'artistId_required']); exit; }
+    $upstream = build_url(
+      $RC_BASE,
+      '/station/' . rawurlencode($stationId) . '/artists/' . rawurlencode($artistId) . '/schedule',
+      ['startDate'=>$startDate, 'endDate'=>$endDate]
+    );
+    break;
   }
 
-  $data = $body['data'] ?? null;
-  if (!$data || !is_array($data)) {
+  case 'presenter_schedule': {
+    $presenterId  = $_GET['presenterId']  ?? '';
+    $startDate = $_GET['startDate'] ?? '';
+    $endDate   = $_GET['endDate']   ?? '';
+    if (!$presenterId) { http_response_code(400); echo json_encode(['error'=>'presenterId_required']); exit; }
+    $upstream = build_url(
+      $RC_BASE,
+      '/station/' . rawurlencode($stationId) . '/presenters/' . rawurlencode($presenterId) . '/schedule',
+      ['startDate'=>$startDate, 'endDate'=>$endDate]
+    );
+    break;
+  }
+
+  default:
     http_response_code(400);
-    echo json_encode(['error'=>'bad_data']);
+    echo json_encode(['error' => 'bad_fn']);
     exit;
-  }
+}
 
-  $data['djName'] = trim((string)($data['djName'] ?? 'DJ NAME'));
-  $data['stationId'] = trim((string)($data['stationId'] ?? 'cutters-choice-radio'));
+$ch = curl_init($upstream);
+curl_setopt_array($ch, [
+  CURLOPT_RETURNTRANSFER => true,
+  CURLOPT_FOLLOWLOCATION => true,
+  CURLOPT_TIMEOUT        => 15,
+  CURLOPT_HTTPHEADER     => array_filter([
+    'Accept: application/json',
+    $RC_API_KEY ? ('x-api-key: ' . $RC_API_KEY) : null,
+  ])
+]);
 
-  $tracks = $data['tracks'] ?? [];
-  if (!is_array($tracks)) $tracks = [];
-  $data['tracks'] = array_values(array_slice(array_filter($tracks, function($u){
-    return is_string($u) && preg_match('#^https?://#', $u);
-  }), 0, 5));
+$resp = curl_exec($ch);
+$http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+$err  = curl_error($ch);
+curl_close($ch);
 
-  $tmp = $DATA_FILE . '.tmp';
-  if (file_put_contents($tmp, json_encode($data, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)) === false) {
-    http_response_code(500);
-    echo json_encode(['error'=>'write_failed']);
-    exit;
-  }
-  rename($tmp, $DATA_FILE);
-  @chmod($DATA_FILE, 0644);
-  echo json_encode(['ok'=>true]);
+if ($resp === false || $http >= 400) {
+  http_response_code(502);
+  echo json_encode(['error' => 'upstream_error', 'status' => $http, 'detail' => $err ?: $resp]);
   exit;
 }
 
-http_response_code(400);
-echo json_encode(['error'=>'bad_action']);
+echo $resp;

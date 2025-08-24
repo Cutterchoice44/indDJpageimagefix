@@ -1,4 +1,4 @@
-/* DJ Selects — full front-end (robust RC lookups; viewer-local times) */
+/* DJ Selects — full front-end using Radio Cult API directly (like DJ Profiles) */
 (() => {
   const CFG = window.DJ_SELECTS || {};
 
@@ -12,11 +12,14 @@
   const nextWhen    = $('#nextShowWhen');
   const adminMount  = $('#adminMount');
 
+  // RC base matches the profiles page pattern
+  const RC_BASE = CFG.RC_BASE || 'https://api.radiocult.fm/api';
+
   let shared = {
     djName: 'DJ NAME',
     profileImage: '/images/default-dj.png',
     stationId: 'cutters-choice-radio',
-    apiKey: '',
+    apiKey: '',        // publishable pk_… key
     tracks: []
   };
 
@@ -96,30 +99,24 @@
     return A && B && (A===B || slug(A)===slug(B));
   };
 
-  const firstImageUrl = (o) => {
-    if (!o) return '';
-    return (
-      o.image || o.imageUrl || o.avatar || o.avatarUrl ||
-      (Array.isArray(o.images) && o.images.length && (o.images[0].url || o.images[0].src)) ||
-      ''
-    );
-  };
+  const rcHeaders = () => (shared.apiKey
+    ? { 'x-api-key': shared.apiKey }
+    : {} // allow open endpoints if key not needed
+  );
 
-  const keyParam = () => shared.apiKey ? `&key=${encodeURIComponent(shared.apiKey)}` : '';
   const fetchJSON = async (url) => {
-    const res = await fetch(url, { headers:{'Accept':'application/json'}, cache:'no-store' });
-    if (!res.ok) {
-      const txt = await res.text().catch(()=> '');
-      throw new Error(`HTTP ${res.status} ${txt.slice(0,120)}`);
-    }
-    try { return await res.json(); } catch { throw new Error('Non-JSON response'); }
+    const res = await fetch(url, { headers: rcHeaders(), cache:'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
   };
 
   /* ---------------- server config ---------------- */
 
   async function loadSharedConfig() {
     try {
-      const data = await fetchJSON(`${CFG.CONFIG_ENDPOINT}?action=load`);
+      const res = await fetch(`${CFG.CONFIG_ENDPOINT}?action=load`, {cache:'no-store'});
+      if (!res.ok) throw new Error('load failed');
+      const data = await res.json();
       if (data && data.djName) shared = {...shared, ...data};
     } catch {
       const raw = localStorage.getItem('dj-selects-config');
@@ -127,102 +124,73 @@
     }
   }
 
-  /* ---------------- Radio Cult lookups ---------------- */
+  /* ---------------- Radio Cult (match artist, image, schedule) ---------------- */
 
-  async function loadDjImage() {
-    // Respect manual override unless it's the default placeholder.
-    if (shared.profileImage && !/default-dj\.png$/i.test(shared.profileImage)) return;
-
-    const base = `${CFG.PROXY_ENDPOINT}?stationId=${encodeURIComponent(shared.stationId)}${keyParam()}`;
-
+  async function loadRcArtistAndImage() {
     try {
-      // Pull both lists; match name loosely.
-      const [artists, presenters] = await Promise.all([
-        fetchJSON(`${base}&fn=artists`).then(j => j?.data || j || []).catch(()=>[]),
-        fetchJSON(`${base}&fn=presenters`).then(j => j?.data || j || []).catch(()=>[])
-      ]);
+      const url = `${RC_BASE}/station/${encodeURIComponent(shared.stationId)}/artists`;
+      const payload = await fetchJSON(url);
 
-      const pool = [...artists, ...presenters];
+      const artists = payload?.artists || payload?.data || [];
       const nm = shared.djName;
-      let hit = pool.find(x => nameEq(x?.name, nm))
-             || pool.find(x => slug(x?.name) === slug(nm))
-             || pool.find(x => (x?.name||'').toLowerCase().includes(nm.toLowerCase()));
 
-      const url = firstImageUrl(hit);
-      if (url) djProfile.src = url;
+      // match by exact or slug or contains
+      let artist = artists.find(a => nameEq(a?.name, nm))
+               || artists.find(a => slug(a?.name) === slug(nm))
+               || artists.find(a => (a?.name||'').toLowerCase().includes(nm.toLowerCase()));
+
+      if (!artist) return null;
+
+      // Set image the same way the profiles page does (logo.512x512 or default)
+      const logo = (artist.logo && (artist.logo['512x512'] || artist.logo.default)) || '';
+      if (logo && (/default-dj\.png$/i.test(djProfile.src) || !djProfile.src)) {
+        djProfile.src = logo;
+      }
+      return artist;
     } catch {
-      /* keep default */
+      return null;
     }
   }
 
-  async function loadNextShow() {
+  async function loadNextShowFromArtist(artist) {
     nextWhen.textContent = 'Loading…';
-
-    // We only use the proxy’s `upcoming` (it already expands `artist`)
-    const base = `${CFG.PROXY_ENDPOINT}?fn=upcoming&stationId=${encodeURIComponent(shared.stationId)}&limit=200${keyParam()}`;
+    if (!artist?.id) { nextWhen.textContent = 'No upcoming show found'; return; }
 
     try {
-      const json = await fetchJSON(base);
-      const list = json?.data || json || [];
-      if (!Array.isArray(list) || !list.length) {
-        nextWhen.textContent = 'No upcoming show found';
-        nextWhen.title = 'Proxy returned no data';
-        return;
+      // Follow the working profiles page: /artists/{id}/schedule with x-api-key
+      const now = new Date().toISOString();
+      const nextYear = new Date(Date.now() + 365*24*60*60*1000).toISOString();
+
+      const url = `${RC_BASE}/station/${encodeURIComponent(shared.stationId)}/artists/${encodeURIComponent(artist.id)}/schedule?startDate=${encodeURIComponent(now)}&endDate=${encodeURIComponent(nextYear)}`;
+      const payload = await fetchJSON(url);
+
+      // profiles page uses { schedules: [...] } and reads startDateUtc
+      const schedules = payload?.schedules || payload?.data || [];
+      if (!Array.isArray(schedules) || !schedules.length) { nextWhen.textContent = 'TBA'; return; }
+
+      // If not sorted, pick soonest future
+      const getIso = (s) => s.startDateUtc || s.startDate || s.start || s.scheduledStart;
+      const future = schedules
+        .map(s => ({ s, t: new Date(getIso(s) || 0) }))
+        .filter(x => x.t instanceof Date && !isNaN(x.t) && x.t > new Date())
+        .sort((a,b)=>a.t-b.t);
+
+      const chosen = (future[0] || { s: schedules[0] }).s;
+      const whenISO = getIso(chosen);
+      nextWhen.textContent = whenISO ? fmtLocal(whenISO) : 'TBA';
+      if (whenISO) {
+        nextWhen.setAttribute('data-utc', whenISO);
+        nextWhen.title = `Start (UTC): ${new Date(whenISO).toUTCString()}`;
       }
-
-      // Pick the first event that matches DJ by artist/presenter/name/slug/tags.
-      const dj = shared.djName;
-      const djSlug = slug(dj);
-
-      const getName = (evt) =>
-        (evt?.artist?.name || evt?.presenter?.name || evt?.name || evt?.title || '');
-
-      const hasTag = (evt) => {
-        const tags = evt?.tags || evt?.categories || [];
-        if (!Array.isArray(tags)) return false;
-        return tags.map(x => (typeof x === 'string' ? x : (x?.slug || x?.name || '')))
-                   .map(slug)
-                   .includes(djSlug);
-      };
-
-      const matchers = [
-        (e)=> nameEq(e?.artist?.name, dj),
-        (e)=> (e?.artist?.slug && slug(e.artist.slug)===djSlug),
-        (e)=> nameEq(e?.presenter?.name, dj),              // may be undefined if proxy doesn’t expand presenters
-        (e)=> getName(e).toLowerCase().includes(dj.toLowerCase()),
-        (e)=> hasTag(e),
-      ];
-
-      let target = list.find(e => matchers.some(fn => fn(e)));
-
-      if (!target) {
-        nextWhen.textContent = 'No upcoming show found';
-        nextWhen.title = 'Could not match DJ in upcoming list';
-        return;
-      }
-
-      // Use common RC datetime fields
-      const whenISO = target.startDate || target.start || target.scheduledStart || target.start_time || target.start_at || '';
-      if (!whenISO) {
-        nextWhen.textContent = 'TBA';
-        nextWhen.title = 'Event has no start time';
-        return;
-      }
-
-      nextWhen.textContent = fmtLocal(whenISO);
-      nextWhen.setAttribute('data-utc', whenISO);
-      nextWhen.title = `Start (UTC): ${new Date(whenISO).toUTCString()}`;
-
-      // Opportunistically set image from event if we still have the default.
-      if (/default-dj\.png$/i.test(djProfile.src || '')) {
-        const img = firstImageUrl(target.artist) || firstImageUrl(target.presenter) || target.image || '';
-        if (img) djProfile.src = img;
-      }
-    } catch (err) {
+    } catch {
       nextWhen.textContent = 'Unable to load schedule';
-      // small hint for quick self-check:
-      nextWhen.title = `Check proxy: ${base}`;
     }
+  }
+
+  async function loadArtistBits() {
+    // If you manually set a profileImage (not default), we still try to fetch next show
+    const artist = await loadRcArtistAndImage();
+    await loadNextShowFromArtist(artist);
   }
 
   /* ---------------- admin (hidden until auth) ---------------- */
@@ -251,7 +219,7 @@
           <label>Station ID
             <input type="text" id="adminStationId" placeholder="cutters-choice-radio" value="${shared.stationId}">
           </label>
-          <label>Publishable API Key (optional – proxy can use server env)
+          <label>Publishable API Key (required if RC needs it)
             <input type="text" id="adminApiKey" placeholder="pk_..." value="${shared.apiKey}">
           </label>
         </div>
@@ -314,10 +282,8 @@
       const urls = $$('.track-input input', panel).map(i => i.value.trim()).filter(Boolean);
       shared.tracks = urls.slice(0,5);
 
-      // Local convenience for you
       localStorage.setItem('dj-selects-config', JSON.stringify(shared));
 
-      // Server save (shared for everyone) if token configured
       if (CFG.SAVE_TOKEN) {
         try {
           const res = await fetch(`${CFG.CONFIG_ENDPOINT}?action=save`, {
@@ -334,7 +300,9 @@
         alert('Saved locally. To save for everyone, set SAVE_TOKEN in this page and $SERVER_TOKEN in dj-selects-config.php.');
       }
 
-      applyConfig();
+      applyConfig(); // re-render tracks
+      // and refresh RC bits immediately with new key/name
+      loadArtistBits();
       close();
     });
 
@@ -365,11 +333,10 @@
     document.addEventListener('keydown', async (e) => {
       if (e.key.toLowerCase()==='a' && e.shiftKey) await promptAuth();
     });
-
     if (sessionStorage.getItem('dj-selects-auth') === '1') renderAdmin();
   }
 
-  /* ---------------- apply to UI ---------------- */
+  /* ---------------- apply + boot ---------------- */
 
   function applyConfig() {
     djNameText.textContent = shared.djName || 'DJ NAME';
@@ -378,12 +345,9 @@
     const embeds = (shared.tracks || []).map(toEmbed).filter(Boolean);
     renderStrips(embeds);
 
-    // Radio Cult lookups
-    loadDjImage();
-    loadNextShow();
+    // Load RC image + schedule (both driven by the same artist match)
+    loadArtistBits();
   }
-
-  /* ---------------- BOOT ---------------- */
 
   window.addEventListener('DOMContentLoaded', async () => {
     await loadSharedConfig();

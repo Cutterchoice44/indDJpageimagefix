@@ -1,4 +1,4 @@
-/* DJ Selects — full front-end (viewer-local times + robust RC lookups) */
+/* DJ Selects — full front-end (robust RC lookups; viewer-local times) */
 (() => {
   const CFG = window.DJ_SELECTS || {};
 
@@ -106,11 +106,13 @@
   };
 
   const keyParam = () => shared.apiKey ? `&key=${encodeURIComponent(shared.apiKey)}` : '';
-
   const fetchJSON = async (url) => {
     const res = await fetch(url, { headers:{'Accept':'application/json'}, cache:'no-store' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return res.json();
+    if (!res.ok) {
+      const txt = await res.text().catch(()=> '');
+      throw new Error(`HTTP ${res.status} ${txt.slice(0,120)}`);
+    }
+    try { return await res.json(); } catch { throw new Error('Non-JSON response'); }
   };
 
   /* ---------------- server config ---------------- */
@@ -125,94 +127,101 @@
     }
   }
 
-  /* ---------------- Radio Cult helpers ---------------- */
-
-  async function findDjRecord() {
-    // get both lists and try to match the DJ name
-    const base = `${CFG.PROXY_ENDPOINT}?stationId=${encodeURIComponent(shared.stationId)}${keyParam()}`;
-    let artists = [], presenters = [];
-    try { artists    = (await fetchJSON(`${base}&fn=artists`))?.data || []; } catch {}
-    try { presenters = (await fetchJSON(`${base}&fn=presenters`))?.data || []; } catch {}
-
-    let rec = artists.find(x => nameEq(x?.name, shared.djName));
-    if (rec) return { kind:'artist', rec };
-
-    // try slug / contains for artists
-    const djSlug = slug(shared.djName);
-    rec = artists.find(x => slug(x?.name) === djSlug) || artists.find(x => (x?.name||'').toLowerCase().includes(shared.djName.toLowerCase()));
-    if (rec) return { kind:'artist', rec };
-
-    // presenters
-    rec = presenters.find(x => nameEq(x?.name, shared.djName))
-       || presenters.find(x => slug(x?.name) === djSlug)
-       || presenters.find(x => (x?.name||'').toLowerCase().includes(shared.djName.toLowerCase()));
-    if (rec) return { kind:'presenter', rec };
-
-    return null;
-  }
-
-  async function fetchNextShowFor(recInfo) {
-    if (!recInfo) return null;
-
-    const now = new Date();
-    const start = now.toISOString();
-    const end   = new Date(now.getTime() + 90*24*60*60*1000).toISOString(); // +90 days
-
-    const base = `${CFG.PROXY_ENDPOINT}?stationId=${encodeURIComponent(shared.stationId)}${keyParam()}`;
-    let url;
-    if (recInfo.kind === 'artist') {
-      url = `${base}&fn=artist_schedule&artistId=${encodeURIComponent(recInfo.rec.id || recInfo.rec._id || recInfo.rec.slug || recInfo.rec.slugId || '')}&startDate=${encodeURIComponent(start)}&endDate=${encodeURIComponent(end)}`;
-    } else {
-      url = `${base}&fn=presenter_schedule&presenterId=${encodeURIComponent(recInfo.rec.id || recInfo.rec._id || recInfo.rec.slug || recInfo.rec.slugId || '')}&startDate=${encodeURIComponent(start)}&endDate=${encodeURIComponent(end)}`;
-    }
-
-    try {
-      const data = await fetchJSON(url);
-      const items = data?.data || data || [];
-      // Normalize date field and pick soonest future
-      const getStart = (e) => e.startDate || e.start || e.scheduledStart || e.start_time || e.start_at || null;
-      const future = items
-        .map(e => ({ e, t: new Date(getStart(e) || 0) }))
-        .filter(x => x.t instanceof Date && !isNaN(x.t) && x.t > now)
-        .sort((a,b)=>a.t-b.t);
-      return future[0]?.e || null;
-    } catch {
-      return null;
-    }
-  }
-
-  /* ---------------- image + next show ---------------- */
+  /* ---------------- Radio Cult lookups ---------------- */
 
   async function loadDjImage() {
-    // respect manual override if not default
+    // Respect manual override unless it's the default placeholder.
     if (shared.profileImage && !/default-dj\.png$/i.test(shared.profileImage)) return;
+
+    const base = `${CFG.PROXY_ENDPOINT}?stationId=${encodeURIComponent(shared.stationId)}${keyParam()}`;
+
     try {
-      const match = await findDjRecord();
-      const url = firstImageUrl(match?.rec);
+      // Pull both lists; match name loosely.
+      const [artists, presenters] = await Promise.all([
+        fetchJSON(`${base}&fn=artists`).then(j => j?.data || j || []).catch(()=>[]),
+        fetchJSON(`${base}&fn=presenters`).then(j => j?.data || j || []).catch(()=>[])
+      ]);
+
+      const pool = [...artists, ...presenters];
+      const nm = shared.djName;
+      let hit = pool.find(x => nameEq(x?.name, nm))
+             || pool.find(x => slug(x?.name) === slug(nm))
+             || pool.find(x => (x?.name||'').toLowerCase().includes(nm.toLowerCase()));
+
+      const url = firstImageUrl(hit);
       if (url) djProfile.src = url;
-    } catch {}
+    } catch {
+      /* keep default */
+    }
   }
 
   async function loadNextShow() {
     nextWhen.textContent = 'Loading…';
 
-    try {
-      const match = await findDjRecord();
-      const event = await fetchNextShowFor(match);
+    // We only use the proxy’s `upcoming` (it already expands `artist`)
+    const base = `${CFG.PROXY_ENDPOINT}?fn=upcoming&stationId=${encodeURIComponent(shared.stationId)}&limit=200${keyParam()}`;
 
-      if (!event) {
+    try {
+      const json = await fetchJSON(base);
+      const list = json?.data || json || [];
+      if (!Array.isArray(list) || !list.length) {
         nextWhen.textContent = 'No upcoming show found';
+        nextWhen.title = 'Proxy returned no data';
         return;
       }
 
-      const whenISO = event.startDate || event.start || event.scheduledStart || event.start_time || event.start_at || '';
-      if (!whenISO) { nextWhen.textContent = 'TBA'; return; }
+      // Pick the first event that matches DJ by artist/presenter/name/slug/tags.
+      const dj = shared.djName;
+      const djSlug = slug(dj);
+
+      const getName = (evt) =>
+        (evt?.artist?.name || evt?.presenter?.name || evt?.name || evt?.title || '');
+
+      const hasTag = (evt) => {
+        const tags = evt?.tags || evt?.categories || [];
+        if (!Array.isArray(tags)) return false;
+        return tags.map(x => (typeof x === 'string' ? x : (x?.slug || x?.name || '')))
+                   .map(slug)
+                   .includes(djSlug);
+      };
+
+      const matchers = [
+        (e)=> nameEq(e?.artist?.name, dj),
+        (e)=> (e?.artist?.slug && slug(e.artist.slug)===djSlug),
+        (e)=> nameEq(e?.presenter?.name, dj),              // may be undefined if proxy doesn’t expand presenters
+        (e)=> getName(e).toLowerCase().includes(dj.toLowerCase()),
+        (e)=> hasTag(e),
+      ];
+
+      let target = list.find(e => matchers.some(fn => fn(e)));
+
+      if (!target) {
+        nextWhen.textContent = 'No upcoming show found';
+        nextWhen.title = 'Could not match DJ in upcoming list';
+        return;
+      }
+
+      // Use common RC datetime fields
+      const whenISO = target.startDate || target.start || target.scheduledStart || target.start_time || target.start_at || '';
+      if (!whenISO) {
+        nextWhen.textContent = 'TBA';
+        nextWhen.title = 'Event has no start time';
+        return;
+      }
 
       nextWhen.textContent = fmtLocal(whenISO);
       nextWhen.setAttribute('data-utc', whenISO);
-      nextWhen.setAttribute('title', `Start (UTC): ${new Date(whenISO).toUTCString()}`);
-    } catch (e) {
+      nextWhen.title = `Start (UTC): ${new Date(whenISO).toUTCString()}`;
+
+      // Opportunistically set image from event if we still have the default.
+      if (/default-dj\.png$/i.test(djProfile.src || '')) {
+        const img = firstImageUrl(target.artist) || firstImageUrl(target.presenter) || target.image || '';
+        if (img) djProfile.src = img;
+      }
+    } catch (err) {
       nextWhen.textContent = 'Unable to load schedule';
+      // small hint for quick self-check:
+      nextWhen.title = `Check proxy: ${base}`;
     }
   }
 

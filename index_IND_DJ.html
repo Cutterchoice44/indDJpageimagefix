@@ -1,99 +1,148 @@
-<?php
-// Radio Cult proxy -> calls https://api.radiocult.fm with x-api-key and stationId
-// Safe for publishable keys; keeps browser CORS simple.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cutters Choice Radio — DJ Selects</title>
 
-header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: *');
-header('Cache-Control: public, max-age=60, s-maxage=60');
+  <link rel="stylesheet" href="style.css?v=1756013024396" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
-// You can set RC_PUBLISHABLE_KEY in DreamHost; we also allow ?key=pk_xxx
-$envKey = getenv('RC_PUBLISHABLE_KEY');
-$key = $_GET['key'] ?? $envKey ?? 'pk_0b8abc6f834b444f949f727e88a728e0'; // publishable is OK for GETs
+  <!-- Minimal inline CSS so the page shows even if dj-selects.css is missing -->
+  <style>
+    :root{ --brand-teal:#5A8785; }
+    body{ background:#000; color:#fff; }
+    #main-nav{ display:flex; align-items:center; background:var(--brand-teal); border-top:2px solid #000; border-bottom:2px solid #000; padding:.1rem .65rem; }
+    #main-nav .nav-menu{ display:flex; gap:clamp(.25rem,2vw,1.5rem); justify-content:space-evenly; flex:1 1 auto; }
+    #main-nav .nav-actions{ display:flex; gap:.6rem; }
+    #main-nav a.nav-link{ color:#fff; font-family:'Bebas Neue',sans-serif; font-size:2rem; text-decoration:none; text-transform:uppercase; white-space:nowrap; }
 
-$fn        = $_GET['fn'] ?? '';
-$stationId = $_GET['stationId'] ?? '';
-$startDate = $_GET['startDate'] ?? '';
-$endDate   = $_GET['endDate'] ?? '';
-$artistId  = $_GET['artistId'] ?? '';
+    .djselects-hero{ padding:1rem .75rem .5rem; border:2px solid var(--brand-teal); border-left:none; border-right:none; margin:.5rem 0; }
+    .djselects-hero .strap{ font-family:'Bebas Neue',sans-serif; font-size:clamp(1.1rem,2.6vw,2rem); }
+    .djselects-hero .monthline{ font-family:'Bebas Neue',sans-serif; font-size:clamp(2rem,6.2vw,5rem); }
+    #djNameText{ color:var(--brand-teal); }
 
-if (!preg_match('/^[A-Za-z0-9_-]{6,}$/', $stationId)) {
-  http_response_code(400);
-  echo json_encode(['error' => 'bad_stationId']);
-  exit;
-}
+    .grid{ display:grid; grid-template-columns:1.2fr .8fr 1.4fr .4fr; gap:.75rem; padding:.6rem; }
+    .tracklist{ display:grid; grid-template-rows:repeat(5,minmax(120px,1fr)); gap:.5rem; border:2px solid var(--brand-teal); padding:.4rem; }
+    .yt-card{ background:#0a0a0a; border:1px solid #264745; border-radius:4px; overflow:hidden; }
+    .ratio{ position:relative; width:100%; padding-top:56.25%; }
+    .ratio > iframe, .ratio > div{ position:absolute; inset:0; width:100%; height:100%; border:0; }
 
-if (!preg_match('/^pk_[A-Za-z0-9]+$/', $key)) {
-  http_response_code(400);
-  echo json_encode(['error' => 'bad_key']);
-  exit;
-}
+    .nextshow{ background:#0a0a0a; border:2px solid var(--brand-teal); border-radius:6px; padding:1rem .75rem; display:flex; flex-direction:column; justify-content:center; }
+    .next-title{ font-family:'Bebas Neue',sans-serif; font-size:clamp(1.2rem,2.6vw,2rem); }
+    .next-when{ font-family:'Bebas Neue',sans-serif; font-size:clamp(1.3rem,3.2vw,2.2rem); color:var(--brand-teal); }
 
-$base = "https://api.radiocult.fm/api/station/$stationId";
+    .profile{ border:2px solid var(--brand-teal); border-radius:6px; padding:.35rem; display:flex; flex-direction:column; align-items:center; background:#000; }
+    .profile img{ width:100%; height:auto; display:block; object-fit:cover; max-height:70vh; border-radius:4px; }
+    .profile .credit{ color:#aaa; font-size:.95rem; margin-top:.25rem; text-align:center; }
+    .spacer{ border:2px solid var(--brand-teal); min-height:100%; }
 
-switch ($fn) {
-  case 'artists':
-    $url = "$base/artists";
-    break;
-  case 'schedule_live':
-    $url = "$base/schedule/live";
-    break;
-  case 'schedule_range':
-    // expand=artist hydrates artist objects on each event
-    if (!$startDate || !$endDate) {
-      http_response_code(400);
-      echo json_encode(['error' => 'missing_dates']);
-      exit;
-    }
-    $url = "$base/schedule?startDate=".rawurlencode($startDate)."&endDate=".rawurlencode($endDate)."&expand=artist";
-    break;
-  case 'artist_schedule':
-    if (!preg_match('/^[A-Za-z0-9_-]{6,}$/', $artistId)) {
-      http_response_code(400);
-      echo json_encode(['error' => 'bad_artistId']);
-      exit;
-    }
-    if (!$startDate || !$endDate) {
-      http_response_code(400);
-      echo json_encode(['error' => 'missing_dates']);
-      exit;
-    }
-    $url = "$base/artists/$artistId/schedule?startDate=".rawurlencode($startDate)."&endDate=".rawurlencode($endDate);
-    break;
-  default:
-    http_response_code(400);
-    echo json_encode(['error' => 'bad_fn']);
-    exit;
-}
+    .admin-btn{ position:fixed; right:12px; bottom:12px; background:var(--brand-teal); color:#000; border:none; width:48px; height:48px; border-radius:999px; cursor:pointer; z-index:9999; }
+    .admin-panel{ position:fixed; right:12px; bottom:72px; width:min(520px,94vw); max-height:80vh; background:#0c0c0c; color:#fff; border:2px solid var(--brand-teal); border-radius:10px; display:none; flex-direction:column; z-index:9999; }
+    .admin-panel.open{ display:flex; }
+    .admin-head{ display:flex; align-items:center; justify-content:space-between; padding:.6rem .8rem; border-bottom:1px solid #1d3b3a; }
+    .admin-body{ padding:.8rem; overflow-y:auto; }
+    .admin-body label{ display:block; margin-bottom:.6rem; }
+    .admin-body input{ width:100%; padding:.5rem; background:#111; color:#fff; border:1px solid #264745; border-radius:6px; margin-top:.25rem; }
+    .two-col{ display:grid; grid-template-columns:1fr 1fr; gap:.5rem; }
+    #adminTracks .track-input{ display:grid; grid-template-columns:1fr auto auto; gap:.5rem; margin-bottom:.5rem; }
+    #adminTracks button{ padding:.5rem .75rem; border-radius:6px; border:1px solid #264745; background:#121212; color:#fff; cursor:pointer; }
+    .admin-actions{ display:flex; gap:.5rem; margin-top:.8rem; }
+    .admin-actions .primary{ background:var(--brand-teal); color:#000; border:none; }
+    .admin-actions .ghost{ background:#0f0f0f; }
+    .admin-actions .danger{ background:#301616; border-color:#5a2020; }
+    @media (max-width:960px){ .grid{ grid-template-columns:1fr; } .spacer{ display:none; } .profile img{ max-height:none; } }
+  </style>
+</head>
+<body>
+  <!-- Reuse your header (if you want the animated GIFs, leave as-is) -->
+  <header class="header-banner">
+    <div class="header-gif-right"></div>
+    <div class="header-gif-left"></div>
+    <div class="logo-container"><img class="logo" src="/images/logo.png" alt=""></div>
+    <div class="title"><h1>Cutters Choice Radio</h1><p class="tagline">The home of relentless flavas and significant bangers!</p></div>
+    <div class="logo-container"><img class="logo" src="/images/logo.png" alt=""></div>
+  </header>
 
-$ch = curl_init($url);
-curl_setopt_array($ch, [
-  CURLOPT_RETURNTRANSFER => true,
-  CURLOPT_HTTPHEADER => [
-    'x-api-key: ' . $key,
-    'Accept: application/json'
-  ],
-  CURLOPT_USERAGENT => 'CuttersChoiceRadio-Proxy/2.0',
-  CURLOPT_TIMEOUT => 15,
-]);
+  <div style="height:2px;background-color:var(--brand-teal)"></div>
 
-$out  = curl_exec($ch);
-$http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-$err  = curl_error($ch);
-curl_close($ch);
+  <!-- NAV (even spacing, includes DJ SELECTS link) -->
+  <nav id="main-nav">
+    <div class="nav-menu">
+      <a href="our-story.html"    class="nav-link">OUR STORY</a>
+      <a href="index.html"        class="nav-link">HOME</a>
+      <a href="index-ourDJS.html" class="nav-link">OUR DJS</a>
+      <a href="dj-selects.html"   class="nav-link">DJ SELECTS</a>
+      <a href="schedule.html"     class="nav-link">SCHEDULE</a>
+      <a href="merch.html"        class="nav-link">MERCH</a>
+    </div>
+    <div class="nav-actions"></div>
+  </nav>
 
-if ($out === false) {
-  http_response_code(502);
-  echo json_encode(['error' => 'proxy_failed', 'detail' => $err]);
-  exit;
-}
+  <div style="height:2px;background-color:var(--brand-teal)"></div>
 
-// Ensure JSON (upstream should be JSON per docs)
-$json = json_decode($out, true);
-if ($json === null && json_last_error() !== JSON_ERROR_NONE) {
-  http_response_code($http ?: 200);
-  echo json_encode(['error' => 'upstream_non_json', 'status' => $http, 'body' => substr($out,0,2048)]);
-  exit;
-}
+  <!-- Always-visible hero text -->
+  <section class="djselects-hero">
+    <div class="strap">Each month a different Cutters DJ selects 5 tracks of the month</div>
+    <div class="monthline">THIS MONTH : <span id="djNameText">DJ NAME</span></div>
+  </section>
 
-http_response_code($http ?: 200);
-echo json_encode($json);
+  <!-- Main content grid -->
+  <main class="grid">
+    <aside class="tracklist" id="trackList"></aside>
+    <section class="nextshow">
+      <div class="next-title">Next Scheduled Show</div>
+      <div class="next-when" id="nextShowWhen">Loading…</div>
+    </section>
+    <section class="profile">
+      <img id="djProfileImg" src="/images/default-dj.png" alt="DJ profile">
+      <div class="credit" id="djProfileCredit"></div>
+    </section>
+    <div class="spacer"></div>
+  </main>
+
+  <!-- Admin -->
+  <button class="admin-btn" id="adminBtn" title="Admin login"><i class="fa-solid fa-gear"></i></button>
+  <div class="admin-panel" id="adminPanel">
+    <div class="admin-head">
+      <strong>DJ SELECTS — Admin</strong>
+      <button id="adminClose" class="admin-close" style="background:none;border:none;color:#fff;font-size:1.6rem;cursor:pointer">&times;</button>
+    </div>
+    <div class="admin-body">
+      <label>Admin Passphrase <input type="password" id="adminPass" placeholder="Enter passphrase"></label>
+
+      <label>DJ Name (must match your RC artist name)
+        <input type="text" id="adminDjName" placeholder="e.g., MARIONETTE">
+      </label>
+
+      <div class="two-col">
+        <label>Station ID (from Radio Cult API page)
+          <input type="text" id="adminStationId" placeholder="e.g., 8h2Ks9R...">
+        </label>
+        <label>Publishable API Key (pk_…)
+          <input type="text" id="adminApiKey" placeholder="pk_...">
+        </label>
+      </div>
+
+      <label>Profile Image Override (optional)
+        <input type="text" id="profileOverride" placeholder="https://...">
+      </label>
+
+      <div class="admin-subhead">YouTube Track URLs (up to 5)</div>
+      <div id="adminTracks"></div>
+
+      <div class="admin-actions">
+        <button id="adminSave" class="primary">Save</button>
+        <button id="adminLogout" class="ghost">Logout Admin</button>
+        <button id="adminReset" class="danger">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="dj-selects.js?v=2" defer></script>
+</body>
+</html>

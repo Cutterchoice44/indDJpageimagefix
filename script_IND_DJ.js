@@ -1,35 +1,38 @@
-/* DJ SELECTS — compact layout with small strips + big preview, profile under title */
+/* DJ SELECTS — compact layout with strips + big preview
+   Admin gear now ALWAYS opens the panel; passphrase checked on Save.
+*/
 
-(function(){
+document.addEventListener('DOMContentLoaded', () => {
   const DEFAULTS = {
     djName: "MARIONETTE",
-    stationId: "cutters-choice-radio",                 // you can change in Admin
-    apiKey: "pk_0b8abc6f834b444f949f727e88a728e0",     // publishable key
+    stationId: "cutters-choice-radio",
+    apiKey: "pk_0b8abc6f834b444f949f727e88a728e0",
     tracks: ["","","","",""],
     profileImageOverride: ""
   };
-  const ADMIN = { passphrase: "scissors", isAuthed:false };
+  const ADMIN = { passphrase: "scissors", authed: false };
   let SELECTED = 0;
 
+  // --- elements (with guards)
+  const $ = id => document.getElementById(id);
   const els = {
-    djNameText:  document.getElementById('djNameText'),
-    nextWhen:    document.getElementById('nextShowWhen'),
-    profileImg:  document.getElementById('djProfileThumb'),
-    trackList:   document.getElementById('stripList'),
-    preview:     document.getElementById('mainPreview'),
-    // admin
-    adminBtn:    document.getElementById('adminBtn'),
-    adminPanel:  document.getElementById('adminPanel'),
-    adminClose:  document.getElementById('adminClose'),
-    adminPass:   document.getElementById('adminPass'),
-    adminDjName: document.getElementById('adminDjName'),
-    adminStationId: document.getElementById('adminStationId'),
-    adminApiKey: document.getElementById('adminApiKey'),
-    profileOverride: document.getElementById('profileOverride'),
-    adminTracks: document.getElementById('adminTracks'),
-    adminSave:   document.getElementById('adminSave'),
-    adminLogout: document.getElementById('adminLogout'),
-    adminReset:  document.getElementById('adminReset')
+    djNameText:  $('djNameText'),
+    nextWhen:    $('nextShowWhen'),
+    profileImg:  $('djProfileThumb'),
+    trackList:   $('stripList'),
+    preview:     $('mainPreview'),
+    adminBtn:    $('adminBtn'),
+    adminPanel:  $('adminPanel'),
+    adminClose:  $('adminClose'),
+    adminPass:   $('adminPass'),
+    adminDjName: $('adminDjName'),
+    adminStationId: $('adminStationId'),
+    adminApiKey: $('adminApiKey'),
+    profileOverride: $('profileOverride'),
+    adminTracks: $('adminTracks'),
+    adminSave:   $('adminSave'),
+    adminLogout: $('adminLogout'),
+    adminReset:  $('adminReset'),
   };
 
   const STORAGE_KEY = 'djSelects.config';
@@ -40,14 +43,14 @@
 
   const fmt=new Intl.DateTimeFormat(undefined,{weekday:'short',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
 
-  // --- YouTube parsing ---
+  // -------- YouTube helpers --------
   function toEmbed(url){
     if(!url) return null;
     try{
       const u = new URL(url.trim());
       const host = u.hostname.replace(/^m\./,'');
       let id = '';
-      if (u.pathname.startsWith('/results')) return null;     // search pages not allowed
+      if (u.pathname.startsWith('/results')) return null; // search pages can’t embed
       if (host.includes('youtu.be')) { id = u.pathname.slice(1).split('/')[0]; }
       else if (host.includes('youtube.com') || host.includes('music.youtube.com')){
         if (u.searchParams.get('v')) id = u.searchParams.get('v');
@@ -60,8 +63,29 @@
     }catch{ return null; }
   }
 
-  // --- Render small strips + big preview ---
+  function updatePreview(autoplay){
+    if(!els.preview) return;
+    const embed = toEmbed(normalizeTracks(CONFIG.tracks)[SELECTED]);
+    els.preview.innerHTML = '';
+    if (!embed){
+      const ph = document.createElement('div');
+      ph.className='big-placeholder'; ph.textContent='Select a track';
+      els.preview.appendChild(ph);
+      return;
+    }
+    const url = embed + (autoplay ? '&autoplay=1' : '');
+    const wrap = document.createElement('div');
+    wrap.className='ratio big';
+    const ifr = document.createElement('iframe');
+    ifr.src = url;
+    ifr.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+    ifr.loading = 'lazy';
+    wrap.appendChild(ifr);
+    els.preview.appendChild(wrap);
+  }
+
   function renderTracks(){
+    if(!els.trackList) return;
     els.trackList.innerHTML='';
     const t = normalizeTracks(CONFIG.tracks);
     t.forEach((u, i)=>{
@@ -70,7 +94,6 @@
       strip.className = 'strip' + (i===SELECTED ? ' selected' : '');
       if (embed){
         const ifr = document.createElement('iframe');
-        // Small, inline player (100px tall via CSS)
         ifr.src = embed;
         ifr.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
         ifr.loading = 'lazy';
@@ -91,27 +114,7 @@
     updatePreview(false);
   }
 
-  function updatePreview(autoplay){
-    const embed = toEmbed(normalizeTracks(CONFIG.tracks)[SELECTED]);
-    els.preview.innerHTML = '';
-    if (!embed){
-      const ph = document.createElement('div');
-      ph.className='big-placeholder'; ph.textContent='Select a track';
-      els.preview.appendChild(ph);
-      return;
-    }
-    const url = embed + (autoplay ? '&autoplay=1' : '');
-    const wrap = document.createElement('div');
-    wrap.className='ratio big';
-    const ifr = document.createElement('iframe');
-    ifr.src = url;
-    ifr.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
-    ifr.loading = 'lazy';
-    wrap.appendChild(ifr);
-    els.preview.appendChild(wrap);
-  }
-
-  // ---- Radio Cult via proxy (for next show + profile) ----
+  // -------- Radio Cult via proxy (best-effort) --------
   const EP={
     artists:(id,key)=> `/rc-proxy.php?fn=artists&stationId=${encodeURIComponent(id)}&key=${encodeURIComponent(key)}&t=${Date.now()}`,
     range:(id,key,from,to)=> `/rc-proxy.php?fn=schedule_range&stationId=${encodeURIComponent(id)}&startDate=${encodeURIComponent(from)}&endDate=${encodeURIComponent(to)}&key=${encodeURIComponent(key)}&t=${Date.now()}`
@@ -121,7 +124,9 @@
 
   async function hydrateFromAPI(){
     try{
-      if(!CONFIG.stationId) { els.nextWhen.textContent='Set Station ID in admin'; return; }
+      if(!els.nextWhen) return;
+      if(!CONFIG.stationId){ els.nextWhen.textContent='Set Station ID in admin'; return; }
+
       const now=new Date(), from=now.toISOString(), to=new Date(now.getTime()+1000*60*60*24*60).toISOString();
 
       // Artist image
@@ -150,28 +155,32 @@
       // Apply profile image (override wins)
       const override = (CONFIG.profileImageOverride||'').trim();
       const useImg = override || img || pickImage(next?.artist) || (Array.isArray(next?.artists) ? pickImage(next.artists[0]) : '');
-      if (useImg){ els.profileImg.src = useImg; els.profileImg.alt = CONFIG.djName || 'DJ'; }
+      if (useImg && els.profileImg){ els.profileImg.src = useImg; els.profileImg.alt = CONFIG.djName || 'DJ'; }
     }catch(e){ console.warn('Hydrate failed', e); }
   }
 
-  // ---- Admin UI ----
+  // -------- Admin UI --------
   function openAdmin(){
+    if(!els.adminPanel) return;
     els.adminPanel.classList.add('open');
-    els.adminDjName.value   = CONFIG.djName || '';
-    els.adminStationId.value= CONFIG.stationId || '';
-    els.adminApiKey.value   = CONFIG.apiKey || '';
-    els.profileOverride.value = CONFIG.profileImageOverride || '';
-    els.adminTracks.innerHTML='';
-    normalizeTracks(CONFIG.tracks).forEach((u,i)=>{
-      const row=document.createElement('div');
-      row.className='track-input';
-      row.innerHTML = `
-        <input type="text" data-idx="${i}" value="${u||''}" placeholder="YouTube URL #${i+1} (watch?v=… or youtu.be/…)">
-        <button data-up="${i}">&#8593;</button><button data-down="${i}">&#8595;</button>`;
-      els.adminTracks.appendChild(row);
-    });
+    if(els.adminDjName)   els.adminDjName.value   = CONFIG.djName || '';
+    if(els.adminStationId)els.adminStationId.value= CONFIG.stationId || '';
+    if(els.adminApiKey)   els.adminApiKey.value   = CONFIG.apiKey || '';
+    if(els.profileOverride) els.profileOverride.value = CONFIG.profileImageOverride || '';
+    if(els.adminPass) els.adminPass.value = ''; // clear
+    if(els.adminTracks){
+      els.adminTracks.innerHTML='';
+      normalizeTracks(CONFIG.tracks).forEach((u,i)=>{
+        const row=document.createElement('div');
+        row.className='track-input';
+        row.innerHTML = `
+          <input type="text" data-idx="${i}" value="${u||''}" placeholder="YouTube URL #${i+1} (watch?v=… or youtu.be/…)">
+          <button data-up="${i}">&#8593;</button><button data-down="${i}">&#8595;</button>`;
+        els.adminTracks.appendChild(row);
+      });
+    }
   }
-  function closeAdmin(){ els.adminPanel.classList.remove('open'); }
+  function closeAdmin(){ els.adminPanel?.classList.remove('open'); }
   function reorderTracks(from,to){
     const t=normalizeTracks(CONFIG.tracks); if(to<0||to>=t.length)return;
     const [m]=t.splice(from,1); t.splice(to,0,m); CONFIG.tracks=t; saveConfig(CONFIG);
@@ -179,38 +188,54 @@
     openAdmin(); renderTracks();
   }
 
-  // open/close
-  els.adminBtn.addEventListener('click', ()=>{
-    if(!ADMIN.isAuthed){
-      const entered = prompt('Enter admin passphrase:');
-      if(entered===ADMIN.passphrase){ ADMIN.isAuthed=true; openAdmin(); }
-      else alert('Incorrect passphrase');
-    } else openAdmin();
-  });
-  els.adminClose.addEventListener('click', closeAdmin);
-  els.adminLogout.addEventListener('click', ()=>{ ADMIN.isAuthed=false; closeAdmin(); });
+  // Always open panel on gear click (no prompt)
+  els.adminBtn?.addEventListener('click', openAdmin);
+  els.adminClose?.addEventListener('click', closeAdmin);
+  els.adminLogout?.addEventListener('click', ()=>{ ADMIN.authed=false; closeAdmin(); });
 
-  // live input preview
-  els.adminTracks.addEventListener('input', (e)=>{
+  // Live input preview + reorder
+  els.adminTracks?.addEventListener('input', (e)=>{
     if(e.target.tagName==='INPUT'){
       const idx = +e.target.getAttribute('data-idx');
       const t = normalizeTracks(CONFIG.tracks);
       t[idx] = e.target.value.trim();
       CONFIG.tracks = t; saveConfig(CONFIG);
-      renderTracks(); // live
+      renderTracks();
     }
   });
-  // up/down
-  els.adminTracks.addEventListener('click', (e)=>{
+  els.adminTracks?.addEventListener('click', (e)=>{
     const up=e.target.getAttribute('data-up'); const down=e.target.getAttribute('data-down');
     if(up!==null) reorderTracks(+up, +up-1);
     if(down!==null) reorderTracks(+down, +down+1);
   });
 
-  // save/reset
-  els.adminSave.addEventListener('click', ()=>{
-    CONFIG.djName = els.adminDjName.value.trim() || DEFAULTS.djName;
-    CONFIG.stationId = els.adminStationId.value.trim() || DEFAULTS.stationId;
-    CONFIG.apiKey = els.adminApiKey.value.trim() || DEFAULTS.apiKey;
-    CONFIG.profileImageOverride = els.profileOverride.value.trim();
+  // Save checks passphrase field instead of using prompt()
+  els.adminSave?.addEventListener('click', ()=>{
+    const pass = (els.adminPass?.value || '').trim();
+    if(!ADMIN.authed){
+      if(pass !== ADMIN.passphrase){ alert('Incorrect passphrase'); return; }
+      ADMIN.authed = true;
+    }
+    CONFIG.djName = (els.adminDjName?.value || DEFAULTS.djName).trim() || DEFAULTS.djName;
+    CONFIG.stationId = (els.adminStationId?.value || DEFAULTS.stationId).trim() || DEFAULTS.stationId;
+    CONFIG.apiKey = (els.adminApiKey?.value || DEFAULTS.apiKey).trim() || DEFAULTS.apiKey;
+    CONFIG.profileImageOverride = (els.profileOverride?.value || '').trim();
     saveConfig(CONFIG); closeAdmin(); boot();
+  });
+
+  els.adminReset?.addEventListener('click', ()=>{
+    if(confirm('Reset DJ Selects to defaults?')){
+      CONFIG={...DEFAULTS}; saveConfig(CONFIG); closeAdmin(); boot(); ADMIN.authed=false;
+    }
+  });
+
+  // -------- Boot --------
+  function boot(){
+    CONFIG = loadConfig();
+    if(els.djNameText) els.djNameText.textContent = CONFIG.djName || 'DJ NAME';
+    renderTracks();      // always show UI
+    hydrateFromAPI();    // best-effort enrichment
+  }
+
+  boot();
+});

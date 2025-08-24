@@ -48,34 +48,25 @@
 }
 
 /* Strips */
-/* --- STRIPS: make the whole strip clickable with a transparent overlay --- */
 .strip-list{
-  display:grid; grid-template-rows:repeat(5,90px);
+  display:grid; grid-template-rows:repeat(5,90px);  /* small strips */
   gap:.45rem; border:2px solid var(--brand-teal); padding:.35rem; background:#000;
 }
-.strip{
-  position:relative;                      /* NEW */
-  border:1px solid #264745; background:#0a0a0a;
-  border-radius:4px; overflow:hidden; cursor:pointer;
-}
+.strip{ border:1px solid #264745; background:#0a0a0a; border-radius:4px; overflow:hidden; cursor:pointer; }
 .strip.selected{ outline:2px solid var(--brand-teal); }
-.strip iframe{
-  width:100%; height:100%; border:0; display:block;
-  pointer-events:none;                    /* ensure click goes to overlay */
-}
-/* overlay that catches the click */
-.strip .select-overlay{
-  position:absolute; inset:0;             /* full cover */
-}
-.strip:hover .select-overlay{
-  box-shadow: inset 0 0 0 2px var(--brand-teal);
-  background: rgba(90,135,133,.08);
+.strip iframe{ width:100%; height:100%; border:0; display:block; }
+.yt-placeholder{
+  display:grid; place-items:center; color:#7d9b99; text-transform:uppercase; letter-spacing:.04em;
+  font-family:'Bebas Neue',sans-serif; font-size:clamp(.9rem,2vw,1.2rem);
 }
 
-/* --- PREVIEW: already reduced to ~50% height; kept for clarity --- */
-.preview .ratio.big{ position:relative; width:100%; padding-top:28.125%; }
+/* Preview — reduced to ~50% height of 16:9 (28.125% = 0.5 * 56.25%) */
+.preview{
+  border:2px solid var(--brand-teal); border-radius:6px; background:#000;
+  padding:.3rem; display:flex; align-items:center; justify-content:center; min-height:220px;
+}
+.preview .ratio.big{ position:relative; width:100%; padding-top:28.125%; } /* HALF HEIGHT */
 .preview .ratio.big iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; }
-
 .big-placeholder{ font-family:'Bebas Neue',sans-serif; color:#6fa39f; font-size:clamp(1.1rem,2.4vw,1.6rem); }
 
 /* Admin (unchanged except sticky footer) */

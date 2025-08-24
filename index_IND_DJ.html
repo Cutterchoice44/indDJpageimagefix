@@ -1,105 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>DJ SELECTS — Cutters Choice Radio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cutters Choice Radio — DJ Selects</title>
 
-  <!-- Fonts -->
+  <!-- Base site styling -->
+  <link rel="stylesheet" href="style.css?v=1756013024396" />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
-  <!-- Page CSS -->
-  <link rel="stylesheet" href="dj-selects.css?v=1" />
+  <!-- Page styles -->
+  <link rel="stylesheet" href="dj-selects.css?v=3" />
 </head>
 <body>
+  <!-- Header (same structure as home) -->
+  <header class="header-banner">
+    <div class="header-gif-right"></div>
+    <div class="header-gif-left"></div>
+    <div class="logo-container"><img class="logo" src="/images/logo.png" alt=""></div>
+    <div class="title"><h1>Cutters Choice Radio</h1><p class="tagline">The home of relentless flavas and significant bangers!</p></div>
+    <div class="logo-container"><img class="logo" src="/images/logo.png" alt=""></div>
+  </header>
 
-  <!-- NAVIGATION (evenly spaced) -->
+  <div style="height:2px;background-color:var(--brand-teal)"></div>
+
+  <!-- Nav (even spacing, includes DJ SELECTS) -->
   <nav id="main-nav">
     <div class="nav-menu">
-      <a class="nav-link" href="our-story.html">OUR STORY</a>
-      <a class="nav-link" href="index.html">HOME</a>
-      <a class="nav-link" href="index-ourDJS.html">OUR DJS</a>
-      <a class="nav-link is-active" href="dj-selects.html">DJ SELECTS</a>
-      <a class="nav-link" href="schedule.html">SCHEDULE</a>
-      <a class="nav-link" href="merch.html">MERCH</a>
+      <a href="our-story.html"    class="nav-link">OUR STORY</a>
+      <a href="index.html"        class="nav-link">HOME</a>
+      <a href="index-ourDJS.html" class="nav-link">OUR DJS</a>
+      <a href="dj-selects.html"   class="nav-link">DJ SELECTS</a>
+      <a href="schedule.html"     class="nav-link">SCHEDULE</a>
+      <a href="merch.html"        class="nav-link">MERCH</a>
     </div>
+    <div class="nav-actions"></div>
   </nav>
 
-  <!-- HERO STRIP -->
-  <section class="djselects-hero">
-    <div class="kicker">Each month a different Cutters DJ selects 5 tracks of the month</div>
-    <h1 class="title">THIS MONTH : <span id="djNameText" class="dj">DJ NAME</span></h1>
-    <img id="djProfileThumb" alt="DJ profile" src="" />
+  <div style="height:2px;background-color:var(--brand-teal)"></div>
+
+  <!-- Hero: strap + month line + small profile thumb -->
+  <section class="djselects-hero condensed">
+    <div class="hero-left">
+      <div class="strap">Each month a different Cutters DJ selects 5 tracks of the month</div>
+      <div class="monthline">THIS MONTH : <span id="djNameText">DJ NAME</span></div>
+    </div>
+    <div class="hero-right">
+      <img id="djProfileThumb" src="/images/default-dj.png" alt="DJ profile" />
+    </div>
   </section>
 
-  <!-- NEXT SHOW BAR -->
-  <div class="next-bar">
-    <div class="label">NEXT SCHEDULED SHOW</div>
-    <div id="nextShowWhen" class="when">Loading…</div>
-  </div>
+  <!-- Top bar: Next Scheduled Show -->
+  <section class="nextbar">
+    <div class="nextbar-inner">
+      <span class="label">Next Scheduled Show</span>
+      <span class="when" id="nextShowWhen">Loading…</span>
+    </div>
+  </section>
 
-  <!-- MAIN CONTENT -->
-  <main class="layout">
-    <!-- Left: 5 YouTube strips (click to select) -->
-    <aside class="strips">
-      <div id="stripList" class="strip-list"><!-- populated by js --></div>
-    </aside>
+  <!-- Compact layout: left strips, right big preview -->
+  <main class="compact-grid">
+    <aside id="stripList" class="strip-list"></aside>
 
-    <!-- Right: preview/player -->
-    <section class="preview">
-      <div id="mainPreview" class="preview-inner">
-        <div class="big-placeholder">Select a track</div>
-      </div>
+    <section class="preview" id="mainPreview">
+      <div class="big-placeholder">Select a track</div>
     </section>
   </main>
 
-  <!-- ADMIN FLOATING BUTTON -->
-  <button id="adminBtn" class="fab" title="Admin">⚙</button>
-
-  <!-- ADMIN PANEL -->
-  <div id="adminPanel" class="admin-panel">
-    <div class="admin-header">
+  <!-- Admin -->
+  <button class="admin-btn" id="adminBtn" title="Admin"><i class="fa-solid fa-gear"></i></button>
+  <div class="admin-panel" id="adminPanel">
+    <div class="admin-head">
       <strong>DJ SELECTS — Admin</strong>
-      <button id="adminClose" class="admin-close" title="Close">✕</button>
+      <button id="adminClose" class="admin-close">&times;</button>
     </div>
-
     <div class="admin-body">
-      <label class="lbl">Admin Passphrase
-        <input id="adminPass" type="password" placeholder="Enter passphrase" />
+      <label>Admin Passphrase
+        <input type="password" id="adminPass" placeholder="Enter passphrase">
       </label>
 
-      <label class="lbl">DJ Name (as listed in Radio Cult)
-        <input id="adminDjName" type="text" placeholder="DJ name" />
+      <label>DJ Name (as listed in Radio Cult)
+        <input type="text" id="adminDjName" placeholder="e.g., MARIONETTE">
       </label>
 
-      <div class="row-2">
-        <label class="lbl">Station ID (from Radio Cult)
-          <input id="adminStationId" type="text" placeholder="cutters-choice-radio" />
+      <div class="two-col">
+        <label>Station ID (from Radio Cult)
+          <input type="text" id="adminStationId" placeholder="cutters-choice-radio">
         </label>
-        <label class="lbl">Publishable API Key (pk_…)
-          <input id="adminApiKey" type="text" placeholder="pk_…" />
+        <label>Publishable API Key (pk_…)
+          <input type="text" id="adminApiKey" placeholder="pk_...">
         </label>
       </div>
 
-      <label class="lbl">Profile Image Override (optional)
-        <input id="profileOverride" type="url" placeholder="https://…" />
+      <label>Profile Image Override (optional)
+        <input type="text" id="profileOverride" placeholder="https://...">
       </label>
 
-      <div class="lbl">YouTube Track URLs (up to 5)</div>
-      <div id="adminTracks" class="tracks"><!-- populated by js --></div>
+      <div class="admin-subhead">YouTube Track URLs (up to 5)</div>
+      <div id="adminTracks"></div>
 
       <div class="admin-actions">
-        <button id="adminSave" class="btn primary">Save</button>
-        <button id="adminLogout" class="btn">Logout Admin</button>
-        <button id="adminReset" class="btn danger">Reset</button>
+        <button id="adminSave" class="primary">Save</button>
+        <button id="adminLogout" class="ghost">Logout Admin</button>
+        <button id="adminReset" class="danger">Reset</button>
       </div>
     </div>
   </div>
 
-  <!-- PAGE JS (use the latest you have working) -->
-  <script src="dj-selects.js?v=1" defer></script>
+  <script src="dj-selects.js?v=3" defer></script>
 </body>
 </html>

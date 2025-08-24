@@ -1,82 +1,124 @@
 <?php
 /**
- * Radio Cult proxy for DJ Selects (server-side, avoids 403/CORS)
- * Supports: artists, presenters, upcoming, artist_schedule, presenter_schedule, ping
+ * rc-proxy.php — Radio Cult server-side proxy for DJ Selects
+ * ----------------------------------------------------------
+ * Why: Radio Cult blocks browser requests (403/CORS). This proxy calls RC
+ *      from your server with x-api-key and returns JSON to the page.
+ *
+ * Endpoints (GET):
+ *   ?fn=ping
+ *   ?fn=artists&stationId=ID
+ *   ?fn=presenters&stationId=ID
+ *   ?fn=upcoming&stationId=ID&limit=50&expand=artist,presenter
+ *   ?fn=artist_schedule&stationId=ID&artistId=ART&startDate=ISO&endDate=ISO
+ *   ?fn=presenter_schedule&stationId=ID&presenterId=PR&startDate=ISO&endDate=ISO
+ *
+ * Notes:
+ *   - Do NOT expose the key in HTML/JS. Keep it here server-side.
+ *   - Returns raw JSON from RC on success; 4xx/5xx from this proxy on errors.
  */
+
 declare(strict_types=1);
 
+/* ---------- config ---------- */
+const RC_BASE = 'https://api.radiocult.fm/api';
+
+/* Your publishable Radio Cult key (provided by you) */
+const RC_API_KEY = 'pk_0b8abc6f834b444f949f727e88a728e0';
+
+/* ---------- headers ---------- */
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, must-revalidate');
 header('Access-Control-Allow-Origin: *');
 
-$RC_BASE = 'https://api.radiocult.fm/api';
-
-/* ---- SET YOUR PUBLISHABLE RC KEY ----
-   Option A (quick): put it here
-*/
-$RC_API_KEY = ''; // e.g. 'pk_abc123...'
-
-/* Option B (safer): set an env var RC_PUBLISHABLE_KEY in your hosting panel */
-if (!$RC_API_KEY) {
-  $env = getenv('RC_PUBLISHABLE_KEY');
-  if ($env) $RC_API_KEY = $env;
+/* ---------- helpers ---------- */
+function build_url(string $base, string $path, array $qs = []): string {
+  $q = http_build_query(array_filter($qs, static fn($v) => $v !== '' && $v !== null));
+  return rtrim($base, '/') . $path . ($q ? ('?' . $q) : '');
 }
 
-/* (optional) allow ?key= for quick testing */
-if (!$RC_API_KEY && isset($_GET['key'])) {
-  $RC_API_KEY = $_GET['key'];
+function bail(int $status, array $payload): void {
+  http_response_code($status);
+  echo json_encode($payload, JSON_UNESCAPED_SLASHES);
+  exit;
 }
 
+/* ---------- route ---------- */
 $fn        = $_GET['fn']        ?? 'ping';
 $stationId = $_GET['stationId'] ?? '';
 $limit     = isset($_GET['limit']) ? max(1, (int)$_GET['limit']) : 50;
 $expand    = $_GET['expand']    ?? '';
 
-if ($fn === 'ping') { echo json_encode(['ok'=>true]); exit; }
-if (!$stationId && $fn !== 'ping') { http_response_code(400); echo json_encode(['error'=>'stationId_required']); exit; }
-
-function build_url($base, $path, $qs=[]) {
-  $q = http_build_query(array_filter($qs, fn($v)=>$v!=='' && $v!==null));
-  return rtrim($base, '/') . $path . ($q ? ('?' . $q) : '');
+if ($fn === 'ping') {
+  echo json_encode(['ok' => true], JSON_UNESCAPED_SLASHES);
+  exit;
 }
+
+if (!$stationId) {
+  bail(400, ['error' => 'stationId_required']);
+}
+
+$upstream = '';
 
 switch ($fn) {
   case 'artists':
-    $upstream = build_url($RC_BASE, '/station/' . rawurlencode($stationId) . '/artists');
+    $upstream = build_url(RC_BASE, '/station/' . rawurlencode($stationId) . '/artists');
     break;
+
   case 'presenters':
-    $upstream = build_url($RC_BASE, '/station/' . rawurlencode($stationId) . '/presenters');
+    $upstream = build_url(RC_BASE, '/station/' . rawurlencode($stationId) . '/presenters');
     break;
+
   case 'upcoming':
-    $upstream = build_url($RC_BASE, '/station/' . rawurlencode($stationId) . '/upcoming', ['limit'=>$limit, 'expand'=>$expand]);
+    $upstream = build_url(
+      RC_BASE,
+      '/station/' . rawurlencode($stationId) . '/upcoming',
+      ['limit' => $limit, 'expand' => $expand]
+    );
     break;
-  case 'artist_schedule':
+
+  case 'artist_schedule': {
     $artistId  = $_GET['artistId']  ?? '';
     $startDate = $_GET['startDate'] ?? '';
     $endDate   = $_GET['endDate']   ?? '';
-    if (!$artistId) { http_response_code(400); echo json_encode(['error'=>'artistId_required']); exit; }
-    $upstream = build_url($RC_BASE, '/station/' . rawurlencode($stationId) . '/artists/' . rawurlencode($artistId) . '/schedule', ['startDate'=>$startDate,'endDate'=>$endDate]);
+    if (!$artistId) bail(400, ['error' => 'artistId_required']);
+    $upstream = build_url(
+      RC_BASE,
+      '/station/' . rawurlencode($stationId) . '/artists/' . rawurlencode($artistId) . '/schedule',
+      ['startDate'=>$startDate, 'endDate'=>$endDate]
+    );
     break;
-  case 'presenter_schedule':
+  }
+
+  case 'presenter_schedule': {
     $presenterId  = $_GET['presenterId']  ?? '';
     $startDate = $_GET['startDate'] ?? '';
     $endDate   = $_GET['endDate']   ?? '';
-    if (!$presenterId) { http_response_code(400); echo json_encode(['error'=>'presenterId_required']); exit; }
-    $upstream = build_url($RC_BASE, '/station/' . rawurlencode($stationId) . '/presenters/' . rawurlencode($presenterId) . '/schedule', ['startDate'=>$startDate,'endDate'=>$endDate]);
+    if (!$presenterId) bail(400, ['error' => 'presenterId_required']);
+    $upstream = build_url(
+      RC_BASE,
+      '/station/' . rawurlencode($stationId) . '/presenters/' . rawurlencode($presenterId) . '/schedule',
+      ['startDate'=>$startDate, 'endDate'=>$endDate]
+    );
     break;
+  }
+
   default:
-    http_response_code(400); echo json_encode(['error'=>'bad_fn']); exit;
+    bail(400, ['error' => 'bad_fn']);
 }
+
+/* ---------- curl to RC ---------- */
+$headers = [
+  'Accept: application/json',
+  'x-api-key: ' . RC_API_KEY,
+];
 
 $ch = curl_init($upstream);
 curl_setopt_array($ch, [
   CURLOPT_RETURNTRANSFER => true,
   CURLOPT_FOLLOWLOCATION => true,
   CURLOPT_TIMEOUT        => 15,
-  CURLOPT_HTTPHEADER     => array_filter([
-    'Accept: application/json',
-    $RC_API_KEY ? 'x-api-key: '.$RC_API_KEY : null,
-  ]),
+  CURLOPT_HTTPHEADER     => $headers,
 ]);
 
 $resp = curl_exec($ch);
@@ -85,9 +127,8 @@ $err  = curl_error($ch);
 curl_close($ch);
 
 if ($resp === false || $code >= 400) {
-  http_response_code(502);
-  echo json_encode(['error'=>'upstream_error','status'=>$code,'detail'=>$err ?: $resp]);
-  exit;
+  bail(502, ['error' => 'upstream_error', 'status' => $code, 'detail' => $err ?: $resp]);
 }
 
+/* Success: return the RC JSON verbatim */
 echo $resp;

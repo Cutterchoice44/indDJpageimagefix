@@ -1,90 +1,75 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cutters Choice Radio — DJ Selects</title>
+\<?php
+/**
+ * DJ Selects config store (JSON file)
+ * Place in the same directory as dj-selects.html
+ * Protect this file with server-side security (e.g., .htaccess) if possible.
+ */
 
-  <!-- Base site styling -->
-  <link rel="stylesheet" href="style.css?v=1756013024396" />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+declare(strict_types=1);
+header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store');
+header('Access-Control-Allow-Origin: *');
 
-  <!-- Page styles -->
-  <link rel="stylesheet" href="dj-selects.css?v=5" />
-</head>
-<body>
-  <!-- Header (same structure as home) -->
-  <header class="header-banner">
-    <div class="header-gif-right"></div>
-    <div class="header-gif-left"></div>
-    <div class="logo-container"><img class="logo" src="/images/logo.png" alt=""></div>
-    <div class="title"><h1>Cutters Choice Radio</h1><p class="tagline">The home of relentless flavas and significant bangers!</p></div>
-    <div class="logo-container"><img class="logo" src="/images/logo.png" alt=""></div>
-  </header>
+$DATA_FILE = __DIR__ . '/dj-selects-data.json';
 
-  <div style="height:2px;background-color:var(--brand-teal)"></div>
+/**
+ * Security: require a shared token on SAVE. Keep this OUT of client-side when possible.
+ * Option A (recommended): set env var DJ_SELECTS_TOKEN in your panel.
+ * Option B: hardcode here (less secure).
+ */
+$SERVER_TOKEN = getenv('DJ_SELECTS_TOKEN') ?: 'CHANGE_ME_SERVER_TOKEN';
 
-  <!-- Nav -->
-  <nav id="main-nav">
-    <div class="nav-menu">
-      <a href="our-story.html"    class="nav-link">OUR STORY</a>
-      <a href="index.html"        class="nav-link">HOME</a>
-      <a href="index-ourDJS.html" class="nav-link">OUR DJS</a>
-      <a href="dj-selects.html"   class="nav-link">DJ SELECTS</a>
-      <a href="schedule.html"     class="nav-link">SCHEDULE</a>
-      <a href="merch.html"        class="nav-link">MERCH</a>
-    </div>
-    <div class="nav-actions"></div>
-  </nav>
+$action = $_GET['action'] ?? 'load';
 
-  <div style="height:2px;background-color:var(--brand-teal)"></div>
+if ($action === 'load') {
+  if (!file_exists($DATA_FILE)) {
+    echo json_encode([
+      'djName' => 'DJ NAME',
+      'profileImage' => '/images/default-dj.png',
+      'stationId' => 'cutters-choice-radio',
+      'apiKey' => '',
+      'tracks' => []
+    ]);
+    exit;
+  }
+  $raw = file_get_contents($DATA_FILE);
+  echo $raw ?: '{}';
+  exit;
+}
 
-  <!-- Hero: strap + month line + small profile thumb -->
-  <section class="djselects-hero condensed">
-    <div class="hero-left">
-      <div class="strap">Each month a different Cutters DJ selects 5 tracks of the month</div>
-      <div class="monthline">THIS MONTH : <span id="djNameText">DJ NAME</span></div>
-    </div>
-    <div class="hero-right">
-      <img id="djProfileThumb" src="/images/default-dj.png" alt="DJ profile" />
-    </div>
-  </section>
+if ($action === 'save') {
+  $body = json_decode(file_get_contents('php://input'), true);
+  $token = $body['token'] ?? '';
+  if (!$token || $token !== $SERVER_TOKEN) {
+    http_response_code(403);
+    echo json_encode(['error'=>'forbidden']);
+    exit;
+  }
+  $data = $body['data'] ?? null;
+  if (!$data || !is_array($data)) {
+    http_response_code(400);
+    echo json_encode(['error'=>'bad_data']);
+    exit;
+  }
+  // Minimal validation
+  $data['djName'] = trim((string)($data['djName'] ?? 'DJ NAME'));
+  $data['stationId'] = trim((string)($data['stationId'] ?? 'cutters-choice-radio'));
+  $tracks = $data['tracks'] ?? [];
+  if (!is_array($tracks)) $tracks = [];
+  $data['tracks'] = array_values(array_slice(array_filter($tracks, function($u){
+    return is_string($u) && preg_match('#^https?://#', $u);
+  }), 0, 5));
 
-  <!-- Top bar: Next Scheduled Show -->
-  <section class="nextbar">
-    <div class="nextbar-inner">
-      <span class="label">Next Scheduled Show</span>
-      <span class="when" id="nextShowWhen">Loading…</span>
-    </div>
-  </section>
+  // Write JSON atomically
+  $tmp = $DATA_FILE . '.tmp';
+  $ok = file_put_contents($tmp, json_encode($data, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES));
+  if ($ok === false) { http_response_code(500); echo json_encode(['error'=>'write_failed']); exit; }
+  rename($tmp, $DATA_FILE);
+  @chmod($DATA_FILE, 0644);
 
-  <!-- Compact layout: left strips, right big preview -->
-  <main class="compact-grid">
-    <aside id="stripList" class="strip-list" aria-label="Selected tracks (click to preview)"></aside>
+  echo json_encode(['ok'=>true]);
+  exit;
+}
 
-    <section class="preview" id="mainPreview" aria-live="polite">
-      <div class="big-placeholder">Select a track</div>
-    </section>
-  </main>
-
-  <!-- Admin UI (not visible until authenticated) -->
-  <div id="adminMount" hidden></div>
-
-  <script>
-    /* Configure endpoints */
-    window.DJ_SELECTS = {
-      CONFIG_ENDPOINT: 'dj-selects-config.php',  // new: shared config (load/save)
-      PROXY_ENDPOINT:  'rc-proxy.php',           // radio cult proxy
-      // SHA-256 of your passphrase (use any offline hasher). Example is for: ccr2025!
-      ADMIN_HASH_HEX: 'a00af6bfc41c33b69f2d34e8ea296a9e6ae9d22a904200b0a5b8df4a0c0278f7',
-      // Server-side token must be set in dj-selects-config.php; leave blank here unless you want client-initiated saves
-      SAVE_TOKEN: ''
-    };
-  </script>
-  <script src="dj-selects.js?v=5" defer></script>
-</body>
-</html>
+http_response_code(400);
+echo json_encode(['error'=>'bad_action']);

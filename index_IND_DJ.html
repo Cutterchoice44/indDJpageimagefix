@@ -8,16 +8,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cutters Choice Radio — DJ Selects</title>
 
-  <!-- Site base styles + fonts -->
+  <!-- Base site styling -->
   <link rel="stylesheet" href="style.css?v=1756013024396" />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
   <!-- Page styles -->
-  <link rel="stylesheet" href="dj-selects.css?v=2" />
+  <link rel="stylesheet" href="dj-selects.css?v=3" />
 </head>
 <body>
-  <!-- HEADER (same structure as home) -->
+  <!-- Header (same structure as home) -->
   <header class="header-banner">
     <div class="header-gif-right"></div>
     <div class="header-gif-left"></div>
@@ -28,7 +28,7 @@
 
   <div style="height:2px;background-color:var(--brand-teal)"></div>
 
-  <!-- NAV (even spacing, includes DJ SELECTS) -->
+  <!-- Nav (even spacing, includes DJ SELECTS) -->
   <nav id="main-nav">
     <div class="nav-menu">
       <a href="our-story.html"    class="nav-link">OUR STORY</a>
@@ -43,34 +43,36 @@
 
   <div style="height:2px;background-color:var(--brand-teal)"></div>
 
-  <!-- Always-visible hero text (renders even if API fails) -->
-  <section class="djselects-hero">
-    <div class="strap">Each month a different Cutters DJ selects 5 tracks of the month</div>
-    <div class="monthline">THIS MONTH : <span id="djNameText">DJ NAME</span></div>
+  <!-- Hero: strap + month line + small profile thumb -->
+  <section class="djselects-hero condensed">
+    <div class="hero-left">
+      <div class="strap">Each month a different Cutters DJ selects 5 tracks of the month</div>
+      <div class="monthline">THIS MONTH : <span id="djNameText">DJ NAME</span></div>
+    </div>
+    <div class="hero-right">
+      <img id="djProfileThumb" src="/images/default-dj.png" alt="DJ profile" />
+    </div>
   </section>
 
-  <!-- Main content grid -->
-  <main class="djselects-grid">
-    <!-- left: YouTube widgets -->
-    <aside class="tracklist" id="trackList"></aside>
+  <!-- Top bar: Next Scheduled Show -->
+  <section class="nextbar">
+    <div class="nextbar-inner">
+      <span class="label">Next Scheduled Show</span>
+      <span class="when" id="nextShowWhen">Loading…</span>
+    </div>
+  </section>
 
-    <!-- center-left: next show -->
-    <section class="nextshow">
-      <div class="next-title">Next Scheduled Show</div>
-      <div class="next-when" id="nextShowWhen">Loading…</div>
+  <!-- Compact layout: left strips, right big preview -->
+  <main class="compact-grid">
+    <aside id="stripList" class="strip-list"></aside>
+
+    <section class="preview" id="mainPreview">
+      <div class="big-placeholder">Select a track</div>
     </section>
-
-    <!-- center-right: profile image -->
-    <section class="profile">
-      <img id="djProfileImg" src="/images/default-dj.png" alt="DJ profile" />
-      <div class="credit" id="djProfileCredit"></div>
-    </section>
-
-    <div class="spacer"></div>
   </main>
 
-  <!-- Admin panel -->
-  <button class="admin-btn" id="adminBtn" title="Admin login"><i class="fa-solid fa-gear"></i></button>
+  <!-- Admin -->
+  <button class="admin-btn" id="adminBtn" title="Admin"><i class="fa-solid fa-gear"></i></button>
   <div class="admin-panel" id="adminPanel">
     <div class="admin-head">
       <strong>DJ SELECTS — Admin</strong>
@@ -87,7 +89,7 @@
 
       <div class="two-col">
         <label>Station ID (from Radio Cult)
-          <input type="text" id="adminStationId" placeholder="e.g., 8h2Ks9R...">
+          <input type="text" id="adminStationId" placeholder="cutters-choice-radio">
         </label>
         <label>Publishable API Key (pk_…)
           <input type="text" id="adminApiKey" placeholder="pk_...">
@@ -109,6 +111,6 @@
     </div>
   </div>
 
-  <script src="dj-selects.js?v=2" defer></script>
+  <script src="dj-selects.js?v=3" defer></script>
 </body>
 </html>

@@ -1,47 +1,81 @@
 <?php
+// Radio Cult proxy -> calls https://api.radiocult.fm with x-api-key and stationId
+// Safe for publishable keys; keeps browser CORS simple.
+
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Cache-Control: public, max-age=60, s-maxage=60');
 
-$API_KEY = getenv('RC_API_KEY');
-if (!$API_KEY) { $API_KEY = 'pk_0b8abc6f834b444f949f727e88a728e0'; }
+// You can set RC_PUBLISHABLE_KEY in DreamHost; we also allow ?key=pk_xxx
+$envKey = getenv('RC_PUBLISHABLE_KEY');
+$key = $_GET['key'] ?? $envKey ?? 'pk_0b8abc6f834b444f949f727e88a728e0'; // publishable is OK for GETs
 
-$fn   = $_GET['fn']   ?? '';
-$slug = $_GET['slug'] ?? '';
+$fn        = $_GET['fn'] ?? '';
+$stationId = $_GET['stationId'] ?? '';
+$startDate = $_GET['startDate'] ?? '';
+$endDate   = $_GET['endDate'] ?? '';
+$artistId  = $_GET['artistId'] ?? '';
 
-if (!preg_match('/^[a-z0-9-]+$/', $slug)) {
+if (!preg_match('/^[A-Za-z0-9_-]{6,}$/', $stationId)) {
   http_response_code(400);
-  echo json_encode(['error'=>'bad_slug']);
+  echo json_encode(['error' => 'bad_stationId']);
   exit;
 }
 
-$base = "https://app.radiocult.fm/api/v1/stations/$slug";
-
-$allow = [
-  'upcoming'   => "$base/schedule/upcoming?limit=25",
-  'djs'        => "$base/djs?limit=200",
-  'artists'    => "$base/artists?limit=200",
-  'presenters' => "$base/presenters?limit=200"
-];
-
-if (!array_key_exists($fn, $allow)) {
+if (!preg_match('/^pk_[A-Za-z0-9]+$/', $key)) {
   http_response_code(400);
-  echo json_encode(['error'=>'bad_fn','allowed'=>array_keys($allow)]);
+  echo json_encode(['error' => 'bad_key']);
   exit;
 }
 
-$url = $allow[$fn];
+$base = "https://api.radiocult.fm/api/station/$stationId";
+
+switch ($fn) {
+  case 'artists':
+    $url = "$base/artists";
+    break;
+  case 'schedule_live':
+    $url = "$base/schedule/live";
+    break;
+  case 'schedule_range':
+    // expand=artist hydrates artist objects on each event
+    if (!$startDate || !$endDate) {
+      http_response_code(400);
+      echo json_encode(['error' => 'missing_dates']);
+      exit;
+    }
+    $url = "$base/schedule?startDate=".rawurlencode($startDate)."&endDate=".rawurlencode($endDate)."&expand=artist";
+    break;
+  case 'artist_schedule':
+    if (!preg_match('/^[A-Za-z0-9_-]{6,}$/', $artistId)) {
+      http_response_code(400);
+      echo json_encode(['error' => 'bad_artistId']);
+      exit;
+    }
+    if (!$startDate || !$endDate) {
+      http_response_code(400);
+      echo json_encode(['error' => 'missing_dates']);
+      exit;
+    }
+    $url = "$base/artists/$artistId/schedule?startDate=".rawurlencode($startDate)."&endDate=".rawurlencode($endDate);
+    break;
+  default:
+    http_response_code(400);
+    echo json_encode(['error' => 'bad_fn']);
+    exit;
+}
 
 $ch = curl_init($url);
 curl_setopt_array($ch, [
   CURLOPT_RETURNTRANSFER => true,
   CURLOPT_HTTPHEADER => [
-    'Authorization: Bearer ' . $API_KEY,
+    'x-api-key: ' . $key,
     'Accept: application/json'
   ],
-  CURLOPT_USERAGENT => 'CuttersChoiceRadio-Proxy/1.1',
+  CURLOPT_USERAGENT => 'CuttersChoiceRadio-Proxy/2.0',
   CURLOPT_TIMEOUT => 15,
 ]);
+
 $out  = curl_exec($ch);
 $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 $err  = curl_error($ch);
@@ -49,18 +83,17 @@ curl_close($ch);
 
 if ($out === false) {
   http_response_code(502);
-  echo json_encode(['error'=>'proxy_failed','detail'=>$err]);
+  echo json_encode(['error' => 'proxy_failed', 'detail' => $err]);
   exit;
 }
 
-// If upstream didn’t return JSON, wrap it so the client can handle it
+// Ensure JSON (upstream should be JSON per docs)
 $json = json_decode($out, true);
 if ($json === null && json_last_error() !== JSON_ERROR_NONE) {
   http_response_code($http ?: 200);
-  echo json_encode(['error'=>'upstream_non_json','body'=>substr($out,0,2048),'status'=>$http]);
+  echo json_encode(['error' => 'upstream_non_json', 'status' => $http, 'body' => substr($out,0,2048)]);
   exit;
 }
 
 http_response_code($http ?: 200);
 echo json_encode($json);
-?>

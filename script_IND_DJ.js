@@ -1,322 +1,294 @@
-/* DJ SELECTS — presenter-first next-show lookup + artist fallback + click-to-select strips */
+/* DJ Selects — robust front-end */
+(() => {
+  const CFG = window.DJ_SELECTS || {};
+  const NZ_TZ = 'Pacific/Auckland';
 
-document.addEventListener('DOMContentLoaded', () => {
-  const DEFAULTS = {
-    djName: "MARIONETTE",
-    stationId: "cutters-choice-radio",
-    apiKey: "pk_0b8abc6f834b444f949f727e88a728e0",
-    tracks: ["","","","",""],
-    profileImageOverride: ""
-  };
-  const ADMIN = { passphrase: "scissors", authed:false };
-  let SELECTED = 0;
+  const $ = (sel, root=document) => root.querySelector(sel);
+  const $$ = (sel, root=document) => [...root.querySelectorAll(sel)];
 
-  const $ = id => document.getElementById(id);
-  const els = {
-    djNameText:  $('djNameText'),
-    nextWhen:    $('nextShowWhen'),
-    profileImg:  $('djProfileThumb'),
-    trackList:   $('stripList'),
-    preview:     $('mainPreview'),
-    adminBtn:    $('adminBtn'),
-    adminPanel:  $('adminPanel'),
-    adminClose:  $('adminClose'),
-    adminPass:   $('adminPass'),
-    adminDjName: $('adminDjName'),
-    adminStationId: $('adminStationId'),
-    adminApiKey: $('adminApiKey'),
-    profileOverride: $('profileOverride'),
-    adminTracks: $('adminTracks'),
-    adminSave:   $('adminSave'),
-    adminLogout: $('adminLogout'),
-    adminReset:  $('adminReset'),
+  const stripList   = $('#stripList');
+  const mainPreview = $('#mainPreview');
+  const djNameText  = $('#djNameText');
+  const djProfile   = $('#djProfileThumb');
+  const nextWhen    = $('#nextShowWhen');
+  const adminMount  = $('#adminMount');
+
+  let shared = {
+    djName: 'DJ NAME',
+    profileImage: '/images/default-dj.png',
+    stationId: 'cutters-choice-radio',
+    apiKey: '',         // not exposed if using proxy w/ server env key
+    tracks: []          // array of string URLs
   };
 
-  const STORAGE_KEY = 'djSelects.config';
-  const normalizeTracks=a=>{a=Array.isArray(a)?a.slice(0,5):[];while(a.length<5)a.push("");return a;};
-  const loadConfig=()=>{try{const raw=localStorage.getItem(STORAGE_KEY);if(!raw)return{...DEFAULTS};const p=JSON.parse(raw);return{...DEFAULTS,...p,tracks:normalizeTracks(p.tracks||[])};}catch{return{...DEFAULTS};}};
-  const saveConfig=cfg=>localStorage.setItem(STORAGE_KEY,JSON.stringify(cfg));
-  let CONFIG=loadConfig();
+  /* ---------- helpers ---------- */
 
-  const fmt=new Intl.DateTimeFormat(undefined,{weekday:'short',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+  const sha256hex = async (text) => {
+    const enc = new TextEncoder().encode(text);
+    const buf = await crypto.subtle.digest('SHA-256', enc);
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2,'0')).join('');
+  };
 
-  /* ---------- YouTube ---------- */
-  function toEmbed(url){
-    if(!url) return null;
-    try{
+  const toEmbed = (url) => {
+    if (!url) return null;
+    try {
       const u = new URL(url.trim());
-      const host = u.hostname.replace(/^m\./,'');
-      let id = '';
-      if (u.pathname.startsWith('/results')) return null;
-      if (host.includes('youtu.be')) id = u.pathname.slice(1).split('/')[0];
-      else if (host.includes('youtube.com') || host.includes('music.youtube.com')){
-        if (u.searchParams.get('v')) id = u.searchParams.get('v');
-        else if (u.pathname.includes('/shorts/')) id = u.pathname.split('/shorts/')[1].split('/')[0];
-        else if (u.pathname.includes('/embed/'))  id = u.pathname.split('/embed/')[1].split('/')[0];
-        else if (u.pathname.includes('/live/'))   id = u.pathname.split('/live/')[1].split('/')[0];
+      // Shorts → normal, youtu.be → normal, watch → embed
+      if (u.hostname.includes('youtu')) {
+        let id = '';
+        if (u.hostname === 'youtu.be') id = u.pathname.slice(1);
+        else if (u.pathname.startsWith('/shorts/')) id = u.pathname.split('/')[2] || '';
+        else if (u.searchParams.get('v')) id = u.searchParams.get('v');
+        else if (/^\/embed\//.test(u.pathname)) id = u.pathname.split('/').pop();
+        id = (id || '').split('?')[0].split('&')[0];
+        if (!id) return null;
+        return `https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`;
       }
-      id = (id||'').split('?')[0].split('&')[0];
-      return id ? `https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1` : null;
-    }catch{ return null; }
-  }
-  function firstValidTrackIndex(){
-    const t=normalizeTracks(CONFIG.tracks);
-    for(let i=0;i<t.length;i++) if(toEmbed(t[i])) return i;
-    return 0;
-  }
+      // fallback: allow full embed URLs
+      return url;
+    } catch { return null; }
+  };
 
-  function updatePreview(autoplay){
-    if(!els.preview) return;
-    const embed = toEmbed(normalizeTracks(CONFIG.tracks)[SELECTED]);
-    els.preview.innerHTML = '';
-    if (!embed){
-      const ph = document.createElement('div');
-      ph.className='big-placeholder'; ph.textContent='Select a track';
-      els.preview.appendChild(ph);
-      return;
-    }
-    const wrap = document.createElement('div'); wrap.className='ratio big';
-    const ifr = document.createElement('iframe');
-    ifr.src = embed + (autoplay ? '&autoplay=1' : '');
-    ifr.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
-    ifr.loading = 'lazy';
-    wrap.appendChild(ifr); els.preview.appendChild(wrap);
-  }
+  const iframeAttrs = (src, big=false) =>
+    `<iframe src="${src}" title="YouTube video" loading="${big?'eager':'lazy'}"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
 
-  function renderTracks(){
-    if(!els.trackList) return;
-    els.trackList.innerHTML='';
-    const t=normalizeTracks(CONFIG.tracks);
-    t.forEach((u,i)=>{
-      const embed = toEmbed(u);
+  const setPreview = (src) => {
+    mainPreview.innerHTML = `<div class="ratio big">${iframeAttrs(src, true)}</div>`;
+  };
+
+  const renderStrips = (embeds) => {
+    stripList.innerHTML = '';
+    embeds.slice(0,5).forEach((src, i) => {
       const strip = document.createElement('div');
-      strip.className = 'strip' + (i===SELECTED?' selected':'');
-      if (embed){
-        const ifr=document.createElement('iframe');
-        ifr.src=embed; ifr.loading='lazy';
-        ifr.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
-        strip.appendChild(ifr);
-      }else{
-        const ph=document.createElement('div'); ph.className='yt-placeholder'; ph.textContent='Add YouTube URL';
-        strip.appendChild(ph);
-      }
-      const overlay=document.createElement('div'); overlay.className='select-overlay';
-      overlay.addEventListener('click',()=>{ SELECTED=i; updatePreview(true);
-        [...els.trackList.children].forEach((c,idx)=>c.classList.toggle('selected',idx===SELECTED));
+      strip.className = 'strip';
+      strip.innerHTML = iframeAttrs(src, false) + '<div class="select-overlay" aria-hidden="true"></div>';
+      strip.querySelector('.select-overlay').addEventListener('click', () => {
+        $$('.strip').forEach(s => s.classList.remove('selected'));
+        strip.classList.add('selected');
+        setPreview(src);
       });
-      strip.appendChild(overlay);
-      els.trackList.appendChild(strip);
+      stripList.appendChild(strip);
+      if (i === 0) {
+        strip.classList.add('selected');
+        setPreview(src);
+      }
     });
-    updatePreview(false);
-  }
-
-  /* ---------- Radio Cult via proxy ---------- */
-  const EP={
-    presenters:(id,key)=> `/rc-proxy.php?fn=presenters&stationId=${encodeURIComponent(id)}&key=${encodeURIComponent(key)}&t=${Date.now()}`,
-    presenterSchedule:(stationId,presenterId,key,from,to)=> `/rc-proxy.php?fn=presenter_schedule&stationId=${encodeURIComponent(stationId)}&presenterId=${encodeURIComponent(presenterId)}&startDate=${encodeURIComponent(from)}&endDate=${encodeURIComponent(to)}&key=${encodeURIComponent(key)}&t=${Date.now()}`,
-    artists:(id,key)=> `/rc-proxy.php?fn=artists&stationId=${encodeURIComponent(id)}&key=${encodeURIComponent(key)}&t=${Date.now()}`,
-    artistSchedule:(stationId,artistId,key,from,to)=> `/rc-proxy.php?fn=artist_schedule&stationId=${encodeURIComponent(stationId)}&artistId=${encodeURIComponent(artistId)}&startDate=${encodeURIComponent(from)}&endDate=${encodeURIComponent(to)}&key=${encodeURIComponent(key)}&t=${Date.now()}`,
-    upcoming:(id,key)=> `/rc-proxy.php?fn=upcoming&stationId=${encodeURIComponent(id)}&key=${encodeURIComponent(key)}&limit=50&t=${Date.now()}`,
-    range:(id,key,from,to)=> `/rc-proxy.php?fn=schedule_range&stationId=${encodeURIComponent(id)}&startDate=${encodeURIComponent(from)}&endDate=${encodeURIComponent(to)}&key=${encodeURIComponent(key)}&t=${Date.now()}`
+    if (embeds.length === 0) mainPreview.innerHTML = '<div class="big-placeholder">Select a track</div>';
   };
-  const jget = async url => { const r=await fetch(url,{headers:{'Accept':'application/json'}}); const t=await r.text(); try{ return JSON.parse(t);}catch{ return {error:'parse_failed', body:t, status:r.status}; } };
-  const pickImage = o => !o? '' : (o.logo?.['1024x1024'] || o.logo?.default || o.logo?.['512x512'] || o.imageUrl || o.avatar || o.photoUrl || o.artworkUrl || '');
 
-  const toDate = d => {
-    if(typeof d==='number'){ const ms = d>1e12 ? d : d*1000; return new Date(ms); }
-    const dt = new Date(d); return isNaN(+dt) ? null : dt;
+  const fmtNZ = (iso) => {
+    try {
+      const d = new Date(iso);
+      const options = { weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit', hour12:false, timeZone:NZ_TZ };
+      return d.toLocaleString(undefined, options);
+    } catch { return ''; }
   };
-  const getStartDateAny = obj => {
-    if(!obj || typeof obj!=='object') return null;
-    const keys = ['startDateUtc','startDate','startDateLocal','start','startsAt','startAt','start_time','start_time_utc','startTime','starts','timeStart'];
-    for(const k of keys){ if(obj[k]) return obj[k]; }
-    for(const k of Object.keys(obj)){ if(/start/i.test(k)) return obj[k]; }
-    for(const v of Object.values(obj)){
-      if(v && typeof v==='object'){ for(const k of Object.keys(v)){ if(/start/i.test(k)) return v[k]; } }
+
+  /* ---------- load shared config (server) ---------- */
+
+  async function loadSharedConfig() {
+    try {
+      const res = await fetch(`${CFG.CONFIG_ENDPOINT}?action=load`, {cache:'no-store'});
+      if (!res.ok) throw new Error('load failed');
+      const data = await res.json();
+      if (data && data.djName) shared = {...shared, ...data};
+    } catch (e) {
+      // fallback to localStorage (developer browser only)
+      const raw = localStorage.getItem('dj-selects-config');
+      if (raw) shared = {...shared, ...JSON.parse(raw)};
     }
-    return null;
-  };
-
-  function matchesByIdOrName(ev, id, name){
-    const ids = [
-      ev.presenterId, ev.hostId, ev.artistId,
-      ev.presenter?.id, ev.host?.id, ev.artist?.id,
-      ...(Array.isArray(ev.presenters)?ev.presenters.map(p=>p?.id):[]),
-      ...(Array.isArray(ev.artists)?ev.artists.map(a=>a?.id):[]),
-      ...(Array.isArray(ev.artistIds)?ev.artistIds:[])
-    ].filter(Boolean).map(String);
-    if (id && ids.includes(String(id))) return true;
-
-    const n=(name||'').toLowerCase();
-    const fields=[
-      ev.title, ev.name, ev.programName, ev.showTitle, ev.show?.name, ev.show?.title,
-      ev.presenter?.name, ev.host?.name,
-      ev.artist?.name, ...(Array.isArray(ev.artists)?ev.artists.map(a=>a?.name):[]),
-      ...(Array.isArray(ev.presenters)?ev.presenters.map(p=>p?.name):[])
-    ].filter(Boolean).map(s=>String(s).toLowerCase());
-    return fields.some(s=>s.includes(n));
   }
 
-  async function hydrateFromAPI(){
-    try{
-      if(!els.nextWhen) return;
-      if(!CONFIG.stationId){ els.nextWhen.textContent='Set Station ID in admin'; return; }
+  /* ---------- next scheduled show via RC proxy ---------- */
 
-      const now=new Date();
-      const from=now.toISOString();
-      const to=new Date(now.getTime()+1000*60*60*24*120).toISOString();
-
-      let next=null, img='', personId=null, personType=null; // 'presenter' | 'artist'
-
-      // 1) Try PRESENTERS first (this mirrors DJ profile cards)
-      const pres = await jget(EP.presenters(CONFIG.stationId, CONFIG.apiKey));
-      if (Array.isArray(pres?.presenters) || Array.isArray(pres)){
-        const list = pres.presenters || pres;
-        const needle=(CONFIG.djName||'').toLowerCase();
-        const hit = list.find(p => (p.name||'').toLowerCase()===needle) ||
-                    list.find(p => (p.name||'').toLowerCase().includes(needle));
-        if (hit){
-          personId = hit.id || hit._id || hit.presenterId || null;
-          personType = 'presenter';
-          img = pickImage(hit);
-          // presenter schedule
-          const sched = await jget(EP.presenterSchedule(CONFIG.stationId, personId, CONFIG.apiKey, from, to));
-          const items = sched?.events || sched?.items || (Array.isArray(sched)?sched:[]);
-          if (items?.length){
-            const future = items.map(ev=>({ev,d:toDate(getStartDateAny(ev))}))
-                                .filter(x=>x.d && x.d>now)
-                                .sort((a,b)=>a.d-b.d);
-            if (future.length) next=future[0].ev;
-          }
-        }
-      }
-
-      // 2) If none, try ARTISTS
-      if (!next){
-        const arts = await jget(EP.artists(CONFIG.stationId, CONFIG.apiKey));
-        if (Array.isArray(arts?.artists)){
-          const needle=(CONFIG.djName||'').toLowerCase();
-          const a = arts.artists.find(x => (x.name||'').toLowerCase()===needle) ||
-                    arts.artists.find(x => (x.name||'').toLowerCase().includes(needle));
-          if (a){
-            personId = a.id || a._id || a.artistId || personId;
-            personType = personType || 'artist';
-            img = img || pickImage(a);
-            const sched = await jget(EP.artistSchedule(CONFIG.stationId, personId, CONFIG.apiKey, from, to));
-            const items = sched?.events || sched?.items || (Array.isArray(sched)?sched:[]);
-            if (items?.length){
-              const future = items.map(ev=>({ev,d:toDate(getStartDateAny(ev))}))
-                                  .filter(x=>x.d && x.d>now)
-                                  .sort((a,b)=>a.d-b.d);
-              if (future.length) next=future[0].ev;
-            }
-          }
-        }
-      }
-
-      // 3) Still nothing? Station-level upcoming/range matched by id or name
-      if (!next){
-        const up = await jget(EP.upcoming(CONFIG.stationId, CONFIG.apiKey));
-        const upItems = up?.events || up?.items || (Array.isArray(up)?up:[]);
-        if (upItems?.length){
-          const future = upItems.filter(ev=>matchesByIdOrName(ev, personId, CONFIG.djName))
-                                .map(ev=>({ev,d:toDate(getStartDateAny(ev))}))
-                                .filter(x=>x.d && x.d>now).sort((a,b)=>a.d-b.d);
-          if (future.length) next = future[0].ev;
-        }
-      }
-      if (!next){
-        const rng = await jget(EP.range(CONFIG.stationId, CONFIG.apiKey, from, to));
-        const items = rng?.events || rng?.items || (Array.isArray(rng)?rng:[]);
-        if (items?.length){
-          const future = items.filter(ev=>matchesByIdOrName(ev, personId, CONFIG.djName))
-                              .map(ev=>({ev,d:toDate(getStartDateAny(ev))}))
-                              .filter(x=>x.d && x.d>now).sort((a,b)=>a.d-b.d);
-          if (future.length) next = future[0].ev;
-        }
-      }
-
-      // 4) Display
-      const s = next ? toDate(getStartDateAny(next)) : null;
-      els.nextWhen.textContent = s ? fmt.format(s) : 'No upcoming show found';
-      const override=(CONFIG.profileImageOverride||'').trim();
-      const useImg = override || img;
-      if (useImg && els.profileImg){ els.profileImg.src = useImg; els.profileImg.alt = CONFIG.djName || 'DJ'; }
-
-      // Optional: console diagnostics (useful if still no show)
-      console.debug('[DJ SELECTS] resolved',
-        { personType, personId, nextEvent: next, start:s?.toISOString() });
-    }catch(e){ console.warn('Hydrate failed', e); }
-  }
-
-  /* ---------- Admin ---------- */
-  function openAdmin(){
-    els.adminPanel?.classList.add('open');
-    if(els.adminDjName)   els.adminDjName.value   = CONFIG.djName || '';
-    if(els.adminStationId)els.adminStationId.value= CONFIG.stationId || '';
-    if(els.adminApiKey)   els.adminApiKey.value   = CONFIG.apiKey || '';
-    if(els.profileOverride) els.profileOverride.value = CONFIG.profileImageOverride || '';
-    if(els.adminPass) els.adminPass.value = '';
-    if(els.adminTracks){
-      els.adminTracks.innerHTML='';
-      normalizeTracks(CONFIG.tracks).forEach((u,i)=>{
-        const row=document.createElement('div');
-        row.className='track-input';
-        row.innerHTML = `
-          <input type="text" data-idx="${i}" value="${u||''}" placeholder="YouTube URL #${i+1} (watch?v=… or youtu.be/…)">
-          <button data-up="${i}">&#8593;</button><button data-down="${i}">&#8595;</button>`;
-        els.adminTracks.appendChild(row);
+  async function loadNextShow() {
+    nextWhen.textContent = 'Loading…';
+    try {
+      const url = `${CFG.PROXY_ENDPOINT}?fn=upcoming&stationId=${encodeURIComponent(shared.stationId)}&limit=50`;
+      const res = await fetch(url, { headers: { 'Accept':'application/json' }});
+      if (!res.ok) throw new Error('proxy error');
+      const payload = await res.json(); // expects { data: [...] } per RC
+      const list = (payload?.data || payload || []);
+      const target = list.find(evt => {
+        const nm = (evt?.artist?.name || evt?.presenter?.name || evt?.name || '').toLowerCase();
+        return nm.includes((shared.djName||'').toLowerCase());
       });
+      if (!target) { nextWhen.textContent = 'No upcoming show found'; return; }
+
+      const when = target?.startDate || target?.start || target?.scheduledStart || target?.start_time || '';
+      nextWhen.textContent = when ? fmtNZ(when) : 'TBA';
+
+      // try profile image from event if present
+      const img = target?.artist?.image || target?.presenter?.image || '';
+      if (img && !shared.profileImage) djProfile.src = img;
+    } catch (e) {
+      nextWhen.textContent = 'Unable to load schedule';
     }
   }
-  function closeAdmin(){ els.adminPanel?.classList.remove('open'); }
-  function reorderTracks(from,to){
-    const t=normalizeTracks(CONFIG.tracks); if(to<0||to>=t.length)return;
-    const [m]=t.splice(from,1); t.splice(to,0,m); CONFIG.tracks=t; saveConfig(CONFIG);
-    SELECTED = Math.min(firstValidTrackIndex(), t.length-1);
-    openAdmin(); renderTracks();
+
+  /* ---------- admin UI (hidden until auth) ---------- */
+
+  function renderAdmin() {
+    // Button
+    const btn = document.createElement('button');
+    btn.className = 'admin-btn';
+    btn.id = 'adminBtn';
+    btn.title = 'Admin';
+    btn.innerHTML = '<i class="fa-solid fa-gear" aria-hidden="true"></i>';
+
+    // Panel
+    const panel = document.createElement('div');
+    panel.className = 'admin-panel';
+    panel.id = 'adminPanel';
+    panel.innerHTML = `
+      <div class="admin-head">
+        <strong>DJ SELECTS — Admin</strong>
+        <button id="adminClose" class="admin-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="admin-body">
+        <label>DJ Name (as listed in Radio Cult)
+          <input type="text" id="adminDjName" placeholder="e.g., MARIONETTE" value="${shared.djName}">
+        </label>
+
+        <div class="two-col">
+          <label>Station ID
+            <input type="text" id="adminStationId" placeholder="cutters-choice-radio" value="${shared.stationId}">
+          </label>
+          <label>Publishable API Key (optional – proxy can use server env)
+            <input type="text" id="adminApiKey" placeholder="pk_..." value="${shared.apiKey}">
+          </label>
+        </div>
+
+        <label>Profile Image URL (optional)
+          <input type="text" id="profileOverride" placeholder="https://..." value="${shared.profileImage || ''}">
+        </label>
+
+        <div class="admin-subhead" style="margin:.5rem 0 .25rem;font-family:'Bebas Neue',sans-serif;font-size:1.3rem;">YouTube Track URLs (up to 5)</div>
+        <div id="adminTracks"></div>
+
+        <div class="admin-actions">
+          <button id="adminSave" class="primary">Save</button>
+          <button id="adminLogout" class="ghost">Logout</button>
+          <button id="adminReset" class="danger">Reset (local only)</button>
+        </div>
+      </div>
+    `;
+
+    adminMount.after(btn, panel);
+    adminMount.remove();
+
+    const close = () => panel.classList.remove('open');
+    btn.addEventListener('click', () => panel.classList.add('open'));
+    panel.querySelector('#adminClose').addEventListener('click', close);
+
+    // tracks editor
+    const tracksWrap = panel.querySelector('#adminTracks');
+    const redraw = () => {
+      tracksWrap.innerHTML = '';
+      const current = [...shared.tracks, '', '', '', ''].slice(0,5);
+      current.forEach((val, i) => {
+        const row = document.createElement('div');
+        row.className = 'track-input';
+        row.innerHTML = `
+          <input type="url" placeholder="https://www.youtube.com/watch?v=..." value="${val||''}">
+          <button data-act="clear">Clear</button>
+          <button data-act="paste">Paste</button>
+        `;
+        row.querySelector('[data-act="clear"]').addEventListener('click', () => {
+          row.querySelector('input').value = '';
+        });
+        row.querySelector('[data-act="paste"]').addEventListener('click', async () => {
+          try {
+            const txt = await navigator.clipboard.readText();
+            row.querySelector('input').value = txt;
+          } catch {}
+        });
+        tracksWrap.appendChild(row);
+      });
+    };
+    redraw();
+
+    panel.querySelector('#adminSave').addEventListener('click', async () => {
+      shared.djName     = panel.querySelector('#adminDjName').value.trim() || shared.djName;
+      shared.stationId  = panel.querySelector('#adminStationId').value.trim() || shared.stationId;
+      shared.apiKey     = panel.querySelector('#adminApiKey').value.trim();
+      shared.profileImage = panel.querySelector('#profileOverride').value.trim();
+
+      const urls = $$('.track-input input', panel).map(i => i.value.trim()).filter(Boolean);
+      shared.tracks = urls.slice(0,5);
+
+      // write local for your dev convenience
+      localStorage.setItem('dj-selects-config', JSON.stringify(shared));
+
+      // write server (shared for everyone)
+      if (CFG.SAVE_TOKEN) {
+        try {
+          const res = await fetch(`${CFG.CONFIG_ENDPOINT}?action=save`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: CFG.SAVE_TOKEN, data: shared })
+          });
+          if (!res.ok) throw new Error('save failed');
+        } catch (e) {
+          alert('Server save failed — check token & file permissions.');
+        }
+      } else {
+        alert('Saved locally. To save for everyone, set SAVE_TOKEN in dj-selects.html and dj-selects-config.php.');
+      }
+
+      applyConfig();
+      close();
+    });
+
+    panel.querySelector('#adminLogout').addEventListener('click', () => {
+      sessionStorage.removeItem('dj-selects-auth');
+      location.reload();
+    });
+
+    panel.querySelector('#adminReset').addEventListener('click', () => {
+      localStorage.removeItem('dj-selects-config');
+      alert('Local data cleared. Reloading…'); location.reload();
+    });
   }
 
-  els.adminBtn?.addEventListener('click', openAdmin);
-  els.adminClose?.addEventListener('click', closeAdmin);
-  els.adminLogout?.addEventListener('click', ()=>{ ADMIN.authed=false; closeAdmin(); });
+  async function ensureAdmin() {
+    // hidden entry: press Shift + A or add ?admin=1 to URL to prompt
+    const promptAuth = async () => {
+      const pwd = window.prompt('Enter admin passphrase:');
+      if (!pwd) return;
+      const hex = await sha256hex(pwd);
+      if (hex === CFG.ADMIN_HASH_HEX) {
+        sessionStorage.setItem('dj-selects-auth','1');
+        renderAdmin();
+      } else {
+        alert('Wrong passphrase.');
+      }
+    };
+    if (new URLSearchParams(location.search).get('admin') === '1') await promptAuth();
+    document.addEventListener('keydown', async (e) => {
+      if (e.key.toLowerCase()==='a' && e.shiftKey) await promptAuth();
+    });
 
-  els.adminTracks?.addEventListener('input', (e)=>{
-    if(e.target.tagName==='INPUT'){
-      const idx=+e.target.getAttribute('data-idx');
-      const t=normalizeTracks(CONFIG.tracks); t[idx]=e.target.value.trim();
-      CONFIG.tracks=t; saveConfig(CONFIG);
-      SELECTED = firstValidTrackIndex(); renderTracks();
-    }
-  });
-  els.adminTracks?.addEventListener('click', (e)=>{
-    const up=e.target.getAttribute('data-up'), down=e.target.getAttribute('data-down');
-    if(up!==null)  reorderTracks(+up, +up-1);
-    if(down!==null)reorderTracks(+down, +down+1);
-  });
-
-  els.adminSave?.addEventListener('click', ()=>{
-    const pass = (els.adminPass?.value || '').trim();
-    if(!ADMIN.authed){ if(pass!=='scissors'){ alert('Incorrect passphrase'); return; } ADMIN.authed=true; }
-    CONFIG.djName = (els.adminDjName?.value || DEFAULTS.djName).trim() || DEFAULTS.djName;
-    CONFIG.stationId = (els.adminStationId?.value || DEFAULTS.stationId).trim() || DEFAULTS.stationId;
-    CONFIG.apiKey = (els.adminApiKey?.value || DEFAULTS.apiKey).trim() || DEFAULTS.apiKey;
-    CONFIG.profileImageOverride = (els.profileOverride?.value || '').trim();
-    saveConfig(CONFIG); closeAdmin(); boot();
-  });
-
-  els.adminReset?.addEventListener('click', ()=>{
-    if(confirm('Reset DJ Selects to defaults?')){
-      CONFIG={...DEFAULTS}; saveConfig(CONFIG); closeAdmin(); boot(); ADMIN.authed=false;
-    }
-  });
-
-  function boot(){
-    CONFIG = loadConfig();
-    if(els.djNameText) els.djNameText.textContent = CONFIG.djName || 'DJ NAME';
-    SELECTED = firstValidTrackIndex();
-    renderTracks();
-    hydrateFromAPI();
+    if (sessionStorage.getItem('dj-selects-auth') === '1') renderAdmin();
   }
-  boot();
-});
+
+  /* ---------- apply to UI ---------- */
+
+  function applyConfig() {
+    djNameText.textContent = shared.djName || 'DJ NAME';
+    if (shared.profileImage) djProfile.src = shared.profileImage;
+    const embeds = (shared.tracks || []).map(toEmbed).filter(Boolean);
+    renderStrips(embeds);
+    loadNextShow();
+  }
+
+  /* ---------- BOOT ---------- */
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    await loadSharedConfig();
+    applyConfig();
+    ensureAdmin();
+  });
+})();

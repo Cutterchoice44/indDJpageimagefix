@@ -1,7 +1,6 @@
-/* DJ Selects — robust front-end */
+/* DJ Selects — front-end (times shown in viewer's local timezone) */
 (() => {
   const CFG = window.DJ_SELECTS || {};
-  const NZ_TZ = 'Pacific/Auckland';
 
   const $ = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => [...root.querySelectorAll(sel)];
@@ -17,8 +16,8 @@
     djName: 'DJ NAME',
     profileImage: '/images/default-dj.png',
     stationId: 'cutters-choice-radio',
-    apiKey: '',         // not exposed if using proxy w/ server env key
-    tracks: []          // array of string URLs
+    apiKey: '',
+    tracks: []
   };
 
   /* ---------- helpers ---------- */
@@ -33,7 +32,6 @@
     if (!url) return null;
     try {
       const u = new URL(url.trim());
-      // Shorts → normal, youtu.be → normal, watch → embed
       if (u.hostname.includes('youtu')) {
         let id = '';
         if (u.hostname === 'youtu.be') id = u.pathname.slice(1);
@@ -44,7 +42,6 @@
         if (!id) return null;
         return `https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`;
       }
-      // fallback: allow full embed URLs
       return url;
     } catch { return null; }
   };
@@ -78,16 +75,24 @@
     if (embeds.length === 0) mainPreview.innerHTML = '<div class="big-placeholder">Select a track</div>';
   };
 
-  const fmtNZ = (iso) => {
+  // NEW: format in the viewer's local timezone (no explicit timeZone set)
+  const fmtLocal = (iso) => {
     try {
       const d = new Date(iso);
-      const options = { weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit', hour12:false, timeZone:NZ_TZ };
-      return d.toLocaleString(undefined, options);
+      const opts = {
+        weekday:'short',
+        day:'numeric',
+        month:'short',
+        hour:'2-digit',
+        minute:'2-digit',
+        hour12:false,
+        timeZoneName:'short' // shows e.g., PDT, BST, AEST
+      };
+      return d.toLocaleString(undefined, opts);
     } catch { return ''; }
   };
 
   /* ---------- load shared config (server) ---------- */
-
   async function loadSharedConfig() {
     try {
       const res = await fetch(`${CFG.CONFIG_ENDPOINT}?action=load`, {cache:'no-store'});
@@ -95,21 +100,19 @@
       const data = await res.json();
       if (data && data.djName) shared = {...shared, ...data};
     } catch (e) {
-      // fallback to localStorage (developer browser only)
       const raw = localStorage.getItem('dj-selects-config');
       if (raw) shared = {...shared, ...JSON.parse(raw)};
     }
   }
 
   /* ---------- next scheduled show via RC proxy ---------- */
-
   async function loadNextShow() {
     nextWhen.textContent = 'Loading…';
     try {
       const url = `${CFG.PROXY_ENDPOINT}?fn=upcoming&stationId=${encodeURIComponent(shared.stationId)}&limit=50`;
       const res = await fetch(url, { headers: { 'Accept':'application/json' }});
       if (!res.ok) throw new Error('proxy error');
-      const payload = await res.json(); // expects { data: [...] } per RC
+      const payload = await res.json();
       const list = (payload?.data || payload || []);
       const target = list.find(evt => {
         const nm = (evt?.artist?.name || evt?.presenter?.name || evt?.name || '').toLowerCase();
@@ -117,9 +120,14 @@
       });
       if (!target) { nextWhen.textContent = 'No upcoming show found'; return; }
 
-      const when = target?.startDate || target?.start || target?.scheduledStart || target?.start_time || '';
-      nextWhen.textContent = when ? fmtNZ(when) : 'TBA';
+      const whenISO = target?.startDate || target?.start || target?.scheduledStart || target?.start_time || '';
+      if (!whenISO) { nextWhen.textContent = 'TBA'; return; }
 
+      // show in viewer's local time + zone abbreviation
+      nextWhen.textContent = fmtLocal(whenISO);
+      nextWhen.setAttribute('data-utc', whenISO); // useful for debugging/QA if needed
+      nextWhen.setAttribute('title', `Start (UTC): ${new Date(whenISO).toUTCString()}`);
+      
       // try profile image from event if present
       const img = target?.artist?.image || target?.presenter?.image || '';
       if (img && !shared.profileImage) djProfile.src = img;
@@ -129,16 +137,13 @@
   }
 
   /* ---------- admin UI (hidden until auth) ---------- */
-
   function renderAdmin() {
-    // Button
     const btn = document.createElement('button');
     btn.className = 'admin-btn';
     btn.id = 'adminBtn';
     btn.title = 'Admin';
     btn.innerHTML = '<i class="fa-solid fa-gear" aria-hidden="true"></i>';
 
-    // Panel
     const panel = document.createElement('div');
     panel.className = 'admin-panel';
     panel.id = 'adminPanel';
@@ -149,20 +154,20 @@
       </div>
       <div class="admin-body">
         <label>DJ Name (as listed in Radio Cult)
-          <input type="text" id="adminDjName" placeholder="e.g., MARIONETTE" value="${shared.djName}">
+          <input type="text" id="adminDjName" placeholder="e.g., MARIONETTE" value="\${shared.djName}">
         </label>
 
         <div class="two-col">
           <label>Station ID
-            <input type="text" id="adminStationId" placeholder="cutters-choice-radio" value="${shared.stationId}">
+            <input type="text" id="adminStationId" placeholder="cutters-choice-radio" value="\${shared.stationId}">
           </label>
           <label>Publishable API Key (optional – proxy can use server env)
-            <input type="text" id="adminApiKey" placeholder="pk_..." value="${shared.apiKey}">
+            <input type="text" id="adminApiKey" placeholder="pk_..." value="\${shared.apiKey}">
           </label>
         </div>
 
         <label>Profile Image URL (optional)
-          <input type="text" id="profileOverride" placeholder="https://..." value="${shared.profileImage || ''}">
+          <input type="text" id="profileOverride" placeholder="https://..." value="\${shared.profileImage || ''}">
         </label>
 
         <div class="admin-subhead" style="margin:.5rem 0 .25rem;font-family:'Bebas Neue',sans-serif;font-size:1.3rem;">YouTube Track URLs (up to 5)</div>
@@ -188,11 +193,11 @@
     const redraw = () => {
       tracksWrap.innerHTML = '';
       const current = [...shared.tracks, '', '', '', ''].slice(0,5);
-      current.forEach((val, i) => {
+      current.forEach((val) => {
         const row = document.createElement('div');
         row.className = 'track-input';
         row.innerHTML = `
-          <input type="url" placeholder="https://www.youtube.com/watch?v=..." value="${val||''}">
+          <input type="url" placeholder="https://www.youtube.com/watch?v=..." value="\${val||''}">
           <button data-act="clear">Clear</button>
           <button data-act="paste">Paste</button>
         `;
@@ -219,10 +224,8 @@
       const urls = $$('.track-input input', panel).map(i => i.value.trim()).filter(Boolean);
       shared.tracks = urls.slice(0,5);
 
-      // write local for your dev convenience
       localStorage.setItem('dj-selects-config', JSON.stringify(shared));
 
-      // write server (shared for everyone)
       if (CFG.SAVE_TOKEN) {
         try {
           const res = await fetch(`${CFG.CONFIG_ENDPOINT}?action=save`, {
@@ -254,7 +257,6 @@
   }
 
   async function ensureAdmin() {
-    // hidden entry: press Shift + A or add ?admin=1 to URL to prompt
     const promptAuth = async () => {
       const pwd = window.prompt('Enter admin passphrase:');
       if (!pwd) return;
@@ -275,7 +277,6 @@
   }
 
   /* ---------- apply to UI ---------- */
-
   function applyConfig() {
     djNameText.textContent = shared.djName || 'DJ NAME';
     if (shared.profileImage) djProfile.src = shared.profileImage;
@@ -285,7 +286,6 @@
   }
 
   /* ---------- BOOT ---------- */
-
   window.addEventListener('DOMContentLoaded', async () => {
     await loadSharedConfig();
     applyConfig();

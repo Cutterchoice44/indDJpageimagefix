@@ -1,194 +1,302 @@
-// script_IND_DJ.js
-const API_KEY      = "pk_0b8abc6f834b444f949f727e88a728e0";
-const BASE_URL     = "https://api.radiocult.fm/api";
-const STATION_ID   = "cutters-choice-radio";
-const MIXCLOUD_PW  = "cutters44";
-const FALLBACK_ART = "https://i.imgur.com/qWOfxOS.png";
+/* DJ SELECTS — data, API calls, admin mode + rendering
+   Storage model (localStorage key: 'djSelects.config'):
+   {
+     djName: "MARIONETTE",
+     stationSlug: "cutters-choice-radio",
+     apiKey: "pk_...",
+     tracks: ["https://youtu.be/...", ... up to 5]
+   }
+*/
 
-// Helpers
-function showNotFound() {
-  document.querySelector(".profile-wrapper").innerHTML = `
-    <p style="color:white;text-align:center;margin:2rem;">
-      Profile not found.
-    </p>`;
-}
-function showError() {
-  document.querySelector(".profile-wrapper").innerHTML = `
-    <p style="color:white;text-align:center;margin:2rem;">
-      Error loading profile.
-    </p>`;
-}
-function createGoogleCalLink(title, s, e) {
-  if (!s||!e) return "#";
-  const fmt = dt=>new Date(dt).toISOString().replace(/-|:|\.\d{3}/g,'');
-  return `https://www.google.com/calendar/render?action=TEMPLATE`
-       + `&text=${encodeURIComponent(title)}`
-       + `&dates=${fmt(s)}/${fmt(e)}`;
-}
+(function(){
+  const DEFAULTS = {
+    djName: "MARIONETTE",
+    stationSlug: "cutters-choice-radio",
+    apiKey: "pk_0b8abc6f834b444f949f727e88a728e0",
+    tracks: [
+      "", "", "", "", ""
+    ]
+  };
 
-async function initPage() {
-  const params   = new URLSearchParams(location.search);
-  const artistId = params.get("id");
-  if (!artistId) return showNotFound();
+  const ADMIN = {
+    passphrase: "scissors", // <- change this if you like
+    isAuthed: false
+  };
 
-  // 1) Fetch artist
-  let artist;
-  try {
-    const r = await fetch(
-      `${BASE_URL}/station/${STATION_ID}/artists/${artistId}`,
-      { headers: { "x-api-key": API_KEY } }
-    );
-    if (!r.ok) {
-      if (r.status===404) return showNotFound();
-      throw new Error(`Artist API ${r.status}`);
-    }
-    const body = await r.json();
-    artist = body.artist || body.data || body;
-    if (artist.attributes) artist = { ...artist, ...artist.attributes };
-  } catch(err) {
-    console.error(err);
-    return showError();
+  const els = {
+    djNameText:  document.getElementById('djNameText'),
+    nextWhen:    document.getElementById('nextShowWhen'),
+    profileImg:  document.getElementById('djProfileImg'),
+    profileCred: document.getElementById('djProfileCredit'),
+    trackList:   document.getElementById('trackList'),
+
+    adminBtn:    document.getElementById('adminBtn'),
+    adminPanel:  document.getElementById('adminPanel'),
+    adminClose:  document.getElementById('adminClose'),
+    adminPass:   document.getElementById('adminPass'),
+    adminDjName: document.getElementById('adminDjName'),
+    adminStation:document.getElementById('adminStation'),
+    adminApiKey: document.getElementById('adminApiKey'),
+    adminTracks: document.getElementById('adminTracks'),
+    adminSave:   document.getElementById('adminSave'),
+    adminLogout: document.getElementById('adminLogout'),
+    adminReset:  document.getElementById('adminReset')
+  };
+
+  // ----- persistence -----
+  const STORAGE_KEY = 'djSelects.config';
+  function loadConfig(){
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return {...DEFAULTS};
+      const parsed = JSON.parse(raw);
+      return { ...DEFAULTS, ...parsed, tracks: normalizeTracks(parsed.tracks || []) };
+    } catch(e){ console.warn('Config parse error', e); return {...DEFAULTS}; }
+  }
+  function saveConfig(cfg){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg));
+  }
+  function normalizeTracks(arr){
+    const a = Array.isArray(arr) ? arr.slice(0,5) : [];
+    while (a.length < 5) a.push("");
+    return a;
   }
 
-  // 2) Must have WEBSITE tag
-  const tags = Array.isArray(artist.tags)
-    ? artist.tags.map(t=>String(t).toLowerCase())
-    : [];
-  if (!tags.includes("website")) {
-    return showNotFound();
-  }
+  let CONFIG = loadConfig();
 
-  // 3) Name
-  document.getElementById("dj-name").textContent = artist.name || "";
+  // ----- utilities -----
+  const fmt = new Intl.DateTimeFormat(undefined, {
+    weekday: 'short', day:'2-digit', month:'short',
+    hour:'2-digit', minute:'2-digit'
+  });
 
-  // 4) Bio/Description
-  const bioEl = document.getElementById("dj-bio");
-  let raw = null;
-  for (const k of ["description","descriptionHtml","bio","bioHtml"]) {
-    if (artist[k] != null) { raw = artist[k]; break; }
-  }
-  let bioHtml = "";
-  if (raw) {
-    if (typeof raw==="object" && Array.isArray(raw.content)) {
-      const extract = node =>
-        node.text ||
-        (node.content||[]).map(extract).join("") ||
-        "";
-      bioHtml = raw.content.map(blk=>`<p>${extract(blk)}</p>`).join("");
-    } else if (typeof raw==="string") {
-      bioHtml = /<[a-z][\s\S]*>/i.test(raw)
-        ? raw
-        : raw.split(/\r?\n+/).map(p=>`<p>${p}</p>`).join("");
-    }
-  }
-  bioEl.innerHTML = bioHtml || `<p>No bio available.</p>`;
-
-  // 5) Artwork
-  const art = document.getElementById("dj-artwork");
-  art.src = artist.logo?.["512x512"]||artist.logo?.default||artist.avatar||FALLBACK_ART;
-  art.alt = artist.name||"";
-
-  // 6) Social links
-  const sl = document.getElementById("social-links");
-  sl.innerHTML = "";
-  for (const [plat,url] of Object.entries(artist.socials||{})) {
-    if (!url) continue;
-    const label = plat.replace(/Handle$/,"").replace(/([A-Z])/g," $1").trim();
-    const li = document.createElement("li");
-    li.innerHTML = `<a href="${url}" target="_blank" rel="noopener">
-      ${label.charAt(0).toUpperCase()+label.slice(1)}
-    </a>`;
-    sl.appendChild(li);
-  }
-
-  // 7) Add to Calendar button
-  const calBtn = document.getElementById("calendar-btn");
-  calBtn.disabled = true;
-  calBtn.onclick  = null;
-  try {
-    const now     = new Date().toISOString();
-    const inOneYr = new Date(Date.now()+365*24*60*60*1000).toISOString();
-    const r2 = await fetch(
-      `${BASE_URL}/station/${STATION_ID}/artists/${artistId}/schedule`
-      + `?startDate=${now}&endDate=${inOneYr}`,
-      { headers:{ "x-api-key": API_KEY } }
-    );
-    if (r2.ok) {
-      const { schedules=[] } = await r2.json();
-      if (schedules.length) {
-        const { startDateUtc,endDateUtc } = schedules[0];
-        calBtn.disabled = false;
-        calBtn.onclick = () => {
-          window.open(
-            createGoogleCalLink(
-              `DJ ${artist.name} Live Set`,
-              startDateUtc,
-              endDateUtc
-            ), "_blank"
-          );
-        };
+  function toEmbed(url){
+    if(!url) return null;
+    try{
+      // Support youtu.be, youtube.com/watch?v=, youtube.com/shorts/…
+      const u = new URL(url);
+      let id = '';
+      if (u.hostname.includes('youtu.be')) {
+        id = u.pathname.replace('/','').trim();
+      } else if (u.searchParams.get('v')) {
+        id = u.searchParams.get('v');
+      } else if (u.pathname.includes('/shorts/')) {
+        id = u.pathname.split('/shorts/')[1];
+      } else if (u.pathname.includes('/embed/')) {
+        id = u.pathname.split('/embed/')[1];
       }
-    }
-  } catch(err) {
-    console.error("Schedule error:",err);
+      if(!id) return null;
+      return `https://www.youtube-nocookie.com/embed/${id}`;
+    }catch(e){ return null; }
   }
 
-  // 8) Mixcloud archive persistence
-  const storageKey = `${artistId}-mixcloud-urls`;
-  const listEl     = document.getElementById("mixes-list");
-
-  function loadShows() {
-    listEl.innerHTML = "";
-    const urls = JSON.parse(localStorage.getItem(storageKey))||[];
-    urls.forEach(url => {
-      const wrapper = document.createElement("div");
-      wrapper.className = "mix-show";
-
-      const iframe = document.createElement("iframe");
-      iframe.width      = "100%";
-      iframe.height     = "60";
-      iframe.frameBorder= "0";
-      iframe.allow      = "autoplay";
-      // **no line breaks in this string**
-      iframe.src = "https://www.mixcloud.com/widget/iframe/?" +
-                   "hide_cover=1&light=1&feed=" +
-                   encodeURIComponent(url);
-      wrapper.appendChild(iframe);
-const btn = document.createElement("button");
-btn.textContent = "Remove show";
-btn.onclick = () => {
-  const pwd = prompt("Enter password to remove this show:");
-  if (pwd !== MIXCLOUD_PW) {
-    return alert("Incorrect password");
+  function h(tag, cls){
+    const el = document.createElement(tag);
+    if (cls) el.className = cls;
+    return el;
   }
-  const arr = JSON.parse(localStorage.getItem(storageKey)) || [];
-  localStorage.setItem(
-    storageKey,
-    JSON.stringify(arr.filter(u => u !== url))
-  );
-  loadShows();
-};
-wrapper.appendChild(btn);
 
-listEl.appendChild(wrapper);
+  // ----- rendering -----
+  function render(){
+    els.djNameText.textContent = CONFIG.djName || 'DJ NAME';
+
+    // Tracks
+    els.trackList.innerHTML = '';
+    normalizeTracks(CONFIG.tracks).forEach((u) => {
+      const embed = toEmbed(u);
+      const card = h('div','yt-card');
+      const ratio = h('div','ratio');
+      if (embed){
+        const ifr = document.createElement('iframe');
+        ifr.src = embed;
+        ifr.loading = 'lazy';
+        ifr.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+        ifr.referrerPolicy = 'strict-origin-when-cross-origin';
+        ratio.appendChild(ifr);
+      } else {
+        const placeholder = h('div');
+        placeholder.style.display='grid';
+        placeholder.style.placeItems='center';
+        placeholder.style.color='#777';
+        placeholder.style.fontFamily="'Bebas Neue', sans-serif";
+        placeholder.style.fontSize='1.2rem';
+        placeholder.textContent = 'Add YouTube URL';
+        ratio.appendChild(placeholder);
+      }
+      card.appendChild(ratio);
+      els.trackList.appendChild(card);
     });
   }
 
-  // initial load & add-show handler
-  loadShows();
-  document.getElementById("add-show-btn").onclick = () => {
-    const pwd = prompt("Enter password to add a show:");
-    if (pwd !== MIXCLOUD_PW) return alert("Incorrect password");
-    const input = document.getElementById("mixcloud-url-input");
-    const u = input.value.trim();
-    if (!u) return;
-    const arr = JSON.parse(localStorage.getItem(storageKey))||[];
-    arr.push(u);
-    localStorage.setItem(storageKey, JSON.stringify(arr));
-    input.value = "";
-    loadShows();
+  // ----- Radio Cult API (profile + next show) -----
+  // NOTE: These endpoints work for most stations; if your Radio Cult
+  // account uses different paths, tweak ENDPOINTS below (kept in one place).
+  const ENDPOINTS = {
+    // Find upcoming shows for the station; optionally filter by DJ name
+    upcoming: (slug) => `https://app.radiocult.fm/api/v1/stations/${encodeURIComponent(slug)}/schedule/upcoming?limit=25`,
+    // List station DJs / artists (for avatar lookup)
+    djs:      (slug) => `https://app.radiocult.fm/api/v1/stations/${encodeURIComponent(slug)}/djs?limit=200`
   };
 
-} // initPage
+  async function rcFetch(url, apiKey){
+    const res = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'Accept':'application/json' }
+    });
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  }
 
-window.addEventListener("DOMContentLoaded", initPage);
+  async function fetchNextShow(djName, slug, apiKey){
+    try{
+      const data = await rcFetch(ENDPOINTS.upcoming(slug), apiKey);
+      // Try to find the first upcoming show by this DJ; otherwise next station show
+      const items = Array.isArray(data?.items) ? data.items : (Array.isArray(data) ? data : []);
+      let next = null;
+      if (djName){
+        const name = djName.toLowerCase();
+        next = items.find(it => (it?.djName || it?.artist || it?.title || '')
+          .toString().toLowerCase().includes(name));
+      }
+      if (!next) next = items[0];
+
+      if (next?.startTime || next?.start || next?.startsAt){
+        const t = new Date(next.startTime || next.start || next.startsAt);
+        els.nextWhen.textContent = fmt.format(t);
+      } else {
+        els.nextWhen.textContent = 'No upcoming show found';
+      }
+    }catch(e){
+      console.warn('Next-show fetch error', e);
+      els.nextWhen.textContent = 'Unable to load';
+    }
+  }
+
+  async function fetchDjProfile(djName, slug, apiKey){
+    if (!djName) return;
+    try{
+      const list = await rcFetch(ENDPOINTS.djs(slug), apiKey);
+      const arr = Array.isArray(list?.items) ? list.items : (Array.isArray(list) ? list : []);
+      const name = djName.toLowerCase();
+      const hit = arr.find(d =>
+        (d?.name || d?.displayName || '').toString().toLowerCase() === name ||
+        (d?.name || d?.displayName || '').toString().toLowerCase().includes(name)
+      );
+      const url = hit?.imageUrl || hit?.avatar || hit?.photoUrl || hit?.artworkUrl;
+      if (url){
+        els.profileImg.src = url;
+        els.profileImg.alt = hit?.displayName || hit?.name || djName;
+        els.profileCred.textContent = (hit?.credit || hit?.displayName || hit?.name) ? `Artist: ${hit.displayName || hit.name}` : '';
+      } else {
+        els.profileCred.textContent = '';
+      }
+    }catch(e){
+      console.warn('DJ profile fetch error', e);
+      // leave default image
+    }
+  }
+
+  // ----- admin panel -----
+  function openAdmin(){
+    els.adminPanel.classList.add('open');
+    // hydrate inputs from CONFIG
+    els.adminDjName.value  = CONFIG.djName || '';
+    els.adminStation.value = CONFIG.stationSlug || '';
+    els.adminApiKey.value  = CONFIG.apiKey || '';
+    // tracks editor
+    els.adminTracks.innerHTML = '';
+    normalizeTracks(CONFIG.tracks).forEach((u, i) => {
+      const row = document.createElement('div');
+      row.className = 'track-input';
+      row.innerHTML = `
+        <input type="text" data-idx="${i}" value="${u || ''}" placeholder="YouTube URL #${i+1}">
+        <button data-up="${i}">&#8593;</button>
+        <button data-down="${i}">&#8595;</button>
+      `;
+      els.adminTracks.appendChild(row);
+    });
+  }
+  function closeAdmin(){ els.adminPanel.classList.remove('open'); }
+
+  function reorderTracks(from, to){
+    const t = normalizeTracks(CONFIG.tracks);
+    if (to < 0 || to >= t.length) return;
+    const [moved] = t.splice(from,1);
+    t.splice(to,0,moved);
+    CONFIG.tracks = t;
+    openAdmin(); // re-render panel
+  }
+
+  // events
+  els.adminBtn.addEventListener('click', () => {
+    if (!ADMIN.isAuthed){
+      const entered = prompt('Enter admin passphrase:');
+      if (entered === ADMIN.passphrase){
+        ADMIN.isAuthed = true;
+        document.body.classList.add('admin-mode'); // ties into your existing CSS
+        openAdmin();
+      } else {
+        alert('Incorrect passphrase');
+      }
+    } else {
+      openAdmin();
+    }
+  });
+
+  els.adminClose.addEventListener('click', closeAdmin);
+  els.adminLogout.addEventListener('click', () => {
+    ADMIN.isAuthed = false;
+    document.body.classList.remove('admin-mode');
+    closeAdmin();
+  });
+
+  els.adminTracks.addEventListener('click', (e) => {
+    const up = e.target.getAttribute('data-up');
+    const down = e.target.getAttribute('data-down');
+    if (up !== null) reorderTracks(parseInt(up,10), parseInt(up,10)-1);
+    if (down !== null) reorderTracks(parseInt(down,10), parseInt(down,10)+1);
+  });
+
+  els.adminTracks.addEventListener('input', (e) => {
+    if (e.target.tagName === 'INPUT'){
+      const idx = parseInt(e.target.getAttribute('data-idx'),10);
+      const t = normalizeTracks(CONFIG.tracks);
+      t[idx] = e.target.value.trim();
+      CONFIG.tracks = t;
+    }
+  });
+
+  els.adminSave.addEventListener('click', () => {
+    if (els.adminPass.value !== '' && els.adminPass.value !== ADMIN.passphrase){
+      alert('Passphrase mismatch — enter the same passphrase used to log in (or leave blank).');
+      return;
+    }
+    CONFIG.djName      = els.adminDjName.value.trim()  || DEFAULTS.djName;
+    CONFIG.stationSlug = els.adminStation.value.trim() || DEFAULTS.stationSlug;
+    CONFIG.apiKey      = els.adminApiKey.value.trim()  || DEFAULTS.apiKey;
+    // tracks are already kept in CONFIG on input
+    saveConfig(CONFIG);
+    closeAdmin();
+    boot(); // re-run
+  });
+
+  els.adminReset.addEventListener('click', () => {
+    if (confirm('Reset DJ Selects to defaults?')){
+      CONFIG = {...DEFAULTS};
+      saveConfig(CONFIG);
+      closeAdmin();
+      boot();
+    }
+  });
+
+  // ----- boot -----
+  async function boot(){
+    CONFIG = loadConfig();
+    render();
+    // fetch API bits
+    fetchNextShow(CONFIG.djName, CONFIG.stationSlug, CONFIG.apiKey);
+    fetchDjProfile(CONFIG.djName, CONFIG.stationSlug, CONFIG.apiKey);
+  }
+
+  // init
+  boot();
+})();

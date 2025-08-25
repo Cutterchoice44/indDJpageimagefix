@@ -122,7 +122,7 @@
     .admin-actions .ghost{ background:#171717; color:#fff; border:1px solid #2a2a2a; padding:.6rem .9rem; border-radius:8px }
     .admin-actions .danger{ background:#2b1818; color:#fff; border:1px solid #5a2020; padding:.6rem .9rem; border-radius:8px }
 
-    /* === Bandcamp click-to-load tiles (NEW) === */
+    /* === Bandcamp click-to-load tiles === */
     .strip.bandcamp{ display:flex; align-items:stretch; }
     .strip .bc-tile{
       position:relative; inset:0; width:100%; height:100%;
@@ -156,21 +156,13 @@
     }
     .preview .bc-placeholder .bc-play{ right:8px; bottom:8px; }
 
-    /* Tablet collapse */
     @media (max-width:960px){
       .djselects-hero{ grid-template-columns:1fr }
       .compact-grid{ grid-template-columns:1fr }
     }
-
-    /* === Mobile layout tweaks (≤768px) === */
     @media (max-width:768px){
-      .djselects-hero{
-        grid-template-columns:1fr 96px;
-        gap:.5rem;
-      }
-      .djselects-hero .hero-right img{
-        width:96px; height:auto; max-width:96px;
-      }
+      .djselects-hero{ grid-template-columns:1fr 96px; gap:.5rem; }
+      .djselects-hero .hero-right img{ width:96px; height:auto; max-width:96px; }
       .compact-grid{ grid-template-columns:1fr; gap:.5rem }
       #mainPreview{ grid-row:1 }
       #stripList{ grid-row:2 }
@@ -236,8 +228,10 @@
   <!-- Page config -->
   <script>
     window.DJ_SELECTS = {
-      CONFIG_ENDPOINT: 'dj-selects-config.php',
-      PROXY_ENDPOINT:  'https://www.cutterschoiceradio.com/rc-proxy.php',
+      // ABSOLUTE endpoint so it works from any path/subdomain
+      CONFIG_ENDPOINT: 'https://www.cutterschoiceradio.com/dj-selects-config.php',
+      // Use same-origin relative so you can test on mirrors/subdomains too
+      PROXY_ENDPOINT:  'rc-proxy.php',
       // passphrase = ccr2025!
       ADMIN_HASH_HEX: '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e',
       // MUST match $SERVER_TOKEN in dj-selects-config.php
@@ -245,7 +239,7 @@
     };
   </script>
 
-  <!-- Logic (Bandcamp click-to-load + hardened) -->
+  <!-- Logic (Bandcamp click-to-load + robust config fallback) -->
   <script>
   (()=> {
     const CFG = window.DJ_SELECTS || {};
@@ -505,7 +499,7 @@
         if (track.kind === 'bandcamp') {
           el.classList.add('bandcamp');
           el.innerHTML = `<div class="bc-tile"><div class="bc-badge">Bandcamp — click to load</div><div class="bc-play">▶</div></div>`;
-          (async ()=>{
+        (async ()=>{
             try{
               const meta = bcCache.get(i) || await fetchBandcampOEmbed(track.url);
               const tile = el.querySelector('.bc-tile');
@@ -530,7 +524,7 @@
       syncHeightsSoon();
     }
 
-    /* ---------- admin (unchanged) ---------- */
+    /* ---------- admin ---------- */
     function renderAdmin(){
       const btn=document.createElement('button'); btn.className='admin-btn'; btn.innerHTML='<i class="fa-solid fa-gear"></i>';
       const panel=document.createElement('div'); panel.className='admin-panel';
@@ -540,25 +534,25 @@
           <button id="x" class="admin-close" aria-label="Close">&times;</button>
         </div>
         <div class="admin-body">
-          <label>DJ Name<input id="aDj" value="\${shared.djName}"></label>
+          <label>DJ Name<input id="aDj" value="${shared.djName}"></label>
           <div class="two-col">
-            <label>Station ID<input id="aSt" value="\${shared.stationId}"></label>
-            <label>Publishable API Key (optional)<input id="aKey" placeholder="pk_..." value="\${shared.apiKey}"></label>
+            <label>Station ID<input id="aSt" value="${shared.stationId}"></label>
+            <label>Publishable API Key (optional)<input id="aKey" placeholder="pk_..." value="${shared.apiKey}"></label>
           </div>
           <div class="two-col">
             <label>Schedule type
               <select id="aKind">
-                <option value="auto" \${shared.contributorKind==='auto'?'selected':''}>Auto</option>
-                <option value="artist" \${shared.contributorKind==='artist'?'selected':''}>Artist</option>
-                <option value="presenter" \${shared.contributorKind==='presenter'?'selected':''}>Presenter</option>
+                <option value="auto" ${shared.contributorKind==='auto'?'selected':''}>Auto</option>
+                <option value="artist" ${shared.contributorKind==='artist'?'selected':''}>Artist</option>
+                <option value="presenter" ${shared.contributorKind==='presenter'?'selected':''}>Presenter</option>
               </select>
             </label>
             <label>Artist/Presenter ID (optional)
-              <input type="text" id="aId" placeholder="e.g. 25b015d2-01a5-4abb-8e2c-c5d425e0483d" value="\${shared.contributorId||''}">
+              <input type="text" id="aId" placeholder="e.g. 25b015d2-01a5-4abb-8e2c-c5d425e0483d" value="${shared.contributorId||''}">
             </label>
           </div>
-          <label>Profile Image URL<input id="aImg" value="\${shared.profileImage||''}"></label>
-          <div class="admin-subhead" style="margin:.5rem 0 .25rem;font-family:'Bebas Neue',sans-serif;font-size:1.3rem;">YouTube Track URLs (up to 5)</div>
+          <label>Profile Image URL<input id="aImg" value="${shared.profileImage||''}"></label>
+          <div class="admin-subhead" style="margin:.5rem 0 .25rem;font-family:'Bebas Neue',sans-serif;font-size:1.3rem;">YouTube/Bandcamp Track URLs (up to 5)</div>
           <div id="aTracks"></div>
           <div class="admin-actions">
             <button id="save" class="primary">Save</button>
@@ -572,7 +566,7 @@
       const wrap=panel.querySelector('#aTracks');
       const draw=()=>{ wrap.innerHTML=''; [...shared.tracks,'','','',''].slice(0,5).forEach(v=>{
         const row=document.createElement('div'); row.className='track-input';
-        row.innerHTML=`<input type="url" value="\${v||''}" placeholder="https://www.youtube.com/watch?v=... or Bandcamp URL">
+        row.innerHTML=`<input type="url" value="${v||''}" placeholder="https://www.youtube.com/watch?v=... or Bandcamp URL">
                        <button data-a="clear">Clear</button> <button data-a="paste">Paste</button>`;
         row.querySelector('[data-a="clear"]').onclick=()=>row.querySelector('input').value='';
         row.querySelector('[data-a="paste"]').onclick=async()=>{ try{ row.querySelector('input').value=await navigator.clipboard.readText(); }catch{} };
@@ -591,7 +585,7 @@
 
         localStorage.setItem('dj-selects-config', JSON.stringify(shared));
         try{
-          const r=await fetch(\`\${CFG.CONFIG_ENDPOINT}?action=save\`,{
+          const r=await fetch(`${CFG.CONFIG_ENDPOINT}?action=save`,{
             method:'POST', headers:{'Content-Type':'application/json'},
             body: JSON.stringify({token:CFG.SAVE_TOKEN,data:shared})
           });
@@ -606,9 +600,9 @@
       panel.querySelector('#reset').onclick =()=>{ localStorage.removeItem('dj-selects-config'); alert('Local data cleared. Reloading…'); location.reload(); };
     }
 
-    async function ensureAdmin(){
+    async function ensureAdmin(auto=false){
       const prompt=async()=>{const p=window.prompt('Enter admin passphrase:'); if(!p) return; const ok=await sha256hex(p)===CFG.ADMIN_HASH_HEX; if(ok){ sessionStorage.setItem('dj-selects-auth','1'); renderAdmin(); } else alert('Wrong passphrase.');};
-      if(new URLSearchParams(location.search).get('admin')==='1') await prompt();
+      if(new URLSearchParams(location.search).get('admin')==='1' || auto) await prompt();
       document.addEventListener('keydown', async e=>{ if(e.key.toLowerCase()==='a' && e.shiftKey) await prompt(); });
       if(sessionStorage.getItem('dj-selects-auth')==='1') renderAdmin();
     }
@@ -623,21 +617,42 @@
     }
 
     async function loadSharedConfig(){
+      let loaded=false;
       try{
         const r=await fetch(`${CFG.CONFIG_ENDPOINT}?action=load`,{cache:'no-store'});
-        if(!r.ok) throw 0;
-        const data=await r.json();
-        if(data&&data.djName) shared={...shared,...data};
-      }catch{
-        const raw=localStorage.getItem('dj-selects-config');
-        if(raw) shared={...shared,...JSON.parse(raw)};
+        if(r.ok){
+          const data=await r.json();
+          if(data && (data.djName || (Array.isArray(data.tracks)&&data.tracks.length))){
+            shared={...shared,...data};
+            loaded=true;
+          }
+        }
+      }catch{}
+
+      if(!loaded){
+        try{
+          const raw=localStorage.getItem('dj-selects-config');
+          if(raw){
+            const data=JSON.parse(raw);
+            if(data && (data.djName || (Array.isArray(data.tracks)&&data.tracks.length))){
+              shared={...shared,...data};
+              loaded=true;
+            }
+          }
+        }catch{}
       }
+      return loaded;
     }
 
     window.addEventListener('DOMContentLoaded', async ()=>{
-      await loadSharedConfig();
+      const ok = await loadSharedConfig();
       apply();
-      ensureAdmin();
+      // If nothing loaded and no tracks, auto-prompt admin so you can paste
+      if(!ok || !(shared.tracks && shared.tracks.length)) {
+        await ensureAdmin(true);
+      } else {
+        await ensureAdmin(false);
+      }
       syncHeights();
     });
   })();

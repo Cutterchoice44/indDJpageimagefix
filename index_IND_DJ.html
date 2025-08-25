@@ -222,7 +222,7 @@
     };
   </script>
 
-  <!-- Logic (unchanged) -->
+  <!-- Logic (Bandcamp-enabled) -->
   <script>
   (()=>{
 
@@ -248,16 +248,147 @@
     };
 
     /* ---------- helpers ---------- */
-    const sha256hex=async t=>{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');};
-    const toEmbed=u=>{if(!u)return null;try{const x=new URL(u.trim());if(x.hostname.includes('youtu')){let id='';if(x.hostname==='youtu.be')id=x.pathname.slice(1);else if(x.pathname.startsWith('/shorts/'))id=x.pathname.split('/')[2]||'';else if(x.searchParams.get('v'))id=x.searchParams.get('v');else if(/^\/embed\//.test(x.pathname))id=x.pathname.split('/').pop();id=(id||'').split('?')[0].split('&')[0];if(!id)return null;return`https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`;}return u;}catch{return null;}};
-    const iframeAttrs=(src,big=false)=>`<iframe src="${src}" title="YouTube video" loading="${big?'eager':'lazy'}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
-    const setPreview=src=>{ mainPreview.innerHTML=`<div class="ratio big">${iframeAttrs(src,true)}</div>`; syncHeightsSoon(); };
-    const renderStrips=embeds=>{ stripList.innerHTML=''; embeds.slice(0,5).forEach((src,i)=>{ const el=document.createElement('div'); el.className='strip'; el.innerHTML=iframeAttrs(src,false)+'<div class="select-overlay" aria-hidden="true"></div>'; el.querySelector('.select-overlay').addEventListener('click',()=>{ $$('.strip').forEach(s=>s.classList.remove('selected')); el.classList.add('selected'); setPreview(src);}); stripList.appendChild(el); if(i===0){ el.classList.add('selected'); setPreview(src); } }); if(!embeds.length) mainPreview.innerHTML='<div class="big-placeholder">Select a track</div>'; syncHeightsSoon(); };
-    const fmtLocal=iso=>{ try{ const d=new Date(iso); return d.toLocaleString(undefined,{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:false,timeZoneName:'short'});}catch{ return '';} };
-    const slug=s=>(s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+    const sha256hex=async t=>{
+      const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));
+      return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
+    };
+
+    /* ===== YouTube detection ===== */
+    function youtubeEmbed(u){
+      try{
+        const x=new URL(u.trim());
+        if(!x.hostname.includes('youtu')) return null;
+        let id='';
+        if(x.hostname==='youtu.be') id=x.pathname.slice(1);
+        else if(x.pathname.startsWith('/shorts/')) id=x.pathname.split('/')[2]||'';
+        else if(x.searchParams.get('v')) id=x.searchParams.get('v');
+        else if(/^\/embed\//.test(x.pathname)) id=x.pathname.split('/').pop();
+        id=(id||'').split('?')[0].split('&')[0];
+        if(!id) return null;
+        return `https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`;
+      }catch{ return null; }
+    }
+
+    /* ===== Bandcamp support ===== */
+    function isBandcampURL(u){
+      try{
+        const x=new URL(u.trim());
+        const host=x.hostname.toLowerCase();
+        if(!host.endsWith('bandcamp.com')) return false;
+        return /\/(album|track)\//.test(x.pathname);
+      }catch{ return false; }
+    }
+
+    // Bandcamp oEmbed via JSONP to avoid CORS
+    function fetchBandcampOEmbed(pageUrl, timeoutMs=8000){
+      return new Promise((resolve,reject)=>{
+        const cbName='bc_cb_'+Math.random().toString(36).slice(2);
+        const src=`https://bandcamp.com/oembed?format=json&url=${encodeURIComponent(pageUrl)}&maxwidth=1400&maxheight=1400&callback=${cbName}`;
+        const s=document.createElement('script');
+        let done=false;
+
+        function cleanup(){
+          if(s.parentNode) s.parentNode.removeChild(s);
+          try{ delete window[cbName]; }catch{}
+        }
+
+        window[cbName]=(data)=>{
+          if(done) return;
+          done=true; cleanup(); resolve(data);
+        };
+
+        s.onerror=()=>{
+          if(done) return;
+          done=true; cleanup(); reject(new Error('Bandcamp oEmbed failed'));
+        };
+
+        document.head.appendChild(s);
+        setTimeout(()=>{
+          if(done) return;
+          done=true; cleanup(); reject(new Error('Bandcamp oEmbed timeout'));
+        }, timeoutMs);
+      });
+    }
+
+    function extractIframeSrcFromHTML(html){
+      const m=String(html||'').match(/<iframe[^>]+src="([^"]+)"/i);
+      return m ? m[1] : null;
+    }
+
+    // Unified resolver → Promise<string|null> iframe src
+    async function resolveEmbedSrc(u){
+      if(!u) return null;
+
+      const yt=youtubeEmbed(u);
+      if(yt) return yt;
+
+      if(isBandcampURL(u)){
+        try{
+          const data=await fetchBandcampOEmbed(u);
+          const src=extractIframeSrcFromHTML(data?.html);
+          return src || null;
+        }catch{ return null; }
+      }
+
+      // Fallback: allow raw iframe-able URLs
+      try{ new URL(u); return u; }catch{ return null; }
+    }
+
+    async function buildEmbeds(urls=[]){
+      const list=urls.slice(0,5).map(u=>resolveEmbedSrc(u));
+      const out=await Promise.all(list);
+      return out.filter(Boolean);
+    }
+
+    const iframeAttrs=(src,big=false,title='Media player')=>
+      `<iframe src="${src}" title="${title}" loading="${big?'eager':'lazy'}"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
+
+    const setPreview=src=>{
+      mainPreview.innerHTML=`<div class="ratio big">${iframeAttrs(src,true)}</div>`;
+      syncHeightsSoon();
+    };
+
+    const renderStrips=embeds=>{
+      stripList.innerHTML='';
+      embeds.slice(0,5).forEach((src,i)=>{
+        const el=document.createElement('div');
+        el.className='strip';
+        el.innerHTML=iframeAttrs(src,false)+'<div class="select-overlay" aria-hidden="true"></div>';
+        el.querySelector('.select-overlay').addEventListener('click',()=>{
+          $$('.strip').forEach(s=>s.classList.remove('selected'));
+          el.classList.add('selected');
+          setPreview(src);
+        });
+        stripList.appendChild(el);
+        if(i===0){ el.classList.add('selected'); setPreview(src); }
+      });
+      if(!embeds.length) mainPreview.innerHTML='<div class="big-placeholder">Select a track</div>';
+      syncHeightsSoon();
+    };
+
+    const fmtLocal=iso=>{
+      try{
+        const d=new Date(iso);
+        return d.toLocaleString(undefined,{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:false,timeZoneName:'short'});
+      }catch{ return ''; }
+    };
+
+    const slug=s=>(s||'').toLowerCase()
+      .normalize('NFKD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+
     const nameEq=(a,b)=>{const A=(a||'').trim().toLowerCase(),B=(b||'').trim().toLowerCase();return A&&B&&(A===B||slug(A)===slug(B));};
-    const firstImageUrl=o=> (o && ((o.logo && (o.logo['512x512']||o.logo.default)) || o.image || o.imageUrl || o.avatar || o.avatarUrl || (Array.isArray(o.images)&&o.images[0]&&(o.images[0].url||o.images[0].src)))) || '';
-    const fetchJSON=async url=>{const r=await fetch(url,{headers:{'Accept':'application/json'},cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();};
+
+    const firstImageUrl=o=>
+      (o && ((o.logo && (o.logo['512x512']||o.logo.default)) || o.image || o.imageUrl || o.avatar || o.avatarUrl || (Array.isArray(o.images)&&o.images[0]&&(o.images[0].url||o.images[0].src)))) || '';
+
+    const fetchJSON=async url=>{
+      const r=await fetch(url,{headers:{'Accept':'application/json'},cache:'no-store'});
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      return r.json();
+    };
 
     /* ---------- equal-height strips (5 rows) ---------- */
     function syncHeights(){
@@ -386,25 +517,27 @@
           <button id="x" class="admin-close" aria-label="Close">&times;</button>
         </div>
         <div class="admin-body">
-          <label>DJ Name<input id="aDj" value="${shared.djName}"></label>
+          <label>DJ Name<input id="aDj" value="\${shared.djName}"></label>
           <div class="two-col">
-            <label>Station ID<input id="aSt" value="${shared.stationId}"></label>
-            <label>Publishable API Key (optional)<input id="aKey" placeholder="pk_..." value="${shared.apiKey}"></label>
+            <label>Station ID<input id="aSt" value="\${shared.stationId}"></label>
+            <label>Publishable API Key (optional)<input id="aKey" placeholder="pk_..." value="\${shared.apiKey}"></label>
           </div>
           <div class="two-col">
             <label>Schedule type
               <select id="aKind">
-                <option value="auto" ${shared.contributorKind==='auto'?'selected':''}>Auto</option>
-                <option value="artist" ${shared.contributorKind==='artist'?'selected':''}>Artist</option>
-                <option value="presenter" ${shared.contributorKind==='presenter'?'selected':''}>Presenter</option>
+                <option value="auto" \${shared.contributorKind==='auto'?'selected':''}>Auto</option>
+                <option value="artist" \${shared.contributorKind==='artist'?'selected':''}>Artist</option>
+                <option value="presenter" \${shared.contributorKind==='presenter'?'selected':''}>Presenter</option>
               </select>
             </label>
             <label>Artist/Presenter ID (optional)
-              <input type="text" id="aId" placeholder="e.g. 25b015d2-01a5-4abb-8e2c-c5d425e0483d" value="${shared.contributorId||''}">
+              <input type="text" id="aId" placeholder="e.g. 25b015d2-01a5-4abb-8e2c-c5d425e0483d" value="\${shared.contributorId||''}">
             </label>
           </div>
-          <label>Profile Image URL<input id="aImg" value="${shared.profileImage||''}"></label>
-          <div class="admin-subhead" style="margin:.5rem 0 .25rem;font-family:'Bebas Neue',sans-serif;font-size:1.3rem;">YouTube Track URLs (up to 5)</div>
+          <label>Profile Image URL<input id="aImg" value="\${shared.profileImage||''}"></label>
+          <div class="admin-subhead" style="margin:.5rem 0 .25rem;font-family:'Bebas Neue',sans-serif;font-size:1.3rem;">
+            YouTube or Bandcamp URLs (up to 5)
+          </div>
           <div id="aTracks"></div>
           <div class="admin-actions">
             <button id="save" class="primary">Save</button>
@@ -416,7 +549,19 @@
       const close=()=>panel.classList.remove('open'); btn.onclick=()=>panel.classList.add('open'); panel.querySelector('#x').onclick=close;
 
       const wrap=panel.querySelector('#aTracks');
-      const draw=()=>{ wrap.innerHTML=''; [...shared.tracks,'','','',''].slice(0,5).forEach(v=>{ const row=document.createElement('div'); row.className='track-input'; row.innerHTML=`<input type="url" value="${v||''}" placeholder="https://www.youtube.com/watch?v=..."> <button data-a="clear">Clear</button> <button data-a="paste">Paste</button>`; row.querySelector('[data-a="clear"]').onclick=()=>row.querySelector('input').value=''; row.querySelector('[data-a="paste"]').onclick=async()=>{ try{ row.querySelector('input').value=await navigator.clipboard.readText(); }catch{} }; wrap.appendChild(row); }); };
+      const draw=()=>{
+        wrap.innerHTML='';
+        [...shared.tracks,'','','',''].slice(0,5).forEach(v=>{
+          const row=document.createElement('div');
+          row.className='track-input';
+          row.innerHTML=`<input type="url" value="\${v||''}" placeholder="https://www.youtube.com/watch?v=... or https://artist.bandcamp.com/track/..."> <button data-a="clear">Clear</button> <button data-a="paste">Paste</button>`;
+          row.querySelector('[data-a="clear"]').onclick=()=>row.querySelector('input').value='';
+          row.querySelector('[data-a="paste"]').onclick=async()=>{
+            try{ row.querySelector('input').value=await navigator.clipboard.readText(); }catch{}
+          };
+          wrap.appendChild(row);
+        });
+      };
       draw();
 
       panel.querySelector('#save').onclick=async()=>{
@@ -439,31 +584,39 @@
         }catch{
           alert('Saved locally. To save for everyone, ensure SAVE_TOKEN matches $SERVER_TOKEN in dj-selects-config.php.');
         }
-        apply(); close();
+        await apply(); close();
       };
       panel.querySelector('#logout').onclick=()=>{ sessionStorage.removeItem('dj-selects-auth'); location.reload(); };
       panel.querySelector('#reset').onclick =()=>{ localStorage.removeItem('dj-selects-config'); alert('Local data cleared. Reloading…'); location.reload(); };
     }
 
     async function ensureAdmin(){
-      const prompt=async()=>{const p=window.prompt('Enter admin passphrase:'); if(!p) return; const ok=await sha256hex(p)===CFG.ADMIN_HASH_HEX; if(ok){ sessionStorage.setItem('dj-selects-auth','1'); renderAdmin(); } else alert('Wrong passphrase.');};
+      const prompt=async()=>{
+        const p=window.prompt('Enter admin passphrase:');
+        if(!p) return;
+        const ok=await sha256hex(p)===CFG.ADMIN_HASH_HEX;
+        if(ok){ sessionStorage.setItem('dj-selects-auth','1'); renderAdmin(); }
+        else alert('Wrong passphrase.');
+      };
       if(new URLSearchParams(location.search).get('admin')==='1') await prompt();
       document.addEventListener('keydown', async e=>{ if(e.key.toLowerCase()==='a' && e.shiftKey) await prompt(); });
       if(sessionStorage.getItem('dj-selects-auth')==='1') renderAdmin();
     }
 
-    function apply(){
+    async function apply(){
       djNameText.textContent = shared.djName || 'DJ NAME';
       if(shared.profileImage) djProfile.src=shared.profileImage;
-      const embeds=(shared.tracks||[]).map(toEmbed).filter(Boolean);
+
+      const embeds = await buildEmbeds(shared.tracks||[]);
       renderStrips(embeds);
+
       loadDjImage();
       loadNextShow();
     }
 
     window.addEventListener('DOMContentLoaded', async ()=>{
       await loadSharedConfig();
-      apply();
+      await apply();     // await so Bandcamp oEmbed resolves before first paint
       ensureAdmin();
       syncHeights();
     });

@@ -122,6 +122,40 @@
     .admin-actions .ghost{ background:#171717; color:#fff; border:1px solid #2a2a2a; padding:.6rem .9rem; border-radius:8px }
     .admin-actions .danger{ background:#2b1818; color:#fff; border:1px solid #5a2020; padding:.6rem .9rem; border-radius:8px }
 
+    /* === Bandcamp click-to-load tiles (NEW) === */
+    .strip.bandcamp{ display:flex; align-items:stretch; }
+    .strip .bc-tile{
+      position:relative; inset:0; width:100%; height:100%;
+      background:#0f0f0f center/cover no-repeat;
+      display:flex; align-items:flex-end; justify-content:flex-start;
+    }
+    .strip .bc-badge{
+      font-family:'Bebas Neue',sans-serif;
+      background:rgba(0,0,0,.65);
+      border-top-right-radius:8px;
+      padding:.35rem .55rem; margin:0;
+      font-size:clamp(1.0rem,2vw,1.2rem);
+      color:#d8fff8; letter-spacing:.5px;
+    }
+    .strip .bc-play{
+      position:absolute; inset:auto 8px 8px auto;
+      background:rgba(90,135,133,.95);
+      color:#000; font-weight:700;
+      border-radius:999px; width:30px; height:30px;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .preview .bc-placeholder{
+      position:relative; width:100%; padding-top:32%;
+      background:#0a0a0a center/cover no-repeat;
+      border:1px solid #264745; border-radius:6px;
+    }
+    .preview .bc-placeholder .label{
+      position:absolute; left:8px; bottom:8px;
+      font-family:'Bebas Neue',sans-serif; background:rgba(0,0,0,.6);
+      padding:.35rem .55rem; border-radius:6px; color:#d8fff8;
+    }
+    .preview .bc-placeholder .bc-play{ right:8px; bottom:8px; }
+
     /* Tablet collapse */
     @media (max-width:960px){
       .djselects-hero{ grid-template-columns:1fr }
@@ -130,29 +164,18 @@
 
     /* === Mobile layout tweaks (≤768px) === */
     @media (max-width:768px){
-      /* Make hero a bit tighter and cap profile image size */
       .djselects-hero{
         grid-template-columns:1fr 96px;
         gap:.5rem;
       }
       .djselects-hero .hero-right img{
-        width:96px; height:auto; max-width:96px; /* keep it small on phones */
+        width:96px; height:auto; max-width:96px;
       }
-
-      /* One-column main; show player first, list second */
       .compact-grid{ grid-template-columns:1fr; gap:.5rem }
       #mainPreview{ grid-row:1 }
       #stripList{ grid-row:2 }
-
-      /* 16:9 player on phones */
       .preview .ratio.big{ padding-top:56.25% }
-
-      /* Compact 5 even rows under the player.
-         !important beats the JS inline height on mobile. */
-      .strip-list{
-        height:auto !important;
-        grid-template-rows:repeat(5,72px);
-      }
+      .strip-list{ height:auto !important; grid-template-rows:repeat(5,72px); }
       .strip{ border-radius:6px }
     }
   </style>
@@ -222,415 +245,402 @@
     };
   </script>
 
-  <!-- Logic (unchanged) -->
- <!-- Logic (Bandcamp click-to-load added) -->
-<script>
-(()=>{
-  const CFG = window.DJ_SELECTS || {};
-  const $  = (s, r=document) => r.querySelector(s);
-  const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+  <!-- Logic (Bandcamp click-to-load + hardened) -->
+  <script>
+  (()=> {
+    const CFG = window.DJ_SELECTS || {};
+    const $  = (s, r=document) => r.querySelector(s);
+    const $$ = (s, r=document) => [...r.querySelectorAll(s)];
 
-  const stripList   = $('#stripList');
-  const mainPreview = $('#mainPreview');
-  const djNameText  = $('#djNameText');
-  const djProfile   = $('#djProfileThumb');
-  const nextWhen    = $('#nextShowWhen');
-  const adminMount  = $('#adminMount');
+    const stripList   = $('#stripList');
+    const mainPreview = $('#mainPreview');
+    const djNameText  = $('#djNameText');
+    const djProfile   = $('#djProfileThumb');
+    const nextWhen    = $('#nextShowWhen');
+    const adminMount  = $('#adminMount');
 
-  let shared = {
-    djName: 'DJ NAME',
-    profileImage: '/images/default-dj.png',
-    stationId: 'cutters-choice-radio',
-    apiKey: '',
-    tracks: [],
-    contributorId: '',
-    contributorKind: 'auto'
-  };
-
-  /* ---------- helpers ---------- */
-  const sha256hex = async (t) => {
-    const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
-    return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
-  };
-
-  // Identify & normalize tracks
-  const parseTrack = (u) => {
-    if (!u) return null;
-    try {
-      const x = new URL(u.trim());
-      const host = x.hostname.toLowerCase();
-      // Bandcamp (album/track/artist pages)
-      if (host.endsWith('bandcamp.com')) {
-        return { kind:'bandcamp', url: u.trim() };
-      }
-      // YouTube → privacy-friendly embed
-      if (host.includes('youtu')) {
-        let id = '';
-        if (host === 'youtu.be') id = x.pathname.slice(1);
-        else if (x.pathname.startsWith('/shorts/')) id = x.pathname.split('/')[2] || '';
-        else if (x.searchParams.get('v')) id = x.searchParams.get('v');
-        else if (/^\/embed\//.test(x.pathname)) id = x.pathname.split('/').pop();
-        id = (id||'').split('?')[0].split('&')[0];
-        if (!id) return null;
-        return {
-          kind:'youtube',
-          src:`https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`
-        };
-      }
-      // Fallback: treat as generic iframe-able URL
-      return { kind:'iframe', src: u.trim() };
-    } catch { return null; }
-  };
-
-  const iframeAttrs = (src, big=false, title='Media player') =>
-    `<iframe src="${src}"
-      title="${title}" loading="${big?'eager':'lazy'}"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-      referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
-
-  // Equal-height strips sync (5 even rows)
-  function syncHeights(){
-    const ratio = mainPreview.querySelector('.ratio.big') || mainPreview.firstElementChild;
-    const h = (ratio && ratio.getBoundingClientRect().height) || mainPreview.getBoundingClientRect().height;
-    if (h > 0) {
-      stripList.style.height = h + 'px';
-      stripList.style.display = 'grid';
-      stripList.style.gridTemplateRows = 'repeat(5,1fr)';
-    }
-  }
-  const syncHeightsSoon = () => setTimeout(syncHeights, 60);
-  new ResizeObserver(syncHeights).observe(mainPreview);
-  window.addEventListener('resize', syncHeightsSoon);
-  setInterval(syncHeights, 800);
-
-  const fmtLocal = iso => {
-    try {
-      const d = new Date(iso);
-      return d.toLocaleString(undefined,{
-        weekday:'short', day:'numeric', month:'short',
-        hour:'2-digit', minute:'2-digit', hour12:false, timeZoneName:'short'
-      });
-    } catch { return ''; }
-  };
-  const slug = s => (s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
-  const nameEq = (a,b) => {
-    const A=(a||'').trim().toLowerCase(), B=(b||'').trim().toLowerCase();
-    return A && B && (A===B || slug(A)===slug(B));
-  };
-  const firstImageUrl = o =>
-    (o && ((o.logo && (o.logo['512x512']||o.logo.default)) || o.image || o.imageUrl || o.avatar || o.avatarUrl || (Array.isArray(o.images)&&o.images[0]&&(o.images[0].url||o.images[0].src)))) || '';
-
-  const fetchJSON = async url => {
-    const r = await fetch(url, { headers:{'Accept':'application/json'}, cache:'no-store' });
-    if (!r.ok) throw new Error('HTTP '+r.status);
-    return r.json();
-  };
-
-  /* ---------- Radio Cult lookups (via proxy) ---------- */
-  async function findContributor(){
-    if (shared.contributorId) return {kind: shared.contributorKind||'auto', id: shared.contributorId, obj:null};
-    const base = `${CFG.PROXY_ENDPOINT}?stationId=${encodeURIComponent(shared.stationId)}`;
-    const [artists,presenters] = await Promise.all([
-      fetchJSON(`${base}&fn=artists`).then(j=>j?.artists||j?.data||j||[]).catch(()=>[]),
-      fetchJSON(`${base}&fn=presenters`).then(j=>j?.presenters||j?.data||j||[]).catch(()=>[])
-    ]);
-    const nm = shared.djName;
-    const from = (arr,kind)=>{
-      const hit = arr.find(x=>nameEq(x?.name,nm)) || arr.find(x=>slug(x?.name)===slug(nm)) || arr.find(x=>(x?.name||'').toLowerCase().includes(nm.toLowerCase()));
-      return hit ? {kind, id:(hit.id||hit._id||hit.slug||hit.uuid||hit.name), obj:hit} : null;
+    let shared = {
+      djName: 'DJ NAME',
+      profileImage: '/images/default-dj.png',
+      stationId: 'cutters-choice-radio',
+      apiKey: '',
+      tracks: [],
+      contributorId: '',
+      contributorKind: 'auto'
     };
-    return from(artists,'artist') || from(presenters,'presenter') || {kind:'auto',id:'',obj:null};
-  }
 
-  async function trySchedule(kind,id,startISO,endISO){
-    if(!id) return null;
-    const fn = kind==='presenter' ? 'presenter_schedule' : 'artist_schedule';
-    const url = `${CFG.PROXY_ENDPOINT}?fn=${fn}&stationId=${encodeURIComponent(shared.stationId)}&${kind}Id=${encodeURIComponent(id)}&startDate=${encodeURIComponent(startISO)}&endDate=${encodeURIComponent(endISO)}`;
-    const j = await fetchJSON(url);
-    const list = j?.schedules || j?.data || j?.items || [];
-    if(!Array.isArray(list) || !list.length) return null;
-    const getIso = s => s.startDateUtc||s.startDate||s.start||s.scheduledStart||s.start_time||s.start_at;
-    const now = new Date();
-    const next = list.map(s=>({s,t:new Date(getIso(s)||0)}))
-                     .filter(x=>x.t>now).sort((a,b)=>a.t-b.t)[0]?.s || list[0];
-    return {next, from:j};
-  }
-
-  async function loadDjImage(){
-    if(shared.profileImage && !/default-dj\.png$/i.test(shared.profileImage)) return;
-    try{
-      const who=await findContributor();
-      const img=firstImageUrl(who?.obj);
-      if(img) djProfile.src=img;
-    }catch{}
-  }
-
-  async function loadNextShow(){
-    nextWhen.textContent='Loading…';
-    try{
-      const who=await findContributor();
-      const now=new Date(), end=new Date(now.getTime()+365*24*60*60*1000);
-      const startISO=now.toISOString(), endISO=end.toISOString();
-
-      let res = null;
-      if (who.kind==='artist' || who.kind==='presenter') {
-        res = await trySchedule(who.kind, who.id, startISO, endISO);
-      } else if (shared.contributorId) {
-        res = await trySchedule('artist', shared.contributorId, startISO, endISO)
-           || await trySchedule('presenter', shared.contributorId, startISO, endISO);
-      }
-
-      if(!res){
-        const u = `${CFG.PROXY_ENDPOINT}?fn=upcoming&stationId=${encodeURIComponent(shared.stationId)}&limit=200&expand=artist,presenter`;
-        const up = await fetchJSON(u);
-        const list = up?.data || up?.items || up || [];
-        const nm=shared.djName, djSlug=slug(nm);
-        const nameOf=e=>(e?.artist?.name||e?.presenter?.name||e?.name||e?.title||'');
-        const hasTag=e=> (e?.tags||e?.categories||[])
-              .map(t=>typeof t==='string'?t:(t?.slug||t?.name||''))
-              .map(slug).includes(djSlug);
-        const getIso=e=>e.startDate||e.start||e.startDateUtc||e.scheduledStart||e.start_time||e.start_at;
-
-        const byName = list.filter(e=> nameEq(e?.artist?.name,nm) || nameEq(e?.presenter?.name,nm) || nameOf(e).toLowerCase().includes(nm.toLowerCase()) || hasTag(e));
-        const future = byName.map(s=>({s,t:new Date(getIso(s)||0)}))
-                             .filter(x=>x.t>now).sort((a,b)=>a.t-b.t)[0]?.s || null;
-        if (future) res = {next: future, from: up};
-      }
-
-      if(res && res.next){
-        const whenISO = res.next.startDateUtc||res.next.startDate||res.next.start||res.next.scheduledStart||res.next.start_time||res.next.start_at;
-        if(whenISO){
-          nextWhen.textContent = fmtLocal(whenISO);
-          nextWhen.setAttribute('data-utc', whenISO);
-          nextWhen.title = `Start (UTC): ${new Date(whenISO).toUTCString()}`;
-        }else{
-          nextWhen.textContent='TBA';
-        }
-        if(/default-dj\.png$/i.test(djProfile.src||'')){
-          const img = firstImageUrl(res.from?.artist) || firstImageUrl(res.from?.presenter) || firstImageUrl(res.next?.artist) || firstImageUrl(res.next?.presenter);
-          if(img) djProfile.src=img;
-        }
-        return;
-      }
-      nextWhen.textContent='No upcoming show found';
-    }catch{
-      nextWhen.textContent='Unable to load schedule';
-    }
-  }
-
-  /* ---------- Bandcamp helpers ---------- */
-  const fetchBandcampOEmbed = async (url) => {
-    const q = `${CFG.PROXY_ENDPOINT}?fn=bandcamp_oembed&url=${encodeURIComponent(url)}`;
-    const j = await fetchJSON(q);
-    return {
-      title: j?.title || 'Bandcamp',
-      thumb: j?.thumbnail_url || '',
-      width: Number(j?.width || 700),
-      height: Number(j?.height || 120),
-      // Extract clean iframe src from returned HTML
-      src: (() => {
-        const html = String(j?.html || '');
-        const m = html.match(/src=["']([^"']+)["']/i);
-        return m ? m[1] : '';
-      })()
+    /* ---------- helpers ---------- */
+    const sha256hex = async (t) => {
+      const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
+      return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
     };
-  };
 
-  function setPreviewYouTube(src){
-    mainPreview.innerHTML = `<div class="ratio big">${iframeAttrs(src,true,'YouTube player')}</div>`;
-    syncHeightsSoon();
-  }
-
-  async function setPreviewBandcamp(url, metaMaybe){
-    // metaMaybe can be passed from the strip (to avoid double-fetch)
-    const meta = metaMaybe || await fetchBandcampOEmbed(url);
-    const padPct = Math.max(18, Math.min(70, (meta.height/meta.width)*100 || 20));
-    const src = meta.src || url;
-    mainPreview.innerHTML =
-      `<div class="ratio big" style="padding-top:${padPct}%">${iframeAttrs(src,true,meta.title)}</div>`;
-    syncHeightsSoon();
-  }
-
-  function setPlaceholderBandcamp(meta, onClick){
-    const el = document.createElement('div');
-    el.className = 'bc-placeholder';
-    el.style.backgroundImage = meta.thumb ? `url("${meta.thumb}")` : 'none';
-    el.innerHTML = `<span class="label">Bandcamp — click to load</span><div class="bc-play">▶</div>`;
-    el.addEventListener('click', onClick, { once:true });
-    return el;
-  }
-
-  /* ---------- render ---------- */
-  function renderStrips(trackObjs){
-    stripList.innerHTML = '';
-
-    // Pre-fetch oembed for Bandcamp strips so we have thumbs (non-blocking)
-    const bcCache = new Map();
-    const bcPromises = trackObjs
-      .map((t,i)=>({t,i}))
-      .filter(x=>x.t && x.t.kind==='bandcamp')
-      .map(({t,i}) => fetchBandcampOEmbed(t.url).then(m=>{ bcCache.set(i, m); }).catch(()=>{}));
-    Promise.allSettled(bcPromises).then(()=>{ /* thumbs will fill in */ });
-
-    trackObjs.slice(0,5).forEach((track, i) => {
-      const el = document.createElement('div');
-      el.className = 'strip';
-      const selectThis = async () => {
-        $$('.strip').forEach(s=>s.classList.remove('selected'));
-        el.classList.add('selected');
-        if (track.kind === 'bandcamp') {
-          const meta = bcCache.get(i) || await fetchBandcampOEmbed(track.url).catch(()=>null);
-          await setPreviewBandcamp(track.url, meta || undefined);
-        } else if (track.kind === 'youtube' || track.kind === 'iframe') {
-          setPreviewYouTube(track.src);
-        } else {
-          mainPreview.innerHTML = '<div class="big-placeholder">Unable to load track</div>';
+    // Identify & normalize tracks
+    const parseTrack = (u) => {
+      if (!u) return null;
+      try {
+        const x = new URL(u.trim());
+        const host = x.hostname.toLowerCase();
+        if (host.endsWith('bandcamp.com')) return { kind:'bandcamp', url:u.trim() };
+        if (host.includes('youtu')) {
+          let id = '';
+          if (host === 'youtu.be') id = x.pathname.slice(1);
+          else if (x.pathname.startsWith('/shorts/')) id = x.pathname.split('/')[2] || '';
+          else if (x.searchParams.get('v')) id = x.searchParams.get('v');
+          else if (/^\/embed\//.test(x.pathname)) id = x.pathname.split('/').pop();
+          id = (id||'').split('?')[0].split('&')[0];
+          if (!id) return null;
+          return { kind:'youtube', src:`https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1` };
         }
-      };
+        return { kind:'iframe', src:u.trim() };
+      } catch { return null; }
+    };
 
-      if (track.kind === 'bandcamp') {
-        el.classList.add('bandcamp');
-        // Temporary tile while thumb fetches
-        el.innerHTML = `<div class="bc-tile"><div class="bc-badge">Bandcamp — click to load</div><div class="bc-play">▶</div></div>`;
-        // Fill background image when we have it
-        (async ()=>{
-          try{
-            const meta = bcCache.get(i) || await fetchBandcampOEmbed(track.url);
-            const tile = el.querySelector('.bc-tile');
-            if (tile && meta?.thumb) tile.style.backgroundImage = `url("${meta.thumb}")`;
-          }catch{}
-        })();
-        el.addEventListener('click', selectThis);
-      } else {
-        // YouTube & generic: keep your current lazy iframe in the strip
-        el.innerHTML = iframeAttrs(track.src,false,'Media preview') + '<div class="select-overlay" aria-hidden="true"></div>';
-        el.querySelector('.select-overlay').addEventListener('click', selectThis);
+    const iframeAttrs = (src, big=false, title='Media player') =>
+      `<iframe src="${src}"
+        title="${title}" loading="${big?'eager':'lazy'}"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
+
+    // Equal-height strips sync (5 even rows)
+    function syncHeights(){
+      const ratio = mainPreview.querySelector('.ratio.big') || mainPreview.firstElementChild;
+      const h = (ratio && ratio.getBoundingClientRect().height) || mainPreview.getBoundingClientRect().height;
+      if (h > 0) {
+        stripList.style.height = h + 'px';
+        stripList.style.display = 'grid';
+        stripList.style.gridTemplateRows = 'repeat(5,1fr)';
       }
-
-      stripList.appendChild(el);
-    });
-
-    // Don’t auto-load Bandcamp (to avoid banner). If first is YouTube, keep auto-select.
-    if (trackObjs.length && trackObjs[0].kind !== 'bandcamp') {
-      stripList.firstElementChild?.classList.add('selected');
-      setPreviewYouTube(trackObjs[0].src);
-    } else {
-      mainPreview.innerHTML = '<div class="big-placeholder">Select a track</div>';
     }
+    const syncHeightsSoon = () => setTimeout(syncHeights, 60);
+    new ResizeObserver(syncHeights).observe(mainPreview);
+    window.addEventListener('resize', syncHeightsSoon);
+    setInterval(syncHeights, 800);
 
-    syncHeightsSoon();
-  }
-
-  /* ---------- admin (unchanged) ---------- */
-  function renderAdmin(){
-    const btn=document.createElement('button'); btn.className='admin-btn'; btn.innerHTML='<i class="fa-solid fa-gear"></i>';
-    const panel=document.createElement('div'); panel.className='admin-panel';
-    panel.innerHTML=`
-      <div class="admin-head">
-        <strong>DJ SELECTS — Admin</strong>
-        <button id="x" class="admin-close" aria-label="Close">&times;</button>
-      </div>
-      <div class="admin-body">
-        <label>DJ Name<input id="aDj" value="${shared.djName}"></label>
-        <div class="two-col">
-          <label>Station ID<input id="aSt" value="${shared.stationId}"></label>
-          <label>Publishable API Key (optional)<input id="aKey" placeholder="pk_..." value="${shared.apiKey}"></label>
-        </div>
-        <div class="two-col">
-          <label>Schedule type
-            <select id="aKind">
-              <option value="auto" ${shared.contributorKind==='auto'?'selected':''}>Auto</option>
-              <option value="artist" ${shared.contributorKind==='artist'?'selected':''}>Artist</option>
-              <option value="presenter" ${shared.contributorKind==='presenter'?'selected':''}>Presenter</option>
-            </select>
-          </label>
-          <label>Artist/Presenter ID (optional)
-            <input type="text" id="aId" placeholder="e.g. 25b015d2-01a5-4abb-8e2c-c5d425e0483d" value="${shared.contributorId||''}">
-          </label>
-        </div>
-        <label>Profile Image URL<input id="aImg" value="${shared.profileImage||''}"></label>
-        <div class="admin-subhead" style="margin:.5rem 0 .25rem;font-family:'Bebas Neue',sans-serif;font-size:1.3rem;">YouTube Track URLs (up to 5)</div>
-        <div id="aTracks"></div>
-        <div class="admin-actions">
-          <button id="save" class="primary">Save</button>
-          <button id="logout" class="ghost">Logout</button>
-          <button id="reset" class="danger">Reset (local only)</button>
-        </div>
-      </div>`;
-    adminMount.after(btn,panel); adminMount.remove();
-    const close=()=>panel.classList.remove('open'); btn.onclick=()=>panel.classList.add('open'); panel.querySelector('#x').onclick=close;
-
-    const wrap=panel.querySelector('#aTracks');
-    const draw=()=>{ wrap.innerHTML=''; [...shared.tracks,'','','',''].slice(0,5).forEach(v=>{
-      const row=document.createElement('div'); row.className='track-input';
-      row.innerHTML=`<input type="url" value="${v||''}" placeholder="https://www.youtube.com/watch?v=... or Bandcamp URL">
-                     <button data-a="clear">Clear</button> <button data-a="paste">Paste</button>`;
-      row.querySelector('[data-a="clear"]').onclick=()=>row.querySelector('input').value='';
-      row.querySelector('[data-a="paste"]').onclick=async()=>{ try{ row.querySelector('input').value=await navigator.clipboard.readText(); }catch{} };
-      wrap.appendChild(row);
-    }); };
-    draw();
-
-    panel.querySelector('#save').onclick=async()=>{
-      shared.djName       = panel.querySelector('#aDj').value.trim()||shared.djName;
-      shared.stationId    = panel.querySelector('#aSt').value.trim()||shared.stationId;
-      shared.apiKey       = panel.querySelector('#aKey').value.trim();
-      shared.profileImage = panel.querySelector('#aImg').value.trim();
-      shared.contributorId   = panel.querySelector('#aId').value.trim();
-      shared.contributorKind = panel.querySelector('#aKind').value;
-      shared.tracks = $$('#aTracks input',panel).map(i=>i.value.trim()).filter(Boolean).slice(0,5);
-
-      localStorage.setItem('dj-selects-config', JSON.stringify(shared));
-      try{
-        const r=await fetch(`${CFG.CONFIG_ENDPOINT}?action=save`,{
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({token:CFG.SAVE_TOKEN,data:shared})
+    const fmtLocal = iso => {
+      try {
+        const d = new Date(iso);
+        return d.toLocaleString(undefined,{
+          weekday:'short', day:'numeric', month:'short',
+          hour:'2-digit', minute:'2-digit', hour12:false, timeZoneName:'short'
         });
-        if(!r.ok) throw 0;
-        alert('Saved to server. Live for everyone.');
-      }catch{
-        alert('Saved locally. To save for everyone, ensure SAVE_TOKEN matches $SERVER_TOKEN in dj-selects-config.php.');
-      }
-      apply(); close();
+      } catch { return ''; }
     };
-    panel.querySelector('#logout').onclick=()=>{ sessionStorage.removeItem('dj-selects-auth'); location.reload(); };
-    panel.querySelector('#reset').onclick =()=>{ localStorage.removeItem('dj-selects-config'); alert('Local data cleared. Reloading…'); location.reload(); };
-  }
+    const slug = s => (s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+    const nameEq = (a,b) => {
+      const A=(a||'').trim().toLowerCase(), B=(b||'').trim().toLowerCase();
+      return A && B && (A===B || slug(A)===slug(B));
+    };
+    const firstImageUrl = o =>
+      (o && ((o.logo && (o.logo['512x512']||o.logo.default)) || o.image || o.imageUrl || o.avatar || o.avatarUrl || (Array.isArray(o.images)&&o.images[0]&&(o.images[0].url||o.images[0].src)))) || '';
 
-  async function ensureAdmin(){
-    const prompt=async()=>{const p=window.prompt('Enter admin passphrase:'); if(!p) return; const ok=await sha256hex(p)===CFG.ADMIN_HASH_HEX; if(ok){ sessionStorage.setItem('dj-selects-auth','1'); renderAdmin(); } else alert('Wrong passphrase.');};
-    if(new URLSearchParams(location.search).get('admin')==='1') await prompt();
-    document.addEventListener('keydown', async e=>{ if(e.key.toLowerCase()==='a' && e.shiftKey) await prompt(); });
-    if(sessionStorage.getItem('dj-selects-auth')==='1') renderAdmin();
-  }
+    const fetchJSON = async url => {
+      const r = await fetch(url, { headers:{'Accept':'application/json'}, cache:'no-store' });
+      if (!r.ok) throw new Error('HTTP '+r.status);
+      return r.json();
+    };
 
-  function apply(){
-    djNameText.textContent = shared.djName || 'DJ NAME';
-    if(shared.profileImage) djProfile.src = shared.profileImage;
-    const trackObjs = (shared.tracks||[]).map(parseTrack).filter(Boolean);
-    renderStrips(trackObjs);
-    loadDjImage();
-    loadNextShow();
-  }
-
-  async function loadSharedConfig(){
-    try{
-      const r=await fetch(`${CFG.CONFIG_ENDPOINT}?action=load`,{cache:'no-store'});
-      if(!r.ok) throw 0;
-      const data=await r.json();
-      if(data&&data.djName) shared={...shared,...data};
-    }catch{
-      const raw=localStorage.getItem('dj-selects-config');
-      if(raw) shared={...shared,...JSON.parse(raw)};
+    /* ---------- Radio Cult lookups (via proxy) ---------- */
+    async function findContributor(){
+      if (shared.contributorId) return {kind: shared.contributorKind||'auto', id: shared.contributorId, obj:null};
+      const base = `${CFG.PROXY_ENDPOINT}?stationId=${encodeURIComponent(shared.stationId)}`;
+      const [artists,presenters] = await Promise.all([
+        fetchJSON(`${base}&fn=artists`).then(j=>j?.artists||j?.data||j||[]).catch(()=>[]),
+        fetchJSON(`${base}&fn=presenters`).then(j=>j?.presenters||j?.data||j||[]).catch(()=>[])
+      ]);
+      const nm = shared.djName;
+      const from = (arr,kind)=>{
+        const hit = arr.find(x=>nameEq(x?.name,nm)) || arr.find(x=>slug(x?.name)===slug(nm)) || arr.find(x=>(x?.name||'').toLowerCase().includes(nm.toLowerCase()));
+        return hit ? {kind, id:(hit.id||hit._id||hit.slug||hit.uuid||hit.name), obj:hit} : null;
+      };
+      return from(artists,'artist') || from(presenters,'presenter') || {kind:'auto',id:'',obj:null};
     }
-  }
 
-  window.addEventListener('DOMContentLoaded', async ()=>{
-    await loadSharedConfig();
-    apply();
-    ensureAdmin();
-    syncHeights();
-  });
+    async function trySchedule(kind,id,startISO,endISO){
+      if(!id) return null;
+      const fn = kind==='presenter' ? 'presenter_schedule' : 'artist_schedule';
+      const url = `${CFG.PROXY_ENDPOINT}?fn=${fn}&stationId=${encodeURIComponent(shared.stationId)}&${kind}Id=${encodeURIComponent(id)}&startDate=${encodeURIComponent(startISO)}&endDate=${encodeURIComponent(endISO)}`;
+      const j = await fetchJSON(url);
+      const list = j?.schedules || j?.data || j?.items || [];
+      if(!Array.isArray(list) || !list.length) return null;
+      const getIso = s => s.startDateUtc||s.startDate||s.start||s.scheduledStart||s.start_time||s.start_at;
+      const now = new Date();
+      const next = list.map(s=>({s,t:new Date(getIso(s)||0)}))
+                       .filter(x=>x.t>now).sort((a,b)=>a.t-b.t)[0]?.s || list[0];
+      return {next, from:j};
+    }
 
-})();
-</script>
+    async function loadDjImage(){
+      if(shared.profileImage && !/default-dj\.png$/i.test(shared.profileImage)) return;
+      try{
+        const who=await findContributor();
+        const img=firstImageUrl(who?.obj);
+        if(img) djProfile.src=img;
+      }catch{}
+    }
+
+    async function loadNextShow(){
+      nextWhen.textContent='Loading…';
+      try{
+        const who=await findContributor();
+        const now=new Date(), end=new Date(now.getTime()+365*24*60*60*1000);
+        const startISO=now.toISOString(), endISO=end.toISOString();
+
+        let res = null;
+        if (who.kind==='artist' || who.kind==='presenter') {
+          res = await trySchedule(who.kind, who.id, startISO, endISO);
+        } else if (shared.contributorId) {
+          res = await trySchedule('artist', shared.contributorId, startISO, endISO)
+             || await trySchedule('presenter', shared.contributorId, startISO, endISO);
+        }
+
+        if(!res){
+          const u = `${CFG.PROXY_ENDPOINT}?fn=upcoming&stationId=${encodeURIComponent(shared.stationId)}&limit=200&expand=artist,presenter`;
+          const up = await fetchJSON(u);
+          const list = up?.data || up?.items || up || [];
+          const nm=shared.djName, djSlug=slug(nm);
+          const nameOf=e=>(e?.artist?.name||e?.presenter?.name||e?.name||e?.title||'');
+          const hasTag=e=> (e?.tags||e?.categories||[])
+                .map(t=>typeof t==='string'?t:(t?.slug||t?.name||''))
+                .map(slug).includes(djSlug);
+          const getIso=e=>e.startDate||e.start||e.startDateUtc||e.scheduledStart||e.start_time||e.start_at;
+
+          const byName = list.filter(e=> nameEq(e?.artist?.name,nm) || nameEq(e?.presenter?.name,nm) || nameOf(e).toLowerCase().includes(nm.toLowerCase()) || hasTag(e));
+          const future = byName.map(s=>({s,t:new Date(getIso(s)||0)}))
+                               .filter(x=>x.t>now).sort((a,b)=>a.t-b.t)[0]?.s || null;
+          if (future) res = {next: future, from: up};
+        }
+
+        if(res && res.next){
+          const whenISO = res.next.startDateUtc||res.next.startDate||res.next.start||res.next.scheduledStart||res.next.start_time||res.next.start_at;
+          if(whenISO){
+            nextWhen.textContent = fmtLocal(whenISO);
+            nextWhen.setAttribute('data-utc', whenISO);
+            nextWhen.title = `Start (UTC): ${new Date(whenISO).toUTCString()}`;
+          }else{
+            nextWhen.textContent='TBA';
+          }
+          if(/default-dj\.png$/i.test(djProfile.src||'')){
+            const img = firstImageUrl(res.from?.artist) || firstImageUrl(res.from?.presenter) || firstImageUrl(res.next?.artist) || firstImageUrl(res.next?.presenter);
+            if(img) djProfile.src=img;
+          }
+          return;
+        }
+        nextWhen.textContent='No upcoming show found';
+      }catch{
+        nextWhen.textContent='Unable to load schedule';
+      }
+    }
+
+    /* ---------- Bandcamp helpers ---------- */
+    const fetchBandcampOEmbed = async (url) => {
+      const q = `${CFG.PROXY_ENDPOINT}?fn=bandcamp_oembed&url=${encodeURIComponent(url)}`;
+      const j = await fetchJSON(q);
+      return {
+        title: j?.title || 'Bandcamp',
+        thumb: j?.thumbnail_url || '',
+        width: Number(j?.width || 700),
+        height: Number(j?.height || 120),
+        src: (() => {
+          const html = String(j?.html || '');
+          const m = html.match(/src=["']([^"']+)["']/i);
+          return m ? m[1] : '';
+        })()
+      };
+    };
+
+    function setPreviewYouTube(src){
+      mainPreview.innerHTML = `<div class="ratio big">${iframeAttrs(src,true,'YouTube player')}</div>`;
+      syncHeightsSoon();
+    }
+
+    async function setPreviewBandcamp(url, metaMaybe){
+      try{
+        const meta = metaMaybe || await fetchBandcampOEmbed(url);
+        if (!meta?.src) throw new Error('Missing embed src');
+        const padPct = Math.max(18, Math.min(70, (meta.height/meta.width)*100 || 20));
+        mainPreview.innerHTML =
+          `<div class="ratio big" style="padding-top:${padPct}%">${iframeAttrs(meta.src,true,meta.title)}</div>`;
+      }catch(e){
+        console.warn('Bandcamp load failed:', e);
+        mainPreview.innerHTML =
+          `<div class="big-placeholder">Couldn’t load Bandcamp via proxy. <a href="${url}" target="_blank" rel="noopener">Open on Bandcamp</a></div>`;
+      }
+      syncHeightsSoon();
+    }
+
+    /* ---------- render ---------- */
+    function renderStrips(trackObjs){
+      stripList.innerHTML = '';
+
+      // Pre-fetch oEmbed for Bandcamp strips so we have thumbs (non-blocking)
+      const bcCache = new Map();
+      const bcPromises = trackObjs
+        .map((t,i)=>({t,i}))
+        .filter(x=>x.t && x.t.kind==='bandcamp')
+        .map(({t,i}) => fetchBandcampOEmbed(t.url).then(m=>{ bcCache.set(i, m); }).catch(()=>{}));
+      Promise.allSettled(bcPromises).then(()=>{ /* thumbs will fill in */ });
+
+      trackObjs.slice(0,5).forEach((track, i) => {
+        const el = document.createElement('div');
+        el.className = 'strip';
+        const selectThis = async () => {
+          $$('.strip').forEach(s=>s.classList.remove('selected'));
+          el.classList.add('selected');
+          try{
+            if (track.kind === 'bandcamp') {
+              const meta = bcCache.get(i) || await fetchBandcampOEmbed(track.url).catch(()=>null);
+              await setPreviewBandcamp(track.url, meta || undefined);
+            } else if (track.kind === 'youtube' || track.kind === 'iframe') {
+              setPreviewYouTube(track.src);
+            } else {
+              mainPreview.innerHTML = '<div class="big-placeholder">Unable to load track</div>';
+            }
+          }catch(e){
+            console.warn('Select failed:', e);
+            mainPreview.innerHTML = '<div class="big-placeholder">Unable to load track</div>';
+          }
+        };
+
+        if (track.kind === 'bandcamp') {
+          el.classList.add('bandcamp');
+          el.innerHTML = `<div class="bc-tile"><div class="bc-badge">Bandcamp — click to load</div><div class="bc-play">▶</div></div>`;
+          (async ()=>{
+            try{
+              const meta = bcCache.get(i) || await fetchBandcampOEmbed(track.url);
+              const tile = el.querySelector('.bc-tile');
+              if (tile && meta?.thumb) tile.style.backgroundImage = `url("${meta.thumb}")`;
+            }catch{}
+          })();
+          el.addEventListener('click', selectThis, { passive:true });
+        } else {
+          el.innerHTML = iframeAttrs(track.src,false,'Media preview') + '<div class="select-overlay" aria-hidden="true"></div>';
+          el.querySelector('.select-overlay').addEventListener('click', selectThis, { passive:true });
+        }
+
+        stripList.appendChild(el);
+      });
+
+      if (trackObjs.length && trackObjs[0].kind !== 'bandcamp') {
+        stripList.firstElementChild?.classList.add('selected');
+        setPreviewYouTube(trackObjs[0].src);
+      } else {
+        mainPreview.innerHTML = '<div class="big-placeholder">Select a track</div>';
+      }
+      syncHeightsSoon();
+    }
+
+    /* ---------- admin (unchanged) ---------- */
+    function renderAdmin(){
+      const btn=document.createElement('button'); btn.className='admin-btn'; btn.innerHTML='<i class="fa-solid fa-gear"></i>';
+      const panel=document.createElement('div'); panel.className='admin-panel';
+      panel.innerHTML=`
+        <div class="admin-head">
+          <strong>DJ SELECTS — Admin</strong>
+          <button id="x" class="admin-close" aria-label="Close">&times;</button>
+        </div>
+        <div class="admin-body">
+          <label>DJ Name<input id="aDj" value="\${shared.djName}"></label>
+          <div class="two-col">
+            <label>Station ID<input id="aSt" value="\${shared.stationId}"></label>
+            <label>Publishable API Key (optional)<input id="aKey" placeholder="pk_..." value="\${shared.apiKey}"></label>
+          </div>
+          <div class="two-col">
+            <label>Schedule type
+              <select id="aKind">
+                <option value="auto" \${shared.contributorKind==='auto'?'selected':''}>Auto</option>
+                <option value="artist" \${shared.contributorKind==='artist'?'selected':''}>Artist</option>
+                <option value="presenter" \${shared.contributorKind==='presenter'?'selected':''}>Presenter</option>
+              </select>
+            </label>
+            <label>Artist/Presenter ID (optional)
+              <input type="text" id="aId" placeholder="e.g. 25b015d2-01a5-4abb-8e2c-c5d425e0483d" value="\${shared.contributorId||''}">
+            </label>
+          </div>
+          <label>Profile Image URL<input id="aImg" value="\${shared.profileImage||''}"></label>
+          <div class="admin-subhead" style="margin:.5rem 0 .25rem;font-family:'Bebas Neue',sans-serif;font-size:1.3rem;">YouTube Track URLs (up to 5)</div>
+          <div id="aTracks"></div>
+          <div class="admin-actions">
+            <button id="save" class="primary">Save</button>
+            <button id="logout" class="ghost">Logout</button>
+            <button id="reset" class="danger">Reset (local only)</button>
+          </div>
+        </div>`;
+      adminMount.after(btn,panel); adminMount.remove();
+      const close=()=>panel.classList.remove('open'); btn.onclick=()=>panel.classList.add('open'); panel.querySelector('#x').onclick=close;
+
+      const wrap=panel.querySelector('#aTracks');
+      const draw=()=>{ wrap.innerHTML=''; [...shared.tracks,'','','',''].slice(0,5).forEach(v=>{
+        const row=document.createElement('div'); row.className='track-input';
+        row.innerHTML=`<input type="url" value="\${v||''}" placeholder="https://www.youtube.com/watch?v=... or Bandcamp URL">
+                       <button data-a="clear">Clear</button> <button data-a="paste">Paste</button>`;
+        row.querySelector('[data-a="clear"]').onclick=()=>row.querySelector('input').value='';
+        row.querySelector('[data-a="paste"]').onclick=async()=>{ try{ row.querySelector('input').value=await navigator.clipboard.readText(); }catch{} };
+        wrap.appendChild(row);
+      }); };
+      draw();
+
+      panel.querySelector('#save').onclick=async()=>{
+        shared.djName       = panel.querySelector('#aDj').value.trim()||shared.djName;
+        shared.stationId    = panel.querySelector('#aSt').value.trim()||shared.stationId;
+        shared.apiKey       = panel.querySelector('#aKey').value.trim();
+        shared.profileImage = panel.querySelector('#aImg').value.trim();
+        shared.contributorId   = panel.querySelector('#aId').value.trim();
+        shared.contributorKind = panel.querySelector('#aKind').value;
+        shared.tracks = $$('#aTracks input',panel).map(i=>i.value.trim()).filter(Boolean).slice(0,5);
+
+        localStorage.setItem('dj-selects-config', JSON.stringify(shared));
+        try{
+          const r=await fetch(\`\${CFG.CONFIG_ENDPOINT}?action=save\`,{
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({token:CFG.SAVE_TOKEN,data:shared})
+          });
+          if(!r.ok) throw 0;
+          alert('Saved to server. Live for everyone.');
+        }catch{
+          alert('Saved locally. To save for everyone, ensure SAVE_TOKEN matches $SERVER_TOKEN in dj-selects-config.php.');
+        }
+        apply(); close();
+      };
+      panel.querySelector('#logout').onclick=()=>{ sessionStorage.removeItem('dj-selects-auth'); location.reload(); };
+      panel.querySelector('#reset').onclick =()=>{ localStorage.removeItem('dj-selects-config'); alert('Local data cleared. Reloading…'); location.reload(); };
+    }
+
+    async function ensureAdmin(){
+      const prompt=async()=>{const p=window.prompt('Enter admin passphrase:'); if(!p) return; const ok=await sha256hex(p)===CFG.ADMIN_HASH_HEX; if(ok){ sessionStorage.setItem('dj-selects-auth','1'); renderAdmin(); } else alert('Wrong passphrase.');};
+      if(new URLSearchParams(location.search).get('admin')==='1') await prompt();
+      document.addEventListener('keydown', async e=>{ if(e.key.toLowerCase()==='a' && e.shiftKey) await prompt(); });
+      if(sessionStorage.getItem('dj-selects-auth')==='1') renderAdmin();
+    }
+
+    function apply(){
+      djNameText.textContent = shared.djName || 'DJ NAME';
+      if(shared.profileImage) djProfile.src = shared.profileImage;
+      const trackObjs = (shared.tracks||[]).map(parseTrack).filter(Boolean);
+      renderStrips(trackObjs);
+      loadDjImage();
+      loadNextShow();
+    }
+
+    async function loadSharedConfig(){
+      try{
+        const r=await fetch(`${CFG.CONFIG_ENDPOINT}?action=load`,{cache:'no-store'});
+        if(!r.ok) throw 0;
+        const data=await r.json();
+        if(data&&data.djName) shared={...shared,...data};
+      }catch{
+        const raw=localStorage.getItem('dj-selects-config');
+        if(raw) shared={...shared,...JSON.parse(raw)};
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', async ()=>{
+      await loadSharedConfig();
+      apply();
+      ensureAdmin();
+      syncHeights();
+    });
+  })();
+  </script>
+</body>
+</html>

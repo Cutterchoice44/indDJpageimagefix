@@ -193,7 +193,7 @@
     </section>
   </main>
 
-  <!-- Admin mount (button + panel get injected here) -->
+  <!-- Admin mount -->
   <div id="adminMount" hidden></div>
 
   <!-- Page config -->
@@ -297,7 +297,7 @@
       }catch{ return null; }
     }
 
-    /* ---------- Bandcamp (CORS first, JSONP fallback) ---------- */
+    /* ---------- Bandcamp (proxy first, then CORS, then JSONP) ---------- */
     function isBandcampURL(u){
       try{
         const x = new URL(u.trim());
@@ -307,11 +307,19 @@
       }catch{ return false; }
     }
 
+    // cache so we don't re-request
     const bcCache = new Map();
 
+    async function fetchBandcampViaProxy(pageUrl){
+      const u = `${CFG.PROXY_ENDPOINT}?fn=bandcamp_oembed&url=${encodeURIComponent(pageUrl)}`;
+      const r = await fetch(u, { headers:{'Accept':'application/json'}, cache:'no-store' });
+      if (!r.ok) throw new Error('HTTP '+r.status);
+      return r.json();
+    }
+
     async function fetchBandcampOEmbedCORS(pageUrl){
-      const url = `https://bandcamp.com/oembed?format=json&maxwidth=1400&maxheight=1400&url=${encodeURIComponent(pageUrl)}`;
-      const r = await fetch(url, { headers: { 'Accept': 'application/json' }, mode: 'cors', cache: 'no-store' });
+      const u = `https://bandcamp.com/oembed?format=json&maxwidth=1400&maxheight=1400&url=${encodeURIComponent(pageUrl)}`;
+      const r = await fetch(u, { headers: { 'Accept':'application/json' }, mode:'cors', cache:'no-store' });
       if (!r.ok) throw new Error('HTTP '+r.status);
       return r.json();
     }
@@ -323,18 +331,19 @@
         const s = document.createElement('script');
         let done = false;
         function cleanup(){ if (s.parentNode) s.parentNode.removeChild(s); try{ delete window[cbName]; }catch{} }
-        window[cbName] = (data) => { if (done) return; done = true; cleanup(); resolve(data); };
-        s.onerror = () => { if (done) return; done = true; cleanup(); reject(new Error('Bandcamp JSONP failed')); };
+        window[cbName] = (data)=>{ if(done) return; done=true; cleanup(); resolve(data); };
+        s.onerror = ()=>{ if(done) return; done=true; cleanup(); reject(new Error('Bandcamp JSONP failed')); };
         document.head.appendChild(s);
-        setTimeout(()=>{ if (done) return; done = true; cleanup(); reject(new Error('Bandcamp JSONP timeout')); }, timeoutMs);
+        setTimeout(()=>{ if(done) return; done=true; cleanup(); reject(new Error('Bandcamp JSONP timeout')); }, timeoutMs);
       });
     }
 
     async function getBandcampOEmbed(pageUrl){
       if (bcCache.has(pageUrl)) return bcCache.get(pageUrl);
       const p = (async () => {
-        try { return await fetchBandcampOEmbedCORS(pageUrl); }
-        catch { return await fetchBandcampOEmbedJSONP(pageUrl); }
+        try { return await fetchBandcampViaProxy(pageUrl); }         // 1) server proxy
+        catch { try { return await fetchBandcampOEmbedCORS(pageUrl);} // 2) direct CORS
+               catch { return await fetchBandcampOEmbedJSONP(pageUrl);} } // 3) JSONP
       })();
       bcCache.set(pageUrl, p);
       return p;
@@ -604,11 +613,8 @@
         if (ok) { sessionStorage.setItem('dj-selects-auth', '1'); renderAdmin(); }
         else alert('Wrong passphrase.');
       };
-      // URL trigger
       if (new URLSearchParams(location.search).get('admin') === '1') await promptAuth();
-      // Hotkey trigger
       document.addEventListener('keydown', async e => { if (e.shiftKey && (e.key === 'A' || e.key === 'a')) await promptAuth(); });
-      // Already authed
       if (sessionStorage.getItem('dj-selects-auth') === '1') renderAdmin();
     }
 
@@ -625,8 +631,8 @@
 
     window.addEventListener('DOMContentLoaded', async () => {
       await loadSharedConfig();
-      await apply();            // build embeds (YT + Bandcamp)
-      ensureAdmin();            // hotkey + ?admin=1
+      await apply();
+      ensureAdmin();
       syncHeights();
     });
 

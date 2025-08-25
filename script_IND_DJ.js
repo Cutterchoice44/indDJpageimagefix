@@ -1,4 +1,4 @@
-/* DJ Selects — robust schedule + equal-height strips */
+/* DJ Selects — robust schedule + equal-height strips (mobile-aware) */
 (() => {
   const CFG = window.DJ_SELECTS || {};
 
@@ -18,7 +18,7 @@
     stationId: 'cutters-choice-radio',
     apiKey: '',
     tracks: [],
-    contributorId: '',           // NEW: manual artist/presenter id override
+    contributorId: '',           // manual artist/presenter id override (optional)
     contributorKind: 'auto'      // 'auto' | 'artist' | 'presenter'
   };
 
@@ -46,7 +46,23 @@
   };
   const iframeAttrs = (src,big=false)=>`<iframe src="${src}" title="YouTube video" loading="${big?'eager':'lazy'}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
   const setPreview = (src)=>{ mainPreview.innerHTML=`<div class="ratio big">${iframeAttrs(src,true)}</div>`; syncHeightsSoon(); };
-  const renderStrips=(embeds)=>{ stripList.innerHTML=''; embeds.slice(0,5).forEach((src,i)=>{ const el=document.createElement('div'); el.className='strip'; el.innerHTML=iframeAttrs(src,false)+'<div class="select-overlay" aria-hidden="true"></div>'; el.querySelector('.select-overlay').addEventListener('click',()=>{ $$('.strip').forEach(s=>s.classList.remove('selected')); el.classList.add('selected'); setPreview(src); }); stripList.appendChild(el); if (i===0){ el.classList.add('selected'); setPreview(src); } }); if (!embeds.length) mainPreview.innerHTML='<div class="big-placeholder">Select a track</div>'; syncHeightsSoon(); };
+  const renderStrips=(embeds)=>{ 
+    stripList.innerHTML=''; 
+    embeds.slice(0,5).forEach((src,i)=>{ 
+      const el=document.createElement('div'); 
+      el.className='strip'; 
+      el.innerHTML=iframeAttrs(src,false)+'<div class="select-overlay" aria-hidden="true"></div>'; 
+      el.querySelector('.select-overlay').addEventListener('click',()=>{ 
+        $$('.strip').forEach(s=>s.classList.remove('selected')); 
+        el.classList.add('selected'); 
+        setPreview(src); 
+      }); 
+      stripList.appendChild(el); 
+      if (i===0){ el.classList.add('selected'); setPreview(src); } 
+    }); 
+    if (!embeds.length) mainPreview.innerHTML='<div class="big-placeholder">Select a track</div>'; 
+    syncHeightsSoon(); 
+  };
   const fmtLocal = iso => { try{ const d=new Date(iso); return d.toLocaleString(undefined,{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:false,timeZoneName:'short'});}catch{ return ''; } };
   const slug = s => (s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
   const nameEq=(a,b)=>{const A=(a||'').trim().toLowerCase(),B=(b||'').trim().toLowerCase();return A&&B&&(A===B||slug(A)===slug(B));};
@@ -181,8 +197,17 @@
     }
   }
 
-  /* ---------- equal-height 5-row sidebar ---------- */
+  /* ---------- equal-height 5-row sidebar (desktop) / compact rows (mobile) ---------- */
   function syncHeights(){
+    const mobile = window.matchMedia('(max-width: 768px)').matches;
+    if (mobile){
+      // On phones, don't lock a fixed height; use compact equal rows
+      stripList.style.height = 'auto';
+      stripList.style.display = 'grid';
+      stripList.style.gridTemplateRows = 'repeat(5, 72px)';
+      return;
+    }
+    // Desktop: match the preview's height and split into 5 equal rows
     const ratio = mainPreview.querySelector('.ratio.big');
     const h = (ratio && ratio.getBoundingClientRect().height) || mainPreview.getBoundingClientRect().height;
     if (h > 0) {
@@ -240,10 +265,22 @@
 
     adminMount.after(btn, panel); adminMount.remove();
 
-    const close=()=>panel.classList.remove('open'); btn.onclick=()=>panel.classList.add('open'); panel.querySelector('#x').onclick=close;
+    const close=()=>panel.classList.remove('open'); 
+    btn.onclick=()=>panel.classList.add('open'); 
+    panel.querySelector('#x').onclick=close;
 
     const wrap=panel.querySelector('#aTracks');
-    const draw=()=>{ wrap.innerHTML=''; [...shared.tracks,'','','',''].slice(0,5).forEach(v=>{ const row=document.createElement('div'); row.className='track-input'; row.innerHTML=`<input type="url" value="${v||''}" placeholder="https://www.youtube.com/watch?v=..."><button data-a="clear">Clear</button><button data-a="paste">Paste</button>`; row.querySelector('[data-a="clear"]').onclick=()=>row.querySelector('input').value=''; row.querySelector('[data-a="paste"]').onclick=async()=>{ try{ row.querySelector('input').value=await navigator.clipboard.readText(); }catch{} }; wrap.appendChild(row); }); };
+    const draw=()=>{ 
+      wrap.innerHTML=''; 
+      [...shared.tracks,'','','',''].slice(0,5).forEach(v=>{ 
+        const row=document.createElement('div'); 
+        row.className='track-input'; 
+        row.innerHTML=`<input type="url" value="${v||''}" placeholder="https://www.youtube.com/watch?v=..."><button data-a="clear">Clear</button><button data-a="paste">Paste</button>`; 
+        row.querySelector('[data-a="clear"]').onclick=()=>row.querySelector('input').value=''; 
+        row.querySelector('[data-a="paste"]').onclick=async()=>{ try{ row.querySelector('input').value=await navigator.clipboard.readText(); }catch{} }; 
+        wrap.appendChild(row); 
+      }); 
+    };
     draw();
 
     panel.querySelector('#save').onclick = async () => {

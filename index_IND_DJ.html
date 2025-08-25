@@ -16,52 +16,145 @@
     :root { --brand-teal:#5A8785; }
 
     /* HERO */
-    .djselects-hero{padding:.6rem .75rem .2rem;border:2px solid var(--brand-teal);border-left:0;border-right:0;margin-bottom:.35rem;display:grid;grid-template-columns:1fr 160px;gap:.6rem;align-items:end}
-    .djselects-hero .strap{font-family:'Bebas Neue',sans-serif;font-size:clamp(1.1rem,2.4vw,1.7rem);line-height:1}
-    .djselects-hero .monthline{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.6rem,5.6vw,3.8rem);line-height:1}
-    .djselects-hero #djNameText{color:var(--brand-teal)}
-    .djselects-hero .hero-right img{width:100%;height:auto;border:2px solid var(--brand-teal);border-radius:4px;background:#000;display:block}
+    .djselects-hero{
+      padding:.6rem .75rem .2rem;
+      border:2px solid var(--brand-teal);
+      border-left:0;border-right:0;
+      margin-bottom:.35rem;
+      display:grid;
+      grid-template-columns:1fr 160px;
+      gap:.6rem;
+      align-items:end;
+    }
+    .djselects-hero .strap{
+      font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(1.1rem,2.4vw,1.7rem);
+      line-height:1;
+    }
+    .djselects-hero .monthline{
+      font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(2.6rem,5.6vw,3.8rem);
+      line-height:1;
+    }
+    .djselects-hero #djNameText{ color:var(--brand-teal); }
+    .djselects-hero .hero-right img{
+      width:100%; height:auto;
+      border:2px solid var(--brand-teal);
+      border-radius:4px; background:#000; display:block;
+    }
 
     /* NEXT BAR */
-    .nextbar{margin:.2rem .6rem .5rem}
-    .nextbar-inner{display:flex;align-items:center;gap:1rem;background:#0b0b0b;border:2px solid var(--brand-teal);padding:.45rem .6rem;border-radius:6px}
-    .nextbar .label{font-family:'Bebas Neue',sans-serif;font-size:clamp(1.2rem,2.2vw,1.6rem)}
-    .nextbar .when{font-family:'Bebas Neue',sans-serif;font-size:clamp(1.3rem,2.6vw,1.8rem);color:var(--brand-teal)}
+    .nextbar{ margin:.2rem .6rem .5rem; }
+    .nextbar-inner{
+      display:flex; align-items:center; gap:1rem;
+      background:#0b0b0b; border:2px solid var(--brand-teal);
+      padding:.45rem .6rem; border-radius:6px;
+    }
+    .nextbar .label{
+      font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(1.2rem,2.2vw,1.6rem);
+    }
+    .nextbar .when{
+      font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(1.3rem,2.6vw,1.8rem);
+      color:var(--brand-teal);
+    }
 
     /* MAIN LAYOUT */
-    .compact-grid{display:grid;grid-template-columns:minmax(240px,360px) 1fr;gap:.6rem;padding:0 .6rem .9rem}
+    .compact-grid{
+      display:grid;
+      grid-template-columns:minmax(240px,360px) 1fr;
+      gap:.6rem; padding:0 .6rem .9rem;
+    }
 
     /* Sidebar strips — 5 equal rows; height is synced to preview via JS */
-    .strip-list{display:grid;grid-template-rows:repeat(5,1fr);gap:.45rem;height:100%}
-    .strip{position:relative;border:1px solid #264745;background:#0a0a0a;border-radius:4px;overflow:hidden;cursor:pointer}
-    .strip.selected{outline:2px solid var(--brand-teal)}
-    .strip iframe{width:100%;height:100%;border:0;display:block;pointer-events:none}
-    .strip .select-overlay{position:absolute;inset:0}
-    .strip:hover .select-overlay{box-shadow:inset 0 0 0 2px var(--brand-teal);background:rgba(90,135,133,.08)}
+    .strip-list{
+      display:grid;
+      grid-template-rows:repeat(5,1fr);
+      gap:.45rem;
+      height:100%;
+    }
+    .strip{
+      position:relative;
+      border:1px solid #264745; background:#0a0a0a;
+      border-radius:4px; overflow:hidden; cursor:pointer;
+    }
+    .strip.selected{ outline:2px solid var(--brand-teal); }
+    .strip iframe{ width:100%; height:100%; border:0; display:block; pointer-events:none; }
+    .strip .select-overlay{ position:absolute; inset:0; }
+    .strip:hover .select-overlay{
+      box-shadow:inset 0 0 0 2px var(--brand-teal);
+      background:rgba(90,135,133,.08);
+    }
 
     /* Big preview */
-    .preview .ratio.big{position:relative;width:100%;padding-top:28.125%}
-    .preview .ratio.big iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-    .big-placeholder{font-family:'Bebas Neue',sans-serif;color:#6fa39f;font-size:clamp(1.1rem,2.4vw,1.6rem);padding:.75rem}
+    .preview .ratio.big{ position:relative; width:100%; padding-top:28.125%; }
+    .preview .ratio.big iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; }
+    .big-placeholder{
+      font-family:'Bebas Neue',sans-serif; color:#6fa39f;
+      font-size:clamp(1.1rem,2.4vw,1.6rem); padding:.75rem;
+    }
 
     /* Admin panel */
-    .admin-btn{position:fixed;right:12px;bottom:12px;z-index:9999;background:var(--brand-teal);color:#000;border:none;width:48px;height:48px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.35)}
-    .admin-panel{position:fixed;right:12px;bottom:72px;width:min(560px,94vw);max-height:82vh;background:#0c0c0c;color:#fff;border:2px solid var(--brand-teal);border-radius:10px;display:none;flex-direction:column;z-index:9999;box-shadow:0 10px 30px rgba(0,0,0,.45)}
-    .admin-panel.open{display:flex}
-    .admin-head{display:flex;align-items:center;justify-content:space-between;padding:.6rem .8rem;border-bottom:1px solid #1d3b3a}
-    .admin-close{background:none;border:none;color:#fff;font-size:1.6rem;cursor:pointer}
-    .admin-body{padding:.8rem;overflow-y:auto;padding-bottom:5.5rem}
-    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
-    .admin-body label{display:block;margin-bottom:.65rem}
-    .admin-body input,.admin-body select{width:100%;padding:.55rem;background:#111;color:#fff;border:1px solid #264745;border-radius:6px;margin-top:.25rem}
-    #adminTracks .track-input{display:grid;grid-template-columns:1fr auto auto;gap:.5rem;margin-bottom:.5rem}
-    #adminTracks button{padding:.5rem .75rem;border-radius:6px;border:1px solid #264745;background:#121212;color:#fff;cursor:pointer}
-    .admin-actions{position:sticky;bottom:0;background:#0c0c0c;border-top:1px solid #1d3b3a;display:flex;gap:.6rem;padding:.7rem .8rem}
-    .admin-actions .primary{background:var(--brand-teal);color:#000;border:none;padding:.6rem .9rem;border-radius:8px}
-    .admin-actions .ghost{background:#171717;color:#fff;border:1px solid #2a2a2a;padding:.6rem .9rem;border-radius:8px}
-    .admin-actions .danger{background:#2b1818;color:#fff;border:1px solid #5a2020;padding:.6rem .9rem;border-radius:8px}
+    .admin-btn{
+      position:fixed; right:12px; bottom:12px; z-index:9999;
+      background:var(--brand-teal); color:#000; border:none;
+      width:48px; height:48px; border-radius:999px;
+      display:inline-flex; align-items:center; justify-content:center;
+      box-shadow:0 6px 18px rgba(0,0,0,.35)
+    }
+    .admin-panel{
+      position:fixed; right:12px; bottom:72px; width:min(560px,94vw); max-height:82vh;
+      background:#0c0c0c; color:#fff; border:2px solid var(--brand-teal); border-radius:10px;
+      display:none; flex-direction:column; z-index:9999; box-shadow:0 10px 30px rgba(0,0,0,.45)
+    }
+    .admin-panel.open{ display:flex }
+    .admin-head{ display:flex; align-items:center; justify-content:space-between; padding:.6rem .8rem; border-bottom:1px solid #1d3b3a }
+    .admin-close{ background:none; border:none; color:#fff; font-size:1.6rem; cursor:pointer }
+    .admin-body{ padding:.8rem; overflow-y:auto; padding-bottom:5.5rem }
+    .two-col{ display:grid; grid-template-columns:1fr 1fr; gap:.6rem }
+    .admin-body label{ display:block; margin-bottom:.65rem }
+    .admin-body input,.admin-body select{ width:100%; padding:.55rem; background:#111; color:#fff; border:1px solid #264745; border-radius:6px; margin-top:.25rem }
+    #adminTracks .track-input{ display:grid; grid-template-columns:1fr auto auto; gap:.5rem; margin-bottom:.5rem }
+    #adminTracks button{ padding:.5rem .75rem; border-radius:6px; border:1px solid #264745; background:#121212; color:#fff; cursor:pointer }
+    .admin-actions{ position:sticky; bottom:0; background:#0c0c0c; border-top:1px solid #1d3b3a; display:flex; gap:.6rem; padding:.7rem .8rem }
+    .admin-actions .primary{ background:var(--brand-teal); color:#000; border:none; padding:.6rem .9rem; border-radius:8px }
+    .admin-actions .ghost{ background:#171717; color:#fff; border:1px solid #2a2a2a; padding:.6rem .9rem; border-radius:8px }
+    .admin-actions .danger{ background:#2b1818; color:#fff; border:1px solid #5a2020; padding:.6rem .9rem; border-radius:8px }
 
-    @media (max-width:960px){.djselects-hero{grid-template-columns:1fr}.compact-grid{grid-template-columns:1fr}}
+    /* Tablet collapse */
+    @media (max-width:960px){
+      .djselects-hero{ grid-template-columns:1fr }
+      .compact-grid{ grid-template-columns:1fr }
+    }
+
+    /* === Mobile layout tweaks (≤768px) === */
+    @media (max-width:768px){
+      /* Make hero a bit tighter and cap profile image size */
+      .djselects-hero{
+        grid-template-columns:1fr 96px;
+        gap:.5rem;
+      }
+      .djselects-hero .hero-right img{
+        width:96px; height:auto; max-width:96px; /* keep it small on phones */
+      }
+
+      /* One-column main; show player first, list second */
+      .compact-grid{ grid-template-columns:1fr; gap:.5rem }
+      #mainPreview{ grid-row:1 }
+      #stripList{ grid-row:2 }
+
+      /* 16:9 player on phones */
+      .preview .ratio.big{ padding-top:56.25% }
+
+      /* Compact 5 even rows under the player.
+         !important beats the JS inline height on mobile. */
+      .strip-list{
+        height:auto !important;
+        grid-template-rows:repeat(5,72px);
+      }
+      .strip{ border-radius:6px }
+    }
   </style>
 </head>
 <body>
@@ -130,7 +223,7 @@
     };
   </script>
 
-  <!-- Logic (all inline so the page actually uses it) -->
+  <!-- Logic (unchanged) -->
   <script>
   (()=>{
 
@@ -168,7 +261,15 @@
     const fetchJSON=async url=>{const r=await fetch(url,{headers:{'Accept':'application/json'},cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();};
 
     /* ---------- equal-height strips (5 rows) ---------- */
-    function syncHeights(){ const ratio=mainPreview.querySelector('.ratio.big'); const h=(ratio&&ratio.getBoundingClientRect().height)||mainPreview.getBoundingClientRect().height; if(h>0){ stripList.style.height=h+'px'; stripList.style.display='grid'; stripList.style.gridTemplateRows='repeat(5,1fr)'; } }
+    function syncHeights(){
+      const ratio=mainPreview.querySelector('.ratio.big');
+      const h=(ratio&&ratio.getBoundingClientRect().height)||mainPreview.getBoundingClientRect().height;
+      if(h>0){
+        stripList.style.height=h+'px';
+        stripList.style.display='grid';
+        stripList.style.gridTemplateRows='repeat(5,1fr)';
+      }
+    }
     const syncHeightsSoon=()=>setTimeout(syncHeights,60);
     new ResizeObserver(syncHeights).observe(mainPreview);
     window.addEventListener('resize', syncHeightsSoon);
@@ -176,23 +277,31 @@
 
     /* ---------- config ---------- */
     async function loadSharedConfig(){
-      try{ const r=await fetch(`${CFG.CONFIG_ENDPOINT}?action=load`,{cache:'no-store'}); if(!r.ok) throw 0; const data=await r.json(); if(data&&data.djName) shared={...shared,...data}; }
-      catch{ const raw=localStorage.getItem('dj-selects-config'); if(raw) shared={...shared,...JSON.parse(raw)}; }
+      try{
+        const r=await fetch(`${CFG.CONFIG_ENDPOINT}?action=load`,{cache:'no-store'});
+        if(!r.ok) throw 0;
+        const data=await r.json();
+        if(data&&data.djName) shared={...shared,...data};
+      }catch{
+        const raw=localStorage.getItem('dj-selects-config');
+        if(raw) shared={...shared,...JSON.parse(raw)};
+      }
     }
 
     /* ---------- Radio Cult lookups (via proxy) ---------- */
     async function findContributor(){
-      // if the ID is provided in admin, just use it
       if (shared.contributorId) return {kind: shared.contributorKind||'auto', id: shared.contributorId, obj:null};
 
-      // otherwise try to match by name (artist then presenter)
       const base=`${CFG.PROXY_ENDPOINT}?stationId=${encodeURIComponent(shared.stationId)}`;
       const [artists,presenters] = await Promise.all([
         fetchJSON(`${base}&fn=artists`).then(j=>j?.artists||j?.data||j||[]).catch(()=>[]),
         fetchJSON(`${base}&fn=presenters`).then(j=>j?.presenters||j?.data||j||[]).catch(()=>[])
       ]);
       const nm=shared.djName;
-      const from=(arr,kind)=>{ const hit=arr.find(x=>nameEq(x?.name,nm))||arr.find(x=>slug(x?.name)===slug(nm))||arr.find(x=>(x?.name||'').toLowerCase().includes(nm.toLowerCase())); return hit?{kind,id:(hit.id||hit._id||hit.slug||hit.uuid||hit.name),obj:hit}:null; };
+      const from=(arr,kind)=>{
+        const hit=arr.find(x=>nameEq(x?.name,nm))||arr.find(x=>slug(x?.name)===slug(nm))||arr.find(x=>(x?.name||'').toLowerCase().includes(nm.toLowerCase()));
+        return hit?{kind,id:(hit.id||hit._id||hit.slug||hit.uuid||hit.name),obj:hit}:null;
+      };
       return from(artists,'artist') || from(presenters,'presenter') || {kind:'auto',id:'',obj:null};
     }
 
@@ -211,7 +320,11 @@
 
     async function loadDjImage(){
       if(shared.profileImage && !/default-dj\.png$/i.test(shared.profileImage)) return;
-      try{ const who=await findContributor(); const img=firstImageUrl(who?.obj); if(img) djProfile.src=img; }catch{}
+      try{
+        const who=await findContributor();
+        const img=firstImageUrl(who?.obj);
+        if(img) djProfile.src=img;
+      }catch{}
     }
 
     async function loadNextShow(){
@@ -221,7 +334,6 @@
         const now=new Date(), end=new Date(now.getTime()+365*24*60*60*1000);
         const startISO=now.toISOString(), endISO=end.toISOString();
 
-        // Try schedule on artist/presenter (station-scoped, with upstream fallback handled by proxy)
         let res = null;
         if (who.kind==='artist' || who.kind==='presenter') {
           res = await trySchedule(who.kind, who.id, startISO, endISO);
@@ -229,7 +341,6 @@
           res = await trySchedule('artist', shared.contributorId, startISO, endISO) || await trySchedule('presenter', shared.contributorId, startISO, endISO);
         }
 
-        // Fallback to upcoming expanded list
         if(!res){
           const u = `${CFG.PROXY_ENDPOINT}?fn=upcoming&stationId=${encodeURIComponent(shared.stationId)}&limit=200&expand=artist,presenter`;
           const up = await fetchJSON(u);

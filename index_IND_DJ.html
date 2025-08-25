@@ -8,38 +8,144 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cutters Choice Radio — DJ Selects</title>
 
-  <!-- Your site styles -->
   <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
   <style>
     :root { --brand-teal:#5A8785; }
-    .djselects-hero{ padding:.6rem .75rem .2rem; border:2px solid var(--brand-teal); border-left:0;border-right:0; margin-bottom:.35rem; display:grid; grid-template-columns:1fr 160px; gap:.6rem; align-items:end;}
-    .djselects-hero .strap{ font-family:'Bebas Neue',sans-serif; font-size:clamp(1.1rem,2.4vw,1.7rem); line-height:1;}
-    .djselects-hero .monthline{ font-family:'Bebas Neue',sans-serif; font-size:clamp(2.6rem,5.6vw,3.8rem); line-height:1;}
+
+    /* HERO */
+    .djselects-hero{
+      padding:.6rem .75rem .2rem;
+      border:2px solid var(--brand-teal);
+      border-left:0;border-right:0;
+      margin-bottom:.35rem;
+      display:grid;
+      grid-template-columns:1fr 160px;
+      gap:.6rem;
+      align-items:end;
+    }
+    .djselects-hero .strap{
+      font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(1.1rem,2.4vw,1.7rem);
+      line-height:1;
+    }
+    .djselects-hero .monthline{
+      font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(2.6rem,5.6vw,3.8rem);
+      line-height:1;
+    }
     .djselects-hero #djNameText{ color:var(--brand-teal); }
-    .djselects-hero .hero-right img{ width:100%; height:auto; border:2px solid var(--brand-teal); border-radius:4px; background:#000; display:block; }
+    .djselects-hero .hero-right img{
+      width:100%; height:auto;
+      border:2px solid var(--brand-teal);
+      border-radius:4px; background:#000; display:block;
+    }
 
+    /* NEXT BAR */
     .nextbar{ margin:.2rem .6rem .5rem; }
-    .nextbar-inner{ display:flex; align-items:center; gap:1rem; background:#0b0b0b; border:2px solid var(--brand-teal); padding:.45rem .6rem; border-radius:6px;}
-    .nextbar .label{ font-family:'Bebas Neue',sans-serif; font-size:clamp(1.2rem,2.2vw,1.6rem);}
-    .nextbar .when{ font-family:'Bebas Neue',sans-serif; font-size:clamp(1.3rem,2.6vw,1.8rem); color:var(--brand-teal);}
+    .nextbar-inner{
+      display:flex; align-items:center; gap:1rem;
+      background:#0b0b0b; border:2px solid var(--brand-teal);
+      padding:.45rem .6rem; border-radius:6px;
+    }
+    .nextbar .label{
+      font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(1.2rem,2.2vw,1.6rem);
+    }
+    .nextbar .when{
+      font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(1.3rem,2.6vw,1.8rem);
+      color:var(--brand-teal);
+    }
 
-    .compact-grid{ display:grid; grid-template-columns:minmax(240px,360px) 1fr; gap:.6rem; padding:0 .6rem .9rem;}
-    .strip-list{ display:grid; grid-template-rows:repeat(5,1fr); gap:.45rem; height:100%;}
-    .strip{ position:relative; border:1px solid #264745; background:#0a0a0a; border-radius:4px; overflow:hidden; cursor:pointer;}
+    /* MAIN LAYOUT */
+    .compact-grid{
+      display:grid;
+      grid-template-columns:minmax(240px,360px) 1fr;
+      gap:.6rem; padding:0 .6rem .9rem;
+    }
+
+    /* Sidebar strips — 5 equal rows */
+    .strip-list{
+      display:grid;
+      grid-template-rows:repeat(5,1fr);
+      gap:.45rem;
+      height:100%;
+    }
+    .strip{
+      position:relative;
+      border:1px solid #264745; background:#0a0a0a;
+      border-radius:4px; overflow:hidden; cursor:pointer;
+    }
     .strip.selected{ outline:2px solid var(--brand-teal); }
     .strip iframe{ width:100%; height:100%; border:0; display:block; pointer-events:none; }
     .strip .select-overlay{ position:absolute; inset:0; }
-    .strip:hover .select-overlay{ box-shadow:inset 0 0 0 2px var(--brand-teal); background:rgba(90,135,133,.08);}
 
-    .preview .ratio.big{ position:relative; width:100%; padding-top:28.125%;}
+    /* Bandcamp placeholder tiles (sidebar) */
+    .tile{ position:relative; width:100%; height:100%; display:block; }
+    .tile .thumb{
+      position:absolute; inset:0; background:#111 center/cover no-repeat;
+      filter:saturate(0.96) contrast(1.02);
+    }
+    .tile .badge{
+      position:absolute; left:8px; bottom:8px;
+      background:rgba(0,0,0,.7); border:1px solid #2a2a2a;
+      padding:.25rem .5rem; border-radius:999px;
+      font-size:.8rem; display:inline-flex; align-items:center; gap:.4rem;
+    }
+    .tile .badge i{ color:#5fbec0; } /* bandcamp-ish teal */
+
+    .strip:hover .select-overlay{
+      box-shadow:inset 0 0 0 2px var(--brand-teal);
+      background:rgba(90,135,133,.08);
+    }
+
+    /* Big preview */
+    .preview .ratio.big{ position:relative; width:100%; padding-top:28.125%; }
     .preview .ratio.big iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; }
-    .big-placeholder{ font-family:'Bebas Neue',sans-serif; color:#6fa39f; font-size:clamp(1.1rem,2.4vw,1.6rem); padding:.75rem;}
+    .big-placeholder{
+      font-family:'Bebas Neue',sans-serif; color:#6fa39f;
+      font-size:clamp(1.1rem,2.4vw,1.6rem); padding:.75rem;
+    }
 
-    .admin-btn{ position:fixed; right:12px; bottom:12px; z-index:9999; background:var(--brand-teal); color:#000; border:none; width:48px; height:48px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; box-shadow:0 6px 18px rgba(0,0,0,.35)}
-    .admin-panel{ position:fixed; right:12px; bottom:72px; width:min(560px,94vw); max-height:82vh; background:#0c0c0c; color:#fff; border:2px solid var(--brand-teal); border-radius:10px; display:none; flex-direction:column; z-index:9999; box-shadow:0 10px 30px rgba(0,0,0,.45)}
+    /* Bandcamp big placeholder */
+    .bc-ph{
+      position:absolute; inset:0; display:grid; place-items:center;
+      background:#0b0b0b;
+    }
+    .bc-ph .ph-thumb{
+      position:absolute; inset:0; background:#111 center/cover no-repeat; opacity:.22;
+    }
+    .bc-ph .ph-card{
+      position:relative; z-index:1;
+      border:1px solid #2a2a2a; background:rgba(0,0,0,.6);
+      padding:1rem 1.2rem; border-radius:10px; backdrop-filter: blur(2px);
+      text-align:center;
+    }
+    .bc-ph .ph-card .title{ font-family:'Bebas Neue',sans-serif; font-size:1.3rem; color:#dfe; margin-bottom:.35rem }
+    .bc-ph .ph-card .by{ font-size:.9rem; color:#a7c1bf; margin-bottom:.6rem }
+    .bc-ph .ph-card .btn{
+      display:inline-flex; align-items:center; gap:.5rem;
+      background:var(--brand-teal); color:#000; border:none;
+      padding:.55rem .9rem; border-radius:999px; cursor:pointer;
+      font-weight:600;
+    }
+
+    /* Admin panel */
+    .admin-btn{
+      position:fixed; right:12px; bottom:12px; z-index:9999;
+      background:var(--brand-teal); color:#000; border:none;
+      width:48px; height:48px; border-radius:999px;
+      display:inline-flex; align-items:center; justify-content:center;
+      box-shadow:0 6px 18px rgba(0,0,0,.35)
+    }
+    .admin-panel{
+      position:fixed; right:12px; bottom:72px; width:min(560px,94vw); max-height:82vh;
+      background:#0c0c0c; color:#fff; border:2px solid var(--brand-teal); border-radius:10px;
+      display:none; flex-direction:column; z-index:9999; box-shadow:0 10px 30px rgba(0,0,0,.45)
+    }
     .admin-panel.open{ display:flex }
     .admin-head{ display:flex; align-items:center; justify-content:space-between; padding:.6rem .8rem; border-bottom:1px solid #1d3b3a }
     .admin-close{ background:none; border:none; color:#fff; font-size:1.6rem; cursor:pointer }
@@ -54,7 +160,13 @@
     .admin-actions .ghost{ background:#171717; color:#fff; border:1px solid #2a2a2a; padding:.6rem .9rem; border-radius:8px }
     .admin-actions .danger{ background:#2b1818; color:#fff; border:1px solid #5a2020; padding:.6rem .9rem; border-radius:8px }
 
-    @media (max-width:960px){ .djselects-hero{ grid-template-columns:1fr } .compact-grid{ grid-template-columns:1fr } }
+    /* Tablet collapse */
+    @media (max-width:960px){
+      .djselects-hero{ grid-template-columns:1fr }
+      .compact-grid{ grid-template-columns:1fr }
+    }
+
+    /* Mobile layout tweaks (≤768px) */
     @media (max-width:768px){
       .djselects-hero{ grid-template-columns:1fr 96px; gap:.5rem; }
       .djselects-hero .hero-right img{ width:96px; height:auto; max-width:96px; }
@@ -68,7 +180,7 @@
   </style>
 </head>
 <body>
-  <!-- Header (keep your site header/nav exactly as before) -->
+  <!-- Header -->
   <header class="header-banner">
     <div class="header-gif-right"></div>
     <div class="header-gif-left"></div>
@@ -79,6 +191,7 @@
 
   <div style="height:2px;background-color:var(--brand-teal)"></div>
 
+  <!-- Nav -->
   <nav id="main-nav">
     <div class="nav-menu">
       <a href="our-story.html" class="nav-link">OUR STORY</a>
@@ -109,7 +222,7 @@
     </div>
   </section>
 
-  <!-- Tracks UI -->
+  <!-- Tracks -->
   <main class="compact-grid">
     <aside id="stripList" class="strip-list"></aside>
     <section class="preview" id="mainPreview" aria-live="polite">
@@ -117,69 +230,66 @@
     </section>
   </main>
 
-  <!-- Admin mount -->
   <div id="adminMount" hidden></div>
 
-  <!-- Page config (IMPORTANT: proxy points to this folder's PHP) -->
+  <!-- Page config -->
   <script>
     window.DJ_SELECTS = {
       CONFIG_ENDPOINT: 'dj-selects-config.php',
-      PROXY_ENDPOINT:  'rc-proxy.php',                 // <— same folder
+      PROXY_ENDPOINT:  'rc-proxy.php',
+      // passphrase = ccr2025!
       ADMIN_HASH_HEX: '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e',
-      SAVE_TOKEN: 'CCR_TEMP_TOKEN_!2025'               // must match $SERVER_TOKEN in php
+      // MUST match $SERVER_TOKEN in dj-selects-config.php
+      SAVE_TOKEN: 'CCR_TEMP_TOKEN_!2025'
     };
   </script>
 
   <!-- Logic -->
   <script>
-  (() => {
-    'use strict';
+  (()=>{
 
-    const CFG = window.DJ_SELECTS || {};
-    const $  = (s, r=document) => r.querySelector(s);
-    const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+    const CFG = window.DJ_SELECTS||{};
+    const $=(s,r=document)=>r.querySelector(s);
+    const $$=(s,r=document)=>[...r.querySelectorAll(s)];
 
-    const stripList   = $('#stripList');
-    const mainPreview = $('#mainPreview');
-    const djNameText  = $('#djNameText');
-    const djProfile   = $('#djProfileThumb');
-    const nextWhen    = $('#nextShowWhen');
-    const adminMount  = $('#adminMount');
+    const stripList=$('#stripList'),
+          mainPreview=$('#mainPreview'),
+          djNameText=$('#djNameText'),
+          djProfile=$('#djProfileThumb'),
+          nextWhen=$('#nextShowWhen'),
+          adminMount=$('#adminMount');
 
-    // Defaults
-    let shared = {
-      djName: 'DJ NAME',
-      profileImage: '/images/default-dj.png',
-      stationId: 'cutters-choice-radio',
-      apiKey: '',
-      tracks: [],
-      contributorId: '',
-      contributorKind: 'auto'
+    let shared={
+      djName:'DJ NAME',
+      profileImage:'/images/default-dj.png',
+      stationId:'cutters-choice-radio',
+      apiKey:'',
+      tracks:[],
+      contributorId:'',
+      contributorKind:'auto'
     };
 
-    // helpers
-    const sha256hex = async (t) => {
-      const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
-      return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2,'0')).join('');
-    };
-    const deTemplatify = v => (typeof v === 'string' && v.includes('${')) ? '' : v;
-    const sanitizeShared = o => {
-      o.djName = deTemplatify(o.djName) || 'DJ NAME';
-      o.profileImage = deTemplatify(o.profileImage) || '/images/default-dj.png';
-      o.stationId = deTemplatify(o.stationId) || 'cutters-choice-radio';
-      o.apiKey = deTemplatify(o.apiKey) || '';
-      o.contributorId = deTemplatify(o.contributorId) || '';
-      o.contributorKind = ['auto','artist','presenter'].includes(o.contributorKind) ? o.contributorKind : 'auto';
-      o.tracks = (Array.isArray(o.tracks)?o.tracks:[]).map(deTemplatify).filter(Boolean).slice(0,5);
+    /* ---------- helpers ---------- */
+    const sha256hex=async t=>{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');};
+    const deTemplatify=v=>(typeof v==='string'&&v.includes('${'))?'':v;
+    const sanitizeShared=o=>{
+      o.djName=deTemplatify(o.djName)||'DJ NAME';
+      o.profileImage=deTemplatify(o.profileImage)||'/images/default-dj.png';
+      o.stationId=deTemplatify(o.stationId)||'cutters-choice-radio';
+      o.apiKey=deTemplatify(o.apiKey)||'';
+      o.contributorId=deTemplatify(o.contributorId)||'';
+      o.contributorKind=['auto','artist','presenter'].includes(o.contributorKind)?o.contributorKind:'auto';
+      o.tracks=(Array.isArray(o.tracks)?o.tracks:[]).map(deTemplatify).filter(Boolean).slice(0,5);
       return o;
     };
-    const slug = s => (s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
-    const nameEq = (a,b)=>{const A=(a||'').trim().toLowerCase(),B=(b||'').trim().toLowerCase();return A&&B&&(A===B||slug(A)===slug(B));};
-    const fmtLocal = iso => { try{ const d=new Date(iso); return d.toLocaleString(undefined,{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:false,timeZoneName:'short'});}catch{return '';} };
+    const slug=s=>(s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+    const nameEq=(a,b)=>{const A=(a||'').trim().toLowerCase(),B=(b||'').trim().toLowerCase();return A&&B&&(A===B||slug(A)===slug(B));};
+    const fmtLocal=iso=>{ try{ const d=new Date(iso); return d.toLocaleString(undefined,{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:false,timeZoneName:'short'});}catch{ return '';} };
     const firstImageUrl=o=> (o && ((o.logo && (o.logo['512x512']||o.logo.default)) || o.image || o.imageUrl || o.avatar || o.avatarUrl || (Array.isArray(o.images)&&o.images[0]&&(o.images[0].url||o.images[0].src)))) || '';
+    const fetchJSON=async url=>{const r=await fetch(url,{headers:{'Accept':'application/json'},cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();};
 
-    // YouTube
-    function youtubeEmbed(u){
+    /* ---------- YouTube ---------- */
+    const youtubeEmbed=u=>{
       try{
         const x=new URL(u.trim());
         if(!x.hostname.includes('youtu')) return null;
@@ -190,113 +300,151 @@
         else if(/^\/embed\//.test(x.pathname)) id=x.pathname.split('/').pop();
         id=(id||'').split('?')[0].split('&')[0];
         if(!id) return null;
-        return `https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`;
+        return`https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`;
       }catch{ return null; }
-    }
+    };
 
-    // Bandcamp (proxy → CORS → JSONP)
-    function isBandcampURL(u){
+    /* ---------- Bandcamp ---------- */
+    const isBandcampURL=u=>{
       try{
-        const x=new URL(u.trim()); const host=x.hostname.toLowerCase();
+        const x=new URL(u.trim());
+        const host=x.hostname.toLowerCase();
         if(!host.endsWith('bandcamp.com')) return false;
         return /\/(album|track)\//.test(x.pathname);
       }catch{ return false; }
-    }
-    const bcCache = new Map();
-    async function fetchBandcampViaProxy(pageUrl){
-      const u = `${CFG.PROXY_ENDPOINT}?fn=bandcamp_oembed&url=${encodeURIComponent(pageUrl)}`;
-      const r = await fetch(u,{headers:{'Accept':'application/json'},cache:'no-store'});
-      if(!r.ok) throw new Error('HTTP '+r.status);
-      return r.json();
-    }
-    async function fetchBandcampOEmbedCORS(pageUrl){
+    };
+
+    const bcCache=new Map();
+    const fetchBandcampViaProxy=async pageUrl=>{
+      const u=`${CFG.PROXY_ENDPOINT}?fn=bandcamp_oembed&url=${encodeURIComponent(pageUrl)}`;
+      const r=await fetch(u,{headers:{'Accept':'application/json'},cache:'no-store'}); if(!r.ok) throw 0; return r.json();
+    };
+    const fetchBandcampOEmbedCORS=async pageUrl=>{
       const u=`https://bandcamp.com/oembed?format=json&maxwidth=1400&maxheight=1400&url=${encodeURIComponent(pageUrl)}`;
-      const r=await fetch(u,{headers:{'Accept':'application/json'},mode:'cors',cache:'no-store'});
-      if(!r.ok) throw new Error('HTTP '+r.status);
-      return r.json();
-    }
-    function fetchBandcampOEmbedJSONP(pageUrl,timeoutMs=8000){
-      return new Promise((resolve,reject)=>{
-        const cb='bc_cb_'+Math.random().toString(36).slice(2);
-        const s=document.createElement('script');
-        s.src=`https://bandcamp.com/oembed?format=json&maxwidth=1400&maxheight=1400&url=${encodeURIComponent(pageUrl)}&callback=${cb}`;
-        let done=false;
-        function cleanup(){ if(s.parentNode) s.parentNode.removeChild(s); try{ delete window[cb]; }catch{} }
-        window[cb]=(data)=>{ if(done) return; done=true; cleanup(); resolve(data); };
-        s.onerror=()=>{ if(done) return; done=true; cleanup(); reject(new Error('Bandcamp JSONP failed')); };
-        document.head.appendChild(s);
-        setTimeout(()=>{ if(done) return; done=true; cleanup(); reject(new Error('Bandcamp JSONP timeout')); }, timeoutMs);
-      });
-    }
-    async function getBandcampOEmbed(pageUrl){
+      const r=await fetch(u,{headers:{'Accept':'application/json'},mode:'cors',cache:'no-store'}); if(!r.ok) throw 0; return r.json();
+    };
+    const fetchBandcampOEmbedJSONP=(pageUrl,timeoutMs=8000)=>new Promise((resolve,reject)=>{
+      const cb='bc_cb_'+Math.random().toString(36).slice(2);
+      const s=document.createElement('script');
+      s.src=`https://bandcamp.com/oembed?format=json&maxwidth=1400&maxheight=1400&url=${encodeURIComponent(pageUrl)}&callback=${cb}`;
+      let done=false;
+      function cleanup(){ if(s.parentNode) s.parentNode.removeChild(s); try{ delete window[cb]; }catch{} }
+      window[cb]=(data)=>{ if(done) return; done=true; cleanup(); resolve(data); };
+      s.onerror=()=>{ if(done) return; done=true; cleanup(); reject(new Error('Bandcamp JSONP failed')); };
+      document.head.appendChild(s);
+      setTimeout(()=>{ if(done) return; done=true; cleanup(); reject(new Error('Bandcamp JSONP timeout')); }, timeoutMs);
+    });
+    const getBandcampOEmbed=async pageUrl=>{
       if(bcCache.has(pageUrl)) return bcCache.get(pageUrl);
       const p=(async()=>{ try{ return await fetchBandcampViaProxy(pageUrl);}catch{ try{ return await fetchBandcampOEmbedCORS(pageUrl);}catch{ return await fetchBandcampOEmbedJSONP(pageUrl);} } })();
       bcCache.set(pageUrl,p); return p;
-    }
-    function extractIframeSrcFromHTML(html){
-      const m=String(html||'').match(/<iframe[^>]+src="([^"]+)"/i);
-      return m?m[1]:null;
-    }
-
-    async function resolveEmbedSrc(u){
-      if(!u) return null;
-      const yt=youtubeEmbed(u);
-      if(yt) return yt;
-      if(isBandcampURL(u)){
-        try{
-          const data=await getBandcampOEmbed(u);
-          const src=extractIframeSrcFromHTML(data && data.html);
-          return src||null;
-        }catch{ return null; }
-      }
-      try{ new URL(u); return u; }catch{ return null; }
-    }
-
-    async function buildEmbeds(urls=[]){
-      const promises=urls.slice(0,5).map(u=>resolveEmbedSrc(u));
-      const out=await Promise.all(promises);
-      return out.filter(Boolean);
-    }
-
-    const iframeAttrs=(src,big=false,title='Media player')=>
-      `<iframe src="${src}" title="${title}" loading="${big?'eager':'lazy'}"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
-
-    const setPreview=src=>{
-      mainPreview.innerHTML=`<div class="ratio big">${iframeAttrs(src,true)}</div>`;
-      syncHeightsSoon();
     };
+    const extractIframeSrcFromHTML=html=>{ const m=String(html||'').match(/<iframe[^>]+src="([^"]+)"/i); return m?m[1]:null; };
 
-    const renderStrips=embeds=>{
+    /* ---------- Build playable items with placeholders ---------- */
+    async function buildItems(urls=[]){
+      const proms = urls.slice(0,5).map(async u=>{
+        if(!u) return null;
+        const yt=youtubeEmbed(u);
+        if(yt) return { kind:'yt', embedSrc:yt };
+
+        if(isBandcampURL(u)){
+          try{
+            const data=await getBandcampOEmbed(u);
+            return {
+              kind:'bc',
+              iframeSrc: extractIframeSrcFromHTML(data?.html) || null,
+              thumb: data?.thumbnail_url || '',
+              title: data?.title || 'Bandcamp',
+              author: data?.author_name || '',
+              link:u
+            };
+          }catch{ return null; }
+        }
+
+        try{ new URL(u); return {kind:'raw', embedSrc:u}; }catch{ return null; }
+      });
+      const items = (await Promise.all(proms)).filter(Boolean);
+      return items;
+    }
+
+    const iframeAttrs=(src,big=false,title='Media player')=>`<iframe src="${src}" title="${title}" loading="${big?'eager':'lazy'}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
+
+    /* --- Preview logic with click-to-load for Bandcamp --- */
+    const bcLoaded = new Set();
+    function setPreviewItem(item){
+      if(!item){ mainPreview.innerHTML='<div class="big-placeholder">Select a track</div>'; return; }
+
+      if(item.kind==='bc' && item.iframeSrc && !bcLoaded.has(item.iframeSrc)){
+        const t=item.title||'Bandcamp', by=item.author?`by ${item.author}`:'';
+        mainPreview.innerHTML=`
+          <div class="ratio big">
+            <div class="bc-ph">
+              <div class="ph-thumb" style="background-image:url('${(item.thumb||'').replace(/'/g,"%27")}')"></div>
+              <div class="ph-card">
+                <div class="title">${t}</div>
+                <div class="by">${by}</div>
+                <button class="btn" id="bcPlay"><i class="fa-brands fa-bandcamp"></i> Play on Bandcamp</button>
+              </div>
+            </div>
+          </div>`;
+        $('#bcPlay', mainPreview)?.addEventListener('click', ()=>{
+          bcLoaded.add(item.iframeSrc);
+          setPreviewItem(item);
+        });
+      } else {
+        const src = item.kind==='bc' ? item.iframeSrc : item.embedSrc;
+        mainPreview.innerHTML = `<div class="ratio big">${iframeAttrs(src,true)}</div>`;
+      }
+      syncHeightsSoon();
+    }
+
+    function renderStrips(items){
       stripList.innerHTML='';
-      embeds.slice(0,5).forEach((src,i)=>{
-        const el=document.createElement('div');
-        el.className='strip';
-        el.innerHTML=iframeAttrs(src,false)+'<div class="select-overlay" aria-hidden="true"></div>';
+      items.slice(0,5).forEach((item,i)=>{
+        const el=document.createElement('div'); el.className='strip';
+
+        if(item.kind==='bc'){  /* placeholder tile in sidebar */
+          const bg=(item.thumb||'').replace(/'/g,"%27");
+          el.innerHTML = `
+            <div class="tile">
+              <div class="thumb" style="background-image:url('${bg}')"></div>
+              <div class="badge"><i class="fa-brands fa-bandcamp"></i><span>Bandcamp</span></div>
+            </div>
+            <div class="select-overlay" aria-hidden="true"></div>`;
+        } else {
+          el.innerHTML = iframeAttrs(item.embedSrc,false) + '<div class="select-overlay" aria-hidden="true"></div>';
+        }
+
         el.querySelector('.select-overlay').addEventListener('click',()=>{
           $$('.strip').forEach(s=>s.classList.remove('selected'));
-          el.classList.add('selected'); setPreview(src);
+          el.classList.add('selected');
+          setPreviewItem(item);
         });
-        stripList.appendChild(el);
-        if(i===0){ el.classList.add('selected'); setPreview(src); }
-      });
-      if(!embeds.length) mainPreview.innerHTML='<div class="big-placeholder">Select a track</div>';
-      syncHeightsSoon();
-    };
 
-    // equal-height strips
+        stripList.appendChild(el);
+        if(i===0){ el.classList.add('selected'); setPreviewItem(item); }
+      });
+      if(!items.length) mainPreview.innerHTML='<div class="big-placeholder">Select a track</div>';
+      syncHeightsSoon();
+    }
+
+    /* ---------- equal-height strips (5 rows) ---------- */
     function syncHeights(){
       const ratio=mainPreview.querySelector('.ratio.big');
       const h=(ratio&&ratio.getBoundingClientRect().height)||mainPreview.getBoundingClientRect().height;
-      if(h>0){ stripList.style.height=h+'px'; stripList.style.display='grid'; stripList.style.gridTemplateRows='repeat(5,1fr)'; }
+      if(h>0){
+        stripList.style.height=h+'px';
+        stripList.style.display='grid';
+        stripList.style.gridTemplateRows='repeat(5,1fr)';
+      }
     }
     const syncHeightsSoon=()=>setTimeout(syncHeights,60);
-    (window.ResizeObserver?new ResizeObserver(syncHeights):{observe:()=>{}}).observe?.(mainPreview);
+    new ResizeObserver(syncHeights).observe(mainPreview);
     window.addEventListener('resize', syncHeightsSoon);
     setInterval(syncHeights,800);
 
-    // load config (server then local)
+    /* ---------- config ---------- */
     async function loadSharedConfig(){
       try{
         const r=await fetch(`${CFG.CONFIG_ENDPOINT}?action=load`,{cache:'no-store'});
@@ -309,36 +457,36 @@
       }
     }
 
-    /* ========== Schedule via station upcoming only (robust) ========== */
-    async function loadNextShowAndImage(){
+    /* ---------- schedule & image via station upcoming ---------- */
+    async function loadNextShow(){
       nextWhen.textContent='Loading…';
       try{
         const u=`${CFG.PROXY_ENDPOINT}?fn=upcoming&stationId=${encodeURIComponent(shared.stationId)}&limit=200&expand=artist,presenter`;
-        const r=await fetch(u,{headers:{'Accept':'application/json'},cache:'no-store'});
-        if(!r.ok) throw 0;
-        const up=await r.json();
-        const list=up?.data || up?.items || up || [];
-        const nm=shared.djName, sNm=slug(nm);
+        const up=await fetchJSON(u);
+        const list=up?.data||up?.items||up||[];
+        const nm=shared.djName, djSlug=slug(nm);
         const nameOf=e=>(e?.artist?.name||e?.presenter?.name||e?.name||e?.title||'');
-        const hasTag=e=> (e?.tags||e?.categories||[]).map(t=>typeof t==='string'?t:(t?.slug||t?.name||'')).map(slug).includes(sNm);
+        const hasTag=e=> (e?.tags||e?.categories||[]).map(t=>typeof t==='string'?t:(t?.slug||t?.name||'')).map(slug).includes(djSlug);
         const getIso=e=>e.startDate||e.start||e.startDateUtc||e.scheduledStart||e.start_time||e.start_at;
-        const now=new Date();
 
+        const now=new Date();
         const byName=list.filter(e=> nameEq(e?.artist?.name,nm) || nameEq(e?.presenter?.name,nm) || nameOf(e).toLowerCase().includes(nm.toLowerCase()) || hasTag(e));
-        const future = byName.map(s=>({s,t:new Date(getIso(s)||0)})).filter(x=>x.t>now).sort((a,b)=>a.t-b.t)[0]?.s || null;
+        const future=byName.map(s=>({s,t:new Date(getIso(s)||0)})).filter(x=>x.t>now).sort((a,b)=>a.t-b.t)[0]?.s||null;
 
         if(future){
-          const whenISO = getIso(future);
-          if(whenISO){ nextWhen.textContent = fmtLocal(whenISO); nextWhen.setAttribute('data-utc', whenISO); nextWhen.title=`Start (UTC): ${new Date(whenISO).toUTCString()}`; }
-          else nextWhen.textContent='TBA';
+          const whenISO=getIso(future);
+          if(whenISO){
+            nextWhen.textContent=fmtLocal(whenISO);
+            nextWhen.setAttribute('data-utc', whenISO);
+            nextWhen.title=`Start (UTC): ${new Date(whenISO).toUTCString()}`;
+          } else nextWhen.textContent='TBA';
 
           if(/default-dj\.png$/i.test(djProfile.src||'')){
-            const img = firstImageUrl(future.artist) || firstImageUrl(future.presenter);
+            const img=firstImageUrl(future.artist)||firstImageUrl(future.presenter);
             if(img) djProfile.src=img;
           }
           return;
         }
-
         nextWhen.textContent='No upcoming show found';
       }catch{
         nextWhen.textContent='Unable to load schedule';
@@ -369,7 +517,7 @@
               </select>
             </label>
             <label>Artist/Presenter ID (optional)
-              <input type="text" id="aId" placeholder="optional id" value="${shared.contributorId||''}">
+              <input type="text" id="aId" placeholder="e.g. UUID" value="${shared.contributorId||''}">
             </label>
           </div>
           <label>Profile Image URL<input id="aImg" value="${shared.profileImage||''}"></label>
@@ -385,17 +533,8 @@
       const close=()=>panel.classList.remove('open'); btn.onclick=()=>panel.classList.add('open'); panel.querySelector('#x').onclick=close;
 
       const wrap=panel.querySelector('#aTracks');
-      const draw=()=>{
-        wrap.innerHTML='';
-        [...shared.tracks,'','','',''].slice(0,5).forEach(v=>{
-          const row=document.createElement('div');
-          row.className='track-input';
-          row.innerHTML=`<input type="url" value="${v||''}" placeholder="https://www.youtube.com/watch?v=... or https://artist.bandcamp.com/track/..."> <button data-a="clear">Clear</button> <button data-a="paste">Paste</button>`;
-          row.querySelector('[data-a="clear"]').onclick=()=>row.querySelector('input').value='';
-          row.querySelector('[data-a="paste"]').onclick=async()=>{ try{ row.querySelector('input').value=await navigator.clipboard.readText(); }catch{} };
-          wrap.appendChild(row);
-        });
-      }; draw();
+      const draw=()=>{ wrap.innerHTML=''; [...shared.tracks,'','','',''].slice(0,5).forEach(v=>{ const row=document.createElement('div'); row.className='track-input'; row.innerHTML=`<input type="url" value="${v||''}" placeholder="https://www.youtube.com/watch?v=... or https://artist.bandcamp.com/track/..."> <button data-a="clear">Clear</button> <button data-a="paste">Paste</button>`; row.querySelector('[data-a="clear"]').onclick=()=>row.querySelector('input').value=''; row.querySelector('[data-a="paste"]').onclick=async()=>{ try{ row.querySelector('input').value=await navigator.clipboard.readText(); }catch{} }; wrap.appendChild(row); }); };
+      draw();
 
       panel.querySelector('#save').onclick=async()=>{
         shared.djName       = panel.querySelector('#aDj').value.trim()||shared.djName;
@@ -424,15 +563,9 @@
     }
 
     async function ensureAdmin(){
-      const promptAuth=async()=>{
-        const p=window.prompt('Enter admin passphrase:');
-        if(!p) return;
-        const ok=await sha256hex(p)===CFG.ADMIN_HASH_HEX;
-        if(ok){ sessionStorage.setItem('dj-selects-auth','1'); renderAdmin(); }
-        else alert('Wrong passphrase.');
-      };
-      if(new URLSearchParams(location.search).get('admin')==='1') await promptAuth();
-      document.addEventListener('keydown', async e=>{ if(e.shiftKey && (e.key==='A'||e.key==='a')) await promptAuth(); });
+      const prompt=async()=>{const p=window.prompt('Enter admin passphrase:'); if(!p) return; const ok=await sha256hex(p)===CFG.ADMIN_HASH_HEX; if(ok){ sessionStorage.setItem('dj-selects-auth','1'); renderAdmin(); } else alert('Wrong passphrase.');};
+      if(new URLSearchParams(location.search).get('admin')==='1') await prompt();
+      document.addEventListener('keydown', async e=>{ if(e.key.toLowerCase()==='a' && e.shiftKey) await prompt(); });
       if(sessionStorage.getItem('dj-selects-auth')==='1') renderAdmin();
     }
 
@@ -440,10 +573,10 @@
       djNameText.textContent = shared.djName || 'DJ NAME';
       if(shared.profileImage) djProfile.src=shared.profileImage;
 
-      const embeds = await buildEmbeds(shared.tracks||[]);
-      renderStrips(embeds);
+      const items = await buildItems(shared.tracks||[]);
+      renderStrips(items);
 
-      await loadNextShowAndImage();
+      await loadNextShow();
     }
 
     window.addEventListener('DOMContentLoaded', async ()=>{
@@ -452,6 +585,7 @@
       ensureAdmin();
       syncHeights();
     });
+
   })();
   </script>
 </body>

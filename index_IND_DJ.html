@@ -39,7 +39,7 @@
       display:flex; align-items:flex-end; justify-content:center;
     }
     .hero-art img{
-      width:170px; height:170px; object-fit:cover; /* small square like your image */
+      width:170px; height:170px; object-fit:cover;
       border:2px solid var(--brand-teal); border-radius:4px; background:#000;
     }
 
@@ -80,7 +80,7 @@
     .nextbar .label{ font-family:'Bebas Neue',sans-serif; font-size:clamp(1.1rem,2.2vw,1.5rem); }
     .nextbar .when { font-family:'Bebas Neue',sans-serif; font-size:clamp(1.2rem,2.6vw,1.7rem); color:var(--brand-teal); }
 
-    /* ——— TRACKS: restored proportions ——— */
+    /* ——— TRACKS ——— */
     .compact-grid{ display:grid; grid-template-columns:300px minmax(0,1fr); gap:.7rem; padding:0 .6rem 1.0rem; }
     .strip-list{ display:grid; grid-template-rows:repeat(5,1fr); gap:.5rem; }
     .strip{ position:relative; border:1px solid #264745; background:#0a0a0a; border-radius:6px; overflow:hidden; cursor:pointer; }
@@ -176,7 +176,9 @@
     const BASE_URL   = 'https://api.radiocult.fm/api';
     const STATION_ID = 'cutters-choice-radio';
     const API_KEY    = 'pk_0b8abc6f834b444f949f727e88a728e0';
-    const CONFIG_ENDPOINT = 'dj-selects-config.php';   // loads track URLs (no placeholders)
+
+    // Endpoints in same folder:
+    const CONFIG_ENDPOINT = 'dj-selects-config.php';   // loads track URLs
     const PROXY_ENDPOINT  = 'rc-proxy.php';            // Bandcamp oEmbed only
   </script>
 
@@ -201,6 +203,22 @@
     const fetchJSON = async (url, headers={}) => { const r=await fetch(url,{headers,cache:'no-store'}); if(!r.ok) throw new Error(String(r.status)); return r.json(); };
     const nz = iso => { try{ const d=new Date(iso); return d.toLocaleString('en-NZ',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Pacific/Auckland',timeZoneName:'short'});}catch{return '';} };
     const tags = t => Array.isArray(t) ? t.map(x=>String(x).toLowerCase()) : (typeof t==='string' ? t.split(',').map(s=>s.trim().toLowerCase()) : []);
+
+    // —— NEW: make Radio Cult description robust (handles string, {html}, {text}, arrays) ——
+    function pickDescription(a){
+      const cand = a?.description ?? a?.bio ?? a?.about ?? a?.profile ?? a?.details?.description ?? '';
+      const flatten = (v) => {
+        if (!v) return '';
+        if (typeof v === 'string') return v;
+        if (Array.isArray(v))     return v.map(flatten).filter(Boolean).join('\n\n');
+        if (typeof v === 'object'){
+          // common shapes: {html:"..."}, {text:"..."}, {plain:"..."}
+          return v.html || v.text || v.plain || v.description || '';
+        }
+        return String(v);
+      };
+      return flatten(cand);
+    }
 
     /* socials extraction is flexible to whatever RC returns */
     function extractSocials(obj){
@@ -251,14 +269,19 @@
       state.selector = {
         kind, id:a.id||'', slug:(a.slug||'selector'), name:a.name||'',
         image: a.logo?.['512x512'] || a.logo?.default || a.image || '',
-        description: a.description || a.bio || '',
-        shareUrl: a.shareUrl || '',
+        description: pickDescription(a),
+        shareUrl: a.shareUrl || a.url || '',
         socials: extractSocials(a)
       };
 
       djNameText.textContent = state.selector.name || '';
       if(state.selector.image) djProfile.src = state.selector.image;
-      djBioBox.textContent = state.selector.description || '';
+
+      // render description as HTML if it *looks* like HTML; otherwise as text
+      const desc = state.selector.description || '';
+      if (/[<][a-z][\s\S]*[>]/i.test(desc)) { djBioBox.innerHTML = desc; }
+      else { djBioBox.textContent = desc; }
+
       if(state.selector.shareUrl){ profileLink.href = state.selector.shareUrl; profileLink.style.display='inline-block'; }
 
       // socials render
@@ -296,7 +319,13 @@
 
     /* 3) tracks from config (no placeholders) */
     async function loadConfig(){
-      try{ const r=await fetch(`${CONFIG_ENDPOINT}?action=load`,{cache:'no-store'}); if(r.ok){ const data=await r.json(); if(Array.isArray(data?.tracks)) state.tracks = data.tracks.slice(0,5); } }catch{}
+      try{
+        const r=await fetch(`${CONFIG_ENDPOINT}?action=load`,{cache:'no-store'});
+        if(r.ok){
+          const data=await r.json();
+          if(Array.isArray(data?.tracks)) state.tracks = data.tracks.slice(0,5);
+        }
+      }catch{}
     }
 
     /* 4) media rendering */

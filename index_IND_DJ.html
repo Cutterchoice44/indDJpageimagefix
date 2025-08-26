@@ -1,88 +1,44 @@
 <?php
-// dj-selects-config.php
-// Purpose: central JSON gateway for DJ Selects links.
-// GET  ?action=load  → { "tracks":[...] }          (reads dj-selects-data.json if present)
-// POST ?action=save  with JSON { "tracks":[...], "auth":"<hex>" }
-//                      → { "ok":true, "tracks":[...] } and writes back to dj-selects-data.json
-
-@ini_set('display_errors', '0'); // never leak warnings into the response
+@ini_set('display_errors', '0');
 error_reporting(0);
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, must-revalidate');
 header('Access-Control-Allow-Origin: *');
 
-$PREFERRED_STORE = __DIR__ . '/dj-selects-data.json';   // ← your original file
-$ALT_STORE       = __DIR__ . '/dj-selects-config.json'; // fallback if needed
-$ADMIN_HASH_HEX  = '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e';
+$fn  = isset($_GET['fn'])  ? $_GET['fn']  : '';
+$url = isset($_GET['url']) ? $_GET['url'] : '';
 
-$action = isset($_GET['action']) ? strtolower($_GET['action']) : 'load';
-
-function safe_tracks($arr){
-  $out = [];
-  foreach ((array)$arr as $u) {
-    $u = trim((string)$u);
-    if ($u === '') continue;
-    if (!preg_match('~^https?://~i', $u)) continue; // only http(s)
-    $out[] = $u;
-  }
-  return array_values(array_unique($out));
+if ($fn !== 'bandcamp_oembed' || !$url) {
+  http_response_code(400);
+  echo json_encode(['error'=>'Bad request'], JSON_UNESCAPED_SLASHES);
+  exit;
 }
-
-function read_store($primary, $alt){
-  $path = is_file($primary) ? $primary : (is_file($alt) ? $alt : $primary);
-  $json = @file_get_contents($path);
-  $data = json_decode($json, true);
-  if (!is_array($data)) $data = [];
-  if (!isset($data['tracks'])) $data['tracks'] = [];
-  $data['tracks'] = safe_tracks($data['tracks']);
-  return [$path, $data];
-}
-
-function write_store($primary, $alt, $data){
-  // Try preferred store; if that fails, try the alt
-  $payload = json_encode($data, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
-  $ok = @file_put_contents($primary, $payload);
-  if ($ok === false) {
-    $ok = @file_put_contents($alt, $payload);
-  }
-  return $ok !== false;
-}
-
-if ($action === 'load') {
-  list($_path, $data) = read_store($PREFERRED_STORE, $ALT_STORE);
-  echo json_encode(['tracks'=>$data['tracks']], JSON_UNESCAPED_SLASHES);
+if (!preg_match('~^https?://([a-z0-9-]+\.)*bandcamp\.com/.*$~i', $url)) {
+  http_response_code(400);
+  echo json_encode(['error'=>'Only Bandcamp URLs are allowed'], JSON_UNESCAPED_SLASHES);
   exit;
 }
 
-if ($action === 'save') {
-  $raw = file_get_contents('php://input');
-  $body = json_decode($raw, true);
-  if (!is_array($body)) $body = $_POST; // tolerate form posts
+$endpoint = 'https://bandcamp.com/oembed?format=json&url=' . rawurlencode($url);
 
-  $auth = isset($body['auth']) ? (string)$body['auth'] : '';
-  if ($auth !== $ADMIN_HASH_HEX) {
-    http_response_code(403);
-    echo json_encode(['error'=>'Forbidden'], JSON_UNESCAPED_SLASHES);
-    exit;
-  }
+$ch = curl_init($endpoint);
+curl_setopt_array($ch, [
+  CURLOPT_RETURNTRANSFER => true,
+  CURLOPT_FOLLOWLOCATION => true,
+  CURLOPT_CONNECTTIMEOUT => 6,
+  CURLOPT_TIMEOUT        => 10,
+  CURLOPT_USERAGENT      => 'CCR-Proxy/1.0'
+]);
+$body = curl_exec($ch);
+$err  = curl_error($ch);
+$code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+curl_close($ch);
 
-  $newTracks = safe_tracks($body['tracks'] ?? []);
-
-  // Read current JSON and only replace the tracks key (preserve your other fields)
-  list($pathUsed, $data) = read_store($PREFERRED_STORE, $ALT_STORE);
-  $data['tracks'] = $newTracks;
-
-  $ok = write_store($PREFERRED_STORE, $ALT_STORE, $data);
-  if (!$ok) {
-    http_response_code(500);
-    echo json_encode(['error'=>'Write failed (set webserver write perms on dj-selects-data.json)'], JSON_UNESCAPED_SLASHES);
-    exit;
-  }
-
-  echo json_encode(['ok'=>true, 'tracks'=>$newTracks], JSON_UNESCAPED_SLASHES);
+if ($body === false || $code >= 400) {
+  http_response_code(502);
+  echo json_encode(['error'=>'Upstream error','status'=>$code,'detail'=>$err], JSON_UNESCAPED_SLASHES);
   exit;
 }
 
-http_response_code(400);
-echo json_encode(['error'=>'Unsupported action'], JSON_UNESCAPED_SLASHES);
+echo $body;

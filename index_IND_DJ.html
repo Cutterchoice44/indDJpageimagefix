@@ -1,126 +1,195 @@
 <?php
-// rc-proxy.php — resilient Radio Cult + Bandcamp proxy
-// Finds the 'selector' profile via API or by scraping the public share page,
-// returns profile/name/art/description, plus an upcoming schedule best-guess.
+// rc-proxy.php — resilient Radio Cult + Bandcamp proxy with hard error->JSON handling
 
 declare(strict_types=1);
+
+// CORS
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Headers: Authorization, Content-Type, Accept, Origin, X-API-Key, x-api-key, X-Publishable-Key, x-publishable-key');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { exit; }
 
+// Force JSON output (even when errors happen)
+header('Content-Type: application/json; charset=utf-8');
+ini_set('display_errors', '0');
+ob_start();
+
+// Structured JSON error on warnings/notices/fatals
+function json_fail($code, $msg, $extra = []) {
+  if (!headers_sent()) header('Content-Type: application/json; charset=utf-8');
+  http_response_code($code);
+  $out = ['ok'=>false, 'error'=>$msg] + $extra;
+  // Flush any buffered HTML from PHP
+  if (ob_get_level()) { ob_clean(); }
+  echo json_encode($out, JSON_UNESCAPED_SLASHES);
+  exit;
+}
+set_error_handler(function($sev, $msg, $file, $line){
+  json_fail(500, 'PHP_ERROR', ['message'=>$msg, 'at'=>basename($file).':'.$line]);
+});
+register_shutdown_function(function(){
+  $e = error_get_last();
+  if ($e && in_array($e['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+    json_fail(500, 'PHP_FATAL', ['message'=>$e['message'], 'at'=>basename($e['file']).':'.$e['line']]);
+  }
+});
+
 $fn        = $_GET['fn']        ?? '';
 $stationId = $_GET['stationId'] ?? '';
 $apiKey    = $_GET['apiKey']    ?? '';
-$limit     = $_GET['limit']     ?? '200';
+$limit     = (int)($_GET['limit'] ?? 200);
 $slug      = $_GET['slug']      ?? '';
 $start     = $_GET['startDate'] ?? '';
 $end       = $_GET['endDate']   ?? '';
+$debug     = isset($_GET['debug']) ? true : false;
 
-function out($code, $obj){ http_response_code($code); header('Content-Type: application/json; charset=utf-8'); echo json_encode($obj, JSON_UNESCAPED_SLASHES); exit; }
-
-function curl_get($url, $headers=[]){
-  $ch = curl_init($url);
-  curl_setopt_array($ch, [
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_FOLLOWLOCATION => true,
-    CURLOPT_TIMEOUT => 25,
-    CURLOPT_CONNECTTIMEOUT => 10,
-    CURLOPT_HTTPHEADER => $headers
-  ]);
-  $res = curl_exec($ch);
-  $err = curl_error($ch);
-  $code= curl_getinfo($ch, CURLINFO_HTTP_CODE);
-  curl_close($ch);
-  return [$res,$code,$err];
+function respond($obj) {
+  if (ob_get_level()) { ob_clean(); }
+  echo json_encode($obj, JSON_UNESCAPED_SLASHES);
+  exit;
 }
-function get_json_any($url, $key=''){
-  $sets = [['Accept: application/json','User-Agent: CCR-Proxy/1.4']];
-  if($key){
-    $sets[] = ['Accept: application/json','User-Agent: CCR-Proxy/1.4','Authorization: Bearer '.$key];
-    $sets[] = ['Accept: application/json','User-Agent: CCR-Proxy/1.4','X-API-Key: '.$key];
-    $sets[] = ['Accept: application/json','User-Agent: CCR-Proxy/1.4','x-api-key: '.$key];
-    $sets[] = ['Accept: application/json','User-Agent: CCR-Proxy/1.4','X-Publishable-Key: '.$key];
-    $sets[] = ['Accept: application/json','User-Agent: CCR-Proxy/1.4','apikey: '.$key];
+
+// HTTP helpers (cURL then stream fallback)
+function http_get_any(string $url, array $headers = [], int $timeout = 25): array {
+  $ua = 'CCR-Proxy/1.5';
+  $h = array_merge(['Accept: application/json', "User-Agent: $ua"], $headers);
+
+  // Try cURL first
+  if (function_exists('curl_init')) {
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+      CURLOPT_RETURNTRANSFER => true,
+      CURLOPT_FOLLOWLOCATION => true,
+      CURLOPT_TIMEOUT => $timeout,
+      CURLOPT_CONNECTTIMEOUT => 10,
+      CURLOPT_HTTPHEADER => $h
+    ]);
+    $body = curl_exec($ch);
+    $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $err  = curl_error($ch);
+    curl_close($ch);
+    if ($body !== false) return [$code, $body, $err];
   }
-  foreach($sets as $hs){
-    [$res,$code,$err] = curl_get($url,$hs);
-    if(!$err && $res!==false && $code>=200 && $code<400){
-      $j=json_decode($res,true);
-      if(is_array($j)) return $j;
+
+  // Fallback to file_get_contents
+  $ctx = stream_context_create([
+    'http'=>[
+      'method'=>'GET',
+      'header'=>implode("\r\n", $h),
+      'timeout'=>$timeout
+    ]
+  ]);
+  $body = @file_get_contents($url, false, $ctx);
+  $code = 0;
+  if (isset($http_response_header) && is_array($http_response_header)) {
+    foreach ($http_response_header as $line) {
+      if (preg_match('~^HTTP/\S+\s+(\d{3})~', $line, $m)) { $code = (int)$m[1]; break; }
+    }
+  }
+  return [$code, $body, $body === false ? 'stream_fail' : ''];
+}
+function get_json_any(string $url, string $key=''): ?array {
+  $headerSets = [
+    [], // no key
+    $key ? ["Authorization: Bearer $key"] : [],
+    $key ? ["X-API-Key: $key"] : [],
+    $key ? ["x-api-key: $key"] : [],
+    $key ? ["X-Publishable-Key: $key"] : [],
+    $key ? ["apikey: $key"] : [],
+  ];
+  foreach ($headerSets as $hs) {
+    [$code,$body,$err] = http_get_any($url, $hs);
+    if ($code>=200 && $code<400 && is_string($body)) {
+      $j = json_decode($body, true);
+      if (is_array($j)) return $j;
     }
   }
   return null;
 }
-function first_json(array $urls, $key=''){
-  foreach($urls as $u){ $j=get_json_any($u,$key); if($j!==null) return $j; } return null;
+function first_json(array $urls, string $key=''): ?array {
+  foreach ($urls as $u) {
+    $j = get_json_any($u, $key);
+    if ($j !== null) return $j;
+  }
+  return null;
 }
-function get_html($url){
-  [$res,$code,$err] = curl_get($url, ['User-Agent: CCR-Proxy/1.4']);
-  if($err || $res===false || $code>=400) return null;
-  return $res;
+function http_get_html(string $url): ?string {
+  [$code,$body,$err] = http_get_any($url, ['Accept: text/html,application/xhtml+xml']);
+  if ($code>=200 && $code<400 && is_string($body)) return $body;
+  return null;
 }
-function meta_val($html,$prop,$attr='property'){
-  if(preg_match('~'.$attr.'=["\']'.preg_quote($prop,'~').'["\']\s+content=["\']([^"\']+)["\']~i',$html,$m)) return $m[1];
+
+// Small HTML helpers
+function meta_val(string $html, string $prop, string $attr='property'): string {
+  if (preg_match('~'.$attr.'=["\']'.preg_quote($prop,'~').'["\']\s+content=["\']([^"\']+)["\']~i', $html, $m)) return $m[1];
   return '';
 }
-function jsonld_values($html){
-  $out=[]; if(preg_match_all('~<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>~is',$html,$ms)){
-    foreach($ms[1] as $blob){
-      $j=json_decode($blob,true);
-      if(is_array($j)) $out[]=$j;
-    }
-  } return $out;
+function jsonld_blocks(string $html): array {
+  $out=[];
+  if (preg_match_all('~<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>~is', $html, $ms)) {
+    foreach ($ms[1] as $blob) { $j = json_decode($blob, true); if (is_array($j)) $out[]=$j; }
+  }
+  return $out;
 }
-function pick_next_from_jsonld(array $lds){
+function pick_next_event(array $lds): ?array {
   $now=time(); $best=null;
-  foreach($lds as $ld){
-    $events=[];
-    if(isset($ld['@type']) && strtolower((string)$ld['@type'])==='event'){ $events[]= $ld; }
-    if(isset($ld['event'])){ $ev=$ld['event']; if(isset($ev[0])) $events=array_merge($events,$ev); else $events[]=$ev; }
-    if(isset($ld['@graph']) && is_array($ld['@graph'])){
-      foreach($ld['@graph'] as $g){ if(($g['@type']??'')==='Event') $events[]=$g; }
+  foreach ($lds as $ld) {
+    $candidates=[];
+    if (($ld['@type']??'')==='Event') $candidates[]=$ld;
+    if (isset($ld['event'])) {
+      $ev=$ld['event']; $candidates = array_merge($candidates, is_array($ev) && isset($ev[0]) ? $ev : [$ev]);
     }
-    foreach($events as $ev){
-      $name=$ev['name']??''; $start=$ev['startDate']??($ev['start']??''); if(!$start) continue;
-      $ts=strtotime($start); if($ts && $ts>$now){ if(!$best || $ts<strtotime($best['start'])) $best=['title'=>$name,'start'=>date(DATE_ATOM,$ts)]; }
+    if (isset($ld['@graph']) && is_array($ld['@graph'])) {
+      foreach ($ld['@graph'] as $g) if (($g['@type']??'')==='Event') $candidates[]=$g;
+    }
+    foreach ($candidates as $ev) {
+      $start=$ev['startDate']??($ev['start']??'');
+      if (!$start) continue;
+      $ts=strtotime($start);
+      if ($ts && $ts>$now) {
+        if (!$best || $ts<strtotime($best['start'])) $best=['title'=>$ev['name']??'', 'start'=>date(DATE_ATOM,$ts)];
+      }
     }
   }
   return $best;
 }
 
-if($fn==='bandcamp_oembed'){
-  $url = $_GET['url'] ?? ''; if(!$url) out(400,['error'=>'Missing url']);
+/* =================== endpoints =================== */
+
+if ($fn==='bandcamp_oembed') {
+  $url = $_GET['url'] ?? '';
+  if (!$url) json_fail(400,'Missing url');
   $j = first_json(['https://bandcamp.com/oembed?format=json&url='.rawurlencode($url)]);
-  if(!$j) out(502,['error'=>'Bandcamp oEmbed failed']); out(200,$j);
+  if (!$j) json_fail(502,'Bandcamp oEmbed failed');
+  respond($j);
 }
 
-if($fn==='selector_full'){
-  if(!$stationId || !$slug) out(400,['error'=>'Missing stationId or slug']);
-
+if ($fn==='selector_full') {
+  if (!$stationId || !$slug) json_fail(400,'Missing stationId or slug');
   $bases = [
     'https://api.radiocult.fm/v1',
     'https://radiocult.fm/api/v1',
     'https://api.radiocult.dev/v1'
   ];
 
-  /* 1) API: lookup by slug (artists then presenters) */
-  foreach($bases as $b){
+  // 1) API: search by slug (artists then presenters)
+  foreach ($bases as $b) {
     $qs = http_build_query(['slug'=>$slug,'limit'=>1,'expand'=>'tags,images']);
     $urls = [
       "$b/stations/".rawurlencode($stationId)."/artists?$qs",
       "$b/stations/".rawurlencode($stationId)."/presenters?$qs",
     ];
-    $j = first_json($urls,$apiKey);
-    if($j){
+    $j = first_json($urls, $apiKey);
+    if ($j) {
       $item = $j['artists'][0] ?? $j['presenters'][0] ?? $j['data'][0] ?? null;
-      if($item){
+      if ($item) {
         $img = $item['logo']['512x512'] ?? ($item['logo']['default'] ?? ($item['image'] ?? ($item['avatar'] ?? '')));
         $kind= isset($j['artists']) ? 'artist' : (isset($j['presenters']) ? 'presenter' : 'artist');
         $name= $item['name'] ?? 'DJ';
         $share = $item['shareUrl'] ?? ($item['url'] ?? '');
         $desc = $item['description'] ?? ($item['bio'] ?? ($item['about'] ?? ''));
         $out = [
+          'ok'=>true,
           'kind'=>$kind,
           'id'=>$item['id'] ?? ($item['_id'] ?? ($item['uuid'] ?? '')),
           'slug'=>$item['slug'] ?? $slug,
@@ -128,54 +197,59 @@ if($fn==='selector_full'){
           'image'=>$img ?: '',
           'description'=>$desc,
           'shareUrl'=>$share,
-          'displayName'=> $name
+          'displayName'=>$name
         ];
-        // best effort upcoming from API schedules
-        $qs2 = http_build_query(['limit'=>200,'startDate'=>date(DATE_ATOM),'endDate'=>date(DATE_ATOM,time()+3600*24*365),'artistSlug'=>$slug,'presenterSlug'=>$slug]);
-        $maybe = first_json([
-            "$b/stations/".rawurlencode($stationId)."/schedules?$qs2",
-        ],$apiKey);
-        if($maybe){
+        // Try schedules quickly
+        $qs2 = http_build_query([
+          'limit'=>200,
+          'startDate'=>$start ?: date(DATE_ATOM),
+          'endDate'=>$end ?: date(DATE_ATOM, time()+3600*24*365),
+          'artistSlug'=>$slug,
+          'presenterSlug'=>$slug
+        ]);
+        $maybe = first_json(["$b/stations/".rawurlencode($stationId)."/schedules?$qs2"], $apiKey);
+        if ($maybe) {
           $list = $maybe['schedules'] ?? $maybe['data'] ?? [];
           $getIso = function($s){ return $s['startDateUtc'] ?? ($s['startDate'] ?? ($s['start'] ?? ($s['start_at'] ?? ''))); };
           $best = null;
-          foreach($list as $s){ $iso=$getIso($s); if(!$iso) continue; $ts=strtotime($iso); if($ts>time()){ if(!$best || $ts<strtotime($best['start'])) $best=['title'=>$s['title']??'', 'start'=>date(DATE_ATOM,$ts)]; } }
-          if($best) $out['nextShow']=$best;
-          // derive display name from schedule title if useful
-          if(empty($out['displayName']) || stripos($out['displayName'],'cutters dj selector')!==false){
-            if(isset($best['title']) && $best['title']) $out['displayName'] = $best['title'];
+          foreach ($list as $s) {
+            $iso=$getIso($s); if(!$iso) continue; $ts=strtotime($iso);
+            if ($ts>time()) { if(!$best || $ts<strtotime($best['start'])) $best=['title'=>$s['title']??'', 'start'=>date(DATE_ATOM,$ts)]; }
+          }
+          if ($best) $out['nextShow']=$best;
+          if (empty($out['displayName']) || stripos($out['displayName'],'cutters dj selector')!==false) {
+            if (!empty($best['title'])) $out['displayName'] = $best['title'];
           }
         }
-        out(200,$out);
+        respond($out);
       }
     }
   }
 
-  /* 2) Scrape share page (artists & presenters paths) */
+  // 2) Scrape share page
   $shareCandidates = [
     "https://radiocult.fm/".rawurlencode($stationId)."/artists/".rawurlencode($slug),
     "https://radiocult.fm/".rawurlencode($stationId)."/presenters/".rawurlencode($slug),
     "https://app.radiocult.fm/".rawurlencode($stationId)."/artists/".rawurlencode($slug),
     "https://app.radiocult.fm/".rawurlencode($stationId)."/presenters/".rawurlencode($slug),
   ];
-  foreach($shareCandidates as $u){
-    $html = get_html($u);
-    if(!$html) continue;
+  foreach ($shareCandidates as $u) {
+    $html = http_get_html($u);
+    if (!$html) continue;
 
     $name = meta_val($html,'og:title');
     $image= meta_val($html,'og:image');
     $desc = meta_val($html,'description','name');
 
-    // JSON-LD often contains Event items (Upcoming shows)
-    $lds = jsonld_values($html);
-    $best = pick_next_from_jsonld($lds);
+    $lds  = jsonld_blocks($html);
+    $best = pick_next_event($lds);
 
-    // Derive display name:
     $display = $name;
-    if($best && !empty($best['title'])) $display = $best['title'];
-    if(!$best && strpos($name,' - ')!==false) $display = trim(substr($name, strrpos($name,' - ')+3));
+    if ($best && !empty($best['title']))        $display = $best['title'];
+    elseif (strpos($name,' - ') !== false)      $display = trim(substr($name, strrpos($name,' - ')+3));
 
-    $out = [
+    respond([
+      'ok'=>true,
       'kind' => (strpos($u,'presenters/')!==false ? 'presenter' : 'artist'),
       'id'   => '',
       'slug' => $slug,
@@ -184,13 +258,20 @@ if($fn==='selector_full'){
       'description' => $desc ?: '',
       'shareUrl' => $u,
       'displayName' => $display ?: ($name ?: 'DJ'),
-    ];
-    if($best) $out['nextShow']=$best;
-
-    out(200,$out);
+      'nextShow' => $best ?: null,
+      'source' => 'scrape'
+    ]);
   }
 
-  out(404,['error'=>'selector profile not found']);
+  // If we made it here, something external blocked us.
+  $why = [];
+  if ($debug) {
+    foreach ($shareCandidates as $u) {
+      [$code,$body,$err] = http_get_any($u, ['Accept: text/html']);
+      $why[] = ['url'=>$u,'status'=>$code,'err'=>$err];
+    }
+  }
+  json_fail(502,'Unable to fetch selector profile', ['debug'=>$why]);
 }
 
-out(400,['error'=>'Unknown fn']);
+json_fail(400,'Unknown fn');

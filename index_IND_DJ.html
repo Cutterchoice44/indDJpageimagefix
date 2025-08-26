@@ -35,27 +35,34 @@
     }
     #djNameText{ color:var(--brand-teal); }
 
-    .hero-art{ display:flex; align-items:flex-end; justify-content:center; }
+    .hero-art{
+      display:flex; align-items:flex-end; justify-content:center;
+    }
     .hero-art img{
-      width:170px; height:170px; object-fit:cover;
+      width:170px; height:170px; object-fit:cover; /* small square like your image */
       border:2px solid var(--brand-teal); border-radius:4px; background:#000;
     }
 
     .hero-right{
       background:#0b0b0b; border:2px solid var(--brand-teal); border-radius:6px;
-      padding:.7rem .9rem; display:flex; flex-direction:column; gap:.55rem; min-height:100%;
+      padding:.7rem .9rem;
+      display:flex; flex-direction:column; gap:.55rem; min-height:100%;
     }
     .hero-bio{
       font-size:clamp(1.02rem,2.0vw,1.18rem);
-      line-height:1.42; white-space:pre-line; /* keep line breaks */
+      line-height:1.42; white-space:pre-line;
     }
-    .profile-topline{ display:flex; align-items:center; gap:.6rem; flex-wrap:wrap; }
+    .profile-topline{
+      display:flex; align-items:center; gap:.6rem; flex-wrap:wrap;
+    }
     .profile-link{
       display:inline-block; font-size:.9rem; border:1px solid #335d5b; padding:.2rem .45rem;
       border-radius:4px; background:#0b0b0b; color:#dff; text-decoration:none;
     }
 
-    .socials{ display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }
+    .socials{
+      display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;
+    }
     .socials a{
       display:inline-flex; align-items:center; justify-content:center;
       width:34px; height:34px; border-radius:999px;
@@ -73,7 +80,7 @@
     .nextbar .label{ font-family:'Bebas Neue',sans-serif; font-size:clamp(1.1rem,2.2vw,1.5rem); }
     .nextbar .when { font-family:'Bebas Neue',sans-serif; font-size:clamp(1.2rem,2.6vw,1.7rem); color:var(--brand-teal); }
 
-    /* ——— TRACKS: original proportions ——— */
+    /* ——— TRACKS: restored proportions ——— */
     .compact-grid{ display:grid; grid-template-columns:300px minmax(0,1fr); gap:.7rem; padding:0 .6rem 1.0rem; }
     .strip-list{ display:grid; grid-template-rows:repeat(5,1fr); gap:.5rem; }
     .strip{ position:relative; border:1px solid #264745; background:#0a0a0a; border-radius:6px; overflow:hidden; cursor:pointer; }
@@ -94,9 +101,18 @@
     .strip .bc-title{ position:absolute; left:8px; right:44px; bottom:8px; font-family:'Bebas Neue',sans-serif; color:#fff; text-shadow:0 2px 4px rgba(0,0,0,.6); font-size:clamp(1.0rem,2vw,1.2rem); line-height:1.1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .strip .bc-play{ position:absolute; inset:auto 8px 8px auto; background:rgba(90,135,133,.95); color:#000; font-weight:700; border-radius:999px; width:30px; height:30px; display:flex; align-items:center; justify-content:center; }
 
-    @media (max-width:1050px){ .djselects-hero{ grid-template-columns: 1fr auto 1fr; } .hero-art img{ width:150px; height:150px; } }
-    @media (max-width:900px){ .djselects-hero{ grid-template-columns: 1fr; } .hero-right{ order:3 } .hero-art{ order:2; justify-content:flex-start } }
-    @media (max-width:768px){ .strip-list{ grid-template-rows:repeat(5,76px); } }
+    @media (max-width:1050px){
+      .djselects-hero{ grid-template-columns: 1fr auto 1fr; }
+      .hero-art img{ width:150px; height:150px; }
+    }
+    @media (max-width:900px){
+      .djselects-hero{ grid-template-columns: 1fr; }
+      .hero-right{ order:3 }
+      .hero-art  { order:2; justify-content:flex-start }
+    }
+    @media (max-width:768px){
+      .strip-list{ grid-template-rows:repeat(5,76px); }
+    }
   </style>
 </head>
 <body>
@@ -168,95 +184,76 @@
   (() => {
     const $  = (s, r=document) => r.querySelector(s);
     const $$ = (s, r=document) => [...r.querySelectorAll(s)];
-    const djNameText=$('#djNameText'), djProfile=$('#djProfileThumb'), djBioBox=$('#djBio');
-    const nextWhen=$('#nextShowWhen'), profileLink=$('#djProfileLink'), socialsBox=$('#djSocials');
-    const stripList=$('#stripList'), mainPreview=$('#mainPreview');
+
+    const djNameText  = $('#djNameText');
+    const djProfile   = $('#djProfileThumb');
+    const djBioBox    = $('#djBio');
+    const nextWhen    = $('#nextShowWhen');
+    const profileLink = $('#djProfileLink');
+    const socialsBox  = $('#djSocials');
+    const stripList   = $('#stripList');
+    const mainPreview = $('#mainPreview');
 
     const state = { selector:{ kind:'artist', id:'', slug:'selector', name:'', image:'', description:'', shareUrl:'', socials:{} }, tracks:[] };
+
+    /* utils */
     const h = { 'x-api-key': API_KEY };
     const fetchJSON = async (url, headers={}) => { const r=await fetch(url,{headers,cache:'no-store'}); if(!r.ok) throw new Error(String(r.status)); return r.json(); };
     const nz = iso => { try{ const d=new Date(iso); return d.toLocaleString('en-NZ',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Pacific/Auckland',timeZoneName:'short'});}catch{return '';} };
     const tags = t => Array.isArray(t) ? t.map(x=>String(x).toLowerCase()) : (typeof t==='string' ? t.split(',').map(s=>s.trim().toLowerCase()) : []);
 
-    /* flatten any description structure to readable text */
-    function asText(v){
-      if (v == null) return '';
-      if (typeof v === 'string') return v;
-      if (Array.isArray(v)) return v.map(asText).filter(Boolean).join('\n');
-      if (typeof v === 'object') {
-        const keys = ['plainText','text','description','bio','content','html'];
-        for (const k of keys) if (v[k]) return asText(v[k]);
-        try { return JSON.stringify(v); } catch { return ''; }
-      }
-      return String(v);
-    }
-
+    /* socials extraction is flexible to whatever RC returns */
     function extractSocials(obj){
       const buckets = [
-        obj.socials, obj.links, obj.contact, obj.contacts, obj,
-        obj.artist, obj.presenter, obj.profile
+        obj.socials, obj.social, obj.links, obj.contact, obj.contacts, obj,
       ].filter(Boolean);
       const out = {};
       const set = (k,v)=>{ if(v && !out[k]) out[k]=String(v).trim(); };
 
-      for (const b of buckets){
-        set('website',   b.website || b.url || b.site);
-        set('facebook',  b.facebook || b.facebookPage || b.fb);
-        set('instagram', b.instagram || b.instagramHandle || b.ig);
-        set('twitter',   b.twitter || b.twitterHandle || b.x);
-        set('mixcloud',  b.mixcloud);
-        set('soundcloud',b.soundcloud || b.sc);
-        set('email',     b.email);
+      for(const b of buckets){
+        set('website', b.website || b.url);
+        set('facebook', b.facebook || b.fb);
+        set('instagram', b.instagram || b.ig);
+        set('twitter', b.twitter || b.x);
+        set('mixcloud', b.mixcloud);
+        set('soundcloud', b.soundcloud || b.sc);
+        set('email', b.email);
       }
-      const norm = s => s?.startsWith('@') ? s.slice(1) : s;
-      if(out.twitter    && !/^https?:/i.test(out.twitter))    out.twitter    = `https://twitter.com/${norm(out.twitter)}`;
-      if(out.instagram  && !/^https?:/i.test(out.instagram))  out.instagram  = `https://instagram.com/${norm(out.instagram)}`;
-      if(out.facebook   && !/^https?:/i.test(out.facebook))   out.facebook   = `https://facebook.com/${norm(out.facebook)}`;
-      if(out.mixcloud   && !/^https?:/i.test(out.mixcloud))   out.mixcloud   = `https://www.mixcloud.com/${norm(out.mixcloud)}/`;
-      if(out.soundcloud && !/^https?:/i.test(out.soundcloud)) out.soundcloud = `https://soundcloud.com/${norm(out.soundcloud)}`;
-      if(out.email      && !/^mailto:/i.test(out.email))      out.email      = `mailto:${out.email}`;
+      // normalise handles → urls
+      const normHandle = s => s?.startsWith('@') ? s.slice(1) : s;
+      if(out.twitter && !/^https?:/i.test(out.twitter)) out.twitter = `https://twitter.com/${normHandle(out.twitter)}`;
+      if(out.instagram && !/^https?:/i.test(out.instagram)) out.instagram = `https://instagram.com/${normHandle(out.instagram)}`;
+      if(out.facebook && !/^https?:/i.test(out.facebook)) out.facebook = `https://facebook.com/${normHandle(out.facebook)}`;
+      if(out.mixcloud && !/^https?:/i.test(out.mixcloud)) out.mixcloud = `https://www.mixcloud.com/${normHandle(out.mixcloud)}/`;
+      if(out.soundcloud && !/^https?:/i.test(out.soundcloud)) out.soundcloud = `https://soundcloud.com/${normHandle(out.soundcloud)}`;
+      if(out.email   && !/^mailto:/i.test(out.email)) out.email = `mailto:${out.email}`;
       return out;
     }
 
-    async function pickSelector(){
-      // 1) try artists list
+    /* 1) find SELECTOR profile (artists → presenters; tag/slug/name) */
+    async function loadSelector(){
+      let a=null, kind='artist';
       try{
         const j = await fetchJSON(`${BASE_URL}/station/${STATION_ID}/artists`, h);
         const arr = j?.artists || j?.data || j || [];
-        const a = arr.find(x=>tags(x.tags).includes('selector')) || arr.find(x=>(x.slug||'').toLowerCase()==='selector') || arr.find(x=>(x.name||'').toLowerCase()==='selector');
-        if (a) return {kind:'artist', item:a};
+        a = arr.find(x=>tags(x.tags).includes('selector')) || arr.find(x=>(x.slug||'').toLowerCase()==='selector') || arr.find(x=>(x.name||'').toLowerCase()==='selector');
       }catch{}
-      // 2) try presenters list
-      try{
-        const j = await fetchJSON(`${BASE_URL}/station/${STATION_ID}/presenters`, h);
-        const arr = j?.presenters || j?.data || j || [];
-        const p = arr.find(x=>tags(x.tags).includes('selector')) || arr.find(x=>(x.slug||'').toLowerCase()==='selector') || arr.find(x=>(x.name||'').toLowerCase()==='selector');
-        if (p) return {kind:'presenter', item:p};
-      }catch{}
-      return null;
-    }
-
-    async function loadSelector(){
-      const found = await pickSelector();
-      if(!found){ djNameText.textContent='—'; djBioBox.textContent='No artist/presenter tagged “SELECTOR”.'; return; }
-      const base = found.item, kind=found.kind, id = base.id || '';
-      const kindPath = kind==='presenter' ? 'presenters' : 'artists';
-
-      // fetch detail to get full description + socials
-      let detail = {};
-      try{
-        const det = await fetchJSON(`${BASE_URL}/station/${STATION_ID}/${kindPath}/${id}`, h);
-        detail = det?.artist || det?.presenter || det?.data || det || {};
-      }catch{}
-
-      const image = base.logo?.['512x512'] || base.logo?.default || base.image || detail.logo?.['512x512'] || detail.logo?.default || detail.image || '';
-      const name  = base.name || detail.name || '';
-      const desc  = asText(detail.description || detail.bio || base.description || base.bio || '');
-      const share = detail.shareUrl || base.shareUrl || '';
+      if(!a){
+        try{
+          const j = await fetchJSON(`${BASE_URL}/station/${STATION_ID}/presenters`, h);
+          const arr = j?.presenters || j?.data || j || [];
+          a = arr.find(x=>tags(x.tags).includes('selector')) || arr.find(x=>(x.slug||'').toLowerCase()==='selector') || arr.find(x=>(x.name||'').toLowerCase()==='selector');
+          if(a) kind='presenter';
+        }catch{}
+      }
+      if(!a){ djNameText.textContent='—'; djBioBox.textContent='No artist/presenter tagged “SELECTOR”.'; return; }
 
       state.selector = {
-        kind, id, slug:(base.slug || detail.slug || 'selector'),
-        name, image, description: desc, shareUrl: share, socials: extractSocials(detail)
+        kind, id:a.id||'', slug:(a.slug||'selector'), name:a.name||'',
+        image: a.logo?.['512x512'] || a.logo?.default || a.image || '',
+        description: a.description || a.bio || '',
+        shareUrl: a.shareUrl || '',
+        socials: extractSocials(a)
       };
 
       djNameText.textContent = state.selector.name || '';
@@ -264,10 +261,15 @@
       djBioBox.textContent = state.selector.description || '';
       if(state.selector.shareUrl){ profileLink.href = state.selector.shareUrl; profileLink.style.display='inline-block'; }
 
-      // render socials
+      // socials render
       socialsBox.innerHTML = '';
       const S = state.selector.socials || {};
-      const add = (href, title, icon) => { if(!href) return; const a=document.createElement('a'); a.href=href; a.target='_blank'; a.rel='noopener'; a.title=title; a.innerHTML=`<i class="${icon}"></i>`; socialsBox.appendChild(a); };
+      const add = (href, title, icon) => {
+        if(!href) return;
+        const a = document.createElement('a'); a.href=href; a.target='_blank'; a.rel='noopener';
+        a.title=title; a.innerHTML = `<i class="${icon}"></i>`;
+        socialsBox.appendChild(a);
+      };
       add(S.twitter,   'X / Twitter', 'fa-brands fa-x-twitter');
       add(S.instagram, 'Instagram',   'fa-brands fa-instagram');
       add(S.facebook,  'Facebook',    'fa-brands fa-facebook-f');
@@ -277,6 +279,7 @@
       add(S.email,     'Email',       'fa-solid fa-envelope');
     }
 
+    /* 2) next scheduled show */
     async function loadNextShow(){
       if(!state.selector.id){ nextWhen.textContent='TBA'; return; }
       const kindPath = state.selector.kind==='presenter' ? 'presenters' : 'artists';
@@ -285,19 +288,19 @@
         const j = await fetchJSON(`${BASE_URL}/station/${STATION_ID}/${kindPath}/${state.selector.id}/schedule?startDate=${encodeURIComponent(now)}&endDate=${encodeURIComponent(end)}`, h);
         const list = j?.schedules || j?.data || j?.items || [];
         if(!Array.isArray(list) || !list.length){ nextWhen.textContent='TBA'; return; }
-        const iso = s => s.startDateUtc||s.startDate||s.start||s.scheduledStart||s.start_time||s.start_at;
+        const iso = (s)=> s.startDateUtc||s.startDate||s.start||s.scheduledStart||s.start_time||s.start_at;
         const future = list.map(s=>({s,t:new Date(iso(s)||0)})).filter(x=>x.t>new Date()).sort((a,b)=>a.t-b.t)[0];
         nextWhen.textContent = future ? nz(iso(future.s)) : nz(iso(list[0]));
       }catch{ nextWhen.textContent='Unable to load schedule'; }
     }
 
-    /* tracks from config (no placeholders) */
+    /* 3) tracks from config (no placeholders) */
     async function loadConfig(){
       try{ const r=await fetch(`${CONFIG_ENDPOINT}?action=load`,{cache:'no-store'}); if(r.ok){ const data=await r.json(); if(Array.isArray(data?.tracks)) state.tracks = data.tracks.slice(0,5); } }catch{}
     }
 
-    /* media rendering */
-    const parseTrack = (u)=>{ if(!u) return null; try{ const x=new URL(u.trim()); const host=x.hostname.toLowerCase(); if(host.endsWith('bandcamp.com')) return {kind:'bandcamp', url:u.trim()}; if(host.includes('youtu')){ let id=''; if(host==='youtu.be') id=x.pathname.slice(1); else if(x.pathname.startsWith('/shorts/')) id=x.pathname.split('/')[2]||''; else if(x.searchParams.get('v')) id=x.searchParams.get('v'); else if(/^\/embed\//.test(x.pathname)) id=x.pathname.split('/').pop(); id=(id||'').split('?')[0].split('&')[0]; if(!id) return null; return {kind:'youtube', src:`https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`}; } return {kind:'iframe', src=u.trim()}; }catch{return null;} };
+    /* 4) media rendering */
+    const parseTrack = (u)=>{ if(!u) return null; try{ const x=new URL(u.trim()); const host=x.hostname.toLowerCase(); if(host.endsWith('bandcamp.com')) return {kind:'bandcamp', url:u.trim()}; if(host.includes('youtu')){ let id=''; if(host==='youtu.be') id=x.pathname.slice(1); else if(x.pathname.startsWith('/shorts/')) id=x.pathname.split('/')[2]||''; else if(x.searchParams.get('v')) id=x.searchParams.get('v'); else if(/^\/embed\//.test(x.pathname)) id=x.pathname.split('/').pop(); id=(id||'').split('?')[0].split('&')[0]; if(!id) return null; return {kind:'youtube', src:`https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`}; } return {kind:'iframe', src:u.trim()}; }catch{return null;} };
     const iframe = (src, big=false, title='Media player') => `<iframe src="${src}" title="${title}" loading="${big?'eager':'lazy'}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
     const bcCache=new Map();
     const bcOEmbed=async(url)=>{ if(bcCache.has(url)) return bcCache.get(url); const j=await fetchJSON(`${PROXY_ENDPOINT}?fn=bandcamp_oembed&url=${encodeURIComponent(url)}`); const meta={title:j?.title||'Bandcamp',thumb:j?.thumbnail_url||'',width:Number(j?.width||700),height:Number(j?.height||120),src:(()=>{const html=String(j?.html||''); const m=html.match(/src=["']([^"']+)["']/i); return m?m[1]:'';})()}; bcCache.set(url,meta); return meta; };

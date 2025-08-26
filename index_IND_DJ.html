@@ -1,293 +1,104 @@
-<?php
-// rc-proxy.php  —  Robust, JSON-only proxy for Radio Cult public data
-// What it does:
-//   - Tries the public API first to find the single artist/presenter tagged "SELECTOR" for your station
-//   - If API fails, it tries the public share page (several URL patterns)
-//   - Returns JSON with: name, displayName, image, description, shareUrl, nextShow
-//
-// USAGE (from browser/devtools to sanity-check):
-//   https://YOURDOMAIN/rc-proxy.php?fn=selector_by_tag&stationId=cutters-choice-radio&tag=SELECTOR&apiKey=pk_0b8abc6f834b444f949f727e88a728e0
-//
-// Notes:
-//   - No changes to your admin panel are required
-//   - Add &debug=1 to see which upstreams were tried and why they failed
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cutters Choice Radio — DJ Selects</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+  :root{ --teal:#5A8785 }
+  body{ margin:0; background:#0a0a0a; color:#e8f6f5; font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif }
+  header h1{ margin:.6rem 0 0; text-align:center; font-family:'Bebas Neue',sans-serif; font-size:3.2rem }
+  header p{ margin:0 0 .6rem; text-align:center; color:#a7d0cc }
+  .bar{ height:2px; background:var(--teal) }
+  /* Widened hero: center column = big image slot */
+  .hero{ display:grid; grid-template-columns: 1fr minmax(360px,560px) minmax(420px,1fr) !important;
+         gap:.6rem; align-items:end; padding:.6rem .75rem .35rem; border:2px solid var(--teal); border-left:0;border-right:0 }
+  .strap{ font-family:'Bebas Neue',sans-serif; letter-spacing:.2px }
+  .big{ font-family:'Bebas Neue',sans-serif; font-size:3.3rem; line-height:1 }
+  #djName{ color:var(--teal) }
+  .art img{ width:100%; height:auto; border:2px solid var(--teal); border-radius:4px; background:#000; min-height:130px }
+  .bio{ background:#0b0b0b; border:2px solid var(--teal); border-radius:6px; padding:.55rem .65rem; min-height:100% }
+  .profile{ display:none; font-size:.8rem; border:1px solid #335d5b; padding:.2rem .4rem; border-radius:4px; background:#0b0b0b; color:#dff; text-decoration:none; margin-left:.6rem }
 
-declare(strict_types=1);
+  .next{ margin:.35rem .6rem .6rem; background:#0b0b0b; border:2px solid var(--teal); border-radius:6px; padding:.45rem .6rem; display:flex; gap:1rem; align-items:center }
+  .next .label{ font-family:'Bebas Neue',sans-serif }
+  .next .when{ font-family:'Bebas Neue',sans-serif; color:var(--teal); font-size:1.3rem }
 
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, OPTIONS');
-header('Access-Control-Allow-Headers: Accept, Content-Type');
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') exit;
-header('Content-Type: application/json; charset=utf-8');
-
-function out(int $code, array $payload){ http_response_code($code); echo json_encode($payload, JSON_UNESCAPED_SLASHES); exit; }
-function ok(array $data){ out(200, ['ok'=>true] + $data); }
-function fail(int $code, string $msg, array $extra=[]){ out($code, ['ok'=>false,'error'=>$msg] + $extra); }
-
-function http_get(string $url, array $headers=[]): array {
-  $ua = 'CCR-Proxy/2.0';
-  $h  = array_merge(['User-Agent: '.$ua], $headers);
-
-  // cURL first
-  if (function_exists('curl_init')) {
-    $ch = curl_init($url);
-    curl_setopt_array($ch, [
-      CURLOPT_RETURNTRANSFER => true,
-      CURLOPT_FOLLOWLOCATION => true,
-      CURLOPT_TIMEOUT        => 20,
-      CURLOPT_CONNECTTIMEOUT => 8,
-      CURLOPT_HTTPHEADER     => $h
-    ]);
-    $body = curl_exec($ch);
-    $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $err  = curl_error($ch);
-    curl_close($ch);
-    return [$code, is_string($body)?$body:null, $err];
+  @media (max-width:960px){
+    .hero{ grid-template-columns:1fr minmax(220px, 36vw) 1fr !important }
+    .big{ font-size:2.6rem }
   }
+</style>
+</head>
+<body>
+  <header>
+    <h1>CUTTERS CHOICE RADIO</h1>
+    <p>The home of relentless flavas and significant bangers!</p>
+  </header>
+  <div class="bar"></div>
 
-  // stream fallback
-  $ctx  = stream_context_create(['http'=>[
-      'method'=>'GET',
-      'header'=>implode("\r\n",$h),
-      'timeout'=>20
-  ]]);
-  $body = @file_get_contents($url, false, $ctx);
-  $code = 0;
-  if (isset($http_response_header) && is_array($http_response_header)) {
-    foreach ($http_response_header as $line) if (preg_match('~^HTTP/\S+\s+(\d{3})~',$line,$m)) { $code=(int)$m[1]; break; }
+  <section class="hero">
+    <div>
+      <div class="strap">EACH WEEK IN A NON SPECIFIC ORDER A DIFFERENT CUTTERS DJ SELECTS THEIR 5 TRACKS OF THE WEEK</div>
+      <div class="big">
+        THIS WEEKS CUTTERS DJ SELECTOR : <span id="djName">DJ NAME</span>
+        <a id="djLink" class="profile" target="_blank" rel="noopener">DJ profile</a>
+      </div>
+    </div>
+    <div class="art">
+      <img id="djImg" src="/images/default-dj.png"
+           onerror="this.onerror=null;this.src='https://dummyimage.com/560x560/000/5a8785.png&text=DJ';" alt="">
+    </div>
+    <div class="bio" id="djBio">Loading selector description…</div>
+  </section>
+
+  <section class="next">
+    <div class="label">NEXT SCHEDULED SHOW</div>
+    <div class="when" id="nextWhen">Loading…</div>
+  </section>
+
+<script>
+const PROXY       = 'rc-proxy.php';
+const STATION_ID  = 'cutters-choice-radio';
+const TAG         = 'SELECTOR';
+const API_KEY     = 'pk_0b8abc6f834b444f949f727e88a728e0'; // publishable
+
+const djName   = document.getElementById('djName');
+const djImg    = document.getElementById('djImg');
+const djBio    = document.getElementById('djBio');
+const djLink   = document.getElementById('djLink');
+const nextWhen = document.getElementById('nextWhen');
+
+const fmt = (iso)=>{
+  try{
+    return new Date(iso).toLocaleString(undefined,
+      {weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit', hour12:false, timeZoneName:'short'});
+  }catch{ return ''; }
+};
+
+(async function init(){
+  try{
+    const u = `${PROXY}?fn=selector_by_tag&stationId=${encodeURIComponent(STATION_ID)}&tag=${encodeURIComponent(TAG)}&apiKey=${encodeURIComponent(API_KEY)}`;
+    const r = await fetch(u, {cache:'no-store'});
+    const t = await r.text(); // accept wrong headers
+    let j; try{ j = JSON.parse(t); }catch(e){ console.error('Proxy non-JSON:', t); throw e; }
+    if (!j.ok) throw new Error(j.error || 'proxy error');
+
+    djName.textContent = j.displayName || j.name || 'DJ';
+    if (j.image) djImg.src = j.image;
+    djBio.textContent = (j.description||'').trim() || '—';
+    if (j.shareUrl) { djLink.href = j.shareUrl; djLink.style.display='inline-block'; }
+    nextWhen.textContent = (j.nextShow && j.nextShow.start) ? fmt(j.nextShow.start) : 'No upcoming show found';
+  }catch(err){
+    console.error(err);
+    djBio.textContent    = 'Could not load SELECTOR profile.';
+    nextWhen.textContent = 'Unable to load schedule';
   }
-  return [$code, is_string($body)?$body:null, $body===false?'stream_fail':'' ];
-}
-
-function http_json(string $url, array $hdrSets): ?array {
-  foreach ($hdrSets as $hdrs) {
-    [$code,$body,] = http_get($url, $hdrs);
-    if ($code>=200 && $code<400 && is_string($body)) {
-      $j = json_decode($body,true);
-      if (is_array($j)) return $j;
-    }
-  }
-  return null;
-}
-
-function pick_first_item(array $j): ?array {
-  foreach (['artists','presenters','data','items','results'] as $k) {
-    if (!empty($j[$k]) && is_array($j[$k])) return $j[$k][0] ?? null;
-  }
-  // some APIs return the object directly
-  if (!empty($j) && isset($j['name'])) return $j;
-  return null;
-}
-
-function best_image(array $it): string {
-  foreach (['logo','image','avatar','artwork','images'] as $k) {
-    if (empty($it[$k])) continue;
-    $v = $it[$k];
-    if (is_string($v)) return $v;
-    if (is_array($v)) {
-      foreach (['512x512','1024x1024','default','url','src'] as $kk) if (!empty($v[$kk]) && is_string($v[$kk])) return $v[$kk];
-      // nested ?
-      foreach ($v as $vv) if (is_string($vv)) return $vv;
-    }
-  }
-  return '';
-}
-
-function best_text(array $it): string {
-  foreach (['description','bio','about','summary'] as $k) if (!empty($it[$k]) && is_string($it[$k])) return $it[$k];
-  return '';
-}
-
-function first_nonempty(...$vals): string {
-  foreach ($vals as $v) { if (is_string($v) && trim($v)!=='') return $v; }
-  return '';
-}
-
-function parse_meta(string $html, string $prop, string $attr='property'): string {
-  return preg_match('~'.$attr.'=["\']'.preg_quote($prop,'~').'["\']\s+content=["\']([^"\']+)["\']~i',$html,$m) ? $m[1] : '';
-}
-function jsonld_blocks(string $html): array {
-  $out=[]; if (preg_match_all('~<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>~is',$html,$ms)) {
-    foreach ($ms[1] as $blob) { $j=json_decode($blob,true); if (is_array($j)) $out[]=$j; }
-  } return $out;
-}
-function next_event_from_jsonld(array $lds): ?array {
-  $now=time(); $best=null;
-  $pluck=function($e){ return $e['startDate'] ?? ($e['start'] ?? ($e['start_at'] ?? '')); };
-  $title=function($e){ return $e['name'] ?? ($e['title'] ?? ''); };
-  foreach ($lds as $ld) {
-    $cands=[];
-    if (($ld['@type']??'')==='Event') $cands[]=$ld;
-    if (isset($ld['event'])) $cands = array_merge($cands, is_array($ld['event']) ? $ld['event'] : [$ld['event']]);
-    if (isset($ld['@graph']) && is_array($ld['@graph'])) foreach ($ld['@graph'] as $g) if (($g['@type']??'')==='Event') $cands[]=$g;
-    foreach ($cands as $e) {
-      $iso = $pluck($e); if (!$iso) continue;
-      $ts = strtotime($iso);
-      if ($ts && $ts>$now) if (!$best || $ts<strtotime($best['start'])) $best=['title'=>$title($e),'start'=>date(DATE_ATOM,$ts)];
-    }
-  }
-  return $best;
-}
-
-$fn        = $_GET['fn']        ?? '';
-$stationId = $_GET['stationId'] ?? '';
-$tag       = $_GET['tag']       ?? 'SELECTOR';
-$apiKey    = $_GET['apiKey']    ?? '';
-$debug     = isset($_GET['debug']);
-
-if ($fn !== 'selector_by_tag' || !$stationId) {
-  fail(400, 'Usage: rc-proxy.php?fn=selector_by_tag&stationId=cutters-choice-radio&tag=SELECTOR&apiKey=YOUR_PUBLISHABLE_KEY');
-}
-
-/* ---------- 1) Try API first (multiple bases & param styles) ---------- */
-$apiBases = [
-  'https://api.radiocult.fm/v1',
-  'https://radiocult.fm/api/v1',
-];
-
-$paramStyles = [
-  'tags', 'tag', 'searchTags', 'filter[tags]'
-];
-
-$hdrSets = [
-  [], // no key
-  $apiKey ? ["Authorization: Bearer $apiKey"] : [],
-  $apiKey ? ["X-API-Key: $apiKey"] : [],
-  $apiKey ? ["x-api-key: $apiKey"] : [],
-  $apiKey ? ["X-Publishable-Key: $apiKey"] : [],
-  $apiKey ? ["apikey: $apiKey"] : [],
-];
-
-$attempts = [];
-
-$found = null;
-$kind  = 'artist';
-$slug  = '';
-
-foreach ($apiBases as $base) {
-  foreach (['artists','presenters'] as $res) {
-    foreach ($paramStyles as $p) {
-      $qs = http_build_query([$p=>$tag,'limit'=>1,'expand'=>'tags,images']);
-      $url = "$base/stations/".rawurlencode($stationId)."/$res?$qs";
-      $attempts[] = $url;
-      $j = http_json($url, $hdrSets);
-      if (!$j) continue;
-      $item = pick_first_item($j);
-      if ($item) {
-        $found = $item;
-        $kind  = $res === 'presenters' ? 'presenter' : 'artist';
-        $slug  = first_nonempty($item['slug'] ?? '', $item['handle'] ?? '', $item['id'] ?? '');
-        break 3;
-      }
-    }
-  }
-}
-
-if ($found) {
-  $name = first_nonempty($found['displayName'] ?? '', $found['name'] ?? 'DJ');
-  $img  = best_image($found);
-  $desc = best_text($found);
-  $share = first_nonempty($found['shareUrl'] ?? '', $found['url'] ?? '');
-
-  // Build share candidates if API didn't give us one
-  if (!$share && $slug) {
-    $shareCandidates = [
-      "https://radiocult.fm/".rawurlencode($stationId)."/".rawurlencode($slug),
-      "https://radiocult.fm/".rawurlencode($stationId)."/$kind/".rawurlencode($slug),
-      "https://radiocult.fm/".rawurlencode($stationId)."/artists/".rawurlencode($slug),
-      "https://radiocult.fm/".rawurlencode($stationId)."/presenters/".rawurlencode($slug),
-    ];
-    foreach ($shareCandidates as $u) {
-      [$code,$body,] = http_get($u, ['Accept: text/html']);
-      if ($code>=200 && $code<400 && is_string($body)) { $share = $u; break; }
-    }
-  }
-
-  // Try to find next show
-  $next = null;
-  foreach ($apiBases as $base) {
-    $sUrls = [];
-    $now = date(DATE_ATOM);
-    if ($slug) {
-      $sUrls[] = "$base/stations/".rawurlencode($stationId)."/schedules?".http_build_query([
-        'limit'=>100,'startDate'=>$now,'artistSlug'=>$slug
-      ]);
-      $sUrls[] = "$base/stations/".rawurlencode($stationId)."/schedules?".http_build_query([
-        'limit'=>100,'startDate'=>$now,'presenterSlug'=>$slug
-      ]);
-    }
-    if (!empty($found['id'])) {
-      $sUrls[] = "$base/stations/".rawurlencode($stationId)."/schedules?".http_build_query([
-        'limit'=>100,'startDate'=>$now,'artistId'=>$found['id']
-      ]);
-      $sUrls[] = "$base/stations/".rawurlencode($stationId)."/schedules?".http_build_query([
-        'limit'=>100,'startDate'=>$now,'presenterId'=>$found['id']
-      ]);
-    }
-    foreach ($sUrls as $u) {
-      $attempts[] = $u;
-      $sj = http_json($u, $hdrSets);
-      if (!$sj) continue;
-      $list = $sj['schedules'] ?? $sj['data'] ?? $sj['items'] ?? [];
-      $best = null;
-      foreach ($list as $s) {
-        $iso = $s['startDateUtc'] ?? ($s['startDate'] ?? ($s['start'] ?? ($s['start_at'] ?? '')));
-        if (!$iso) continue;
-        $ts = strtotime($iso);
-        if ($ts && $ts > time()) {
-          if (!$best || $ts < strtotime($best['start'])) $best = ['title'=>$s['title']??'','start'=>date(DATE_ATOM,$ts)];
-        }
-      }
-      if ($best) { $next=$best; break 2; }
-    }
-  }
-
-  ok([
-    'name'        => $name ?: 'DJ',
-    'displayName' => $name,
-    'image'       => $img,
-    'description' => $desc,
-    'shareUrl'    => $share,
-    'nextShow'    => $next
-  ]);
-}
-
-/* ---------- 2) Fallback: scrape share page directly ---------- */
-$shareGuesses = [
-  "https://radiocult.fm/".rawurlencode($stationId)."/selector",             // common pattern
-  "https://radiocult.fm/".rawurlencode($stationId)."/artists/selector",
-  "https://radiocult.fm/".rawurlencode($stationId)."/presenters/selector",
-];
-
-$debugTried = $attempts;
-foreach ($shareGuesses as $u) {
-  $debugTried[] = $u;
-  [$code,$html,] = http_get($u, ['Accept: text/html,application/xhtml+xml']);
-  if ($code<200 || $code>=400 || !is_string($html)) continue;
-
-  $name = parse_meta($html, 'og:title');
-  $img  = parse_meta($html, 'og:image');
-  $desc = parse_meta($html, 'description', 'name');
-  $lds  = jsonld_blocks($html);
-  $next = next_event_from_jsonld($lds);
-
-  // If upcoming show title exists (e.g. "MARIONETTE") prefer it
-  $display = $name;
-  if ($next && !empty($next['title'])) $display = $next['title'];
-  elseif (strpos($name,' - ')!==false) $display = trim(substr($name, strrpos($name,' - ')+3));
-
-  ok([
-    'name'        => $name ?: 'DJ',
-    'displayName' => $display ?: ($name ?: 'DJ'),
-    'image'       => $img ?: '',
-    'description' => $desc ?: '',
-    'shareUrl'    => $u,
-    'nextShow'    => $next ?: null,
-    'source'      => 'scrape'
-  ]);
-}
-
-/* ---------- 3) Nothing worked ---------- */
-$payload = ['tried'=>$debugTried];
-if ($debug) $payload['hint'] = 'If all API calls fail, ensure your publishable API key is valid and the stationId is exact. Share pages may also block some server IPs.';
-fail(502, 'Selector could not be resolved by tag', $payload);
+})();
+</script>
+</body>
+</html>

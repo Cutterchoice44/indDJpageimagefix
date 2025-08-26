@@ -1,30 +1,340 @@
-<?php
-// dj-selects-config.php — tiny store for DJ Selects (tracks, optional overrides)
-declare(strict_types=1);
-header('Access-Control-Allow-Origin: *');
-header('Content-Type: application/json; charset=utf-8');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cutters Choice Radio — DJ Selects</title>
 
-$action = $_GET['action'] ?? 'load';
-$file   = __DIR__ . '/dj-selects-config.json';
+  <!-- site css + fonts -->
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
-if ($action === 'load') {
-  if (is_file($file)) { $raw = file_get_contents($file); echo $raw !== false ? $raw : '{}'; }
-  else { echo '{}'; }
-  exit;
-}
+  <style>
+    :root { --brand-teal:#5A8785; }
 
-if ($action === 'save') {
-  $input = json_decode(file_get_contents('php://input') ?: '{}', true);
-  if (!is_array($input)) $input = [];
-  $data  = $input['data'] ?? [];
-  if (!is_array($data)) $data = [];
-  $allow = ['tracks','djName','profileImage','stationId','apiKey','contributorId','contributorSlug','contributorKind'];
-  $clean = [];
-  foreach ($allow as $k) if (isset($data[$k])) $clean[$k] = $data[$k];
-  $tmp = $file.'.tmp';
-  file_put_contents($tmp, json_encode($clean, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES));
-  rename($tmp, $file);
-  echo json_encode(['ok'=>true]); exit;
-}
+    /* ——— HERO: like your mockup ——— */
+    .djselects-hero{
+      padding:.6rem .75rem .35rem;
+      border:2px solid var(--brand-teal); border-left:0;border-right:0;
+      margin-bottom:.35rem;
+      display:grid;
+      grid-template-columns: 1fr auto minmax(420px, 1fr); /* left text | square art | copy (right) */
+      gap:.7rem; align-items:end;
+    }
+    .strap{
+      font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(1.0rem,2.0vw,1.35rem); line-height:1.05;
+    }
+    .weekline{
+      font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(2.4rem,5.6vw,3.6rem); line-height:1;
+    }
+    #djNameText{ color:var(--brand-teal); }
 
-echo '{}';
+    .hero-art{
+      display:flex; align-items:flex-end; justify-content:center;
+    }
+    .hero-art img{
+      width:170px; height:170px; object-fit:cover; /* small square like your image */
+      border:2px solid var(--brand-teal); border-radius:4px; background:#000;
+    }
+
+    .hero-right{
+      background:#0b0b0b; border:2px solid var(--brand-teal); border-radius:6px;
+      padding:.7rem .9rem;
+      display:flex; flex-direction:column; gap:.55rem; min-height:100%;
+    }
+    .hero-bio{
+      font-size:clamp(1.02rem,2.0vw,1.18rem);
+      line-height:1.42; white-space:pre-line;
+    }
+    .profile-topline{
+      display:flex; align-items:center; gap:.6rem; flex-wrap:wrap;
+    }
+    .profile-link{
+      display:inline-block; font-size:.9rem; border:1px solid #335d5b; padding:.2rem .45rem;
+      border-radius:4px; background:#0b0b0b; color:#dff; text-decoration:none;
+    }
+
+    .socials{
+      display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;
+    }
+    .socials a{
+      display:inline-flex; align-items:center; justify-content:center;
+      width:34px; height:34px; border-radius:999px;
+      border:1px solid #335d5b; background:#0f0f0f; color:#e9ffff; text-decoration:none;
+    }
+    .socials a:hover{ box-shadow:0 0 0 2px var(--brand-teal) inset; }
+
+    /* ——— NEXT BAR ——— */
+    .nextbar{ margin:.25rem .6rem .65rem; }
+    .nextbar-inner{
+      display:flex; align-items:center; gap:1rem;
+      background:#0b0b0b; border:2px solid var(--brand-teal);
+      padding:.55rem .75rem; border-radius:6px;
+    }
+    .nextbar .label{ font-family:'Bebas Neue',sans-serif; font-size:clamp(1.1rem,2.2vw,1.5rem); }
+    .nextbar .when { font-family:'Bebas Neue',sans-serif; font-size:clamp(1.2rem,2.6vw,1.7rem); color:var(--brand-teal); }
+
+    /* ——— TRACKS: restored proportions ——— */
+    .compact-grid{ display:grid; grid-template-columns:300px minmax(0,1fr); gap:.7rem; padding:0 .6rem 1.0rem; }
+    .strip-list{ display:grid; grid-template-rows:repeat(5,1fr); gap:.5rem; }
+    .strip{ position:relative; border:1px solid #264745; background:#0a0a0a; border-radius:6px; overflow:hidden; cursor:pointer; }
+    .strip.selected{ outline:2px solid var(--brand-teal); }
+    .strip iframe{ width:100%; height:100%; border:0; display:block; pointer-events:none; }
+    .strip .select-overlay{ position:absolute; inset:0; }
+    .strip:hover .select-overlay{ box-shadow:inset 0 0 0 2px var(--brand-teal); background:rgba(90,135,133,.08); }
+
+    .preview .ratio.big{ position:relative; width:100%; padding-top:56.25%; } /* 16:9 */
+    .preview .ratio.big iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; }
+    .big-placeholder{ font-family:'Bebas Neue',sans-serif; color:#6fa39f; font-size:clamp(1.0rem,2.0vw,1.4rem); padding:.75rem; }
+
+    /* Bandcamp tiles (click-to-load) */
+    .strip.bandcamp{ display:flex; align-items:stretch; }
+    .strip .bc-tile{ position:relative; inset:0; width:100%; height:100%; background:#0f0f0f center/cover no-repeat; display:flex; align-items:flex-end; justify-content:flex-start; }
+    .strip .bc-tile::before{ content:""; position:absolute; left:0; right:0; bottom:0; height:42%; background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.65) 100%); pointer-events:none; }
+    .strip .bc-badge{ font-family:'Bebas Neue',sans-serif; background:rgba(0,0,0,.65); border-top-right-radius:8px; padding:.35rem .55rem; margin:0; font-size:clamp(1.0rem,2vw,1.2rem); color:#d8fff8; letter-spacing:.5px; }
+    .strip .bc-title{ position:absolute; left:8px; right:44px; bottom:8px; font-family:'Bebas Neue',sans-serif; color:#fff; text-shadow:0 2px 4px rgba(0,0,0,.6); font-size:clamp(1.0rem,2vw,1.2rem); line-height:1.1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .strip .bc-play{ position:absolute; inset:auto 8px 8px auto; background:rgba(90,135,133,.95); color:#000; font-weight:700; border-radius:999px; width:30px; height:30px; display:flex; align-items:center; justify-content:center; }
+
+    @media (max-width:1050px){
+      .djselects-hero{ grid-template-columns: 1fr auto 1fr; }
+      .hero-art img{ width:150px; height:150px; }
+    }
+    @media (max-width:900px){
+      .djselects-hero{ grid-template-columns: 1fr; }
+      .hero-right{ order:3 }
+      .hero-art  { order:2; justify-content:flex-start }
+    }
+    @media (max-width:768px){
+      .strip-list{ grid-template-rows:repeat(5,76px); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header-banner">
+    <div class="header-gif-right"></div>
+    <div class="header-gif-left"></div>
+    <div class="logo-container"><img class="logo" src="/images/logo.png" alt=""></div>
+    <div class="title"><h1>Cutters Choice Radio</h1><p class="tagline">The home of relentless flavas and significant bangers!</p></div>
+    <div class="logo-container"><img class="logo" src="/images/logo.png" alt=""></div>
+  </header>
+
+  <div style="height:2px;background-color:var(--brand-teal)"></div>
+
+  <!-- Nav -->
+  <nav id="main-nav">
+    <div class="nav-menu">
+      <a href="our-story.html" class="nav-link">OUR STORY</a>
+      <a href="index.html" class="nav-link">HOME</a>
+      <a href="index-ourDJS.html" class="nav-link">OUR DJS</a>
+      <a href="schedule.html" class="nav-link">SCHEDULE</a>
+      <a href="merch.html" class="nav-link">MERCH</a>
+    </div>
+  </nav>
+
+  <div style="height:2px;background-color:var(--brand-teal)"></div>
+
+  <!-- HERO -->
+  <section class="djselects-hero">
+    <div class="hero-left">
+      <div class="strap">EACH WEEK IN A NON SPECIFIC ORDER A DIFFERENT CUTTERS DJ SELECTS THEIR 5 TRACKS OF THE WEEK</div>
+      <div class="weekline">THIS WEEKS CUTTERS DJ SELECTOR : <span id="djNameText">—</span></div>
+    </div>
+
+    <div class="hero-art">
+      <img id="djProfileThumb" src="/images/default-dj.png" alt="DJ profile" />
+    </div>
+
+    <div class="hero-right">
+      <div class="profile-topline">
+        <a id="djProfileLink" class="profile-link" href="#" target="_blank" rel="noopener" style="display:none">View profile</a>
+      </div>
+      <div id="djBio" class="hero-bio"></div>
+      <div id="djSocials" class="socials"></div>
+    </div>
+  </section>
+
+  <!-- NEXT SCHEDULED SHOW -->
+  <section class="nextbar">
+    <div class="nextbar-inner"><span class="label">NEXT SCHEDULED SHOW</span><span class="when" id="nextShowWhen"></span></div>
+  </section>
+
+  <!-- TRACKS -->
+  <main class="compact-grid">
+    <aside id="stripList" class="strip-list"></aside>
+    <section class="preview" id="mainPreview" aria-live="polite"><div class="big-placeholder">Select a track</div></section>
+  </main>
+
+  <!-- Config + constants -->
+  <script>
+    const BASE_URL   = 'https://api.radiocult.fm/api';
+    const STATION_ID = 'cutters-choice-radio';
+    const API_KEY    = 'pk_0b8abc6f834b444f949f727e88a728e0';
+    const CONFIG_ENDPOINT = 'dj-selects-config.php';   // loads track URLs (no placeholders)
+    const PROXY_ENDPOINT  = 'rc-proxy.php';            // Bandcamp oEmbed only
+  </script>
+
+  <script>
+  (() => {
+    const $  = (s, r=document) => r.querySelector(s);
+    const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+
+    const djNameText  = $('#djNameText');
+    const djProfile   = $('#djProfileThumb');
+    const djBioBox    = $('#djBio');
+    const nextWhen    = $('#nextShowWhen');
+    const profileLink = $('#djProfileLink');
+    const socialsBox  = $('#djSocials');
+    const stripList   = $('#stripList');
+    const mainPreview = $('#mainPreview');
+
+    const state = { selector:{ kind:'artist', id:'', slug:'selector', name:'', image:'', description:'', shareUrl:'', socials:{} }, tracks:[] };
+
+    /* utils */
+    const h = { 'x-api-key': API_KEY };
+    const fetchJSON = async (url, headers={}) => { const r=await fetch(url,{headers,cache:'no-store'}); if(!r.ok) throw new Error(String(r.status)); return r.json(); };
+    const nz = iso => { try{ const d=new Date(iso); return d.toLocaleString('en-NZ',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Pacific/Auckland',timeZoneName:'short'});}catch{return '';} };
+    const tags = t => Array.isArray(t) ? t.map(x=>String(x).toLowerCase()) : (typeof t==='string' ? t.split(',').map(s=>s.trim().toLowerCase()) : []);
+
+    /* socials extraction is flexible to whatever RC returns */
+    function extractSocials(obj){
+      const buckets = [
+        obj.socials, obj.social, obj.links, obj.contact, obj.contacts, obj,
+      ].filter(Boolean);
+      const out = {};
+      const set = (k,v)=>{ if(v && !out[k]) out[k]=String(v).trim(); };
+
+      for(const b of buckets){
+        set('website', b.website || b.url);
+        set('facebook', b.facebook || b.fb);
+        set('instagram', b.instagram || b.ig);
+        set('twitter', b.twitter || b.x);
+        set('mixcloud', b.mixcloud);
+        set('soundcloud', b.soundcloud || b.sc);
+        set('email', b.email);
+      }
+      // normalise handles → urls
+      const normHandle = s => s?.startsWith('@') ? s.slice(1) : s;
+      if(out.twitter && !/^https?:/i.test(out.twitter)) out.twitter = `https://twitter.com/${normHandle(out.twitter)}`;
+      if(out.instagram && !/^https?:/i.test(out.instagram)) out.instagram = `https://instagram.com/${normHandle(out.instagram)}`;
+      if(out.facebook && !/^https?:/i.test(out.facebook)) out.facebook = `https://facebook.com/${normHandle(out.facebook)}`;
+      if(out.mixcloud && !/^https?:/i.test(out.mixcloud)) out.mixcloud = `https://www.mixcloud.com/${normHandle(out.mixcloud)}/`;
+      if(out.soundcloud && !/^https?:/i.test(out.soundcloud)) out.soundcloud = `https://soundcloud.com/${normHandle(out.soundcloud)}`;
+      if(out.email   && !/^mailto:/i.test(out.email)) out.email = `mailto:${out.email}`;
+      return out;
+    }
+
+    /* 1) find SELECTOR profile (artists → presenters; tag/slug/name) */
+    async function loadSelector(){
+      let a=null, kind='artist';
+      try{
+        const j = await fetchJSON(`${BASE_URL}/station/${STATION_ID}/artists`, h);
+        const arr = j?.artists || j?.data || j || [];
+        a = arr.find(x=>tags(x.tags).includes('selector')) || arr.find(x=>(x.slug||'').toLowerCase()==='selector') || arr.find(x=>(x.name||'').toLowerCase()==='selector');
+      }catch{}
+      if(!a){
+        try{
+          const j = await fetchJSON(`${BASE_URL}/station/${STATION_ID}/presenters`, h);
+          const arr = j?.presenters || j?.data || j || [];
+          a = arr.find(x=>tags(x.tags).includes('selector')) || arr.find(x=>(x.slug||'').toLowerCase()==='selector') || arr.find(x=>(x.name||'').toLowerCase()==='selector');
+          if(a) kind='presenter';
+        }catch{}
+      }
+      if(!a){ djNameText.textContent='—'; djBioBox.textContent='No artist/presenter tagged “SELECTOR”.'; return; }
+
+      state.selector = {
+        kind, id:a.id||'', slug:(a.slug||'selector'), name:a.name||'',
+        image: a.logo?.['512x512'] || a.logo?.default || a.image || '',
+        description: a.description || a.bio || '',
+        shareUrl: a.shareUrl || '',
+        socials: extractSocials(a)
+      };
+
+      djNameText.textContent = state.selector.name || '';
+      if(state.selector.image) djProfile.src = state.selector.image;
+      djBioBox.textContent = state.selector.description || '';
+      if(state.selector.shareUrl){ profileLink.href = state.selector.shareUrl; profileLink.style.display='inline-block'; }
+
+      // socials render
+      socialsBox.innerHTML = '';
+      const S = state.selector.socials || {};
+      const add = (href, title, icon) => {
+        if(!href) return;
+        const a = document.createElement('a'); a.href=href; a.target='_blank'; a.rel='noopener';
+        a.title=title; a.innerHTML = `<i class="${icon}"></i>`;
+        socialsBox.appendChild(a);
+      };
+      add(S.twitter,   'X / Twitter', 'fa-brands fa-x-twitter');
+      add(S.instagram, 'Instagram',   'fa-brands fa-instagram');
+      add(S.facebook,  'Facebook',    'fa-brands fa-facebook-f');
+      add(S.mixcloud,  'Mixcloud',    'fa-brands fa-mixcloud');
+      add(S.soundcloud,'SoundCloud',  'fa-brands fa-soundcloud');
+      add(S.website,   'Website',     'fa-solid fa-globe');
+      add(S.email,     'Email',       'fa-solid fa-envelope');
+    }
+
+    /* 2) next scheduled show */
+    async function loadNextShow(){
+      if(!state.selector.id){ nextWhen.textContent='TBA'; return; }
+      const kindPath = state.selector.kind==='presenter' ? 'presenters' : 'artists';
+      const now=new Date().toISOString(); const end=new Date(Date.now()+365*24*60*60*1000).toISOString();
+      try{
+        const j = await fetchJSON(`${BASE_URL}/station/${STATION_ID}/${kindPath}/${state.selector.id}/schedule?startDate=${encodeURIComponent(now)}&endDate=${encodeURIComponent(end)}`, h);
+        const list = j?.schedules || j?.data || j?.items || [];
+        if(!Array.isArray(list) || !list.length){ nextWhen.textContent='TBA'; return; }
+        const iso = (s)=> s.startDateUtc||s.startDate||s.start||s.scheduledStart||s.start_time||s.start_at;
+        const future = list.map(s=>({s,t:new Date(iso(s)||0)})).filter(x=>x.t>new Date()).sort((a,b)=>a.t-b.t)[0];
+        nextWhen.textContent = future ? nz(iso(future.s)) : nz(iso(list[0]));
+      }catch{ nextWhen.textContent='Unable to load schedule'; }
+    }
+
+    /* 3) tracks from config (no placeholders) */
+    async function loadConfig(){
+      try{ const r=await fetch(`${CONFIG_ENDPOINT}?action=load`,{cache:'no-store'}); if(r.ok){ const data=await r.json(); if(Array.isArray(data?.tracks)) state.tracks = data.tracks.slice(0,5); } }catch{}
+    }
+
+    /* 4) media rendering */
+    const parseTrack = (u)=>{ if(!u) return null; try{ const x=new URL(u.trim()); const host=x.hostname.toLowerCase(); if(host.endsWith('bandcamp.com')) return {kind:'bandcamp', url:u.trim()}; if(host.includes('youtu')){ let id=''; if(host==='youtu.be') id=x.pathname.slice(1); else if(x.pathname.startsWith('/shorts/')) id=x.pathname.split('/')[2]||''; else if(x.searchParams.get('v')) id=x.searchParams.get('v'); else if(/^\/embed\//.test(x.pathname)) id=x.pathname.split('/').pop(); id=(id||'').split('?')[0].split('&')[0]; if(!id) return null; return {kind:'youtube', src:`https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`}; } return {kind:'iframe', src:u.trim()}; }catch{return null;} };
+    const iframe = (src, big=false, title='Media player') => `<iframe src="${src}" title="${title}" loading="${big?'eager':'lazy'}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
+    const bcCache=new Map();
+    const bcOEmbed=async(url)=>{ if(bcCache.has(url)) return bcCache.get(url); const j=await fetchJSON(`${PROXY_ENDPOINT}?fn=bandcamp_oembed&url=${encodeURIComponent(url)}`); const meta={title:j?.title||'Bandcamp',thumb:j?.thumbnail_url||'',width:Number(j?.width||700),height:Number(j?.height||120),src:(()=>{const html=String(j?.html||''); const m=html.match(/src=["']([^"']+)["']/i); return m?m[1]:'';})()}; bcCache.set(url,meta); return meta; };
+    function setPreviewYT(src){ mainPreview.innerHTML=`<div class="ratio big">${iframe(src,true,'YouTube player')}</div>`; }
+    async function setPreviewBC(url){ try{ const m=await bcOEmbed(url); const pad=Math.max(28,Math.min(62,(m.height/m.width)*100||56.25)); mainPreview.innerHTML=`<div class="ratio big" style="padding-top:${pad}%">${iframe(m.src,true,m.title)}</div>`; }catch{ mainPreview.innerHTML=`<div class="big-placeholder">Couldn’t load Bandcamp. <a href="${url}" target="_blank" rel="noopener">Open on Bandcamp</a></div>`; } }
+    function renderTracks(){
+      stripList.innerHTML='';
+      const items=state.tracks.map(parseTrack).filter(Boolean).slice(0,5);
+      items.forEach((t)=>{
+        const el=document.createElement('div'); el.className='strip';
+        const select=async()=>{ $$('.strip').forEach(s=>s.classList.remove('selected')); el.classList.add('selected'); if(t.kind==='bandcamp') await setPreviewBC(t.url); else setPreviewYT(t.src); };
+        if(t.kind==='bandcamp'){
+          el.classList.add('bandcamp');
+          el.innerHTML=`<div class="bc-tile"><div class="bc-badge">Bandcamp — click to load</div><div class="bc-title"></div><div class="bc-play">▶</div></div>`;
+          el.addEventListener('click',select,{passive:true});
+          bcOEmbed(t.url).then(m=>{ const tile=el.querySelector('.bc-tile'); const ti=el.querySelector('.bc-title'); if(tile&&m?.thumb) tile.style.backgroundImage=`url("${m.thumb}")`; if(ti) ti.textContent=m?.title||'Bandcamp'; }).catch(()=>{});
+        } else {
+          el.innerHTML = iframe(t.src,false,'Media preview')+'<div class="select-overlay" aria-hidden="true"></div>';
+          el.querySelector('.select-overlay').addEventListener('click',select,{passive:true});
+        }
+        stripList.appendChild(el);
+      });
+      if(items.length){
+        stripList.firstElementChild?.classList.add('selected');
+        if(items[0].kind==='bandcamp') setPreviewBC(state.tracks[0]);
+        else setPreviewYT(items[0].src||items[0].url);
+      } else {
+        mainPreview.innerHTML='<div class="big-placeholder">Select a track</div>';
+      }
+    }
+
+    async function boot(){ await loadConfig(); await loadSelector(); await loadNextShow(); renderTracks(); }
+    document.addEventListener('DOMContentLoaded', boot);
+  })();
+  </script>
+</body>
+</html>

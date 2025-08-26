@@ -1,23 +1,35 @@
 <?php
-// rc-proxy.php (Bandcamp oEmbed only; Radio Cult is called directly from the page)
+// dj-selects-config.php — tiny store for DJ Selects settings (tracks, optional overrides)
 declare(strict_types=1);
 header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json; charset=utf-8');
 
-$fn = $_GET['fn'] ?? '';
-if ($fn !== 'bandcamp_oembed') {
-  http_response_code(400);
-  echo json_encode(['error'=>'Unknown fn']);
+$action = $_GET['action'] ?? 'load';
+$file   = __DIR__ . '/dj-selects-config.json';
+
+// Load
+if ($action === 'load') {
+  if (is_file($file)) { $raw = file_get_contents($file); echo $raw !== false ? $raw : '{}'; }
+  else { echo '{}'; }
   exit;
 }
-$url = $_GET['url'] ?? '';
-if (!$url) { http_response_code(400); echo json_encode(['error'=>'Missing url']); exit; }
 
-$ch = curl_init('https://bandcamp.com/oembed?format=json&url='.rawurlencode($url));
-curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER=>true, CURLOPT_FOLLOWLOCATION=>true, CURLOPT_TIMEOUT=>10]);
-$res = curl_exec($ch);
-$code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-curl_close($ch);
+// Save (optional; if you wire an admin UI later)
+if ($action === 'save') {
+  $input = json_decode(file_get_contents('php://input') ?: '{}', true);
+  if (!is_array($input)) $input = [];
+  $data  = $input['data'] ?? [];
+  if (!is_array($data)) $data = [];
 
-if ($code >= 200 && $code < 300 && $res) echo $res;
-else { http_response_code(502); echo json_encode(['error'=>'oEmbed failed']); }
+  // Only allow expected keys
+  $allow = ['tracks','djName','profileImage','stationId','apiKey','contributorId','contributorSlug','contributorKind'];
+  $clean = [];
+  foreach ($allow as $k) { if (isset($data[$k])) $clean[$k] = $data[$k]; }
+
+  $tmp = $file.'.tmp';
+  file_put_contents($tmp, json_encode($clean, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES));
+  rename($tmp, $file);
+  echo json_encode(['ok'=>true]); exit;
+}
+
+echo '{}';

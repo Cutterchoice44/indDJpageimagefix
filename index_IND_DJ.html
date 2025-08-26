@@ -1,158 +1,38 @@
 <?php
-// rc-proxy.php — Radio Cult + Bandcamp helper
+// dj-selects-config.php — tiny JSON store for the DJ Selects page
 declare(strict_types=1);
 header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json; charset=utf-8');
 
-$fn = $_GET['fn'] ?? 'selector_by_tag';
+$action = $_GET['action'] ?? 'load';
+$file   = __DIR__ . '/dj-selects-config.json';
 
-/* ---------- helpers ---------- */
-function ok($data){ echo json_encode($data, JSON_UNESCAPED_SLASHES); exit; }
-function bad(int $code, string $msg){ http_response_code($code); ok(['error'=>$msg]); }
-
-function http_json(string $url, array $headers = [], int $timeout = 12){
-  $ch = curl_init($url);
-  curl_setopt_array($ch, [
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_FOLLOWLOCATION => true,
-    CURLOPT_HTTPHEADER     => $headers,
-    CURLOPT_TIMEOUT        => $timeout,
-  ]);
-  $res  = curl_exec($ch);
-  $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-  curl_close($ch);
-  if ($code < 200 || $code >= 300 || $res === false) return null;
-  $j = json_decode($res, true);
-  return is_array($j) ? $j : null;
-}
-
-function rc(string $path, string $apiKey){
-  $base = 'https://api.radiocult.fm/api';
-  $h = ['Accept: application/json'];
-  if ($apiKey) $h[] = 'x-api-key: '.$apiKey;          // publishable key style from your Our DJs page
-  return http_json($base.$path, $h);
-}
-
-function pick_image($node){
-  if (!is_array($node)) return '';
-  if (isset($node['logo']['512x512'])) return $node['logo']['512x512'];
-  if (isset($node['logo']['default'])) return $node['logo']['default'];
-  if (isset($node['image'])) return $node['image'];
-  return '';
-}
-
-function norm_tags($t){
-  if (is_array($t)) return array_map('strtolower', $t);
-  if (is_string($t)) return array_map('strtolower', array_map('trim', explode(',', $t)));
-  return [];
-}
-
-/* ---------- bandcamp oembed ---------- */
-if ($fn === 'bandcamp_oembed') {
-  $url = $_GET['url'] ?? '';
-  if (!$url) bad(400,'Missing url');
-  $o = http_json('https://bandcamp.com/oembed?format=json&url='.rawurlencode($url));
-  if (!$o) bad(502,'Bandcamp oEmbed failed');
-  ok($o);
-}
-
-/* ---------- selector_by_tag / selector_profile (alias) ---------- */
-if ($fn === 'selector_by_tag' || $fn === 'selector_profile') {
-  $stationId = $_GET['stationId'] ?? '';
-  $apiKey    = $_GET['apiKey']    ?? '';
-  $tag       = strtolower($_GET['tag'] ?? 'selector');
-  $slugHint  = strtolower($_GET['slug'] ?? 'selector');
-
-  if (!$stationId) bad(400,'Missing stationId');
-
-  // 1) search artists list
-  $artists = rc("/station/$stationId/artists", $apiKey);
-  $pick = null; $kind = 'artist';
-  if ($artists) {
-    $items = $artists['artists'] ?? $artists['data'] ?? $artists;
-    if (is_array($items)) {
-      foreach ($items as $it) { if (in_array($tag, norm_tags($it['tags'] ?? []), true)) { $pick=$it; break; } }
-      if (!$pick) foreach ($items as $it) { if (strtolower($it['slug'] ?? '') === $slugHint) { $pick=$it; break; } }
-    }
+if ($action === 'load') {
+  if (is_file($file)) {
+    $raw = file_get_contents($file);
+    echo $raw !== false ? $raw : '{}';
+  } else {
+    echo '{}';
   }
-
-  // 2) fallback to presenters
-  if (!$pick) {
-    $presenters = rc("/station/$stationId/presenters", $apiKey);
-    if ($presenters) {
-      $items = $presenters['presenters'] ?? $presenters['data'] ?? $presenters;
-      if (is_array($items)) {
-        foreach ($items as $it) { if (in_array($tag, norm_tags($it['tags'] ?? []), true)) { $pick=$it; $kind='presenter'; break; } }
-        if (!$pick) foreach ($items as $it) { if (strtolower($it['slug'] ?? '') === $slugHint) { $pick=$it; $kind='presenter'; break; } }
-      }
-    }
-  }
-
-  if (!$pick) bad(404,'No artist/presenter with tag or slug "selector" found');
-
-  $id   = $pick['id']   ?? '';
-  $slug = $pick['slug'] ?? $slugHint;
-
-  // 3) fetch full detail (description, socials, shareUrl)
-  $detail = rc("/station/$stationId/".($kind==='presenter'?'presenters':'artists')."/$id", $apiKey);
-  $node   = $detail['artist'] ?? $detail['presenter'] ?? $detail['data'] ?? $detail ?? [];
-
-  // 4) fetch schedule to compute next show
-  $now = rawurlencode(gmdate('c'));
-  $end = rawurlencode(gmdate('c', time()+365*24*60*60));
-  $sched = rc("/station/$stationId/".($kind==='presenter'?'presenters':'artists')."/$id/schedule?startDate=$now&endDate=$end", $apiKey);
-  $schedules = $sched['schedules'] ?? $sched['data'] ?? $sched['items'] ?? [];
-  $next = null;
-  if (is_array($schedules) && count($schedules)) {
-    $getIso = function($s){ return $s['startDateUtc'] ?? $s['startDate'] ?? $s['start'] ?? $s['scheduledStart'] ?? $s['start_time'] ?? null; };
-    usort($schedules, function($a,$b) use($getIso){ return strcmp($getIso($a) ?? '', $getIso($b) ?? ''); });
-    foreach ($schedules as $s) {
-      $iso = $getIso($s);
-      if ($iso && strtotime($iso) > time()) { $next = ['start'=>$iso] + $s; break; }
-    }
-    if (!$next) { $s = $schedules[0]; $iso = $getIso($s); if ($iso) $next = ['start'=>$iso] + $s; }
-  }
-
-  // 5) socials: pass through whatever the API gives
-  $socials = $node['socials'] ?? $node['links'] ?? $node['contact'] ?? [];
-
-  $out = [
-    'kind'        => $kind,
-    'id'          => $id,
-    'slug'        => $slug,
-    'name'        => $pick['name'] ?? $node['name'] ?? '',
-    'image'       => pick_image($pick ?: $node),
-    'description' => $node['description'] ?? $node['bio'] ?? $pick['description'] ?? '',
-    'shareUrl'    => $node['shareUrl'] ?? $pick['shareUrl'] ?? '',
-    'socials'     => $socials,
-    'nextShow'    => $next,
-  ];
-  ok($out);
+  exit;
 }
 
-/* ---------- smart_schedule (kept for back-compat) ---------- */
-if ($fn === 'smart_schedule') {
-  $stationId = $_GET['stationId'] ?? '';
-  $apiKey    = $_GET['apiKey']    ?? '';
-  $kindParam = strtolower($_GET['kind'] ?? 'artist');     // 'artist' or 'presenter'
-  $kindPath  = ($kindParam === 'presenter') ? 'presenters' : 'artists';
-  $id        = $_GET['id'] ?? '';
-  $slug      = $_GET['slug'] ?? '';
-  $start     = $_GET['startDate'] ?? gmdate('c');
-  $end       = $_GET['endDate']   ?? gmdate('c', time()+365*24*60*60);
-  $limit     = (int)($_GET['limit'] ?? 200);
+if ($action === 'save') {
+  $input = json_decode(file_get_contents('php://input') ?: '{}', true);
+  if (!is_array($input)) $input = [];
+  $data  = $input['data'] ?? [];
+  if (!is_array($data)) $data = [];
 
-  if (!$stationId) bad(400,'Missing stationId');
+  // Only allow these keys so we never clobber anything unexpected
+  $allow = ['tracks','djName','profileImage','stationId','apiKey','contributorId','contributorSlug','contributorKind'];
+  $clean = [];
+  foreach ($allow as $k) if (isset($data[$k])) $clean[$k] = $data[$k];
 
-  $path = '';
-  if ($id)   $path = "/station/$stationId/$kindPath/$id/schedule?startDate=".rawurlencode($start)."&endDate=".rawurlencode($end)."&limit=$limit";
-  if (!$path && $slug) $path = "/station/$stationId/$kindPath/slug/$slug/schedule?startDate=".rawurlencode($start)."&endDate=".rawurlencode($end)."&limit=$limit";
-  if (!$path)  bad(400,'Missing id or slug');
+  $tmp = $file.'.tmp';
+  file_put_contents($tmp, json_encode($clean, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES));
+  rename($tmp, $file);
 
-  $j = rc($path, $apiKey);
-  if (!$j) bad(502,'Upstream schedule failed');
-  ok($j);
+  echo json_encode(['ok'=>true]); exit;
 }
 
-/* ---------- unknown ---------- */
-bad(400,'Unknown fn');
+echo '{}';

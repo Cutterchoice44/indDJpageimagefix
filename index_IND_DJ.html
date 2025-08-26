@@ -1,90 +1,56 @@
 <?php
-// dj-selects-config.php
+// rc-proxy.php
 declare(strict_types=1);
 
-/**
- * Drop this PHP file in the same folder as dj-selects.html.
- * It persists to dj-selects-data.json in the SAME folder.
- *
- * Frontend POSTS JSON: { tracks:[...], auth:"<hex>" } with ?action=save
- * and GETS with ?action=load
- */
-
+// Usage: rc-proxy.php?fn=bandcamp_oembed&url=<bandcamp-url>
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate');
 
-const ADMIN_HASH_HEX = '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e';
-$DATA_FILE = __DIR__ . '/dj-selects-data.json';
+$fn  = $_GET['fn']  ?? '';
+$url = $_GET['url'] ?? '';
 
-function out($arr, int $code=200){
-  http_response_code($code);
-  echo json_encode($arr, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT);
+function jexit($arr, int $code=200){ http_response_code($code); echo json_encode($arr, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE); exit; }
+
+if ($fn === 'bandcamp_oembed') {
+  if (!$url || !preg_match('~https?://[^ ]+bandcamp\.com/[^ ]+~i', $url)) {
+    jexit(['error'=>'Invalid Bandcamp URL'], 400);
+  }
+
+  $cacheDir = __DIR__.'/.cache';
+  if (!is_dir($cacheDir)) @mkdir($cacheDir, 0775, true);
+  $key = $cacheDir.'/bc-'.sha1($url).'.json';
+
+  // Serve cached (1 day)
+  if (file_exists($key) && (time() - filemtime($key) < 86400)) {
+    $cached = @file_get_contents($key);
+    if ($cached) { echo $cached; exit; }
+  }
+
+  $endpoint = 'https://bandcamp.com/oembed?format=json&maxwidth=1200&url='.rawurlencode($url);
+
+  $ch = curl_init($endpoint);
+  curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_FOLLOWLOCATION => true,
+    CURLOPT_TIMEOUT => 12,
+    CURLOPT_SSL_VERIFYPEER => true,
+    CURLOPT_SSL_VERIFYHOST => 2,
+    CURLOPT_USERAGENT => 'CCR-Proxy/1.0'
+  ]);
+  $resp = curl_exec($ch);
+  $err  = curl_error($ch);
+  $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+  curl_close($ch);
+
+  if ($resp === false || $code >= 400) {
+    jexit(['error'=>'Bandcamp fetch failed', 'status'=>$code, 'detail'=>$err], 502);
+  }
+
+  // Cache and pass through
+  @file_put_contents($key, $resp, LOCK_EX);
+  header('Content-Type: application/json; charset=utf-8');
+  echo $resp;
   exit;
 }
 
-$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-$action = $_GET['action'] ?? $_POST['action'] ?? ($method === 'POST' ? 'save' : 'load');
-
-if ($action === 'load') {
-  if (!file_exists($DATA_FILE)) {
-    @file_put_contents($DATA_FILE, json_encode(['tracks'=>[]], JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT), LOCK_EX);
-    @chmod($DATA_FILE, 0664);
-  }
-  $raw = @file_get_contents($DATA_FILE);
-  $json = json_decode($raw ?: '{"tracks":[]}', true);
-  if (!is_array($json)) $json = ['tracks'=>[]];
-  if (!isset($json['tracks']) || !is_array($json['tracks'])) $json['tracks'] = [];
-  $json['tracks'] = array_slice(array_map('strval', $json['tracks']), 0, 5);
-  out($json, 200);
-}
-
-if ($action === 'save') {
-  // Accept JSON body OR form posts as fallback
-  $contentType = $_SERVER['CONTENT_TYPE'] ?? $_SERVER['HTTP_CONTENT_TYPE'] ?? '';
-  $data = null;
-
-  if (stripos($contentType, 'application/json') !== false) {
-    $data = json_decode(file_get_contents('php://input') ?: 'null', true);
-  } else {
-    // Form fallback (tracks[] & auth)
-    $data = [
-      'tracks' => isset($_POST['tracks']) ? (array)$_POST['tracks'] : [],
-      'auth'   => $_POST['auth'] ?? ''
-    ];
-    if (empty($data['tracks'])) {
-      // Try to decode raw if host strips header
-      $body = file_get_contents('php://input');
-      $j = json_decode($body ?: 'null', true);
-      if (is_array($j)) $data = $j;
-    }
-  }
-
-  if (!is_array($data)) out(['ok'=>false, 'error'=>'Invalid JSON body'], 400);
-
-  $auth = (string)($data['auth'] ?? '');
-  if ($auth !== ADMIN_HASH_HEX) out(['ok'=>false, 'error'=>'Unauthorized'], 403);
-
-  $tracks = $data['tracks'] ?? [];
-  if (!is_array($tracks)) $tracks = [];
-  $tracks = array_values(array_filter(array_map(function($v){
-    $s = trim((string)$v);
-    return $s !== '' ? $s : null;
-  }, $tracks)));
-  $tracks = array_slice($tracks, 0, 5);
-
-  // Ensure directory writeable
-  $dir = dirname($DATA_FILE);
-  if (!is_dir($dir)) out(['ok'=>false,'error'=>'Target directory missing: '.$dir], 500);
-  if (!is_writable($dir)) out(['ok'=>false,'error'=>'Directory not writable: '.$dir.'. Hint: chmod 775'], 500);
-
-  $payload = ['tracks'=>$tracks, 'savedAt'=>gmdate('c')];
-  $json = json_encode($payload, JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
-
-  $ok = @file_put_contents($DATA_FILE, $json, LOCK_EX);
-  if ($ok === false) out(['ok'=>false, 'error'=>'File write failed (check owner/perms on '.basename($DATA_FILE).' — recommend 664)'], 500);
-
-  @chmod($DATA_FILE, 0664);
-  out(['ok'=>true, 'tracks'=>$tracks], 200);
-}
-
-out(['ok'=>false,'error'=>'Unknown action'], 400);
+jexit(['error'=>'Unknown fn'], 400);

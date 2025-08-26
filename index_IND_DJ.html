@@ -1,85 +1,48 @@
 <?php
-// dj-selects-config.php — server JSON gateway for DJ Selects
-// Place in same folder as dj-selects.html
+// rc-proxy.php — small proxy for external metadata requests
+// Supports: ?fn=bandcamp_oembed&url=...
 
 declare(strict_types=1);
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 
-const ADMIN_HASH_HEX = '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e'; // must match JS
-const DATA_FILE      = __DIR__ . '/dj-selects-data.json';
-
-function send($arr, int $code = 200) {
+function out($arr, int $code = 200) {
   http_response_code($code);
   echo json_encode($arr, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT);
   exit;
 }
 
-function sanitize_url(string $u): ?string {
-  $u = trim($u);
-  if ($u === '' || strlen($u) > 500) return null;
-  if (!preg_match('~^https?://~i', $u)) return null;
-  return $u;
+$fn = strtolower($_GET['fn'] ?? '');
+
+if ($fn === 'bandcamp_oembed') {
+  $url = trim((string)($_GET['url'] ?? ''));
+  if ($url === '' || !preg_match('~^https?://[^/]*bandcamp\.com/.*~i', $url)) {
+    out(['ok' => false, 'error' => 'Invalid Bandcamp URL'], 400);
+  }
+
+  $endpoint = 'https://bandcamp.com/oembed?format=json&url=' . urlencode($url);
+
+  // Use cURL for reliability on shared hosts
+  $ch = curl_init($endpoint);
+  curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_FOLLOWLOCATION => true,
+    CURLOPT_CONNECTTIMEOUT => 6,
+    CURLOPT_TIMEOUT => 10,
+    CURLOPT_USERAGENT => 'CCR-DJ-Selects/1.0 (+https://cutterschoiceradio.com/)',
+  ]);
+  $resp = curl_exec($ch);
+  $err  = curl_error($ch);
+  $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+  curl_close($ch);
+
+  if ($resp === false || $code < 200 || $code >= 300) {
+    out(['ok' => false, 'error' => 'Bandcamp fetch failed', 'http' => $code, 'detail' => $err], 502);
+  }
+
+  // Return Bandcamp's JSON straight through
+  echo $resp;
+  exit;
 }
 
-$action = strtolower($_GET['action'] ?? '');
-
-if ($action === 'load') {
-  if (is_file(DATA_FILE)) {
-    $raw = file_get_contents(DATA_FILE);
-    $json = json_decode($raw, true);
-    $tracks = [];
-    if (is_array($json) && isset($json['tracks']) && is_array($json['tracks'])) {
-      $tracks = array_values(array_map('strval', array_slice($json['tracks'], 0, 5)));
-    }
-    send(['ok' => true, 'tracks' => $tracks, 'updated' => ($json['updated'] ?? null)]);
-  } else {
-    send(['ok' => true, 'tracks' => [], 'updated' => null]);
-  }
-}
-
-if ($action === 'save') {
-  $raw = file_get_contents('php://input');
-  $body = json_decode($raw, true);
-  if (!is_array($body)) {
-    send(['ok' => false, 'error' => 'Invalid JSON body'], 400);
-  }
-
-  // Very simple auth: client posts the known admin hash
-  $auth = (string)($body['auth'] ?? '');
-  if (!hash_equals(ADMIN_HASH_HEX, $auth)) {
-    send(['ok' => false, 'error' => 'Forbidden'], 403);
-  }
-
-  $inputTracks = $body['tracks'] ?? [];
-  if (!is_array($inputTracks)) $inputTracks = [];
-
-  // Clean + bound to 5
-  $tracks = [];
-  foreach ($inputTracks as $t) {
-    $s = sanitize_url((string)$t);
-    if ($s !== null) $tracks[] = $s;
-    if (count($tracks) >= 5) break;
-  }
-
-  // Persist atomically
-  $payload = json_encode(['tracks' => $tracks, 'updated' => gmdate('c')], JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
-  if ($payload === false) {
-    send(['ok' => false, 'error' => 'Encoding error'], 500);
-  }
-
-  $tmp = DATA_FILE . '.tmp';
-  if (file_put_contents($tmp, $payload, LOCK_EX) === false) {
-    send(['ok' => false, 'error' => 'Unable to write temp file (permissions?)'], 500);
-  }
-  if (!@rename($tmp, DATA_FILE)) {
-    @unlink($tmp);
-    send(['ok' => false, 'error' => 'Unable to move data file (permissions?)'], 500);
-  }
-  @chmod(DATA_FILE, 0644);
-
-  send(['ok' => true, 'tracks' => $tracks]);
-}
-
-// Fallback for unknown actions
-send(['ok' => false, 'error' => 'Unknown action'], 400);
+out(['ok' => false, 'error' => 'Unknown function'], 400);

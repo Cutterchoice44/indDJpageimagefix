@@ -1,587 +1,193 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cutters Choice Radio — DJ Selects</title>
+<?php
+// rc-proxy.php — resilient Radio Cult + Bandcamp proxy
+// Tries multiple API shapes and falls back to scraping the shareable page.
 
-  <!-- keep your global site css if you have it -->
-  <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+declare(strict_types=1);
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Headers: Authorization, Content-Type, Accept, Origin, X-API-Key, x-api-key, X-Publishable-Key, x-publishable-key');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { exit; }
 
-  <style>
-    :root { --brand-teal:#5A8785; }
+$fn        = $_GET['fn']        ?? '';
+$stationId = $_GET['stationId'] ?? '';
+$apiKey    = $_GET['apiKey']    ?? '';
+$limit     = $_GET['limit']     ?? '200';
+$expand    = $_GET['expand']    ?? '';
+$id        = $_GET['id']        ?? '';
+$slug      = $_GET['slug']      ?? '';
+$start     = $_GET['startDate'] ?? '';
+$end       = $_GET['endDate']   ?? '';
+$kind      = $_GET['kind']      ?? ''; // artist | presenter (for smart_schedule)
 
-    /* ===== HERO (force a much wider art column) ===== */
-    .djselects-hero{
-      padding:.6rem .75rem .35rem;
-      border:2px solid var(--brand-teal);
-      border-left:0;border-right:0;
-      margin-bottom:.35rem;
-      display:grid;
-      grid-template-columns: 1fr minmax(360px, 560px) minmax(380px, 1fr) !important;
-      gap:.6rem; align-items:end;
+function json_out($code, $obj){ http_response_code($code); header('Content-Type: application/json; charset=utf-8'); echo json_encode($obj, JSON_UNESCAPED_SLASHES); exit; }
+
+function curl_get($url, $headers=[]){
+  $ch = curl_init($url);
+  curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_FOLLOWLOCATION => true,
+    CURLOPT_TIMEOUT => 25,
+    CURLOPT_CONNECTTIMEOUT => 10,
+    CURLOPT_HTTPHEADER => $headers
+  ]);
+  $res = curl_exec($ch);
+  $err = curl_error($ch);
+  $code= curl_getinfo($ch, CURLINFO_HTTP_CODE);
+  curl_close($ch);
+  return [$res, $code, $err];
+}
+
+function get_json($url, $key=''){
+  $headerSets = [
+    ['Accept: application/json','User-Agent: CCR-Proxy/1.3'],
+  ];
+  if ($key) {
+    $headerSets[] = ['Accept: application/json','User-Agent: CCR-Proxy/1.3','Authorization: Bearer '.$key];
+    $headerSets[] = ['Accept: application/json','User-Agent: CCR-Proxy/1.3','X-API-Key: '.$key];
+    $headerSets[] = ['Accept: application/json','User-Agent: CCR-Proxy/1.3','x-api-key: '.$key];
+    $headerSets[] = ['Accept: application/json','User-Agent: CCR-Proxy/1.3','X-Publishable-Key: '.$key];
+    $headerSets[] = ['Accept: application/json','User-Agent: CCR-Proxy/1.3','x-publishable-key: '.$key];
+    $headerSets[] = ['Accept: application/json','User-Agent: CCR-Proxy/1.3','apikey: '.$key];
+  }
+  foreach ($headerSets as $hs){
+    [$res,$code,$err] = curl_get($url,$hs);
+    if (!$err && $res!==false && $code>=200 && $code<400) {
+      $j = json_decode($res,true);
+      if (is_array($j)) return [$j,null];
     }
-    .djselects-hero .strap{
-      font-family:'Bebas Neue',sans-serif;
-      font-size:clamp(1.0rem,2.2vw,1.4rem);
-      line-height:1.05; letter-spacing:.2px;
-    }
-    .djselects-hero .weekline{
-      font-family:'Bebas Neue',sans-serif;
-      font-size:clamp(2.4rem,5.6vw,3.6rem);
-      line-height:1; margin-top:.15rem;
-    }
-    #djNameText{ color:var(--brand-teal); }
-    .hero-art img{
-      width:100%; height:auto; border:2px solid var(--brand-teal);
-      border-radius:4px; display:block; background:#000;
-      min-height: 120px; /* so the column is obvious even before image appears */
-    }
-    .hero-bio{
-      background:#0b0b0b; border:2px solid var(--brand-teal); border-radius:6px;
-      padding:.55rem .65rem; min-height:100%;
-      font-size:.95rem; line-height:1.28; overflow:auto;
-    }
-    .profile-link{
-      display:inline-block; font-size:.8rem; border:1px solid #335d5b; padding:.2rem .4rem;
-      border-radius:4px; background:#0b0b0b; color:#dff; text-decoration:none;
-    }
+  }
+  return [null,'HTTP fail'];
+}
 
-    /* ===== NEXT BAR ===== */
-    .nextbar{ margin:.2rem .6rem .5rem; }
-    .nextbar-inner{
-      display:flex; align-items:center; gap:1rem;
-      background:#0b0b0b; border:2px solid var(--brand-teal);
-      padding:.45rem .6rem; border-radius:6px;
-    }
-    .nextbar .label{
-      font-family:'Bebas Neue',sans-serif; font-size:clamp(1.1rem,2.1vw,1.5rem);
-    }
-    .nextbar .when{
-      font-family:'Bebas Neue',sans-serif; font-size:clamp(1.2rem,2.4vw,1.7rem);
-      color:var(--brand-teal);
-    }
+function first_json(array $urls, $key=''){
+  foreach ($urls as $u){
+    [$j,$e] = get_json($u,$key);
+    if ($j!==null && !$e) return $j;
+  }
+  return null;
+}
 
-    /* ===== TRACKS ===== */
-    .compact-grid{ display:grid; grid-template-columns:minmax(240px,360px) 1fr; gap:.6rem; padding:0 .6rem .9rem; }
-    .strip-list{ display:grid; grid-template-rows:repeat(5,1fr); gap:.45rem; height:100%; }
-    .strip{ position:relative; border:1px solid #264745; background:#0a0a0a; border-radius:4px; overflow:hidden; cursor:pointer; }
-    .strip.selected{ outline:2px solid var(--brand-teal); }
-    .strip iframe{ width:100%; height:100%; border:0; display:block; pointer-events:none; }
-    .strip .select-overlay{ position:absolute; inset:0; }
-    .strip:hover .select-overlay{ box-shadow:inset 0 0 0 2px var(--brand-teal); background:rgba(90,135,133,.08); }
+/* ---------- tiny HTML scrapers for shareable pages ---------- */
+function get_html($url){
+  [$res,$code,$err] = curl_get($url, ['User-Agent: CCR-Proxy/1.3']);
+  if ($err || $code>=400 || $res===false) return null;
+  return $res;
+}
+function scrape_meta($html){
+  $out = ['name'=>'','image'=>'','description'=>'','slug'=>''];
+  if (preg_match('~property=["\']og:title["\']\s+content=["\']([^"\']+)["\']~i',$html,$m)) $out['name']=$m[1];
+  if (preg_match('~property=["\']og:image["\']\s+content=["\']([^"\']+)["\']~i',$html,$m)) $out['image']=$m[1];
+  if (preg_match('~name=["\']description["\']\s+content=["\']([^"\']+)["\']~i',$html,$m)) $out['description']=$m[1];
+  if (preg_match('~"slug"\s*:\s*"([^"]+)"~i',$html,$m)) $out['slug']=$m[1];
+  return $out;
+}
 
-    .preview .ratio.big{ position:relative; width:100%; padding-top:28.125%; }
-    .preview .ratio.big iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; }
-    .big-placeholder{ font-family:'Bebas Neue',sans-serif; color:#6fa39f; font-size:clamp(1.0rem,2.2vw,1.5rem); padding:.75rem; }
+/* --------- endpoints --------- */
 
-    /* ===== Bandcamp tiles ===== */
-    .strip.bandcamp{ display:flex; align-items:stretch; }
-    .strip .bc-tile{ position:relative; inset:0; width:100%; height:100%; background:#0f0f0f center/cover no-repeat; display:flex; align-items:flex-end; justify-content:flex-start; }
-    .strip .bc-tile::before{ content:""; position:absolute; left:0; right:0; bottom:0; height:42%; background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.65) 100%); pointer-events:none; }
-    .strip .bc-badge{ font-family:'Bebas Neue',sans-serif; background:rgba(0,0,0,.65); border-top-right-radius:8px; padding:.35rem .55rem; margin:0; font-size:clamp(1.0rem,2vw,1.2rem); color:#d8fff8; letter-spacing:.5px; }
-    .strip .bc-title{ position:absolute; left:8px; right:44px; bottom:8px; font-family:'Bebas Neue',sans-serif; color:#fff; text-shadow:0 2px 4px rgba(0,0,0,.6); font-size:clamp(1.0rem,2vw,1.2rem); line-height:1.1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .strip .bc-play{ position:absolute; inset:auto 8px 8px auto; background:rgba(90,135,133,.95); color:#000; font-weight:700; border-radius:999px; width:30px; height:30px; display:flex; align-items:center; justify-content:center; }
+if ($fn==='ping') json_out(200,['pong'=>'ok']);
 
-    /* ===== Admin (hidden until Shift+A) ===== */
-    .admin-btn{ position:fixed; right:12px; bottom:12px; z-index:9999; background:var(--brand-teal); color:#000; border:none; width:48px; height:48px; border-radius:999px; display:none; align-items:center; justify-content:center; box-shadow:0 6px 18px rgba(0,0,0,.35) }
-    .admin-panel{ position:fixed; right:12px; bottom:72px; width:min(560px,94vw); max-height:82vh; background:#0c0c0c; color:#fff; border:2px solid var(--brand-teal); border-radius:10px; display:none; flex-direction:column; z-index:9999; box-shadow:0 10px 30px rgba(0,0,0,.45) }
-    .admin-panel.open{ display:flex }
-    .admin-head{ display:flex; align-items:center; justify-content:space-between; padding:.6rem .8rem; border-bottom:1px solid #1d3b3a }
-    .admin-close{ background:none; border:none; color:#fff; font-size:1.6rem; cursor:pointer }
-    .admin-body{ padding:.8rem; overflow-y:auto; padding-bottom:5.5rem }
-    .two-col{ display:grid; grid-template-columns:1fr 1fr; gap:.6rem }
-    .admin-body label{ display:block; margin-bottom:.65rem }
-    .admin-body input,.admin-body select{ width:100%; padding:.55rem; background:#111; color:#fff; border:1px solid #264745; border-radius:6px; margin-top:.25rem }
-    #adminTracks .track-input{ display:grid; grid-template-columns:1fr auto auto; gap:.5rem; margin-bottom:.5rem }
-    #adminTracks button{ padding:.5rem .75rem; border-radius:6px; border:1px solid #264745; background:#121212; color:#fff; cursor:pointer }
-    .admin-actions{ position:sticky; bottom:0; background:#0c0c0c; border-top:1px solid #1d3b3a; display:flex; gap:.6rem; padding:.7rem .8rem }
-    .admin-actions .primary{ background:var(--brand-teal); color:#000; border:none; padding:.6rem .9rem; border-radius:8px }
-    .admin-actions .ghost{ background:#171717; color:#fff; border:1px solid #2a2a2a; padding:.6rem .9rem; border-radius:8px }
-    .admin-actions .danger{ background:#2b1818; color:#fff; border:1px solid #5a2020; padding:.6rem .9rem; border-radius:8px }
+if ($fn==='bandcamp_oembed') {
+  $url = $_GET['url'] ?? '';
+  if (!$url) json_out(400,['error'=>'Missing url']);
+  [$j,$e] = get_json('https://bandcamp.com/oembed?format=json&url='.rawurlencode($url));
+  if (!$j) json_out(502,['error'=>'Bandcamp oEmbed failed']);
+  json_out(200,$j);
+}
 
-    @media (max-width:960px){
-      .djselects-hero{ grid-template-columns: 1fr minmax(200px, 36vw) 1fr !important; }
-      .compact-grid{ grid-template-columns:1fr; }
-      .hero-bio{ grid-column:1 / -1; }
-    }
-    @media (max-width:768px){
-      .preview .ratio.big{ padding-top:56.25% }
-      .strip-list{ height:auto !important; grid-template-rows:repeat(5,72px); }
-      .strip{ border-radius:6px }
-    }
-  </style>
-</head>
-<body>
-  <!-- Header -->
-  <header class="header-banner">
-    <div class="header-gif-right"></div>
-    <div class="header-gif-left"></div>
-    <div class="logo-container"><img class="logo" src="/images/logo.png" alt=""></div>
-    <div class="title"><h1>Cutters Choice Radio</h1><p class="tagline">The home of relentless flavas and significant bangers!</p></div>
-    <div class="logo-container"><img class="logo" src="/images/logo.png" alt=""></div>
-  </header>
+/* selector_profile: find artist/presenter by slug "selector"
+   1) try API variants; 2) try shareable page scrape */
+if ($fn==='selector_profile'){
+  if (!$stationId || !$slug) json_out(400,['error'=>'Missing stationId or slug']);
 
-  <div style="height:2px;background-color:var(--brand-teal)"></div>
+  $bases = [
+    'https://api.radiocult.fm/v1',
+    'https://radiocult.fm/api/v1',
+    'https://api.radiocult.dev/v1'
+  ];
 
-  <!-- Nav -->
-  <nav id="main-nav">
-    <div class="nav-menu">
-      <a href="our-story.html" class="nav-link">OUR STORY</a>
-      <a href="index.html" class="nav-link">HOME</a>
-      <a href="index-ourDJS.html" class="nav-link">OUR DJS</a>
-      <a href="schedule.html" class="nav-link">SCHEDULE</a>
-      <a href="merch.html" class="nav-link">MERCH</a>
-    </div>
-    <div class="nav-actions"></div>
-  </nav>
-
-  <div style="height:2px;background-color:var(--brand-teal)"></div>
-
-  <!-- HERO -->
-  <section class="djselects-hero" id="djHero">
-    <div class="hero-left">
-      <div class="strap">EACH WEEK IN A NON SPECIFIC ORDER A DIFFERENT CUTTERS DJ SELECTS THEIR 5 TRACKS OF THE WEEK</div>
-      <div class="weekline">
-        THIS WEEKS CUTTERS DJ SELECTOR :
-        <span id="djNameText">DJ NAME</span>
-        <a id="djProfileLink" class="profile-link" href="#" target="_blank" rel="noopener" style="margin-left:.6rem;display:none">DJ profile</a>
-      </div>
-    </div>
-    <div class="hero-art"><img id="djProfileThumb" src="/images/default-dj.png" alt="DJ profile" /></div>
-    <div class="hero-bio" id="djBio">Loading selector description…</div>
-  </section>
-
-  <!-- NEXT SCHEDULED SHOW -->
-  <section class="nextbar">
-    <div class="nextbar-inner">
-      <span class="label">NEXT SCHEDULED SHOW</span>
-      <span class="when" id="nextShowWhen">Loading…</span>
-    </div>
-  </section>
-
-  <!-- TRACKS -->
-  <main class="compact-grid">
-    <aside id="stripList" class="strip-list"></aside>
-    <section class="preview" id="mainPreview" aria-live="polite">
-      <div class="big-placeholder">Select a track</div>
-    </section>
-  </main>
-
-  <!-- admin mount -->
-  <div id="adminMount" hidden></div>
-
-  <!-- config -->
-  <script>
-    window.DJ_SELECTS = {
-      CONFIG_ENDPOINT: 'dj-selects-config.php',
-      PROXY_ENDPOINT:  'rc-proxy.php',
-      // passphrase = ccr2025!
-      ADMIN_HASH_HEX: '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e',
-      SAVE_TOKEN: 'CCR_TEMP_TOKEN_!2025',
-      RADIO_CULT_PUBLISHABLE_KEY: 'pk_0b8abc6f834b444f949f727e88a728e0',
-      STATION_ID: 'cutters-choice-radio',
-      SELECTOR_SLUG: 'selector'
-    };
-  </script>
-
-  <script>
-  (()=> {
-    const CFG = window.DJ_SELECTS || {};
-    const $  = (s, r=document) => r.querySelector(s);
-    const $$ = (s, r=document) => [...r.querySelectorAll(s)];
-
-    const hero        = $('#djHero');
-    const stripList   = $('#stripList');
-    const mainPreview = $('#mainPreview');
-    const djNameText  = $('#djNameText');
-    const djProfile   = $('#djProfileThumb');
-    const djBioBox    = $('#djBio');
-    const nextWhen    = $('#nextShowWhen');
-    const profileLink = $('#djProfileLink');
-
-    // Double-force wider art column no matter what legacy CSS exists
-    hero.style.setProperty('grid-template-columns','1fr minmax(360px,560px) minmax(380px,1fr)','important');
-
-    let shared = {
-      djName: 'DJ NAME',
-      profileImage: '/images/default-dj.png',
-      stationId: CFG.STATION_ID,
-      apiKey: CFG.RADIO_CULT_PUBLISHABLE_KEY || '',
-      tracks: [],
-      contributorId: '',
-      contributorSlug: CFG.SELECTOR_SLUG || 'selector',
-      contributorKind: 'artist' // flips to 'presenter' if needed
-    };
-
-    /* ---------- utils ---------- */
-    const sha256hex = async (t) => {
-      const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
-      return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
-    };
-    const fetchJSON = async (url) => {
-      const r = await fetch(url, { headers:{'Accept':'application/json'}, cache:'no-store' });
-      if(!r.ok) throw new Error(String(r.status));
-      return r.json();
-    };
-    const fmtLocal = iso => {
-      try {
-        const d = new Date(iso);
-        return d.toLocaleString(undefined,{
-          weekday:'short', day:'numeric', month:'short',
-          hour:'2-digit', minute:'2-digit', hour12:false, timeZoneName:'short'
-        });
-      } catch { return ''; }
-    };
-
-    /* ---------- profile by slug (proxy does API + HTML fallback) ---------- */
-    async function loadSelectorProfile(){
-      try{
-        const url = `${CFG.PROXY_ENDPOINT}?fn=selector_profile&stationId=${encodeURIComponent(shared.stationId)}&slug=${encodeURIComponent(shared.contributorSlug)}&apiKey=${encodeURIComponent(shared.apiKey||'')}`;
-        const j = await fetchJSON(url);
-        // normalize
-        shared.contributorKind = j.kind || 'artist';
-        shared.contributorId   = j.id   || '';
-        shared.contributorSlug = j.slug || shared.contributorSlug;
-        shared.djName          = j.name || shared.djName;
-        shared.profileImage    = j.image|| shared.profileImage;
-
-        djNameText.textContent = shared.djName;
-        if (shared.profileImage) djProfile.src = shared.profileImage;
-
-        const desc = (j.description||'').toString().trim();
-        djBioBox.textContent = desc || '—';
-
-        if (j.shareUrl) { profileLink.href = j.shareUrl; profileLink.style.display='inline-block'; }
-      }catch(e){
-        console.warn('Selector profile load failed', e);
-        djBioBox.textContent = 'No artist/presenter tagged “SELECTOR”.';
+  // 1) API search by slug (artists then presenters)
+  foreach ($bases as $b){
+    $qs = http_build_query(['slug'=>$slug,'limit'=>1,'expand'=>'tags,images']);
+    $urls = [
+      "$b/stations/".rawurlencode($stationId)."/artists?$qs",
+      "$b/stations/".rawurlencode($stationId)."/presenters?$qs",
+    ];
+    $j = first_json($urls, $apiKey);
+    if ($j){
+      $item = $j['artists'][0] ?? $j['presenters'][0] ?? $j['data'][0] ?? null;
+      if ($item){
+        $img = $item['logo']['512x512'] ?? ($item['logo']['default'] ?? ($item['image'] ?? ($item['avatar'] ?? '')));
+        $kind= isset($j['artists']) ? 'artist' : (isset($j['presenters']) ? 'presenter' : 'artist');
+        $share = $item['shareUrl'] ?? ($item['url'] ?? '');
+        json_out(200, [
+          'kind'=>$kind,
+          'id'=>$item['id'] ?? ($item['_id'] ?? ($item['uuid'] ?? '')),
+          'slug'=>$item['slug'] ?? $slug,
+          'name'=>$item['name'] ?? 'DJ',
+          'image'=>$img ?: '',
+          'description'=>($item['description'] ?? ($item['bio'] ?? ($item['about'] ?? ''))),
+          'shareUrl'=>$share
+        ]);
       }
     }
+  }
 
-    /* ---------- schedule for that profile (id or slug) ---------- */
-    async function loadNextShow(){
-      try{
-        const now=new Date(), end=new Date(now.getTime()+365*24*60*60*1000);
-        const url = `${CFG.PROXY_ENDPOINT}?fn=smart_schedule&stationId=${encodeURIComponent(shared.stationId)}&id=${encodeURIComponent(shared.contributorId)}&slug=${encodeURIComponent(shared.contributorSlug)}&kind=${encodeURIComponent(shared.contributorKind)}&startDate=${encodeURIComponent(now.toISOString())}&endDate=${encodeURIComponent(end.toISOString())}&limit=200&apiKey=${encodeURIComponent(shared.apiKey||'')}`;
-        const j = await fetchJSON(url);
-        const list = j?.schedules || j?.data || j?.items || [];
-        if(!Array.isArray(list) || !list.length){ nextWhen.textContent='No upcoming show found'; return; }
-        const getIso = s => s.startDateUtc||s.startDate||s.start||s.scheduledStart||s.start_time||s.start_at;
-        const future = list.map(s=>({s,t:new Date(getIso(s)||0)})).filter(x=>x.t>new Date()).sort((a,b)=>a.t-b.t)[0];
-        const item = (future && future.s) || list[0];
-        const whenISO = getIso(item);
-        nextWhen.textContent = whenISO ? fmtLocal(whenISO) : 'TBA';
-      }catch{ nextWhen.textContent='Unable to load schedule'; }
+  // 2) Scrape shareable page (artist then presenter dirs)
+  $paths = [
+    "https://app.radiocult.fm/".rawurlencode($stationId)."/artists/".rawurlencode($slug),
+    "https://app.radiocult.fm/".rawurlencode($stationId)."/artist/".rawurlencode($slug),
+    "https://radiocult.fm/".rawurlencode($stationId)."/artists/".rawurlencode($slug),
+    "https://radiocult.fm/".rawurlencode($stationId)."/presenters/".rawurlencode($slug),
+  ];
+  foreach ($paths as $i => $u){
+    $html = get_html($u);
+    if ($html){
+      $m = scrape_meta($html);
+      $name = $m['name'] ?: 'DJ';
+      $img  = $m['image'] ?: '';
+      $desc = $m['description'] ?: '';
+      $slugFound = $m['slug'] ?: $slug;
+      $kindGuess = (strpos($u,'presenter')!==false) ? 'presenter' : 'artist';
+      json_out(200, [
+        'kind'=>$kindGuess,
+        'id'=>'', 'slug'=>$slugFound, 'name'=>$name, 'image'=>$img, 'description'=>$desc,
+        'shareUrl'=>$u
+      ]);
     }
+  }
 
-    /* ---------- media helpers ---------- */
-    const parseTrack = (u) => {
-      if (!u) return null;
-      try {
-        const x = new URL(u.trim());
-        const host = x.hostname.toLowerCase();
-        if (host.endsWith('bandcamp.com')) return { kind:'bandcamp', url:u.trim() };
-        if (host.includes('youtu')) {
-          let id = '';
-          if (host === 'youtu.be') id = x.pathname.slice(1);
-          else if (x.pathname.startsWith('/shorts/')) id = x.pathname.split('/')[2] || '';
-          else if (x.searchParams.get('v')) id = x.searchParams.get('v');
-          else if (/^\/embed\//.test(x.pathname)) id = x.pathname.split('/').pop();
-          id = (id||'').split('?')[0].split('&')[0];
-          if (!id) return null;
-          return { kind:'youtube', src:`https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1` };
-        }
-        return { kind:'iframe', src:u.trim() };
-      } catch { return null; }
-    };
-    const iframeAttrs = (src, big=false, title='Media player') =>
-      `<iframe src="${src}" title="${title}" loading="${big?'eager':'lazy'}"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
+  json_out(404,['error'=>'selector profile not found']);
+}
 
-    const fetchBandcampOEmbed = async (url) => {
-      const q = `${CFG.PROXY_ENDPOINT}?fn=bandcamp_oembed&url=${encodeURIComponent(url)}`;
-      const j = await fetchJSON(q);
-      return {
-        title: j?.title || 'Bandcamp',
-        thumb: j?.thumbnail_url || '',
-        width: Number(j?.width || 700),
-        height: Number(j?.height || 120),
-        src: (() => {
-          const html = String(j?.html || '');
-          const m = html.match(/src=["']([^"']+)["']/i);
-          return m ? m[1] : '';
-        })()
-      };
-    };
+/* smart_schedule: try artist/presenter schedules using id or slug and many param names */
+if ($fn==='smart_schedule'){
+  if (!$stationId) json_out(400,['error'=>'Missing stationId']);
 
-    function setPreviewYouTube(src){
-      mainPreview.innerHTML = `<div class="ratio big">${iframeAttrs(src,true,'YouTube player')}</div>`;
-      syncHeightsSoon();
+  $bases = [
+    'https://api.radiocult.fm/v1',
+    'https://radiocult.fm/api/v1',
+    'https://api.radiocult.dev/v1'
+  ];
+  $kind = $kind ?: 'artist';
+  $keys = ($kind==='presenter')
+    ? [['presenterId'=>$id],['presenter_id'=>$id],['presenterSlug'=>$slug],['presenter_slug'=>$slug],['presenter'=>$slug]]
+    : [['artistId'=>$id],['artist_id'=>$id],['artistSlug'=>$slug],['artist_slug'=>$slug],['artist'=>$slug]];
+
+  $urls = [];
+  foreach ($bases as $b){
+    foreach ($keys as $p){
+      $params = array_filter(array_merge($p, [
+        'startDate'=>$start ?: date(DATE_ATOM),
+        'endDate'  =>$end   ?: date(DATE_ATOM, time()+3600*24*365),
+        'limit'=>$limit
+      ]), fn($v)=>$v!==null && $v!=='');
+      $qs = http_build_query($params);
+      $urls[] = "$b/stations/".rawurlencode($stationId)."/schedules?$qs";
     }
-    async function setPreviewBandcamp(url, metaMaybe){
-      try{
-        const meta = metaMaybe || await fetchBandcampOEmbed(url);
-        if (!meta?.src) throw new Error('Missing embed src');
-        const padPct = Math.max(18, Math.min(70, (meta.height/meta.width)*100 || 28.125));
-        mainPreview.innerHTML =
-          `<div class="ratio big" style="padding-top:${padPct}%">${iframeAttrs(meta.src,true,meta.title)}</div>`;
-      }catch(e){
-        mainPreview.innerHTML =
-          `<div class="ratio big" style="padding-top:28.125%">
-             <div class="big-placeholder">Couldn’t load Bandcamp via proxy. <a href="${url}" target="_blank" rel="noopener">Open on Bandcamp</a></div>
-           </div>`;
-      }
-      syncHeightsSoon();
-    }
+  }
+  $j = first_json($urls, $apiKey);
+  if (!$j) json_out(200,['schedules'=>[]]);
+  json_out(200,$j);
+}
 
-    function renderStrips(trackObjs){
-      stripList.innerHTML = '';
-
-      const bcCache = new Map();
-      const bcPromises = trackObjs
-        .map((t,i)=>({t,i}))
-        .filter(x=>x.t && x.t.kind==='bandcamp')
-        .map(({t,i}) => fetchBandcampOEmbed(t.url).then(m=>{ bcCache.set(i, m); }).catch(()=>{}));
-      Promise.allSettled(bcPromises).then(()=>{});
-
-      trackObjs.slice(0,5).forEach((track, i) => {
-        const el = document.createElement('div');
-        el.className = 'strip';
-
-        const selectThis = async () => {
-          $$('.strip').forEach(s=>s.classList.remove('selected'));
-          el.classList.add('selected');
-          try{
-            if (track.kind === 'bandcamp') {
-              const meta = bcCache.get(i) || await fetchBandcampOEmbed(track.url).catch(()=>null);
-              await setPreviewBandcamp(track.url, meta || undefined);
-            } else if (track.kind === 'youtube' || track.kind === 'iframe') {
-              setPreviewYouTube(track.src);
-            } else {
-              mainPreview.innerHTML = '<div class="big-placeholder">Unable to load track</div>';
-            }
-          }catch{
-            mainPreview.innerHTML = '<div class="big-placeholder">Unable to load track</div>';
-          }
-        };
-
-        if (track.kind === 'bandcamp') {
-          el.classList.add('bandcamp');
-          el.innerHTML = `<div class="bc-tile">
-              <div class="bc-badge">Bandcamp — click to load</div>
-              <div class="bc-title"></div>
-              <div class="bc-play">▶</div>
-            </div>`;
-          (async ()=>{
-            try{
-              const meta = bcCache.get(i) || await fetchBandcampOEmbed(track.url);
-              const tile  = el.querySelector('.bc-tile');
-              const title = el.querySelector('.bc-title');
-              if (tile && meta?.thumb) tile.style.backgroundImage = `url("${meta.thumb}")`;
-              if (title) title.textContent = meta?.title || 'Bandcamp';
-            }catch{}
-          })();
-          el.addEventListener('click', selectThis, { passive:true });
-        } else {
-          el.innerHTML = iframeAttrs(track.src,false,'Media preview') + '<div class="select-overlay" aria-hidden="true"></div>';
-          el.querySelector('.select-overlay').addEventListener('click', selectThis, { passive:true });
-        }
-
-        stripList.appendChild(el);
-      });
-
-      if (trackObjs.length && trackObjs[0].kind !== 'bandcamp') {
-        stripList.firstElementChild?.classList.add('selected');
-        setPreviewYouTube(trackObjs[0].src);
-      } else {
-        mainPreview.innerHTML = '<div class="big-placeholder">Select a track</div>';
-      }
-      syncHeightsSoon();
-    }
-
-    /* ---------- sizing sync ---------- */
-    function syncHeights(){
-      const ratio = mainPreview.querySelector('.ratio.big') || mainPreview.firstElementChild;
-      const h = (ratio && ratio.getBoundingClientRect().height) || mainPreview.getBoundingClientRect().height;
-      if (h > 0) {
-        stripList.style.height = h + 'px';
-        stripList.style.display = 'grid';
-        stripList.style.gridTemplateRows = 'repeat(5,1fr)';
-      }
-    }
-    const syncHeightsSoon = () => setTimeout(syncHeights, 60);
-    new ResizeObserver(syncHeights).observe(mainPreview);
-    window.addEventListener('resize', syncHeightsSoon);
-    setInterval(syncHeights, 800);
-
-    /* ---------- Admin (Shift+A) ---------- */
-    function buildAdminPanel(){
-      const panel=document.createElement('div'); panel.className='admin-panel';
-      panel.innerHTML=`
-        <div class="admin-head">
-          <strong>DJ SELECTS — Admin</strong>
-          <button id="x" class="admin-close" aria-label="Close">&times;</button>
-        </div>
-        <div class="admin-body">
-          <label>DJ Name<input id="aDj"></label>
-          <div class="two-col">
-            <label>Station ID<input id="aSt"></label>
-            <label>Publishable API Key (optional)<input id="aKey" placeholder="pk_..."></label>
-          </div>
-          <div class="two-col">
-            <label>Schedule type
-              <select id="aKind">
-                <option value="artist">Artist</option>
-                <option value="presenter">Presenter</option>
-              </select>
-            </label>
-            <label>Artist/Presenter ID (optional)
-              <input type="text" id="aId" placeholder="e.g. 25b0-...">
-            </label>
-          </div>
-          <label>Profile Image URL<input id="aImg"></label>
-          <div class="admin-subhead" style="margin:.5rem 0 .25rem;font-family:'Bebas Neue',sans-serif;font-size:1.3rem;">YouTube/Bandcamp Track URLs (up to 5)</div>
-          <div id="aTracks"></div>
-          <div class="admin-actions">
-            <button id="save" class="primary">Save</button>
-            <button id="logout" class="ghost">Logout</button>
-            <button id="reset" class="danger">Reset (local only)</button>
-          </div>
-        </div>`;
-      document.body.appendChild(panel);
-
-      panel.querySelector('#aDj').value  = shared.djName;
-      panel.querySelector('#aSt').value  = shared.stationId;
-      panel.querySelector('#aKey').value = shared.apiKey || '';
-      panel.querySelector('#aKind').value= shared.contributorKind;
-      panel.querySelector('#aId').value  = shared.contributorId || '';
-      panel.querySelector('#aImg').value = shared.profileImage || '';
-
-      const wrap=panel.querySelector('#aTracks');
-      const draw=()=>{ wrap.innerHTML=''; [...shared.tracks,'','','',''].slice(0,5).forEach(v=>{
-        const row=document.createElement('div'); row.className='track-input';
-        row.innerHTML=`<input type="url" value="${(v||'').replace(/"/g,'&quot;')}" placeholder="https://www.youtube.com/watch?v=... or Bandcamp URL">
-                       <button data-a="clear">Clear</button> <button data-a="paste">Paste</button>`;
-        row.querySelector('[data-a="clear"]').onclick=()=>row.querySelector('input').value='';
-        row.querySelector('[data-a="paste"]').onclick=async()=>{ try{ row.querySelector('input').value=await navigator.clipboard.readText(); }catch{} };
-        wrap.appendChild(row);
-      }); };
-      draw();
-
-      panel.querySelector('#x').onclick=()=>panel.classList.remove('open');
-
-      panel.querySelector('#save').onclick=async()=>{
-        shared.djName       = panel.querySelector('#aDj').value.trim()||shared.djName;
-        shared.stationId    = panel.querySelector('#aSt').value.trim()||shared.stationId;
-        shared.apiKey       = panel.querySelector('#aKey').value.trim();
-        shared.profileImage = panel.querySelector('#aImg').value.trim();
-        shared.contributorId   = panel.querySelector('#aId').value.trim();
-        shared.contributorKind = panel.querySelector('#aKind').value;
-        shared.tracks = $$('#aTracks input',panel).map(i=>i.value.trim()).filter(Boolean).slice(0,5);
-
-        localStorage.setItem('dj-selects-config', JSON.stringify(shared));
-        try{
-          const r=await fetch(`${CFG.CONFIG_ENDPOINT}?action=save`,{
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({token:CFG.SAVE_TOKEN,data:shared})
-          });
-          if(!r.ok) throw 0;
-          alert('Saved to server. Live for everyone.');
-        }catch{
-          alert('Saved locally. To save for everyone, ensure SAVE_TOKEN matches $SERVER_TOKEN in dj-selects-config.php.');
-        }
-        apply(); panel.classList.remove('open');
-      };
-
-      panel.querySelector('#logout').onclick=()=>{ sessionStorage.removeItem('dj-selects-auth'); alert('Logged out for this tab.'); panel.classList.remove('open'); };
-      panel.querySelector('#reset').onclick =()=>{ localStorage.removeItem('dj-selects-config'); alert('Local data cleared. Reloading…'); location.reload(); };
-
-      return panel;
-    }
-
-    async function authAndOpen(){
-      const pass = window.prompt('Enter admin passphrase:');
-      if(!pass) return;
-      const ok = await sha256hex(pass)===CFG.ADMIN_HASH_HEX;
-      if(!ok){ alert('Wrong passphrase.'); return; }
-      sessionStorage.setItem('dj-selects-auth','1');
-      let btn=document.querySelector('.admin-btn');
-      if(!btn){ btn=document.createElement('button'); btn.className='admin-btn'; btn.style.display='inline-flex'; btn.title='Admin'; btn.innerHTML='<i class="fa-solid fa-gear"></i>'; document.body.appendChild(btn); }
-      const panel = buildAdminPanel();
-      btn.onclick = ()=> panel.classList.add('open');
-      panel.classList.add('open');
-    }
-
-    function wireAdminHotkeys(){
-      document.addEventListener('keydown', async (e)=>{
-        if(e.key.toLowerCase()==='a' && e.shiftKey){
-          if(sessionStorage.getItem('dj-selects-auth')==='1'){
-            const existing=document.querySelector('.admin-panel');
-            if(existing){ existing.classList.add('open'); }
-            else { await authAndOpen(); }
-          } else {
-            await authAndOpen();
-          }
-        }
-      });
-      if(new URLSearchParams(location.search).get('admin')==='1'){ authAndOpen(); }
-    }
-
-    /* ---------- Apply current shared state ---------- */
-    function apply(){
-      djNameText.textContent = shared.djName || 'DJ NAME';
-      if(shared.profileImage) djProfile.src = shared.profileImage;
-
-      const trackObjs = (shared.tracks||[]).map(parseTrack).filter(Boolean);
-      renderStrips(trackObjs);
-
-      loadNextShow();
-    }
-
-    async function loadSharedConfig(){
-      let loaded=false;
-      try{
-        const r=await fetch(`${CFG.CONFIG_ENDPOINT}?action=load`,{cache:'no-store'});
-        if(r.ok){
-          const data=await r.json();
-          if(data && (data.djName || (Array.isArray(data.tracks)&&data.tracks.length))){
-            shared={...shared,...data};
-            loaded=true;
-          }
-        }
-      }catch{}
-      if(!loaded){
-        try{
-          const raw=localStorage.getItem('dj-selects-config');
-          if(raw){
-            const data=JSON.parse(raw);
-            if(data && (data.djName || (Array.isArray(data.tracks)&&data.tracks.length))){
-              shared={...shared,...data};
-              loaded=true;
-            }
-          }
-        }catch{}
-      }
-      return loaded;
-    }
-
-    /* ---------- boot ---------- */
-    window.addEventListener('DOMContentLoaded', async ()=>{
-      wireAdminHotkeys();
-      await loadSharedConfig();
-      await loadSelectorProfile();       // <- by slug (with proxy fallbacks)
-      apply();
-      setTimeout(()=>hero.style.setProperty('grid-template-columns','1fr minmax(360px,560px) minmax(380px,1fr)','important'), 0);
-      setTimeout(()=>{ const im=djProfile; if (im && !im.complete) im.addEventListener('load', ()=>hero.style.setProperty('grid-template-columns','1fr minmax(360px,560px) minmax(380px,1fr)','important'), {once:true}); }, 0);
-    });
-  })();
-  </script>
-</body>
-</html>
+json_out(400,['error'=>'Unknown fn']);

@@ -1,243 +1,158 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>DJ Selects – Cutters Choice Radio</title>
+<?php
+// rc-proxy.php — Radio Cult + Bandcamp helper
+declare(strict_types=1);
+header('Access-Control-Allow-Origin: *');
+header('Content-Type: application/json; charset=utf-8');
 
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+$fn = $_GET['fn'] ?? 'selector_by_tag';
 
-  <style>
-    :root{
-      --brand-teal:#5A8785; --bg:#000; --text:#fff; --muted:#b7d2d1;
-      --card:#0f0f0f; --line:#2a3c3b;
+/* ---------- helpers ---------- */
+function ok($data){ echo json_encode($data, JSON_UNESCAPED_SLASHES); exit; }
+function bad(int $code, string $msg){ http_response_code($code); ok(['error'=>$msg]); }
+
+function http_json(string $url, array $headers = [], int $timeout = 12){
+  $ch = curl_init($url);
+  curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_FOLLOWLOCATION => true,
+    CURLOPT_HTTPHEADER     => $headers,
+    CURLOPT_TIMEOUT        => $timeout,
+  ]);
+  $res  = curl_exec($ch);
+  $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+  curl_close($ch);
+  if ($code < 200 || $code >= 300 || $res === false) return null;
+  $j = json_decode($res, true);
+  return is_array($j) ? $j : null;
+}
+
+function rc(string $path, string $apiKey){
+  $base = 'https://api.radiocult.fm/api';
+  $h = ['Accept: application/json'];
+  if ($apiKey) $h[] = 'x-api-key: '.$apiKey;          // publishable key style from your Our DJs page
+  return http_json($base.$path, $h);
+}
+
+function pick_image($node){
+  if (!is_array($node)) return '';
+  if (isset($node['logo']['512x512'])) return $node['logo']['512x512'];
+  if (isset($node['logo']['default'])) return $node['logo']['default'];
+  if (isset($node['image'])) return $node['image'];
+  return '';
+}
+
+function norm_tags($t){
+  if (is_array($t)) return array_map('strtolower', $t);
+  if (is_string($t)) return array_map('strtolower', array_map('trim', explode(',', $t)));
+  return [];
+}
+
+/* ---------- bandcamp oembed ---------- */
+if ($fn === 'bandcamp_oembed') {
+  $url = $_GET['url'] ?? '';
+  if (!$url) bad(400,'Missing url');
+  $o = http_json('https://bandcamp.com/oembed?format=json&url='.rawurlencode($url));
+  if (!$o) bad(502,'Bandcamp oEmbed failed');
+  ok($o);
+}
+
+/* ---------- selector_by_tag / selector_profile (alias) ---------- */
+if ($fn === 'selector_by_tag' || $fn === 'selector_profile') {
+  $stationId = $_GET['stationId'] ?? '';
+  $apiKey    = $_GET['apiKey']    ?? '';
+  $tag       = strtolower($_GET['tag'] ?? 'selector');
+  $slugHint  = strtolower($_GET['slug'] ?? 'selector');
+
+  if (!$stationId) bad(400,'Missing stationId');
+
+  // 1) search artists list
+  $artists = rc("/station/$stationId/artists", $apiKey);
+  $pick = null; $kind = 'artist';
+  if ($artists) {
+    $items = $artists['artists'] ?? $artists['data'] ?? $artists;
+    if (is_array($items)) {
+      foreach ($items as $it) { if (in_array($tag, norm_tags($it['tags'] ?? []), true)) { $pick=$it; break; } }
+      if (!$pick) foreach ($items as $it) { if (strtolower($it['slug'] ?? '') === $slugHint) { $pick=$it; break; } }
     }
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{background:#000;color:#fff;font-family:Arial,Helvetica,sans-serif}
-    /* header + nav kept like your site */
-    header.header-banner{background:#000;padding:1rem 0;display:flex;align-items:center;justify-content:space-between}
-    header .logo{height:120px;width:auto}
-    header .title h1{font-family:'Bebas Neue',sans-serif;font-size:4.5rem;line-height:1;color:#fff;text-transform:uppercase}
-    header .title .tagline{color:var(--brand-teal)}
+  }
 
-    nav#main-nav{display:flex;justify-content:space-between;align-items:center;width:100%;background:var(--brand-teal);padding:.25rem .5rem}
-    #main-nav .nav-menu{display:flex;gap:1rem}
-    #main-nav .nav-link{color:#fff;font-family:'Bebas Neue',sans-serif;text-decoration:none;text-transform:uppercase;font-size:1.5rem}
-    .thin{height:2px;background:var(--brand-teal)}
-
-    /* ===== HERO ===== */
-    .djselects-hero{
-      display:grid;
-      grid-template-columns: 1fr auto 1.6fr;    /* small art column like your screenshot */
-      gap:.75rem; align-items:start;
-      border:2px solid var(--line); margin:.5rem; padding:.5rem; background:#000;
-    }
-    .hero-left .strap{
-      font-family:'Bebas Neue',sans-serif; font-size:1.05rem; letter-spacing:.5px;
-    }
-    .hero-left .weekline{margin-top:.5rem; font-family:'Bebas Neue',sans-serif; font-size:2.2rem; letter-spacing:.5px}
-    .hero-left .weekline #djNameText{color:var(--muted); text-transform:uppercase}
-    .profile-link{font-size:.9rem;color:var(--muted);text-decoration:none;border-bottom:1px solid var(--muted)}
-    .hero-art{display:flex;align-items:center;justify-content:center}
-    .hero-art img{
-      width:120px; height:120px; object-fit:cover; display:block;
-      border:2px solid var(--line);
-    }
-    .hero-bio{
-      min-height:90px; white-space:pre-line;  /* show line breaks from API */
-      font-size:.9rem; line-height:1.25; padding:.25rem .35rem; background:#0a0a0a; border:2px solid var(--line);
-    }
-
-    /* ===== Next bar ===== */
-    .nextbar{margin:.5rem}
-    .nextbar-inner{border:2px solid var(--line); padding:.35rem .55rem; display:flex; gap:1rem; align-items:center}
-    .nextbar .label{font-family:'Bebas Neue',sans-serif; font-size:1.1rem}
-    .nextbar .when{color:var(--muted)}
-
-    /* ===== Tracks compact layout (unchanged sizing) ===== */
-    main.compact-grid{
-      display:grid; grid-template-columns:260px 1fr; gap:.75rem; margin:.5rem;
-    }
-    .strip-list{
-      display:grid; grid-auto-rows: 84px; gap:.5rem; height:auto; overflow:auto;
-    }
-    .strip{display:grid; grid-template-columns:120px 1fr; gap:.5rem; padding:.35rem; border:2px solid var(--line); background:#0a0a0a; cursor:pointer}
-    .strip .thumb{position:relative}
-    .ratio{position:relative;width:100%}
-    .ratio.small{padding-top:56.25%}
-    .ratio.big{padding-top:56.25%}
-    .ratio iframe,.ratio img{position:absolute;inset:0;width:100%;height:100%}
-    .strip .meta{display:flex;align-items:center;font-size:.85rem;line-height:1.2}
-    .preview{border:2px solid var(--line); background:#0a0a0a; padding:.35rem}
-    .big-placeholder{color:#777; font-family:'Bebas Neue',sans-serif; font-size:1.2rem}
-
-    @media (max-width:900px){
-      .djselects-hero{grid-template-columns:1fr 120px 1fr}
-    }
-    @media (max-width:700px){
-      .djselects-hero{grid-template-columns:1fr}
-      .hero-bio{grid-column:1/-1}
-    }
-  </style>
-</head>
-<body>
-  <!-- Header -->
-  <header class="header-banner">
-    <div class="logo-container"><img class="logo" src="/images/logo.png" alt=""></div>
-    <div class="title"><h1>Cutters Choice Radio</h1><p class="tagline">The home of relentless flavas and significant bangers!</p></div>
-    <div class="logo-container"><img class="logo" src="/images/logo.png" alt=""></div>
-  </header>
-
-  <div class="thin"></div>
-
-  <!-- Nav -->
-  <nav id="main-nav">
-    <div class="nav-menu">
-      <a href="our-story.html" class="nav-link">OUR STORY</a>
-      <a href="index.html" class="nav-link">HOME</a>
-      <a href="index-ourDJS.html" class="nav-link">OUR DJS</a>
-      <a href="schedule.html" class="nav-link">SCHEDULE</a>
-      <a href="merch.html"   class="nav-link">MERCH</a>
-    </div>
-    <div class="nav-actions"></div>
-  </nav>
-
-  <div class="thin"></div>
-
-  <!-- HERO -->
-  <section class="djselects-hero" id="djHero">
-    <div class="hero-left">
-      <div class="strap">EACH WEEK IN A NON SPECIFIC ORDER A DIFFERENT CUTTERS DJ SELECTS THEIR 5 TRACKS OF THE WEEK</div>
-      <div class="weekline">
-        THIS WEEKS CUTTERS DJ SELECTOR :
-        <span id="djNameText">—</span>
-        <a id="djProfileLink" class="profile-link" href="#" target="_blank" rel="noopener" style="margin-left:.6rem;display:none">DJ profile</a>
-      </div>
-    </div>
-    <div class="hero-art"><img id="djProfileThumb" src="/images/default-dj.png" alt="DJ profile" /></div>
-    <div class="hero-bio" id="djBio">—</div>
-  </section>
-
-  <!-- NEXT SCHEDULED SHOW -->
-  <section class="nextbar">
-    <div class="nextbar-inner">
-      <span class="label">NEXT SCHEDULED SHOW</span>
-      <span class="when" id="nextShowWhen">Loading…</span>
-    </div>
-  </section>
-
-  <!-- TRACKS -->
-  <main class="compact-grid">
-    <aside id="stripList" class="strip-list"></aside>
-    <section class="preview" id="mainPreview" aria-live="polite">
-      <div class="big-placeholder">Select a track</div>
-    </section>
-  </main>
-
-  <!-- Config -->
-  <script>
-    window.DJ_SELECTS = {
-      CONFIG_ENDPOINT: 'dj-selects-config.php',
-      PROXY_ENDPOINT:  'rc-proxy.php',
-      RADIO_CULT_PUBLISHABLE_KEY: 'pk_0b8abc6f834b444f949f727e88a728e0',
-      STATION_ID: 'cutters-choice-radio',
-      SELECTOR_SLUG: 'selector'
-    };
-  </script>
-
-  <script>
-  (() => {
-    const CFG = window.DJ_SELECTS;
-    const $  = (s,r=document)=>r.querySelector(s);
-
-    const stripList   = $('#stripList');
-    const mainPreview = $('#mainPreview');
-    const djNameText  = $('#djNameText');
-    const djProfile   = $('#djProfileThumb');
-    const djBioBox    = $('#djBio');
-    const nextWhen    = $('#nextShowWhen');
-    const profileLink = $('#djProfileLink');
-
-    const fmtLocal = iso => {
-      try{
-        const d=new Date(iso);
-        return d.toLocaleString(undefined,{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:false,timeZoneName:'short'});
-      }catch{return '';}
-    };
-    const fetchJSON = async url => {
-      const r = await fetch(url, {headers:{'Accept':'application/json'}, cache:'no-store'});
-      if(!r.ok) throw new Error(String(r.status));
-      return r.json();
-    };
-
-    async function loadSelectorFromTag(){
-      // ✅ call the function the PHP actually provides (selector_by_tag) – not selector_profile :contentReference[oaicite:2]{index=2} :contentReference[oaicite:3]{index=3}
-      const base = CFG.PROXY_ENDPOINT;
-      const url  = `${base}?fn=selector_by_tag&stationId=${encodeURIComponent(CFG.STATION_ID)}&tag=SELECTOR&apiKey=${encodeURIComponent(CFG.RADIO_CULT_PUBLISHABLE_KEY||'')}`;
-      const j    = await fetchJSON(url);
-
-      // name + art
-      const name = (j.displayName||j.name||'').toString();
-      if(name) djNameText.textContent = name;
-      if(j.image) djProfile.src = j.image;
-
-      // description (artist profile info -> right column)
-      const desc = (j.description||'').toString().trim();
-      djBioBox.textContent = desc || '—';
-
-      // profile link
-      if(j.shareUrl){ profileLink.href=j.shareUrl; profileLink.style.display='inline-block'; }
-
-      // next scheduled show (proxy already computed it)
-      if(j.nextShow && j.nextShow.start){
-        nextWhen.textContent = fmtLocal(j.nextShow.start) || 'TBA';
-      }else{
-        nextWhen.textContent = 'TBA';
+  // 2) fallback to presenters
+  if (!$pick) {
+    $presenters = rc("/station/$stationId/presenters", $apiKey);
+    if ($presenters) {
+      $items = $presenters['presenters'] ?? $presenters['data'] ?? $presenters;
+      if (is_array($items)) {
+        foreach ($items as $it) { if (in_array($tag, norm_tags($it['tags'] ?? []), true)) { $pick=$it; $kind='presenter'; break; } }
+        if (!$pick) foreach ($items as $it) { if (strtolower($it['slug'] ?? '') === $slugHint) { $pick=$it; $kind='presenter'; break; } }
       }
     }
+  }
 
-    // Minimal strip rendering (keeps your original compact sizes)
-    function parseTrack(t){
-      if(!t) return null;
-      const s=String(t);
-      // Accept full YouTube URL or id
-      const id = s.match(/(?:v=|youtu\.be\/)([A-Za-z0-9_\-]{6,})/)?.[1] || s;
-      return {id, title:'', thumb:`https://i.ytimg.com/vi/${id}/mqdefault.jpg`};
-    }
-    function renderStrips(list){
-      stripList.innerHTML='';
-      list.slice(0,5).forEach((x,i)=>{
-        const el=document.createElement('div');
-        el.className='strip';
-        el.innerHTML=`
-          <div class="thumb"><div class="ratio small"><img alt="" src="${x.thumb}"></div></div>
-          <div class="meta">${x.title||'Track '+(i+1)}</div>`;
-        el.addEventListener('click',()=>showMain(x.id));
-        stripList.appendChild(el);
-      });
-    }
-    function showMain(yid){
-      mainPreview.innerHTML=`
-        <div class="ratio big">
-          <iframe src="https://www.youtube.com/embed/${yid}" title="YouTube video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
-        </div>`;
-    }
+  if (!$pick) bad(404,'No artist/presenter with tag or slug "selector" found');
 
-    async function loadSavedTracks(){
-      try{
-        const r=await fetch(`${CFG.CONFIG_ENDPOINT}?action=load`,{cache:'no-store'});
-        if(!r.ok) return [];
-        const j=await r.json();
-        return Array.isArray(j.tracks) ? j.tracks.map(parseTrack).filter(Boolean) : [];
-      }catch{return [];}
-    }
+  $id   = $pick['id']   ?? '';
+  $slug = $pick['slug'] ?? $slugHint;
 
-    window.addEventListener('DOMContentLoaded', async ()=>{
-      await loadSelectorFromTag();                       // pull SELECTOR artist/presenter
-      const tracks = await loadSavedTracks();            // keep your saved track list
-      renderStrips(tracks);
-    });
-  })();
-  </script>
-</body>
-</html>
+  // 3) fetch full detail (description, socials, shareUrl)
+  $detail = rc("/station/$stationId/".($kind==='presenter'?'presenters':'artists')."/$id", $apiKey);
+  $node   = $detail['artist'] ?? $detail['presenter'] ?? $detail['data'] ?? $detail ?? [];
+
+  // 4) fetch schedule to compute next show
+  $now = rawurlencode(gmdate('c'));
+  $end = rawurlencode(gmdate('c', time()+365*24*60*60));
+  $sched = rc("/station/$stationId/".($kind==='presenter'?'presenters':'artists')."/$id/schedule?startDate=$now&endDate=$end", $apiKey);
+  $schedules = $sched['schedules'] ?? $sched['data'] ?? $sched['items'] ?? [];
+  $next = null;
+  if (is_array($schedules) && count($schedules)) {
+    $getIso = function($s){ return $s['startDateUtc'] ?? $s['startDate'] ?? $s['start'] ?? $s['scheduledStart'] ?? $s['start_time'] ?? null; };
+    usort($schedules, function($a,$b) use($getIso){ return strcmp($getIso($a) ?? '', $getIso($b) ?? ''); });
+    foreach ($schedules as $s) {
+      $iso = $getIso($s);
+      if ($iso && strtotime($iso) > time()) { $next = ['start'=>$iso] + $s; break; }
+    }
+    if (!$next) { $s = $schedules[0]; $iso = $getIso($s); if ($iso) $next = ['start'=>$iso] + $s; }
+  }
+
+  // 5) socials: pass through whatever the API gives
+  $socials = $node['socials'] ?? $node['links'] ?? $node['contact'] ?? [];
+
+  $out = [
+    'kind'        => $kind,
+    'id'          => $id,
+    'slug'        => $slug,
+    'name'        => $pick['name'] ?? $node['name'] ?? '',
+    'image'       => pick_image($pick ?: $node),
+    'description' => $node['description'] ?? $node['bio'] ?? $pick['description'] ?? '',
+    'shareUrl'    => $node['shareUrl'] ?? $pick['shareUrl'] ?? '',
+    'socials'     => $socials,
+    'nextShow'    => $next,
+  ];
+  ok($out);
+}
+
+/* ---------- smart_schedule (kept for back-compat) ---------- */
+if ($fn === 'smart_schedule') {
+  $stationId = $_GET['stationId'] ?? '';
+  $apiKey    = $_GET['apiKey']    ?? '';
+  $kindParam = strtolower($_GET['kind'] ?? 'artist');     // 'artist' or 'presenter'
+  $kindPath  = ($kindParam === 'presenter') ? 'presenters' : 'artists';
+  $id        = $_GET['id'] ?? '';
+  $slug      = $_GET['slug'] ?? '';
+  $start     = $_GET['startDate'] ?? gmdate('c');
+  $end       = $_GET['endDate']   ?? gmdate('c', time()+365*24*60*60);
+  $limit     = (int)($_GET['limit'] ?? 200);
+
+  if (!$stationId) bad(400,'Missing stationId');
+
+  $path = '';
+  if ($id)   $path = "/station/$stationId/$kindPath/$id/schedule?startDate=".rawurlencode($start)."&endDate=".rawurlencode($end)."&limit=$limit";
+  if (!$path && $slug) $path = "/station/$stationId/$kindPath/slug/$slug/schedule?startDate=".rawurlencode($start)."&endDate=".rawurlencode($end)."&limit=$limit";
+  if (!$path)  bad(400,'Missing id or slug');
+
+  $j = rc($path, $apiKey);
+  if (!$j) bad(502,'Upstream schedule failed');
+  ok($j);
+}
+
+/* ---------- unknown ---------- */
+bad(400,'Unknown fn');

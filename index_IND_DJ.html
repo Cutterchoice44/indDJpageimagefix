@@ -15,18 +15,18 @@
   <style>
     :root { --brand-teal:#5A8785; }
 
-    /* ── Condensed hero (ref image 7) ─────────────────────────────────── */
+    /* ── Condensed hero (same layout, tighter + 30% bigger headline) ── */
     .djselects-hero{
       padding:.45rem .6rem .25rem;
       border:2px solid var(--brand-teal); border-left:0;border-right:0;
       margin-bottom:.35rem;
       display:grid;
-      grid-template-columns:1.2fr auto 1.2fr; /* tighter proportions */
-      gap:.55rem; align-items:center;
-      row-gap:.35rem;
+      grid-template-columns:1.2fr auto 1.2fr;
+      gap:.55rem; align-items:center; row-gap:.35rem;
     }
     .strap{ font-family:'Bebas Neue',sans-serif; font-size:clamp(.95rem,1.7vw,1.15rem); line-height:1.05; }
-    .weekline{ font-family:'Bebas Neue',sans-serif; font-size:clamp(2.1rem,4.8vw,3.1rem); line-height:1; margin-top:.15rem; }
+    /* +30% from previous values */
+    .weekline{ font-family:'Bebas Neue',sans-serif; font-size:clamp(2.73rem,6.24vw,4.03rem); line-height:1; margin-top:.15rem; }
     #djNameText{ color:var(--brand-teal); }
 
     .hero-art{ display:flex; align-items:center; justify-content:center; }
@@ -41,6 +41,11 @@
     }
     .hero-bio{ font-size:clamp(1rem,1.8vw,1.1rem); line-height:1.38; }
     .hero-bio p{ margin:.25rem 0 .45rem; }
+    /* auto-condense hooks */
+    .hero-bio.compact p{ margin:.18rem 0 .34rem; }
+    .hero-bio.tight   { font-size:clamp(.95rem,1.6vw,1.02rem); }
+    .hero-bio.tight p { margin:.14rem 0 .26rem; }
+
     .profile-topline{ display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; margin-bottom:.2rem; }
     .profile-link{
       display:inline-block; font-size:.88rem; border:1px solid #335d5b; padding:.16rem .4rem;
@@ -55,7 +60,7 @@
     }
     .socials a:hover{ box-shadow:inset 0 0 0 2px var(--brand-teal); }
 
-    /* ── Next bar (tight) ─────────────────────────────────────────────── */
+    /* ── Next bar (tight) ── */
     .nextbar{ margin:.25rem .6rem .55rem; }
     .nextbar-inner{
       display:flex; align-items:center; gap:.8rem;
@@ -65,28 +70,24 @@
     .nextbar .label{ font-family:'Bebas Neue',sans-serif; font-size:clamp(1rem,2vw,1.35rem); }
     .nextbar .when { font-family:'Bebas Neue',sans-serif; font-size:clamp(1.05rem,2.2vw,1.45rem); color:var(--brand-teal); }
 
-    /* ── Tracks and preview ───────────────────────────────────────────── */
+    /* ── Tracks + preview ── */
     .compact-grid{ display:grid; grid-template-columns:300px minmax(0,1fr); gap:.6rem; padding:0 .6rem 1rem; }
 
-    /* Classic left strips */
     .strip-list{ display:grid; grid-template-rows:repeat(5,1fr); gap:.45rem; }
     .strip{ border:1px solid #264745; background:#0a0a0a; border-radius:6px; overflow:hidden; position:relative; }
     .strip.selected{ outline:2px solid var(--brand-teal); }
     .strip iframe{ width:100%; height:100%; border:0; display:block; }
     .strip .overlayBtn{ position:absolute; inset:0; appearance:none; background:transparent; border:0; cursor:pointer; }
 
-    /* Preview: smaller so entire layout fits one screen (ref image 6) */
     .preview iframe{
       width:100%;
       aspect-ratio:16/9;
       height:auto;
-      max-height:46vh; /* ↓ from 55vh to make whole page sit nicely */
+      max-height:46vh;   /* lets the whole screen fit comfortably */
       border:0;
       display:block;
     }
-    .big-placeholder{
-      font-family:'Bebas Neue',sans-serif; color:#6fa39f; font-size:clamp(1rem,1.8vw,1.25rem); padding:.6rem;
-    }
+    .big-placeholder{ font-family:'Bebas Neue',sans-serif; color:#6fa39f; font-size:clamp(1rem,1.8vw,1.25rem); padding:.6rem; }
 
     /* Bandcamp tile */
     .strip.bandcamp{ min-height:76px; }
@@ -109,12 +110,11 @@
       .strip-list{ grid-template-rows:repeat(5,76px); }
     }
 
-    /* ── Admin overlay ────────────────────────────────────────────────── */
+    /* ── Admin overlay ── */
     .adminHidden{ display:none!important; }
     #adminOverlay{ position:fixed; inset:0; background:rgba(0,0,0,.82); color:#fff; z-index:9999; display:flex; align-items:center; justify-content:center; }
     #adminPanel{ width:min(840px,92vw); max-height:90vh; overflow:auto; background:#0e1414; border:2px solid var(--brand-teal); border-radius:10px; padding:16px; box-shadow:0 12px 40px rgba(0,0,0,.55); }
     #adminPanel h3{ font-family:'Bebas Neue',sans-serif; letter-spacing:.5px; margin:0 0 6px; }
-    #adminPanel p.hint b{ font-weight:700; }
     #adminPanel textarea{ width:100%; height:200px; background:#050808; color:#eaffff; border:1px solid #2a5653; border-radius:6px; padding:8px; }
     #adminPanel .row{ display:flex; gap:8px; margin-top:10px; align-items:center; }
     #adminPanel button{ padding:10px 14px; border-radius:6px; border:1px solid #2a5653; background:#0b2322; color:#eaffff; cursor:pointer; }
@@ -184,7 +184,7 @@
 
   <script>
     window.DJ_SELECTS = {
-      CONFIG_ENDPOINT: 'dj-selects-config.php', // server JSON gateway
+      CONFIG_ENDPOINT: 'dj-selects-config.php',
       PROXY_ENDPOINT:  'rc-proxy.php',
       // passphrase = ccr2025!
       ADMIN_HASH_HEX: '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e'
@@ -288,6 +288,8 @@
       djNameText.textContent=state.selector.name||'';
       if(state.selector.image) djProfile.src=state.selector.image;
       djBioBox.innerHTML = formatBioHTML(state.selector.description||'');
+      autoCondenseBio();  // ← new: tighten spacing/font if needed
+
       if(state.selector.shareUrl){ profileLink.href=state.selector.shareUrl; profileLink.style.display='inline-block'; }
 
       socialsBox.innerHTML='';
@@ -295,6 +297,14 @@
       add(S.twitter,'X / Twitter','fa-brands fa-x-twitter'); add(S.instagram,'Instagram','fa-brands fa-instagram');
       add(S.facebook,'Facebook','fa-brands fa-facebook-f'); add(S.mixcloud,'Mixcloud','fa-brands fa-mixcloud');
       add(S.soundcloud,'SoundCloud','fa-brands fa-soundcloud'); add(S.website,'Website','fa-solid fa-globe'); add(S.email,'Email','fa-solid fa-envelope');
+    }
+
+    /* Automatically tighten bio layout if it gets long */
+    function autoCondenseBio(){
+      const p = djBioBox.querySelectorAll('p').length;
+      djBioBox.classList.remove('compact','tight');
+      if (p >= 5) djBioBox.classList.add('tight');
+      else if (p >= 3) djBioBox.classList.add('compact');
     }
 
     /* Next scheduled show */
@@ -312,7 +322,7 @@
       }catch{ nextWhen.textContent='Unable to load schedule'; }
     }
 
-    /* Load track config (server → fallback json file → localStorage) */
+    /* Load track config (server → fallback JSON file → localStorage) */
     async function loadConfig(){
       let ok=false;
       try{
@@ -320,7 +330,7 @@
         if(r.ok){ const j=await r.json(); if(Array.isArray(j?.tracks)){ state.tracks=j.tracks.slice(0,5); ok=true; } }
       }catch{}
       if(!ok){
-        try{ const r=await fetch('dj-selects-data.json',{cache:'no-store'}); if(r.ok){ const j=await r.json(); if(Array.isArray(j?.tracks)){ state.tracks=j.tracks.slice(0,5); ok=true; } } }catch{}
+        try{ const r=await fetch('dj-selects-data.json',{cache:'no-store'}); if(r.ok){ const j=await r.json(); if(Array.isArray(j?.tracks)) { state.tracks=j.tracks.slice(0,5); ok=true; } } }catch{}
       }
       if(!ok){
         try{ const s=localStorage.getItem('djselects_tracks'); if(s){ const a=JSON.parse(s); if(Array.isArray(a)) state.tracks=a.slice(0,5); } }catch{}
@@ -344,7 +354,7 @@
     const bcOEmbed=async(url)=>{ if(bcCache.has(url)) return bcCache.get(url);
       const r=await fetch(`${CFG.PROXY_ENDPOINT}?fn=bandcamp_oembed&url=${encodeURIComponent(url)}`); const text=await r.text(); let j={};
       try{ j=JSON.parse(text);}catch{ throw new Error(text||'Proxy error'); }
-      const meta={ title:j?.title||'Bandcamp', thumb:j?.thumbnail_url||'', src:(()=>{const html=String(j?.html||''); const m=html.match(/src=["']([^"']+)["']/i); return m?m[1]:'';})() };
+      const meta={ title:j?.title||'Bandcamp', thumb=j?.thumbnail_url||'', src:(()=>{const html=String(j?.html||''); const m=html.match(/src=["']([^"']+)["']/i); return m?m[1]:'';})() };
       bcCache.set(url,meta); return meta; };
 
     function setPreview(t){ if(t.kind==='bandcamp'){ setPreviewBC(t.url); } else { mainPreview.innerHTML=iframe(t.src,'YouTube player'); } }

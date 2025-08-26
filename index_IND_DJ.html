@@ -1,47 +1,132 @@
 <?php
-// dj-selects-config.php
+// rc-proxy.php
 declare(strict_types=1);
 header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json; charset=utf-8');
 
-$ACTION       = $_GET['action'] ?? 'load';
-$CONFIG_PATH  = __DIR__ . '/dj-selects-config.json';
-$SERVER_TOKEN = 'CCR_TEMP_TOKEN_!2025'; // <-- MUST match window.DJ_SELECTS.SAVE_TOKEN in the HTML
+$fn = $_GET['fn'] ?? '';
 
-if ($ACTION === 'load') {
-  if (is_file($CONFIG_PATH)) {
-    $raw = file_get_contents($CONFIG_PATH);
-    echo $raw !== false ? $raw : '{}';
-  } else {
-    echo '{}';
-  }
-  exit;
+function http_json(string $url, array $headers = []) {
+  $ch = curl_init($url);
+  curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_FOLLOWLOCATION => true,
+    CURLOPT_HTTPHEADER     => $headers,
+    CURLOPT_TIMEOUT        => 12,
+  ]);
+  $res = curl_exec($ch);
+  $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+  curl_close($ch);
+  if ($code < 200 || $code >= 300 || $res === false) return null;
+  $j = json_decode($res, true);
+  return is_array($j) ? $j : null;
 }
 
-if ($ACTION === 'save') {
-  $input = json_decode(file_get_contents('php://input') ?: '{}', true);
-  if (!is_array($input) || ($input['token'] ?? '') !== $SERVER_TOKEN) {
-    http_response_code(403);
-    echo json_encode(['error'=>'Forbidden']);
-    exit;
-  }
-  $data = $input['data'] ?? [];
-  if (!is_array($data)) $data = [];
+function ok($data){ echo json_encode($data, JSON_UNESCAPED_SLASHES); exit; }
+function bad($code, $msg){ http_response_code($code); ok(['error'=>$msg]); }
 
-  // minimal schema hardening – only allow expected keys
-  $allow = ['djName','profileImage','stationId','apiKey','tracks','contributorId','contributorSlug','contributorKind'];
-  $clean = [];
-  foreach ($allow as $k) {
-    if (isset($data[$k])) $clean[$k] = $data[$k];
-  }
-
-  // write atomically
-  $tmp = $CONFIG_PATH . '.tmp';
-  file_put_contents($tmp, json_encode($clean, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES));
-  rename($tmp, $CONFIG_PATH);
-
-  echo json_encode(['ok'=>true]);
-  exit;
+if ($fn === 'bandcamp_oembed') {
+  $url = $_GET['url'] ?? '';
+  if (!$url) bad(400,'Missing url');
+  $o = http_json('https://bandcamp.com/oembed?format=json&url='.rawurlencode($url));
+  if (!$o) bad(502,'Bandcamp oEmbed failed');
+  ok($o);
 }
 
-echo '{}';
+/**
+ * Best-effort Radio Cult calls.
+ * We allow only api hosts that contain "radiocult".
+ * Header tries Bearer pk_... which is how the publishable key is typically sent.
+ */
+function rc_try(string $path, string $apiKey) {
+  $hosts = [
+    'https://api.radiocult.fm',        // primary guess
+    'https://api.radiocult.app',       // alt
+    'https://api.radiocult.live'       // alt
+  ];
+  $h = [];
+  if ($apiKey) $h[] = 'Authorization: Bearer '.$apiKey;
+  $h[] = 'Accept: application/json';
+  foreach ($hosts as $base) {
+    $j = http_json($base.$path, $h);
+    if ($j) return $j;
+  }
+  return null;
+}
+
+if ($fn === 'selector_profile') {
+  $stationId = $_GET['stationId'] ?? '';
+  $slug      = strtolower($_GET['slug'] ?? 'selector');
+  $apiKey    = $_GET['apiKey'] ?? '';
+
+  if (!$stationId) bad(400,'Missing stationId');
+
+  // 1) artists list
+  $artists = rc_try("/station/$stationId/artists", $apiKey)
+          ?: rc_try("/stations/$stationId/artists", $apiKey);
+
+  $presenters = rc_try("/station/$stationId/presenters", $apiKey)
+             ?: rc_try("/stations/$stationId/presenters", $apiKey);
+
+  $pick = null; $kind = 'artist';
+
+  $scan = function($arr) use ($slug){
+    if (!is_array($arr)) return null;
+    $items = $arr['data'] ?? $arr['items'] ?? $arr; // flexible
+    if (!is_array($items)) return null;
+    // prefer tag "selector"
+    foreach ($items as $it) {
+      $tags = array_map('strtolower', (array)($it['tags'] ?? $it['tagList'] ?? []));
+      if (in_array('selector', $tags, true)) return $it;
+    }
+    // fallback: slug equals "selector"
+    foreach ($items as $it) {
+      $s = strtolower($it['slug'] ?? $it['idSlug'] ?? '');
+      if ($s === $slug) return $it;
+    }
+    return null;
+  };
+
+  if (!$pick && $artists)   { $pick = $scan($artists);   $kind='artist'; }
+  if (!$pick && $presenters){ $pick = $scan($presenters); $kind='presenter'; }
+
+  if (!$pick) bad(404,'No selector found');
+
+  $img = $pick['logo']['512x512'] ?? $pick['logo']['default'] ?? $pick['image'] ?? '';
+  $out = [
+    'kind'        => $kind,
+    'id'          => $pick['id'] ?? '',
+    'slug'        => $pick['slug'] ?? '',
+    'name'        => $pick['name'] ?? '',
+    'image'       => $img,
+    'description' => $pick['description'] ?? $pick['bio'] ?? '',
+    'shareUrl'    => $pick['shareUrl'] ?? ''
+  ];
+  ok($out);
+}
+
+if ($fn === 'smart_schedule') {
+  $stationId = $_GET['stationId'] ?? '';
+  $kind      = ($_GET['kind'] ?? 'artist') === 'presenter' ? 'presenters' : 'artists';
+  $id        = $_GET['id'] ?? '';
+  $slug      = $_GET['slug'] ?? '';
+  $apiKey    = $_GET['apiKey'] ?? '';
+  $start     = rawurlencode($_GET['startDate'] ?? '');
+  $end       = rawurlencode($_GET['endDate'] ?? '');
+  $limit     = rawurlencode($_GET['limit'] ?? '200');
+
+  if (!$stationId) bad(400,'Missing stationId');
+
+  $paths = [];
+  if ($id)   $paths[] = "/station/$stationId/$kind/$id/schedule?startDate=$start&endDate=$end&limit=$limit";
+  if ($slug) $paths[] = "/station/$stationId/$kind/slug/$slug/schedule?startDate=$start&endDate=$end&limit=$limit";
+  if (!$id && !$slug) $paths[] = "/station/$stationId/$kind/schedule?startDate=$start&endDate=$end&limit=$limit";
+
+  foreach ($paths as $p) {
+    $j = rc_try($p, $apiKey);
+    if ($j && (isset($j['schedules']) || isset($j['data']) || isset($j['items']))) ok($j);
+  }
+  bad(502,'Upstream schedule failed');
+}
+
+bad(400,'Unknown fn');

@@ -1,99 +1,98 @@
-<?php
-// rc-proxy.php — minimal, JSON-only proxy
-// Pulls the public "share" page for slug=selector, extracts name, art, description,
-// and the next upcoming show (from JSON-LD). No API keys required.
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cutters Choice Radio — DJ Selects</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+  :root{ --teal:#5A8785 }
+  body{ margin:0; background:#0a0a0a; color:#e8f6f5; font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif }
+  header h1{ margin:.6rem 0 0; text-align:center; font-family:'Bebas Neue',sans-serif; font-size:3.2rem }
+  header p{ margin:0 0 .6rem; text-align:center; color:#a7d0cc }
+  .bar{ height:2px; background:var(--teal) }
+  .hero{ display:grid; grid-template-columns: 1fr minmax(360px,560px) minmax(380px,1fr) !important;
+         gap:.6rem; align-items:end; padding:.6rem .75rem .35rem; border:2px solid var(--teal); border-left:0;border-right:0 }
+  .strap{ font-family:'Bebas Neue',sans-serif; letter-spacing:.2px }
+  .big{ font-family:'Bebas Neue',sans-serif; font-size:3.3rem; line-height:1 }
+  #djName{ color:var(--teal) }
+  .art img{ width:100%; height:auto; border:2px solid var(--teal); border-radius:4px; background:#000; min-height:130px }
+  .bio{ background:#0b0b0b; border:2px solid var(--teal); border-radius:6px; padding:.55rem .65rem; min-height:100% }
+  .profile{ display:none; font-size:.8rem; border:1px solid #335d5b; padding:.2rem .4rem; border-radius:4px; background:#0b0b0b; color:#dff; text-decoration:none; margin-left:.6rem }
+  .next{ margin:.35rem .6rem .6rem; background:#0b0b0b; border:2px solid var(--teal); border-radius:6px; padding:.45rem .6rem; display:flex; gap:1rem; align-items:center }
+  .next .label{ font-family:'Bebas Neue',sans-serif }
+  .next .when{ font-family:'Bebas Neue',sans-serif; color:var(--teal); font-size:1.3rem }
+  @media (max-width:960px){ .hero{ grid-template-columns:1fr minmax(220px,36vw) 1fr !important } .big{ font-size:2.6rem } }
+</style>
+</head>
+<body>
+  <header>
+    <h1>CUTTERS CHOICE RADIO</h1>
+    <p>The home of relentless flavas and significant bangers!</p>
+  </header>
+  <div class="bar"></div>
 
-declare(strict_types=1);
+  <section class="hero" id="hero">
+    <div>
+      <div class="strap">EACH WEEK IN A NON SPECIFIC ORDER A DIFFERENT CUTTERS DJ SELECTS THEIR 5 TRACKS OF THE WEEK</div>
+      <div class="big">
+        THIS WEEKS CUTTERS DJ SELECTOR : <span id="djName">DJ NAME</span>
+        <a id="djLink" class="profile" target="_blank" rel="noopener">DJ profile</a>
+      </div>
+    </div>
+    <div class="art">
+      <img id="djImg" src="/images/default-dj.png"
+           onerror="this.onerror=null;this.src='https://dummyimage.com/560x560/000/5a8785.png&text=DJ';" alt="">
+    </div>
+    <div class="bio" id="djBio">Loading selector description…</div>
+  </section>
 
-// CORS + JSON
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, OPTIONS');
-header('Access-Control-Allow-Headers: Accept, Content-Type');
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') exit;
-header('Content-Type: application/json; charset=utf-8');
+  <section class="next">
+    <div class="label">NEXT SCHEDULED SHOW</div>
+    <div class="when" id="nextWhen">Loading…</div>
+  </section>
 
-function respond(int $code, array $obj){ http_response_code($code); echo json_encode($obj, JSON_UNESCAPED_SLASHES); exit; }
-function ok(array $data){ respond(200, ['ok'=>true] + $data); }
-function fail(int $code, string $msg, array $extra=[]){ respond($code, ['ok'=>false,'error'=>$msg] + $extra); }
+<script>
+const PROXY = 'rc-proxy.php';
+const STATION_ID = 'cutters-choice-radio';
+const SELECTOR_SLUG = 'selector';
 
-function http_get(string $url): ?string {
-  // curl first
-  if (function_exists('curl_init')) {
-    $ch = curl_init($url);
-    curl_setopt_array($ch, [
-      CURLOPT_RETURNTRANSFER=>true,
-      CURLOPT_FOLLOWLOCATION=>true,
-      CURLOPT_TIMEOUT=>20,
-      CURLOPT_CONNECTTIMEOUT=>8,
-      CURLOPT_HTTPHEADER=>['User-Agent: CCR-Proxy/1.0','Accept: text/html,application/xhtml+xml']
-    ]);
-    $body=curl_exec($ch);
-    $code=(int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-    if ($code>=200 && $code<400 && is_string($body)) return $body;
+const djName  = document.getElementById('djName');
+const djImg   = document.getElementById('djImg');
+const djBio   = document.getElementById('djBio');
+const djLink  = document.getElementById('djLink');
+const nextWhen= document.getElementById('nextWhen');
+
+function fmt(iso){
+  try{
+    return new Date(iso).toLocaleString(undefined,{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:false,timeZoneName:'short'});
+  }catch{ return ''; }
+}
+
+(async function init(){
+  try{
+    const url = `${PROXY}?fn=selector&stationId=${encodeURIComponent(STATION_ID)}&slug=${encodeURIComponent(SELECTOR_SLUG)}`;
+    const r   = await fetch(url, {cache:'no-store'});
+    const txt = await r.text();              // robust in case server sets wrong header
+    let data; try{ data = JSON.parse(txt); } // ensure JSON
+    catch(e){ console.error('Proxy returned non-JSON:', txt); throw e; }
+    if (!data.ok) throw new Error(data.error||'proxy error');
+
+    djName.textContent = data.displayName || data.name || 'DJ';
+    if (data.image) djImg.src = data.image;
+    djBio.textContent = (data.description||'').trim() || '—';
+    if (data.shareUrl){ djLink.href = data.shareUrl; djLink.style.display='inline-block'; }
+    if (data.nextShow && data.nextShow.start) nextWhen.textContent = fmt(data.nextShow.start);
+    else nextWhen.textContent = 'No upcoming show found';
+  }catch(err){
+    console.error(err);
+    djBio.textContent   = 'Could not load SELECTOR profile.';
+    nextWhen.textContent= 'Unable to load schedule';
   }
-  // fallback
-  $ctx=stream_context_create(['http'=>['method'=>'GET','header'=>"User-Agent: CCR-Proxy/1.0\r\nAccept: text/html,application/xhtml+xml\r\n",'timeout'=>20]]);
-  $body=@file_get_contents($url,false,$ctx);
-  return is_string($body)?$body:null;
-}
-function meta(string $html,string $prop,string $attr='property'):string{
-  return preg_match('~'.$attr.'=["\']'.preg_quote($prop,'~').'["\']\s+content=["\']([^"\']+)["\']~i',$html,$m)?$m[1]:'';
-}
-function jsonld_blocks(string $html):array{
-  $out=[]; if(preg_match_all('~<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>~is',$html,$ms)){
-    foreach($ms[1] as $blob){ $j=json_decode($blob,true); if(is_array($j)) $out[]=$j; }
-  } return $out;
-}
-function next_event(array $lds):?array{
-  $now=time(); $best=null;
-  foreach($lds as $ld){
-    $c=[]; if(($ld['@type']??'')==='Event') $c[]=$ld;
-    if(isset($ld['event'])) $c=array_merge($c,is_array($ld['event'])?$ld['event']:[$ld['event']]);
-    if(isset($ld['@graph'])&&is_array($ld['@graph'])) foreach($ld['@graph'] as $g) if(($g['@type']??'')==='Event') $c[]=$g;
-    foreach($c as $e){ $s=$e['startDate']??($e['start']??''); if(!$s) continue; $ts=strtotime($s);
-      if($ts && $ts>$now){ if(!$best||$ts<strtotime($best['start'])) $best=['title'=>$e['name']??'','start'=>date(DATE_ATOM,$ts)]; }
-    }
-  }
-  return $best;
-}
-
-$fn = $_GET['fn'] ?? '';
-$stationId = $_GET['stationId'] ?? '';
-$slug = $_GET['slug'] ?? '';
-
-if ($fn !== 'selector' || !$stationId || !$slug) {
-  fail(400, 'Usage: rc-proxy.php?fn=selector&stationId=cutters-choice-radio&slug=selector');
-}
-
-$candidates = [
-  "https://radiocult.fm/".rawurlencode($stationId)."/artists/".rawurlencode($slug),
-  "https://radiocult.fm/".rawurlencode($stationId)."/presenters/".rawurlencode($slug),
-];
-
-foreach($candidates as $u){
-  $html = http_get($u);
-  if(!$html) continue;
-
-  $name = meta($html,'og:title');
-  $img  = meta($html,'og:image');
-  $desc = meta($html,'description','name');
-  $lds  = jsonld_blocks($html);
-  $next = next_event($lds);
-
-  // display name: prefer upcoming show title ("MARIONETTE"), else last segment after " - "
-  $display = $name;
-  if ($next && !empty($next['title'])) $display = $next['title'];
-  elseif (strpos($name,' - ')!==false)   $display = trim(substr($name, strrpos($name,' - ')+3));
-
-  ok([
-    'name'        => $name ?: 'DJ',
-    'displayName' => $display ?: ($name ?: 'DJ'),
-    'image'       => $img ?: '',
-    'description' => $desc ?: '',
-    'shareUrl'    => $u,
-    'nextShow'    => $next ?: null
-  ]);
-}
-
-fail(502, 'Selector share page not reachable', ['tried'=>$candidates]);
+})();
+</script>
+</body>
+</html>

@@ -15,7 +15,7 @@
   <style>
     :root { --brand-teal:#5A8785; }
 
-    /* ── HERO (desktop baseline = grid 3 cols) ───────────────────────── */
+    /* ── HERO (same desktop layout) ───────────────────────────────────── */
     .djselects-hero{
       padding:.45rem .6rem .25rem;
       border:2px solid var(--brand-teal); border-left:0;border-right:0;
@@ -27,13 +27,12 @@
 
     .strap{ font-family:'Bebas Neue',sans-serif; }
     .djselects-hero .strap{
-      font-size:clamp(1.1rem,1.9vw,1.3rem) !important;
+      font-size:clamp(1.235rem,2.21vw,1.495rem) !important;
       line-height:1.05;
     }
-
     .djselects-hero .weekline{
       font-family:'Bebas Neue',sans-serif;
-      font-size:clamp(2.6rem,6vw,4rem) !important;
+      font-size:clamp(2.7rem,6.2vw,4.0rem) !important;
       line-height:1; margin-top:.15rem;
       letter-spacing:.2px;
     }
@@ -44,13 +43,12 @@
       width:100px; height:100px; object-fit:cover;
       border:2px solid var(--brand-teal); border-radius:6px; background:#000;
     }
-
-    @media (min-width:901px){
+    @media (min-width: 901px){
       .hero-art{ align-self:stretch; }
       .hero-art img{
         height:80%;
         width:auto;
-        aspect-ratio:1/1;
+        aspect-ratio:1 / 1;
         min-width:160px;
         min-height:160px;
       }
@@ -61,13 +59,13 @@
       padding:.6rem .75rem;
     }
 
-    .hero-bio{ font-size:clamp(1rem,1.6vw,1.1rem); line-height:1.38; }
+    .hero-bio{ font-size:clamp(1rem,1.8vw,1.1rem); line-height:1.38; }
     .hero-bio p{ margin:.25rem 0 .45rem; }
-    .hero-bio.bio-tight1{ font-size:.95em; line-height:1.32; }
+    .hero-bio.bio-tight1{ font-size:0.95em; line-height:1.32; }
     .hero-bio.bio-tight1 p{ margin:.18rem 0 .36rem; }
-    .hero-bio.bio-tight2{ font-size:.90em; line-height:1.28; }
+    .hero-bio.bio-tight2{ font-size:0.90em; line-height:1.28; }
     .hero-bio.bio-tight2 p{ margin:.14rem 0 .28rem; }
-    .hero-bio.bio-tight3{ font-size:.84em; line-height:1.22; letter-spacing:.1px; }
+    .hero-bio.bio-tight3{ font-size:0.84em; line-height:1.22; letter-spacing:.1px; }
     .hero-bio.bio-tight3 p{ margin:.12rem 0 .22rem; }
 
     .profile-topline{ display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; margin-bottom:.2rem; }
@@ -84,7 +82,7 @@
     }
     .socials a:hover{ box-shadow:inset 0 0 0 2px var(--brand-teal); }
 
-    /* ── Next bar ────────────────────────────────────────────────────── */
+    /* ── NEXT BAR ─────────────────────────────────────────────────────── */
     .nextbar{ margin:.25rem .6rem .55rem; }
     .nextbar-inner{
       display:flex; align-items:center; gap:.8rem;
@@ -94,7 +92,7 @@
     .nextbar .label{ font-family:'Bebas Neue',sans-serif; font-size:clamp(1rem,2vw,1.35rem); }
     .nextbar .when { font-family:'Bebas Neue',sans-serif; font-size:clamp(1.05rem,2.2vw,1.45rem); color:var(--brand-teal); }
 
-    /* ── Tracks + preview (desktop baseline = 2 cols) ────────────────── */
+    /* ── TRACKS + PREVIEW (desktop unchanged) ─────────────────────────── */
     .compact-grid{ display:grid; grid-template-columns:300px minmax(0,1fr); gap:.6rem; padding:0 .6rem 1rem; }
     .strip-list{ display:grid; grid-template-rows:repeat(5,1fr); gap:.45rem; }
     .strip{ border:1px solid #264745; background:#0a0a0a; border-radius:6px; overflow:hidden; position:relative; }
@@ -102,13 +100,18 @@
     .strip iframe{ width:100%; height:100%; border:0; display:block; position:relative; z-index:1; }
     .strip .overlayBtn{ position:absolute; inset:0; appearance:none; background:transparent; border:0; cursor:pointer; z-index:3; }
 
-    .preview{ display:flex; align-items:center; justify-content:center; }
     .preview iframe{
-      width:100%; aspect-ratio:16/9; height:auto; max-height:46vh; border:0; display:block;
+      width:100%;
+      aspect-ratio:16/9;
+      height:auto;
+      max-height:56vh; /* a bit taller on desktop too */
+      border:0;
+      display:block;
     }
     .big-placeholder{
       font-family:'Bebas Neue',sans-serif; color:#6fa39f; font-size:clamp(1rem,1.8vw,1.25rem); padding:.6rem;
     }
+    .preview{ display:flex; align-items:center; justify-content:center; }
 
     /* ── Bandcamp tile ───────────────────────────────────────────────── */
     .strip.bandcamp{ min-height:76px; }
@@ -118,30 +121,22 @@
     .strip .bc-title{ position:absolute; left:8px; right:44px; bottom:8px; font-family:'Bebas Neue',sans-serif; color:#fff; text-shadow:0 2px 4px rgba(0,0,0,.6); font-size:clamp(1rem,2vw,1.1rem); line-height:1.1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .strip .bc-play{ position:absolute; inset:auto 8px 8px auto; background:rgba(90,135,133,.95); color:#000; font-weight:700; border-radius:999px; width:28px; height:28px; display:flex; align-items:center; justify-content:center; }
 
-    /* ── Tablet tweaks ───────────────────────────────────────────────── */
+    /* ── Tablet+mobile ───────────────────────────────────────────────── */
     @media (max-width:1050px){
       .djselects-hero{ grid-template-columns: 1fr auto 1fr; }
       .hero-art img{ width:170px; height:170px; }
     }
-
-    /* ── Mobile FIXES (≤900px) ───────────────────────────────────────── */
     @media (max-width:900px){
-      /* Stack hero cleanly (text → art → bio) */
-      .djselects-hero{ display:flex !important; flex-direction:column; align-items:stretch; }
-      .hero-art{ align-self:flex-start; }
-      .hero-right{ width:100%; }
+      /* Hero stacks; ordering preserved from your original */
+      .djselects-hero{ grid-template-columns: 1fr; }
+      .hero-right{ order:3 }
+      .hero-art  { order:2; justify-content:flex-start }
 
-      /* Scale headings so they don’t dominate */
-      .djselects-hero .weekline{ font-size:clamp(1.9rem,8.5vw,3rem) !important; }
-      .djselects-hero .strap{ font-size:clamp(.95rem,4.2vw,1.2rem) !important; }
-
-      /* Tracks + preview: single column; bigger player */
-      .compact-grid{ grid-template-columns:1fr; }
+      /* Tracks+preview stack; larger player; mini iframes ignore taps */
+      .compact-grid{ grid-template-columns: 1fr; }
       .preview iframe{ max-height:66vh; min-height:220px; }
-      /* Make mini iframes non-interactive so taps hit the overlay */
       .strip iframe{ pointer-events:none; }
     }
-
     @media (max-width:768px){
       .strip-list{ grid-template-rows:repeat(5,76px); }
     }
@@ -157,11 +152,11 @@
     #adminPanel button{ padding:10px 14px; border-radius:6px; border:1px solid #2a5653; background:#0b2322; color:#eaffff; cursor:pointer; }
     #adminStatus{ opacity:.9; font-size:.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:52ch; }
 
-    /* ── NAV shrink only on small phones (desktop untouched) ─────────── */
+    /* ── Top NAV smaller on very small phones only ───────────────────── */
     @media (max-width:520px){
       #main-nav .nav-menu{ gap:.25rem; flex-wrap:wrap; justify-content:space-between; }
       #main-nav .nav-link{
-        font-size:clamp(.72rem,3.6vw,.95rem) !important;
+        font-size:clamp(.78rem,3.6vw,.95rem) !important;
         padding:.35rem .28rem;
         letter-spacing:.5px;
       }
@@ -251,24 +246,14 @@
 
     const djNameText=$('#djNameText'), djProfile=$('#djProfileThumb'), djBioBox=$('#djBio'), nextWhen=$('#nextShowWhen'), profileLink=$('#djProfileLink'),
           socialsBox=$('#djSocials'), stripList=$('#stripList'), mainPreview=$('#mainPreview');
-
-    // Admin nodes
     const adminOverlay=$('#adminOverlay'), adminTextarea=$('#adminTracks'), adminSaveBtn=$('#adminSave'), adminCloseBtn=$('#adminClose'), adminStatus=$('#adminStatus');
 
     const state = { selector:{ kind:'artist', id:'', slug:'selector', name:'', image:'', description:'', shareUrl:'', socials:{} }, tracks:[], authed:false };
 
     /* ── utils ────────────────────────────────────────────────────────── */
     const headers = { 'x-api-key': API_KEY };
-    const fetchJSON = async (url, opt={}) => {
-      const r=await fetch(url,{cache:'no-store',...opt,headers:{...(opt.headers||{}),...headers}});
-      if(!r.ok) throw new Error(String(r.status));
-      return r.json();
-    };
-    const nz = iso => {
-      try{ const d=new Date(iso);
-        return d.toLocaleString('en-NZ',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Pacific/Auckland',timeZoneName:'short'});
-      }catch{return '';}
-    };
+    const fetchJSON = async (url, opt={}) => { const r=await fetch(url,{cache:'no-store',...opt,headers:{...(opt.headers||{}),...headers}}); if(!r.ok) throw new Error(String(r.status)); return r.json(); };
+    const nz = iso => { try{ const d=new Date(iso); return d.toLocaleString('en-NZ',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Pacific/Auckland',timeZoneName:'short'});}catch{return '';} };
     const tags = t => Array.isArray(t) ? t.map(x=>String(x).toLowerCase()) : (typeof t==='string' ? t.split(',').map(s=>s.trim().toLowerCase()) : []);
 
     function extractTextDeep(v){
@@ -383,75 +368,45 @@
       let ok=false;
       try{
         const r=await fetch(`${CFG.CONFIG_ENDPOINT}?action=load`,{cache:'no-store'});
-        if(r.ok){
-          const j=await r.json();
-          if(Array.isArray(j?.tracks)){ state.tracks=j.tracks.slice(0,5); ok=true; }
-        }
+        if(r.ok){ const j=await r.json(); if(Array.isArray(j?.tracks)){ state.tracks=j.tracks.slice(0,5); ok=true; } }
       }catch{}
       if(!ok){
-        try{
-          const r=await fetch('dj-selects-data.json',{cache:'no-store'});
-          if(r.ok){
-            const j=await r.json();
-            if(Array.isArray(j?.tracks)){ state.tracks=j.tracks.slice(0,5); ok=true; }
-          }
-        }catch{}
+        try{ const r=await fetch('dj-selects-data.json',{cache:'no-store'}); if(r.ok){ const j=await r.json(); if(Array.isArray(j?.tracks)){ state.tracks=j.tracks.slice(0,5); ok=true; } } }catch{}
       }
       if(!ok){
-        try{
-          const s=localStorage.getItem('djselects_tracks');
-          if(s){
-            const a=JSON.parse(s);
-            if(Array.isArray(a)) state.tracks=a.slice(0,5);
-          }
-        }catch{}
+        try{ const s=localStorage.getItem('djselects_tracks'); if(s){ const a=JSON.parse(s); if(Array.isArray(a)) state.tracks=a.slice(0,5); } }catch{}
       }
-    } /* ← the missing brace previously broke desktop; now fixed */
+    }
 
     /* ── Media render ────────────────────────────────────────────────── */
-    const parseTrack=(u)=>{ if(!u) return null; try{
-      const x=new URL(u.trim()); const host=x.hostname.toLowerCase();
+    const parseTrack=(u)=>{ if(!u) return null; try{ const x=new URL(u.trim()); const host=x.hostname.toLowerCase();
       if(host.endsWith('bandcamp.com')) return {kind:'bandcamp', url:u.trim()};
-      if(host.includes('youtu')){
-        let id=''; if(host==='youtu.be') id=x.pathname.slice(1);
+      if(host.includes('youtu')){ let id=''; if(host==='youtu.be') id=x.pathname.slice(1);
         else if(x.pathname.startsWith('/shorts/')) id=x.pathname.split('/')[2]||'';
         else if(x.searchParams.get('v')) id=x.searchParams.get('v');
         else if(/^\/embed\//.test(x.pathname)) id=x.pathname.split('/').pop();
         id=(id||'').split('?')[0].split('&')[0]; if(!id) return null;
-        return {kind:'youtube', src:`https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`};
-      }
+        return {kind:'youtube', src:`https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`}; }
       return {kind:'iframe', src:u.trim()};
     }catch{return null;} };
-
-    const iframe=(src,title='Media player') =>
-      `<iframe src="${src}" title="${title}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
+    const iframe=(src,title='Media player')=>`<iframe src="${src}" title="${title}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
 
     const bcCache=new Map();
     const bcOEmbed=async(url)=>{ if(bcCache.has(url)) return bcCache.get(url);
       const r=await fetch(`${CFG.PROXY_ENDPOINT}?fn=bandcamp_oembed&url=${encodeURIComponent(url)}`); const text=await r.text(); let j={};
       try{ j=JSON.parse(text);}catch{ throw new Error(text||'Proxy error'); }
-      const meta={ title:j?.title||'Bandcamp', thumb=j?.thumbnail_url||'', src:(()=>{const html=String(j?.html||''); const m=html.match(/src=["']([^"']+)["']/i); return m?m[1]:'';})() };
+      const meta={ title:j?.title||'Bandcamp', thumb:j?.thumbnail_url||'', src:(()=>{const html=String(j?.html||''); const m=html.match(/src=["']([^"']+)["']/i); return m?m[1]:'';})() };
       bcCache.set(url,meta); return meta; };
 
     function setPreview(t, play=false){
-      if(t.kind==='bandcamp'){
-        setPreviewBC(t.url);
-      } else {
+      if(t.kind==='bandcamp'){ setPreviewBC(t.url); }
+      else {
         let src=t.src;
         if (play && t.kind==='youtube') src += (src.includes('?') ? '&' : '?') + 'autoplay=1';
-        const title=t.kind==='youtube'?'YouTube player':'Media player';
-        mainPreview.innerHTML=iframe(src,title);
+        mainPreview.innerHTML=iframe(src, t.kind==='youtube'?'YouTube player':'Media player');
       }
     }
-    async function setPreviewBC(url){
-      try{
-        const m=await bcOEmbed(url);
-        mainPreview.innerHTML=iframe(m.src, m.title||'Bandcamp player');
-      }catch(err){
-        mainPreview.innerHTML=`<div class="big-placeholder">Couldn’t load Bandcamp. <a href="${url}" target="_blank" rel="noopener">Open on Bandcamp</a></div>`;
-        console.error('Bandcamp oEmbed error:',err);
-      }
-    }
+    async function setPreviewBC(url){ try{ const m=await bcOEmbed(url); mainPreview.innerHTML=iframe(m.src,m.title||'Bandcamp player'); }catch(err){ mainPreview.innerHTML=`<div class="big-placeholder">Couldn’t load Bandcamp. <a href="${url}" target="_blank" rel="noopener">Open on Bandcamp</a></div>`; console.error('Bandcamp oEmbed error:',err); } }
 
     function renderTracks(){
       stripList.innerHTML='';
@@ -465,14 +420,12 @@
           bcOEmbed(t.url).then(m=>{ const tile=el.querySelector('.bc-tile'); const ti=el.querySelector('.bc-title'); if(tile&&m?.thumb) tile.style.backgroundImage=`url("${m.thumb}")`; if(ti) ti.textContent=m?.title||'Bandcamp'; }).catch(()=>{});
         }else{
           el.innerHTML=iframe(t.src,'Media preview')+'<button class="overlayBtn" aria-label="Select"></button>';
-          const pick=()=>{ $$('.strip').forEach(s=>s.classList.remove('selected')); el.classList.add('selected'); setPreview(t,true); };
-          el.querySelector('.overlayBtn').addEventListener('click', pick, {passive:true});
-          el.querySelector('.overlayBtn').addEventListener('touchend', pick, {passive:true});
+          el.querySelector('.overlayBtn').addEventListener('click',()=>{ $$('.strip').forEach(s=>s.classList.remove('selected')); el.classList.add('selected'); setPreview(t,true); },{passive:true});
         }
         if(idx===0) el.classList.add('selected');
         stripList.appendChild(el);
       });
-      if(items.length) setPreview(items[0], false); else mainPreview.innerHTML='<div class="big-placeholder">Select a track</div>';
+      if(items.length) setPreview(items[0]); else mainPreview.innerHTML='<div class="big-placeholder">Select a track</div>';
     }
 
     /* ── Admin (SHIFT + A) ───────────────────────────────────────────── */

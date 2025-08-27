@@ -13,56 +13,32 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
   <style>
-    :root {
-      --brand-teal:#5A8785;
-
-      /* === ADJUSTABLE GAPS === */
-      /* gap between the middle art and the bio card (desktop columns) */
-      --hero-col-gap: .55rem;
-
-      /* gap between hero rows when stacked on mobile */
-      --hero-row-gap: .35rem;
-
-      /* vertical space between the HERO and the “Next Scheduled Show” bar */
-      --hero-to-next-gap: .35rem;   /* was .35rem on .djselects-hero */
-
-      /* top margin of the Next bar (adds to the above if you want extra) */
-      --nextbar-top-gap: .25rem;    /* was .25rem on .nextbar */
-    }
+    :root { --brand-teal:#5A8785; }
 
     /* ── HERO (same desktop layout) ───────────────────────────────────── */
     .djselects-hero{
-      padding:.45rem .6rem .1rem;
+      padding:.45rem .6rem .25rem;
       border:2px solid var(--brand-teal); border-left:0;border-right:0;
-
-      /* controls space before the Next bar section */
-      margin-bottom: var(--hero-to-next-gap);
-
+      margin-bottom:.35rem;
       display:grid;
       grid-template-columns:1.2fr auto 1.2fr;
-
-      /* separate knobs for column/row gaps */
-      column-gap: var(--hero-col-gap);  /* middle ↔ bio card gap */
-      row-gap:    var(--hero-row-gap);
-
-      /* keep your original alignment */
-      align-items:center;
+      gap:.55rem; align-items:center; row-gap:.35rem;
     }
 
     .strap{ font-family:'Bebas Neue',sans-serif; }
     .djselects-hero .strap{
-      font-size:clamp(1.8rem,2.21vw,1.495rem) !important;
+      font-size:clamp(1.235rem,2.21vw,1.495rem) !important;
       line-height:1.05;
     }
     .djselects-hero .weekline{
       font-family:'Bebas Neue',sans-serif;
-      font-size:clamp(4.2rem,6.2vw,4.6rem) !important;
+      font-size:clamp(2.7rem,6.2vw,4.0rem) !important;
       line-height:1; margin-top:.15rem;
       letter-spacing:.2px;
     }
     #djNameText{ color:var(--brand-teal); }
 
-    .hero-art{ display:flex; align-items:center; justify-content:centre; }
+    .hero-art{ display:flex; align-items:center; justify-content:center; }
     .hero-art img{
       width:100px; height:100px; object-fit:cover;
       border:2px solid var(--brand-teal); border-radius:6px; background:#000;
@@ -70,11 +46,11 @@
     @media (min-width: 901px){
       .hero-art{ align-self:stretch; }
       .hero-art img{
-        height:60%;
+        height:95%;
         width:auto;
         aspect-ratio:1 / 1;
-        min-width:100px;
-        min-height:100px;
+        min-width:160px;
+        min-height:160px;
       }
     }
 
@@ -83,7 +59,7 @@
       padding:.6rem .75rem;
     }
 
-    .hero-bio{ font-size:clamp(1rem,1.8vw,1.1rem); line-height:1.38; }
+    .hero-bio{ font-size:clamp(1rem,1.8vw,1.3rem); line-height:1.38; }
     .hero-bio p{ margin:.25rem 0 .45rem; }
     .hero-bio.bio-tight1{ font-size:0.95em; line-height:1.32; }
     .hero-bio.bio-tight1 p{ margin:.18rem 0 .36rem; }
@@ -107,7 +83,7 @@
     .socials a:hover{ box-shadow:inset 0 0 0 2px var(--brand-teal); }
 
     /* ── NEXT BAR ─────────────────────────────────────────────────────── */
-    .nextbar{ margin: var(--nextbar-top-gap) .6rem .55rem; }
+    .nextbar{ margin:.25rem .6rem .55rem; }
     .nextbar-inner{
       display:flex; align-items:center; gap:.8rem;
       background:#0b0b0b; border:2px solid var(--brand-teal);
@@ -419,7 +395,7 @@
     const bcOEmbed=async(url)=>{ if(bcCache.has(url)) return bcCache.get(url);
       const r=await fetch(`${CFG.PROXY_ENDPOINT}?fn=bandcamp_oembed&url=${encodeURIComponent(url)}`); const text=await r.text(); let j={};
       try{ j=JSON.parse(text);}catch{ throw new Error(text||'Proxy error'); }
-      const meta={ title:j?.title||'Bandcamp', thumb=j?.thumbnail_url||'', src:(()=>{const html=String(j?.html||''); const m=html.match(/src=["']([^"']+)["']/i); return m?m[1]:'';})() };
+      const meta={ title:j?.title||'Bandcamp', thumb:j?.thumbnail_url||'', src:(()=>{const html=String(j?.html||''); const m=html.match(/src=["']([^"']+)["']/i); return m?m[1]:'';})() };
       bcCache.set(url,meta); return meta; };
 
     function setPreview(t, play=false){

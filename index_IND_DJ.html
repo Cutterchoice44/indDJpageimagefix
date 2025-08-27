@@ -17,7 +17,7 @@
 
     /* ── HERO (same desktop layout) ───────────────────────────────────── */
     .djselects-hero{
-      padding:.45rem .6rem .25rem;
+      padding:.45rem .6rem .1rem;
       border:2px solid var(--brand-teal); border-left:0;border-right:0;
       margin-bottom:.35rem;
       display:grid;
@@ -27,18 +27,18 @@
 
     .strap{ font-family:'Bebas Neue',sans-serif; }
     .djselects-hero .strap{
-      font-size:clamp(2.2rem,2.21vw,1.4rem) !important;
+      font-size:clamp(1.6rem,2.21vw,1.495rem) !important;
       line-height:1.05;
     }
     .djselects-hero .weekline{
       font-family:'Bebas Neue',sans-serif;
-      font-size:clamp(3.9rem,6.2vw,4.2rem) !important;
+      font-size:clamp(2.9rem,6.2vw,4.1rem) !important;
       line-height:1; margin-top:.15rem;
       letter-spacing:.2px;
     }
     #djNameText{ color:var(--brand-teal); }
 
-    .hero-art{ display:flex; align-items:center; justify-content:center; }
+    .hero-art{ display:flex; align-items:center; justify-content:right; }
     .hero-art img{
       width:100px; height:100px; object-fit:cover;
       border:2px solid var(--brand-teal); border-radius:6px; background:#000;
@@ -46,11 +46,11 @@
     @media (min-width: 901px){
       .hero-art{ align-self:stretch; }
       .hero-art img{
-        height:80%;
+        height:60%;
         width:auto;
         aspect-ratio:1 / 1;
-        min-width:160px;
-        min-height:160px;
+        min-width:100px;
+        min-height:100px;
       }
     }
 

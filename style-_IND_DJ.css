@@ -1,106 +1,615 @@
-:root { --brand-teal:#5A8785; }
-
-/* HERO — same layout, tidy sizing */
-.djselects-hero{
-  padding:.6rem .75rem .2rem;
-  border:2px solid var(--brand-teal);
-  border-left:0; border-right:0;
-  margin-bottom:.35rem;
-  display:grid; grid-template-columns:1fr 160px; gap:.6rem; align-items:end;
-}
-.djselects-hero .strap{
-  font-family:'Bebas Neue',sans-serif;
-  font-size:clamp(1.1rem,2.4vw,1.7rem);
-  line-height:1;
-}
-.djselects-hero .monthline{
-  font-family:'Bebas Neue',sans-serif;
-  font-size:clamp(2.6rem,5.6vw,3.8rem);
-  line-height:1;
-}
-.djselects-hero #djNameText{ color:var(--brand-teal); }
-.djselects-hero .hero-right img{
-  width:100%; height:auto; border:2px solid var(--brand-teal);
-  border-radius:4px; background:#000; display:block;
+/* ─── RESET & BASE STYLES ─────────────────────────────────────────── */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-/* NEXT BAR */
-.nextbar{ margin:.2rem .6rem .5rem; }
-.nextbar-inner{
-  display:flex; align-items:center; gap:1rem;
-  background:#0b0b0b; border:2px solid var(--brand-teal);
-  padding:.45rem .6rem; border-radius:6px;
-}
-.nextbar .label{
-  font-family:'Bebas Neue',sans-serif; font-size:clamp(1.2rem,2.2vw,1.6rem);
-}
-.nextbar .when{
-  font-family:'Bebas Neue',sans-serif; font-size:clamp(1.3rem,2.6vw,1.8rem);
-  color:var(--brand-teal);
+:root {
+  --brand-teal: #5A8785;
+  --bg-dark: #000;
+  --text-light: #fafafa;
+  /* Adjustable GIF Settings */
+  --gif-height: 270px;
+  --gif-width: 12%;
+  --gif-speed: 12s;
+  --gif-opacity: 1.6;
 }
 
-/* MAIN — strips + preview */
-.compact-grid{
-  display:grid; grid-template-columns:minmax(240px,360px) 1fr;
-  gap:.6rem; padding:0 .6rem .9rem;
+html, body {
+  height: 100%;
+  background: var(--bg-dark);
+  color: var(--text-light);
+  font-family: Arial, sans-serif;
+  line-height: 1.2;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Strips: full-click overlay */
-.strip-list{
-  display:grid;
-  grid-template-rows:repeat(5,1fr);
-  gap:.45rem;
-  height:100%;
-}
-.strip{
-  position:relative;
-  border:1px solid #264745; background:#0a0a0a;
-  border-radius:4px; overflow:hidden; cursor:pointer;
-}
-.strip.selected{ outline:2px solid var(--brand-teal); }
-.strip iframe{ width:100%; height:100%; border:0; display:block; pointer-events:none; }
-.strip .select-overlay{ position:absolute; inset:0; }
-.strip:hover .select-overlay{
-  box-shadow:inset 0 0 0 2px var(--brand-teal);
-  background:rgba(90,135,133,0.08);
+/* ─── HEADER WITH ANIMATED GIFS ────────────────────────────────────────────── */
+.header-banner {
+  position: relative;
+  height: var(--gif-height);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  overflow: hidden;
 }
 
-/* Big preview */
-.preview .ratio.big{ position:relative; width:100%; padding-top:28.125%; }
-.preview .ratio.big iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; }
-.big-placeholder{
-  font-family:'Bebas Neue',sans-serif; color:#6fa39f;
-  font-size:clamp(1.1rem,2.4vw,1.6rem); padding:.75rem;
+/* FIRST GIF (RIGHT TO LEFT) */
+.header-gif-right {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  height: var(--gif-height);
+  width: var(--gif-width);
+  opacity: var(--gif-opacity);
+  z-index: 0;
+  background: url('/images/Untitled%20design(4).gif') no-repeat center center;
+  background-size: cover;
+  animation: slideRightToLeft var(--gif-speed) linear infinite;
 }
 
-/* Admin: not rendered until auth; when rendered, matches your style */
-.admin-btn{
-  position:fixed; right:12px; bottom:12px; z-index:9999;
-  background:var(--brand-teal); color:#000; border:none;
-  width:48px; height:48px; border-radius:999px;
-  display:inline-flex; align-items:center; justify-content:center;
-  box-shadow:0 6px 18px rgba(0,0,0,.35);
+/* SECOND GIF (LEFT TO RIGHT) */
+.header-gif-left {
+  position: absolute;
+  top: 0;
+  right: 50%;
+  height: var(--gif-height);
+  width: var(--gif-width);
+  opacity: var(--gif-opacity);
+  z-index: 0;
+  background: url('/images/Untitled%20design(5).gif') no-repeat center center;
+  background-size: cover;
+  animation: slideLeftToRight var(--gif-speed) linear infinite;
 }
-.admin-panel{
-  position:fixed; right:12px; bottom:72px; width:min(560px,94vw); max-height:82vh;
-  background:#0c0c0c; color:#fff; border:2px solid var(--brand-teal); border-radius:10px;
-  display:none; flex-direction:column; z-index:9999; box-shadow:0 10px 30px rgba(0,0,0,.45);
-}
-.admin-panel.open{ display:flex; }
-.admin-head{ display:flex; align-items:center; justify-content:space-between; padding:.6rem .8rem; border-bottom:1px solid #1d3b3a; }
-.admin-close{ background:none; border:none; color:#fff; font-size:1.6rem; cursor:pointer; }
-.admin-body{ padding:.8rem; overflow-y:auto; padding-bottom:5.5rem; }
-.two-col{ display:grid; grid-template-columns:1fr 1fr; gap:.6rem; }
-.admin-body label{ display:block; margin-bottom:.65rem; }
-.admin-body input{ width:100%; padding:.55rem; background:#111; color:#fff; border:1px solid #264745; border-radius:6px; margin-top:.25rem; }
-#adminTracks .track-input{ display:grid; grid-template-columns:1fr auto auto; gap:.5rem; margin-bottom:.5rem; }
-#adminTracks button{ padding:.5rem .75rem; border-radius:6px; border:1px solid #264745; background:#121212; color:#fff; cursor:pointer; }
-.admin-actions{ position:sticky; bottom:0; background:#0c0c0c; border-top:1px solid #1d3b3a; display:flex; gap:.6rem; padding:.7rem .8rem; }
-.admin-actions .primary{ background:var(--brand-teal); color:#000; border:none; padding:.6rem .9rem; border-radius:8px; }
-.admin-actions .ghost{ background:#171717; color:#fff; border:1px solid #2a2a2a; padding:.6rem .9rem; border-radius:8px; }
-.admin-actions .danger{ background:#2b1818; color:#fff; border:1px solid #5a2020; padding:.6rem .9rem; border-radius:8px; }
 
-@media (max-width:960px){
-  .djselects-hero{ grid-template-columns:1fr; }
-  .compact-grid{ grid-template-columns:1fr; }
+/* ─── ANIMATIONS ───────────────────────────────────────────────────────────── */
+@keyframes slideRightToLeft {
+  0%   { transform: translateX(100vw); }
+  100% { transform: translateX(-100vw); }
+}
+@keyframes slideLeftToRight {
+  0%   { transform: translateX(-100vw); }
+  100% { transform: translateX(100vw); }
+}
+
+/* ✅ FIX: limit the dark overlay to the animated banner only */
+.header-banner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 0;
+}
+
+/* keep these on the banner header only */
+header .logo-container,
+header .title {
+  position: relative;
+  z-index: 1;
+}
+
+header .logo {
+  height: 180px;
+  margin-bottom: 0.3rem;
+  margin-left: 0.7rem; 
+}
+
+header .title {
+  flex: 1 1 auto;
+  text-align: center;
+}
+
+header .title h1 {
+  font-size: 2rem;
+  margin: 0;
+  font-family: 'Bebas Neue', sans-serif;
+}
+
+header .title .tagline {
+  font-size: 1.2rem;
+  color: var(--brand-teal);
+  margin-top: 0;
+}
+
+/* ─── NAVIGATION BAR ───────────────────────────────────────────────────── */
+#main-nav {
+  position: relative;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100% !important;
+  padding: 0.25rem 0.75rem !important;
+
+  /* Solid teal bar with black top/bottom lines */
+  background-color: var(--brand-teal) !important;
+  border-top:    2px solid #000 !important;
+  border-bottom: 2px solid #000 !important;
+
+  z-index: 1000 !important;
+}
+
+/* Legacy items (safe to keep) */
+#main-nav .nav-item { position: relative; z-index: 1; }
+#main-nav .nav-item a {
+  color: #fff !important;
+  font-size: 2rem !important;
+  text-transform: uppercase !important;
+  text-decoration: none !important;
+}
+
+/* NEW: Evenly spaced menu links + icons cluster */
+#main-nav .nav-menu{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-evenly !important;
+  gap:clamp(.25rem,2vw,1.5rem) !important;
+  flex:1 1 auto !important;      /* takes all space before icons */
+}
+#main-nav a.nav-link{
+  color:#fff !important;
+  font-family:'Bebas Neue',sans-serif !important;
+  font-size:2rem !important;
+  text-transform:uppercase !important;
+  text-decoration:none !important;
+  white-space:nowrap !important;
+}
+#main-nav .nav-actions{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  gap:.5rem !important;
+}
+#main-nav .social-icon,
+#main-nav .icon-img{
+  margin-left:.25rem !important;
+  vertical-align:middle !important;
+  width:2rem !important;
+  height:auto !important;
+}
+
+/* ─── OneMusic badge in NAV bar ─────────────────────────────────── */
+#main-nav .nav-onemusic {
+  display: flex;
+  align-items: center;
+  margin-left: 0.5rem;
+}
+#main-nav .nav-onemusic img {
+  max-height: 2rem;
+  width: auto;
+  height: auto;
+  display: block;
+}
+@media (max-width: 400px) {
+  #main-nav .nav-onemusic { display: none; }
+}
+
+/* ─── CHROMECAST BUTTON STYLING ────────────────────────────────────────── */
+google-cast-button {
+  --icon-color: #fff;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+  display: inline-block;
+}
+
+/* ─── GRID LAYOUT ─────────────────────────────────────────────────── */
+.grid-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  padding: 0.6rem;
+}
+
+/* ─── SLIDESHOW ───────────────────────────────────────────────────── */
+#slideshow {
+  margin: 0 auto;
+  border: 2px solid var(--brand-teal);
+  box-sizing: border-box;
+  transform: scale(1.2);
+  transform-origin: center;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+#slideshow > * { height: 100%; }
+
+/* ─── SECTION & TYPOGRAPHY ────────────────────────────────────────── */
+section {
+  background: #000;
+  border: 2px solid var(--brand-teal);
+  border-radius: 6px;
+  padding: 0.5rem;
+}
+section h2 {
+  position: relative;
+  margin-bottom: 1rem;
+  color: var(--brand-teal);
+  text-align: center;
+  padding-bottom: 0.6rem;
+}
+section h2::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  height: 4px;
+  background: var(--brand-teal);
+  width: 0;
+  animation: drawLineReverse 2s ease-out forwards;
+}
+@keyframes drawLineReverse { to { width: 100%; } }
+
+/* ─── CHAT IFRAME & ACTIONS ──────────────────────────────────────── */
+.chat iframe {
+  width: 100%;
+  height: 1200px;
+  border: none;
+  border-radius: 4px;
+  margin-top: 0.4rem;
+}
+.chat-actions { text-align: center; }
+.popout-btn {
+  display: inline-block;
+  margin: 0.5rem auto;
+  padding: 0.5rem 2rem;
+  font-size: 1rem;
+  background: var(--brand-teal);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* ─── LIVE PLAYER ─────────────────├─────────────────────────────────── */
+.live-player {
+  background: #000;
+  border: 2px solid var(--brand-teal);
+  border-radius: 6px;
+  padding: 0.5rem;
+  text-align: center;
+}
+.live-player iframe,
+.live-player audio {
+  width: 100%;
+  height: 300px;
+  max-height: 55vh;
+  border: none;
+  border-radius: 4px;
+  margin: 0 auto 1rem;
+  display: block;
+}
+.player-container { max-width: 1000px; margin: 0 auto; }
+#now-archive {
+  font-weight: bold;
+  color: var(--brand-teal);
+  font-size: 1.5rem;
+  margin: 0.3rem 0 1rem;
+}
+
+/* ─── CURRENT DJ ARTWORK ───────────────────────────────────────── */
+#now-art {
+  width: 100%;
+  max-width: 450px;
+  border-radius: 8px;
+  object-fit: cover;
+  display: block;
+  margin: 1rem auto;
+}
+
+/* ─── MIXCLOUD ARCHIVE ─────────────────────────────────────────── */
+.mixcloud {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0.5rem;
+}
+#mixcloud-list {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 1900px;
+  padding-right: 5px;
+  scroll-behavior: smooth;
+  margin-top: 0.4rem;
+}
+#mixcloud-list iframe {
+  width: 100%;
+  height: 120px;
+  margin-bottom: 0.5rem;
+  border: none;
+}
+.add-mixcloud { text-align: center; padding-top: 0.5rem; }
+.add-mixcloud input,
+.add-mixcloud button { font-size: 1rem; }
+.add-mixcloud input {
+  width: 80%;
+  max-width: 600px;
+  padding: 0.5rem;
+}
+.add-mixcloud button {
+  margin-top: 0.5rem;
+  padding: 0.5rem 2rem;
+  background: var(--brand-teal);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* ─── WEEKLY SCHEDULE (legacy list) ─────────────────────────────── */
+.schedule {
+  background: #111;
+  border-radius: 6px;
+  padding: 0 1rem 1rem;
+  overflow-y: auto;
+  font-size: 1.4rem;
+  line-height: 1.4;
+}
+.schedule-heading {
+  position: sticky;
+  top: 0;
+  background: #111;
+  z-index: 10;
+  padding: 0.4rem 0;
+  font-size: 1.5rem;
+  border-bottom: 0.4px solid var(--brand-teal);
+}
+
+/* Day title = white on solid teal (matches nav) */
+#schedule-container h3,
+#schedule-container .day-title {
+  background: var(--brand-teal);
+  color: #fff;
+  padding: 0.4rem 0.6rem;
+  border-radius: 4px;
+  margin: 0.6rem 0 0.2rem;
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 0.5px;
+}
+
+/* Thin teal line between shows (rows that follow a day title) */
+#schedule-container h3 ~ * ,
+#schedule-container .day-title ~ * {
+  border-top: 2px solid var(--brand-teal);
+  padding: 0.35rem 0.6rem;
+}
+
+/* ─── FOOTER BANNER ────────────────────────────────────────────── */
+.banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--brand-teal);
+  padding: 1rem;
+}
+.banner a {
+  flex: 1;
+  text-align: center;
+  text-decoration: none;
+  color: #000;
+  font-weight: 700;
+  font-size: 1.4rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 0.5rem 1rem;
+}
+.banner a:hover { color: var(--text-light); }
+
+/* ─── RESPONSIVE GIF SIZING ─────────────────────────────────────── */
+@media (max-width: 1200px) {
+  :root { --gif-height: 200px; --gif-width: 16%; }
+}
+@media (max-width: 768px) {
+  :root { --gif-height: 150px; --gif-width: 20%; }
+}
+@media (max-width: 480px) {
+  :root { --gif-height: 120px; --gif-width: 30%; }
+}
+
+/* (file unchanged up to existing content) */
+
+/* ─── MOBILE LAYOUT OVERWRITES ──────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Header adjustments */
+  header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  header .logo {
+    max-width: 180px;
+    margin-bottom: 1.5rem;
+  }
+  header .title h1 { font-size: 1.8rem; line-height: 1.2; }
+  header .title .tagline { font-size: 1rem; }
+
+  /* Single-column flow */
+  .grid-container {
+    display: flex;
+    flex-direction: column;
+    padding: 0 0.5rem;
+  }
+
+  /* Remove Mixcloud entirely on mobile */
+  .mixcloud { display: none !important; }
+
+  /* Re‐order so that Live → Chat → Schedule */
+  .live-player { order: 1; }
+  .chat        { order: 2; }
+  .schedule    { order: 3; }
+
+  /* Tweak chat iframe */
+  .chat iframe { height: 70vh; max-height: 70vh; }
+
+  /* Schedule stays scrollable */
+  .schedule { overflow-y: auto; }
+
+  #schedule-container{
+    max-height:55vh;
+    overflow-y:auto;
+    padding-right:6px;
+    scroll-behavior:smooth;
+    -webkit-overflow-scrolling:touch;
+  }
+  #schedule-container h3,
+  #schedule-container .day-title{
+    position:sticky;
+    top:0;
+    z-index:2;
+  }
+
+  /* Hide any leftover desktop‐only buttons */
+  #popOutBtn,
+  header .logo-container:last-of-type { display: none; }
+
+  /* Chat-modal remains available */
+  #chatModal {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.9);
+    display: none;
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+  }
+  #chatModal .modal-content { width: 100%; height: 100%; }
+  #chatModal iframe {
+    width: 100%; height: 100%;
+    border: none; border-radius: 4px;
+  }
+  #chatModal .close-btn {
+    position: absolute;
+    top: 1rem; right: 1rem;
+    background: var(--brand-teal);
+    color: #fff;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    z-index: 10000;
+  }
+
+  /* 🔧 NEW: shrink “This Week’s Shows” artwork by ~30% on phones */
+  #now-art {
+    width: 70% !important;        /* ~30% smaller */
+    max-width: 315px !important;  /* 70% of 450px cap */
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* (rest of your existing CSS remains unchanged) */
+
+
+/* ─── DESKTOP LAYOUT OVERWRITES ──────────────────────────────────── */
+@media (min-width: 600px) {
+  .grid-container { grid-template-columns: 1fr 1.5fr; }
+  .banner { flex-direction: row; justify-content: space-between; }
+}
+@media (min-width: 769px) {
+  .live-player iframe,
+  .live-player audio {
+    height: 600px;
+    max-height: 150vh;
+  }
+  #slideshow {
+    grid-column: 1 / -1;
+    width: 100%;
+    height: 500px;
+    transform: none;
+    max-width: none;
+    max-height: 100vh;
+  }
+  #slideshow > * { height: 100%; }
+  .grid-container { grid-template-columns: 1fr 1.5fr 1fr 1fr; }
+  .chat iframe { height: 1200px; }
+}
+@media (min-width: 900px) {
+  header .title h1 { font-size: 8rem; }
+  header .title .tagline { font-size: 2.45rem; }
+  header .logo { height: 200px; max-width: 270px; }
+  #now-art { max-width: 600px; }
+}
+
+/* ─── DESKTOP ONLY: HIDE THE CHAT-SECTION POP-OUT BUTTON ────────────── */
+@media only screen and (min-width: 769px) {
+  section.chat .chat-actions { display: none !important; }
+}
+
+/* ─── MIXCLOUD DELETE LINK STYLES ─────────────────────────────────────────── */
+.mixcloud-item { position: relative; }
+.remove-link {
+  display: block;
+  text-align: right;
+  font-size: 0.9rem;
+  color: var(--brand-teal);
+  text-decoration: underline;
+  margin-top: 0.3rem;
+  cursor: pointer;
+}
+.remove-link:hover {
+  color: #5A8785;
+  text-decoration: #5A8785;
+}
+
+/* ─── MOBILE ONLY: hide in-chat pop-out, show player pop-out ───────── */
+@media (max-width: 768px) {
+  section.chat .chat-actions { display: none !important; }
+  #chatPopupBtn {
+    display: inline-block !important;
+    margin: 0.5rem auto 1rem !important;
+  }
+}
+
+/* ─── DESKTOP ONLY: show in-chat pop-out, hide player pop-out ───────── */
+@media (min-width: 769px) {
+  section.chat .chat-actions { display: block !important; }
+  #chatPopupBtn { display: none !important; }
+}
+
+/* ─── MIXCLOUD DELETE LINK STYLES (admin mode toggle) ─────────────── */
+.mixcloud-item { position: relative; }
+/* hide for everyone by default */
+.remove-link {
+  display: none !important;
+  text-align: right;
+  font-size: 0.9rem;
+  color: var(--brand-teal);
+  text-decoration: underline;
+  margin-top: 0.3rem;
+  cursor: pointer;
+}
+/* only show when in admin mode */
+.admin-mode .remove-link { display: inline-block !important; }
+
+/* ─── MOBILE-ONLY LOGO SIZING ──────────────────────────────────── */
+@media only screen and (max-width: 768px) {
+  header .logo {
+    height: 100px !important;
+    max-width: 100px !important;
+    margin-bottom: 1.5rem !important;
+    width: auto !important;
+  }
+}
+
+/* ─── SCHEDULE PAGE: make headings truly white ────────────────────── */
+/* Monthly Schedule page header + week title */
+.page-header h1,
+.month-controls .title {
+  color:#fff !important;
+}
+
+/* Day-of-week + date labels in grid */
+.week-grid .day-head,
+.week-grid .day-head .dow,
+.week-grid .day-head .date {
+  color:#fff !important;
+  opacity:1 !important;              /* in case any parent sets opacity */
+  filter:none !important;
+  mix-blend-mode:normal !important;
 }

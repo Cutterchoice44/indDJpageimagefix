@@ -460,7 +460,30 @@ section h2::after {
     top:0;
     z-index:2;
   }
+/* MOBILE: shrink the bottom banner (footer) */
+@media (max-width: 768px) {
+  /* overall footer block */
+  .banner{
+    padding: .35rem .55rem !important;   /* ↓ space around the banner */
+    gap: .25rem !important;
+  }
 
+  /* the inner <div> you styled inline in HTML */
+  footer.banner > div{
+    padding: .35rem .55rem !important;   /* overrides inline padding */
+  }
+
+  /* text sizes inside the banner */
+  .banner a{
+    font-size: 1rem !important;          /* was 1.4rem (and 2rem inline) */
+    padding: .3rem .5rem !important;
+  }
+  .banner span,
+  .banner p{
+    font-size: .72rem !important;
+    line-height: 1.15 !important;
+  }
+}
   /* Hide any leftover desktop‐only buttons */
   #popOutBtn,
   header .logo-container:last-of-type { display: none; }

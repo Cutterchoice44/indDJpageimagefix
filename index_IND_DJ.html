@@ -22,20 +22,20 @@
       margin-bottom:.35rem;
       display:grid;
       grid-template-columns:1.2fr auto 1.2fr;
-      gap:.55rem; 
-      /* CHANGED: allow middle column to stretch to tallest item so the image can match the bio height */
+      gap:.55rem;
+      /* CHANGED: let the center cell (art) stretch to match the bio height */
       align-items:stretch;
       row-gap:.35rem;
     }
 
-    /* CHANGED: +~30% font size and !important to beat any global rule */
-    .strap{ 
-      font-family:'Bebas Neue',sans-serif; 
-      font-size:clamp(1.235rem,2.21vw,1.5rem) !important; 
-      line-height:1.05; 
+    /* CHANGED: +~30% and force against any global size */
+    .strap{
+      font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(1.235rem,2.21vw,1.5rem) !important;
+      line-height:1.05;
     }
 
-    /* BIGGER headline (+~30%) — force it to win against any site CSS */
+    /* Keep your larger headline */
     .djselects-hero .weekline{
       font-family:'Bebas Neue',sans-serif;
       font-size:clamp(2.7rem,6.2vw,4.0rem) !important;
@@ -44,23 +44,23 @@
     }
     #djNameText{ color:var(--brand-teal); }
 
-    .hero-art{ 
-      display:flex; 
-      align-items:center; 
-      justify-content:center; 
-      /* ensure the middle cell itself stretches with the grid row */
+    .hero-art{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      /* ensure this grid cell itself stretches */
       align-self:stretch;
     }
 
-    /* CHANGED: remove fixed 180×180; set a minimum equal to current size, and grow to match the row/bio height */
+    /* CHANGED: current size is the minimum, image grows to match bio height */
     .hero-art img{
-      height:100%;
-      min-height:180px;
-      aspect-ratio:1/1;
-      width:auto;
+      height:100% !important;            /* match tallest item in the row */
+      min-height:180px;                   /* your current desktop size */
+      width:auto !important;
+      aspect-ratio:1/1;                   /* keep square */
       object-fit:cover;
-      border:2px solid var(--brand-teal); 
-      border-radius:6px; 
+      border:2px solid var(--brand-teal);
+      border-radius:6px;
       background:#000;
       max-width:100%;
     }
@@ -74,7 +74,7 @@
     .hero-bio{ font-size:clamp(1rem,1.8vw,1.1rem); line-height:1.38; }
     .hero-bio p{ margin:.25rem 0 .45rem; }
 
-    /* Auto-condense tiers (applied by JS when paragraphs increase) */
+    /* Auto-condense tiers */
     .hero-bio.bio-tight1{ font-size:0.95em; line-height:1.32; }
     .hero-bio.bio-tight1 p{ margin:.18rem 0 .36rem; }
     .hero-bio.bio-tight2{ font-size:0.90em; line-height:1.28; }
@@ -96,7 +96,7 @@
     }
     .socials a:hover{ box-shadow:inset 0 0 0 2px var(--brand-teal); }
 
-    /* ── Next bar (tight) ─────────────────────────────────────────────── */
+    /* ── Next bar ─────────────────────────────────────────────────────── */
     .nextbar{ margin:.25rem .6rem .55rem; }
     .nextbar-inner{
       display:flex; align-items:center; gap:.8rem;
@@ -114,7 +114,13 @@
     .strip iframe{ width:100%; height:100%; border:0; display:block; }
     .strip .overlayBtn{ position:absolute; inset:0; appearance:none; background:transparent; border:0; cursor:pointer; }
 
-    /* Keep whole layout on one screen */
+    /* CHANGED: center the main preview vertically so it doesn't sit too high */
+    .preview{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:48vh;                    /* gives room to center the iframe */
+    }
     .preview iframe{
       width:100%;
       aspect-ratio:16/9;
@@ -137,15 +143,16 @@
 
     @media (max-width:1050px){
       .djselects-hero{ grid-template-columns: 1fr auto 1fr; }
-      /* CHANGED: keep the same minimum at this breakpoint but still allow growth */
-      .hero-art img{ min-height:170px; height:100%; }
+      /* keep min size but still allow growth */
+      .hero-art img{ min-height:170px; height:100% !important; width:auto !important; }
     }
     @media (max-width:900px){
-      .djselects-hero{ grid-template-columns: 1fr; align-items:start; }
+      .djselects-hero{ grid-template-columns: 1fr; }
       .hero-right{ order:3 }
       .hero-art  { order:2; justify-content:flex-start }
-      /* On single-column mobile, keep a sensible fixed image size */
-      .hero-art img{ height:auto; width:170px; min-height:170px; }
+      /* single-column mobile: sensible fixed image */
+      .hero-art img{ height:auto !important; width:170px !important; min-height:170px; }
+      .preview{ min-height:auto; } /* avoid huge gap on small screens */
     }
     @media (max-width:768px){
       .strip-list{ grid-template-rows:repeat(5,76px); }

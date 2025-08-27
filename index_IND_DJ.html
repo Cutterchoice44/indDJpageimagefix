@@ -106,8 +106,10 @@
     .strip-list{ display:grid; grid-template-rows:repeat(5,1fr); gap:.45rem; }
     .strip{ border:1px solid #264745; background:#0a0a0a; border-radius:6px; overflow:hidden; position:relative; }
     .strip.selected{ outline:2px solid var(--brand-teal); }
-    .strip iframe{ width:100%; height:100%; border:0; display:block; }
-    .strip .overlayBtn{ position:absolute; inset:0; appearance:none; background:transparent; border:0; cursor:pointer; }
+
+    /* ensure overlay is above the small iframes */
+    .strip .overlayBtn{ position:absolute; inset:0; appearance:none; background:transparent; border:0; cursor:pointer; z-index:3; }
+    .strip iframe{ width:100%; height:100%; border:0; display:block; position:relative; z-index:1; }
 
     /* Keep whole layout on one screen */
     .preview iframe{
@@ -142,7 +144,12 @@
       .hero-art img{ width:170px; height:170px; }
     }
     @media (max-width:900px){
-      .djselects-hero{ grid-template-columns: 1fr; }
+      /* Stack list and preview so the player is full width on mobile */
+      .compact-grid{ grid-template-columns: 1fr; }
+      /* make the mobile player taller */
+      .preview iframe{ max-height:60vh; }
+      /* make the tiny strip iframes ignore touches so taps hit the overlay */
+      .strip iframe{ pointer-events:none; }
       .hero-right{ order:3 }
       .hero-art  { order:2; justify-content:flex-start }
     }
@@ -160,6 +167,16 @@
     #adminPanel .row{ display:flex; gap:8px; margin-top:10px; align-items:center; }
     #adminPanel button{ padding:10px 14px; border-radius:6px; border:1px solid #2a5653; background:#0b2322; color:#eaffff; cursor:pointer; }
     #adminStatus{ opacity:.9; font-size:.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:52ch; }
+
+    /* ── Mobile NAV font shrink (leaves desktop untouched) ────────────── */
+    @media (max-width:480px){
+      #main-nav .nav-menu{ gap:.25rem; }
+      #main-nav .nav-link{
+        font-size:clamp(.82rem,4.2vw,1rem) !important;
+        padding:.35rem .3rem;
+        letter-spacing:.5px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -389,7 +406,9 @@
         return {kind:'youtube', src:`https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`}; }
       return {kind:'iframe', src:u.trim()};
     }catch{return null;} };
-    const iframe=(src,title='Media player')=>`<iframe src="${src}" title="${title}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
+
+    const iframe=(src,title='Media player') =>
+      `<iframe src="${src}" title="${title}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
 
     const bcCache=new Map();
     const bcOEmbed=async(url)=>{ if(bcCache.has(url)) return bcCache.get(url);
@@ -398,8 +417,26 @@
       const meta={ title:j?.title||'Bandcamp', thumb:j?.thumbnail_url||'', src:(()=>{const html=String(j?.html||''); const m=html.match(/src=["']([^"']+)["']/i); return m?m[1]:'';})() };
       bcCache.set(url,meta); return meta; };
 
-    function setPreview(t){ if(t.kind==='bandcamp'){ setPreviewBC(t.url); } else { mainPreview.innerHTML=iframe(t.src,'YouTube player'); } }
-    async function setPreviewBC(url){ try{ const m=await bcOEmbed(url); mainPreview.innerHTML=iframe(m.src,m.title||'Bandcamp player'); }catch(err){ mainPreview.innerHTML=`<div class="big-placeholder">Couldn’t load Bandcamp. <a href="${url}" target="_blank" rel="noopener">Open on Bandcamp</a></div>`; console.error('Bandcamp oEmbed error:',err); } }
+    /* New: pass play=true when invoked from a user tap so YT can autoplay */
+    function setPreview(t, play=false){
+      if(t.kind==='bandcamp'){
+        setPreviewBC(t.url);
+      } else {
+        let src = t.src;
+        if (play && t.kind==='youtube') src += (src.includes('?') ? '&' : '?') + 'autoplay=1';
+        const title = (t.kind==='youtube') ? 'YouTube player' : 'Media player';
+        mainPreview.innerHTML = iframe(src, title);
+      }
+    }
+    async function setPreviewBC(url){
+      try{
+        const m=await bcOEmbed(url);
+        mainPreview.innerHTML=iframe(m.src, m.title||'Bandcamp player');
+      }catch(err){
+        mainPreview.innerHTML=`<div class="big-placeholder">Couldn’t load Bandcamp. <a href="${url}" target="_blank" rel="noopener">Open on Bandcamp</a></div>`;
+        console.error('Bandcamp oEmbed error:',err);
+      }
+    }
 
     function renderTracks(){
       stripList.innerHTML='';
@@ -409,16 +446,18 @@
         if(t.kind==='bandcamp'){
           el.classList.add('bandcamp');
           el.innerHTML=`<div class="bc-tile"><div class="bc-badge">BANDCAMP — CLICK TO LOAD</div><div class="bc-title"></div><div class="bc-play">▶</div></div>`;
-          el.addEventListener('click',()=>{ $$('.strip').forEach(s=>s.classList.remove('selected')); el.classList.add('selected'); setPreview(t); },{passive:true});
+          el.addEventListener('click',()=>{ $$('.strip').forEach(s=>s.classList.remove('selected')); el.classList.add('selected'); setPreview(t,true); },{passive:true});
           bcOEmbed(t.url).then(m=>{ const tile=el.querySelector('.bc-tile'); const ti=el.querySelector('.bc-title'); if(tile&&m?.thumb) tile.style.backgroundImage=`url("${m.thumb}")`; if(ti) ti.textContent=m?.title||'Bandcamp'; }).catch(()=>{});
         }else{
           el.innerHTML=iframe(t.src,'Media preview')+'<button class="overlayBtn" aria-label="Select"></button>';
-          el.querySelector('.overlayBtn').addEventListener('click',()=>{ $$('.strip').forEach(s=>s.classList.remove('selected')); el.classList.add('selected'); setPreview(t); },{passive:true});
+          const pick=()=>{ $$('.strip').forEach(s=>s.classList.remove('selected')); el.classList.add('selected'); setPreview(t,true); };
+          el.querySelector('.overlayBtn').addEventListener('click', pick, {passive:true});
+          el.querySelector('.overlayBtn').addEventListener('touchend', pick, {passive:true});
         }
         if(idx===0) el.classList.add('selected');
         stripList.appendChild(el);
       });
-      if(items.length) setPreview(items[0]); else mainPreview.innerHTML='<div class="big-placeholder">Select a track</div>';
+      if(items.length) setPreview(items[0], false); else mainPreview.innerHTML='<div class="big-placeholder">Select a track</div>';
     }
 
     /* ── Admin (SHIFT + A) ───────────────────────────────────────────── */

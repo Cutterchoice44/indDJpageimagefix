@@ -201,7 +201,7 @@
     </div>
   </section>
 
-  <!-- NEXT SCHEDULED SHOW -->
+  <!--SELECTORS NEXT SCHEDULED SHOW -->
   <section class="nextbar"><div class="nextbar-inner"><span class="label">SELECTORS NEXT SCHEDULED SHOW</span><span class="when" id="nextShowWhen"></span></div></section>
 
   <!-- TRACKS + PREVIEW -->
@@ -348,7 +348,7 @@
       add(S.soundcloud,'SoundCloud','fa-brands fa-soundcloud'); add(S.website,'Website','fa-solid fa-globe'); add(S.email,'Email','fa-solid fa-envelope');
     }
 
-    /* ── Next scheduled show ─────────────────────────────────────────── */
+    /* ── Selectors Next scheduled show ─────────────────────────────────────────── */
     async function loadNextShow(){
       if(!state.selector.id){ nextWhen.textContent='TBA'; return; }
       const kindPath=(state.selector.kind==='presenter'?'presenters':'artists');

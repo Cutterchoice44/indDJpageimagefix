@@ -13,17 +13,9 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
   <style>
-    :root{
-      --brand-teal:#5A8785;
+    :root { --brand-teal:#5A8785; }
 
-      /* ← tweak these if you need different sizes */
-      --hero-art-size: 220px;        /* locked desktop art size (square) */
-      --hero-art-size-sm: 170px;     /* locked tablet/mobile art size */
-      --strip-col: 240px;            /* ~20% thinner than 300px */
-      --preview-max: 1180px;         /* caps the tracks+player width */
-    }
-
-    /* ── HERO (same grid, adjusted type and locked art) ──────────────── */
+    /* ── HERO (original grid; locked art; larger name on new line) ───── */
     .djselects-hero{
       padding:.45rem .6rem .25rem;
       border:2px solid var(--brand-teal); border-left:0;border-right:0;
@@ -44,31 +36,20 @@
       line-height:1; margin-top:.15rem;
       letter-spacing:.2px;
     }
-    /* Make the selector name appear on its own line, larger (like your ref image) */
+    /* put the selector name on its own line and make it bigger */
     #djNameText{
       color:var(--brand-teal);
       display:block;
       font-size:clamp(2.2rem,5.8vw,4.6rem);
       line-height:1;
-      margin-top:.1rem;
+      margin-top:.05rem;
     }
 
     .hero-art{ display:flex; align-items:center; justify-content:center; }
+    /* LOCKED size for profile art (no more match-bio height) */
     .hero-art img{
-      /* LOCKED size (no more stretching to match bio height) */
-      width:var(--hero-art-size);
-      height:var(--hero-art-size);
-      object-fit:cover;
+      width:220px; height:220px; object-fit:cover;
       border:2px solid var(--brand-teal); border-radius:6px; background:#000;
-    }
-    /* remove previous “match-bio-height” behavior on desktop */
-    @media (min-width: 901px){
-      .hero-art{ align-self:center; }
-      .hero-art img{
-        width:var(--hero-art-size);
-        height:var(--hero-art-size);
-        object-fit:cover;
-      }
     }
 
     .hero-right{
@@ -109,14 +90,12 @@
     .nextbar .label{ font-family:'Bebas Neue',sans-serif; font-size:clamp(1rem,2vw,1.35rem); }
     .nextbar .when { font-family:'Bebas Neue',sans-serif; font-size:clamp(1.05rem,2.2vw,1.45rem); color:var(--brand-teal); }
 
-    /* ── TRACKS + PREVIEW (thinner list + narrower overall) ──────────── */
+    /* ── TRACKS + PREVIEW (side list ~20% thinner, player capped) ───── */
     .compact-grid{
       display:grid;
-      grid-template-columns: var(--strip-col) minmax(0,1fr); /* 240px + the rest */
-      gap:.6rem;
-      padding:0 .6rem 1rem;
-      max-width: var(--preview-max);    /* cap width so the player isn’t too wide */
-      margin: 0 auto;
+      grid-template-columns:240px minmax(0,1fr); /* 300px → 240px */
+      gap:.6rem; padding:0 .6rem 1rem;
+      max-width:1180px; margin:0 auto; /* keep main preview from going too wide */
       align-items:start;
     }
     .strip-list{ display:grid; grid-template-rows:repeat(5,1fr); gap:.45rem; }
@@ -125,19 +104,19 @@
     .strip iframe{ width:100%; height:100%; border:0; display:block; position:relative; z-index:1; }
     .strip .overlayBtn{ position:absolute; inset:0; appearance:none; background:transparent; border:0; cursor:pointer; z-index:3; }
 
-    /* Main preview: strict 16:9 so YouTube poster isn’t cropped */
+    /* Main preview: strict 16:9; no cropping of poster image */
     .preview{ display:flex; align-items:center; justify-content:center; }
     .preview iframe{
       width:100%;
       aspect-ratio:16/9;
-      height:auto;           /* no max-height clamp → prevents cropping */
-      border:0;
-      display:block;
+      height:auto;
+      border:0; display:block; border-radius:6px;
     }
     .big-placeholder{
-      font-family:'Bebas Neue',sans-serif; color:#6fa39f; font-size:clamp(1rem,1.8vw,1.25rem); padding:.6rem;
-      width:100%; aspect-ratio:16/9; border:1px solid #264745; border-radius:6px; display:flex; align-items:center; justify-content:center;
-      text-transform:uppercase; letter-spacing:.4px;
+      font-family:'Bebas Neue',sans-serif; color:#6fa39f; font-size:clamp(1rem,1.8vw,1.25rem);
+      width:100%; aspect-ratio:16/9; border:1px solid #264745; border-radius:6px;
+      display:flex; align-items:center; justify-content:center;
+      letter-spacing:.4px; text-transform:uppercase;
     }
 
     /* ── Bandcamp tile (unchanged) ───────────────────────────────────── */
@@ -148,19 +127,17 @@
     .strip .bc-title{ position:absolute; left:8px; right:44px; bottom:8px; font-family:'Bebas Neue',sans-serif; color:#fff; text-shadow:0 2px 4px rgba(0,0,0,.6); font-size:clamp(1rem,2vw,1.1rem); line-height:1.1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .strip .bc-play{ position:absolute; inset:auto 8px 8px auto; background:rgba(90,135,133,.95); color:#000; font-weight:700; border-radius:999px; width:28px; height:28px; display:flex; align-items:center; justify-content:center; }
 
-    /* ── Tablet + mobile ─────────────────────────────────────────────── */
+    /* ── Tablet+mobile ───────────────────────────────────────────────── */
     @media (max-width:1050px){
       .djselects-hero{ grid-template-columns: 1fr auto 1fr; }
-      .hero-art img{ width:var(--hero-art-size-sm); height:var(--hero-art-size-sm); }
+      .hero-art img{ width:170px; height:170px; }
     }
     @media (max-width:900px){
-      /* Hero stacks; preserve order */
       .djselects-hero{ grid-template-columns: 1fr; }
       .hero-right{ order:3 }
       .hero-art  { order:2; justify-content:flex-start }
 
-      /* Tracks+preview stack; larger player; mini iframes ignore taps */
-      .compact-grid{ grid-template-columns: 1fr; max-width: 96vw; }
+      .compact-grid{ grid-template-columns: 1fr; max-width:96vw; }
       .preview iframe{ min-height:220px; }
       .strip iframe{ pointer-events:none; }
     }
@@ -228,13 +205,8 @@
     </div>
   </section>
 
-  <!-- SELECTOR’S NEXT SHOW -->
-  <section class="nextbar">
-    <div class="nextbar-inner">
-      <span class="label">SELECTORS NEXT SCHEDULED SHOW</span>
-      <span class="when" id="nextShowWhen"></span>
-    </div>
-  </section>
+  <!-- SELECTORS NEXT SCHEDULED SHOW -->
+  <section class="nextbar"><div class="nextbar-inner"><span class="label">SELECTORS NEXT SCHEDULED SHOW</span><span class="when" id="nextShowWhen"></span></div></section>
 
   <!-- TRACKS + PREVIEW -->
   <main class="compact-grid">
@@ -257,9 +229,9 @@
   </div>
 
   <script>
-    /* Page config */
+    /* Page config (unchanged) */
     window.DJ_SELECTS = {
-      CONFIG_ENDPOINT: 'dj-selects-config.php', // server JSON gateway
+      CONFIG_ENDPOINT: 'dj-selects-config.php',
       PROXY_ENDPOINT:  'rc-proxy.php',
       // passphrase = ccr2025!
       ADMIN_HASH_HEX: '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e'
@@ -282,7 +254,7 @@
 
     const state = { selector:{ kind:'artist', id:'', slug:'selector', name:'', image:'', description:'', shareUrl:'', socials:{} }, tracks:[], authed:false };
 
-    /* ── utils ────────────────────────────────────────────────────────── */
+    /* utils (unchanged) */
     const headers = { 'x-api-key': API_KEY };
     const fetchJSON = async (url, opt={}) => { const r=await fetch(url,{cache:'no-store',...opt,headers:{...(opt.headers||{}),...headers}}); if(!r.ok) throw new Error(String(r.status)); return r.json(); };
     const nz = iso => { try{ const d=new Date(iso); return d.toLocaleString('en-NZ',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Pacific/Auckland',timeZoneName:'short'});}catch{return '';} };
@@ -332,7 +304,7 @@
       return out;
     }
 
-    /* ── SELECTOR + detail ───────────────────────────────────────────── */
+    /* SELECTOR (unchanged) */
     async function loadSelector(){
       const findBy = (arr) =>
         arr.find(x=>tags(x.tags).includes('selector')) ||
@@ -342,7 +314,7 @@
       let a=null, kind='artist';
       try{ const j=await fetchJSON(`${BASE_URL}/station/${STATION_ID}/artists`); a=findBy(j?.artists||j?.data||j||[]);}catch{}
       if(!a){ try{ const j=await fetchJSON(`${BASE_URL}/station/${STATION_ID}/presenters`); a=findBy(j?.presenters||j?.data||j||[]); if(a) kind='presenter';}catch{} }
-      if(!a){ djNameText.textContent='—'; djBioBox.innerHTML='<p>No artist/presenter tagged “SELECTOR”.</p>'; return; }
+      if(!a){ djNameText.textContent='—'; djBioBox.innerHTML='<p>No artist/presenter tagged "SELECTOR".</p>'; return; }
 
       const kindPath = (kind==='presenter'?'presenters':'artists');
       let detail=null;
@@ -362,7 +334,6 @@
       if(state.selector.image) djProfile.src=state.selector.image;
       djBioBox.innerHTML = formatBioHTML(state.selector.description||'');
 
-      /* Auto-condense bio based on paragraph count (unchanged) */
       (function applyBioDensity(){
         const n = djBioBox.querySelectorAll('p').length;
         djBioBox.classList.remove('bio-tight1','bio-tight2','bio-tight3');
@@ -380,7 +351,7 @@
       add(S.soundcloud,'SoundCloud','fa-brands fa-soundcloud'); add(S.website,'Website','fa-solid fa-globe'); add(S.email,'Email','fa-solid fa-envelope');
     }
 
-    /* ── Next scheduled show ─────────────────────────────────────────── */
+    /* Next show (unchanged) */
     async function loadNextShow(){
       if(!state.selector.id){ nextWhen.textContent='TBA'; return; }
       const kindPath=(state.selector.kind==='presenter'?'presenters':'artists');
@@ -395,7 +366,7 @@
       }catch{ nextWhen.textContent='Unable to load schedule'; }
     }
 
-    /* ── Load track config (server → file → localStorage) ────────────── */
+    /* Config & tracks (unchanged) */
     async function loadConfig(){
       let ok=false;
       try{
@@ -410,7 +381,7 @@
       }
     }
 
-    /* ── Media render ────────────────────────────────────────────────── */
+    /* Media render (unchanged) */
     const parseTrack=(u)=>{ if(!u) return null; try{ const x=new URL(u.trim()); const host=x.hostname.toLowerCase();
       if(host.endsWith('bandcamp.com')) return {kind:'bandcamp', url:u.trim()};
       if(host.includes('youtu')){ let id=''; if(host==='youtu.be') id=x.pathname.slice(1);
@@ -427,7 +398,7 @@
     const bcOEmbed=async(url)=>{ if(bcCache.has(url)) return bcCache.get(url);
       const r=await fetch(`${CFG.PROXY_ENDPOINT}?fn=bandcamp_oembed&url=${encodeURIComponent(url)}`); const text=await r.text(); let j={};
       try{ j=JSON.parse(text);}catch{ throw new Error(text||'Proxy error'); }
-      const meta={ title:j?.title||'Bandcamp', thumb=j?.thumbnail_url||'', src:(()=>{const html=String(j?.html||''); const m=html.match(/src=["']([^"']+)["']/i); return m?m[1]:'';})() };
+      const meta={ title:j?.title||'Bandcamp', thumb:j?.thumbnail_url||'', src:(()=>{const html=String(j?.html||''); const m=html.match(/src=["']([^"']+)["']/i); return m?m[1]:'';})() };
       bcCache.set(url,meta); return meta; };
 
     function setPreview(t, play=false){
@@ -460,7 +431,7 @@
       if(items.length) setPreview(items[0]); else mainPreview.innerHTML='<div class="big-placeholder">Select a track</div>';
     }
 
-    /* ── Admin (SHIFT + A) ───────────────────────────────────────────── */
+    /* Admin (unchanged) */
     async function sha256hex(str){ const enc=new TextEncoder().encode(str); const h=await crypto.subtle.digest('SHA-256',enc); return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join(''); }
     function openAdmin(){ adminOverlay.classList.remove('adminHidden'); adminOverlay.setAttribute('aria-hidden','false'); adminTextarea.value=(state.tracks||[]).join('\n'); adminStatus.textContent=''; }
     function closeAdmin(){ adminOverlay.classList.add('adminHidden'); adminOverlay.setAttribute('aria-hidden','true'); }

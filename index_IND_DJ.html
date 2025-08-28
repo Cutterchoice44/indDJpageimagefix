@@ -17,20 +17,17 @@
 
   <!-- Bebas Neue (for nav) -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
-  <!-- FontAwesome was previously used for social icons; leaving link is harmless, but no icons are rendered now -->
+  <!-- FontAwesome (no icons used now, safe to leave) -->
   <link
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    integrity="sha512-papVjzx2kwRr2jD+M6jXwHzB+vOavVxI1x5nC0Kp4xQkn8kDjgkZJ+6o7tXf3UcZ5TrTpdyja6a0bTnzlAAKlg=="
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"
+    crossorigin="anonymous" referrerpolicy="no-referrer"
   />
 
-  <!-- INLINE NAV OVERRIDES (makes nav match main bar; removes socials; mobile-friendly) -->
+  <!-- NAV overrides to match main bar (thin black lines, even spacing, no socials) -->
   <style>
     :root { --brand-teal:#5A8785; }
 
-    /* NAV BAR — match main site */
     #main-nav{
       display:flex !important;
       align-items:center !important;
@@ -42,13 +39,11 @@
       background-color:var(--brand-teal, var(--teal)) !important;
       position:relative !important;
       z-index:1000 !important;
-      border-top:2px solid #000 !important;   /* thin black line */
-      border-bottom:2px solid #000 !important;/* thin black line */
+      border-top:2px solid #000 !important;
+      border-bottom:2px solid #000 !important;
     }
-    /* disable previous thick ::before/::after lines from CSS file */
     #main-nav::before, #main-nav::after { content:none !important; }
 
-    /* Evenly spaced links occupy full available width */
     #main-nav .nav-menu{
       display:flex !important;
       align-items:center !important;
@@ -65,8 +60,6 @@
       text-decoration:none !important;
       white-space:nowrap !important;
     }
-
-    /* Mobile: same bar, slightly smaller type */
     @media (max-width:768px){
       #main-nav a.nav-link{ font-size:1.6rem !important; }
     }
@@ -74,16 +67,18 @@
 </head>
 
 <body>
-  <!-- CONSISTENT NAV (no socials / One Music; links requested) -->
+  <!-- CONSISTENT NAV (Home • Our DJ's • DJ Selects • Schedule • Merch) -->
   <nav id="main-nav">
     <div class="nav-menu">
       <a class="nav-link" href="index.html">Home</a>
+      <a class="nav-link" href="our-djs.html">Our DJ's</a>
       <a class="nav-link" href="dj-selects.html">DJ Selects</a>
       <a class="nav-link" href="schedule.html">Schedule</a>
+      <a class="nav-link" href="merch.html">Merch</a>
     </div>
   </nav>
 
-  <!-- REST OF YOUR DJ PROFILE CONTENT (unchanged) -->
+  <!-- REST OF PAGE (unchanged) -->
   <div class="profile-wrapper">
     <div class="container">
       <!-- LEFT COLUMN: BIO -->
@@ -122,7 +117,6 @@
       <!-- RIGHT COLUMN: MIXES -->
       <section class="column-right mixes-section">
         <h2>Mixes</h2>
-        <!-- Mixcloud iframes are injected by script_IND_DJ.js -->
         <div class="mixes-list" id="mixes-list"></div>
 
         <div class="mix-input">
@@ -130,10 +124,9 @@
           <button id="add-show-btn">Add Show</button>
         </div>
       </section>
-    </div> <!-- /.container -->
-  </div> <!-- /.profile-wrapper -->
+    </div>
+  </div>
 
-  <!-- Profile script (reads ?id=, fetches data, populates page) -->
   <script src="script_IND_DJ.js?v=1748649274040" defer></script>
 </body>
 </html>

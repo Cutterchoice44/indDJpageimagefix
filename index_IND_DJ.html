@@ -10,14 +10,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>DJ Profile – Cutters Choice Radio</title>
 
-  <!-- Global + page CSS (unchanged) -->
+  <!-- Global styles (unchanged) -->
   <link rel="stylesheet" href="style.css?v=1748649274040" />
+  <!-- Page-specific styles (unchanged, see overrides below) -->
   <link rel="stylesheet" href="style-_IND_DJ.css?v=1748649274040" />
 
   <!-- Bebas Neue (for nav) -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
-
-  <!-- Keep FA include (harmless), though we removed social icons from the nav -->
+  <!-- FontAwesome was previously used for social icons; leaving link is harmless, but no icons are rendered now -->
   <link
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -26,81 +26,61 @@
     referrerpolicy="no-referrer"
   />
 
-  <!-- NAV OVERRIDES for consistency with your main bar -->
+  <!-- INLINE NAV OVERRIDES (makes nav match main bar; removes socials; mobile-friendly) -->
   <style>
     :root { --brand-teal:#5A8785; }
 
-    /* Wipe page-specific thick pseudo-lines so we can use the standard thin inner lines */
-    #main-nav::before, #main-nav::after { content: none !important; }
-
-    /* Teal band + two thin inner black lines, same as other pages */
+    /* NAV BAR — match main site */
     #main-nav{
-      /* adjustable offsets/thickness for the inner black lines */
-      --stripe-offset: 4px;
-      --stripe-thickness: 2px;
-
-      background:
-        /* top inner black line */
-        linear-gradient(#000,#000) 0 var(--stripe-offset)/100% var(--stripe-thickness) no-repeat,
-        /* bottom inner black line */
-        linear-gradient(#000,#000) 0 calc(100% - var(--stripe-offset))/100% var(--stripe-thickness) no-repeat,
-        /* teal fill */
-        var(--brand-teal);
-
-      padding: 18px 16px;
-      margin: 0;
-      width: 100%;
-      position: relative;
-      z-index: 1000;
-      box-sizing: border-box;
+      display:flex !important;
+      align-items:center !important;
+      gap:.5rem !important;
+      width:100% !important;
+      padding:.10rem .65rem !important;
+      margin:0 !important;
+      box-sizing:border-box !important;
+      background-color:var(--brand-teal, var(--teal)) !important;
+      position:relative !important;
+      z-index:1000 !important;
+      border-top:2px solid #000 !important;   /* thin black line */
+      border-bottom:2px solid #000 !important;/* thin black line */
     }
+    /* disable previous thick ::before/::after lines from CSS file */
+    #main-nav::before, #main-nav::after { content:none !important; }
 
-    /* Even 5-way layout like HOME | OUR DJ'S | SCHEDULE | DJ SELECTS | MERCH */
-    #main-nav .menu{
-      list-style:none;
-      display:grid;
-      grid-template-columns:repeat(5,1fr);
-      align-items:center;
-      gap: 0;
-      margin:0;
-      padding:0;
-      width:100%;
+    /* Evenly spaced links occupy full available width */
+    #main-nav .nav-menu{
+      display:flex !important;
+      align-items:center !important;
+      justify-content:space-evenly !important;
+      gap:clamp(.25rem,2vw,1.5rem) !important;
+      flex:1 1 auto !important;
+      min-width:0 !important;
     }
-    #main-nav .menu a{
-      display:block;
-      text-align:center;
+    #main-nav a.nav-link{
+      color:#fff !important;
       font-family:'Bebas Neue',sans-serif !important;
-      text-decoration:none;
-      color:#f7f9f9;
-      letter-spacing:.6px;
-      line-height:1.5;
-      font-size:clamp(22px,2.8vw,30px);
-      text-transform:uppercase;
-      white-space:nowrap;
-      opacity:.95;
-      transition:opacity .15s ease;
+      font-size:2rem !important;
+      text-transform:uppercase !important;
+      text-decoration:none !important;
+      white-space:nowrap !important;
     }
-    #main-nav .menu a:hover,
-    #main-nav .menu a.active{ opacity:1; color:#fff; }
 
-    /* Mobile: same bar, slightly tighter text */
+    /* Mobile: same bar, slightly smaller type */
     @media (max-width:768px){
-      #main-nav{ padding:14px 10px; --stripe-offset:5px; --stripe-thickness:2px; }
-      #main-nav .menu a{ font-size:22px; }
+      #main-nav a.nav-link{ font-size:1.6rem !important; }
     }
   </style>
 </head>
 
 <body>
-  <!-- CONSISTENT NAV (links only; no social icons) -->
-  <nav id="main-nav" aria-label="Primary">
-    <ul class="menu">
-      <li><a href="index.html">HOME</a></li>
-      <li><a href="index-ourDJS.html">OUR DJ'S</a></li>
-      <li><a href="schedule.html">SCHEDULE</a></li>
-      <li><a href="dj-selects.html">DJ SELECTS</a></li>
-      <li><a href="merch.html">MERCH</a></li>
-    </ul>
+  <!-- CONSISTENT NAV (no socials / One Music; links requested) -->
+  <nav id="main-nav">
+    <div class="nav-menu">
+      <a class="nav-link" href="index.html">Home</a>
+      <a class="nav-link" href="dj-selects.html">DJ Selects</a>
+      <a class="nav-link" href="schedule.html">Schedule</a>
+    </div>
   </nav>
 
   <!-- REST OF YOUR DJ PROFILE CONTENT (unchanged) -->
@@ -142,6 +122,7 @@
       <!-- RIGHT COLUMN: MIXES -->
       <section class="column-right mixes-section">
         <h2>Mixes</h2>
+        <!-- Mixcloud iframes are injected by script_IND_DJ.js -->
         <div class="mixes-list" id="mixes-list"></div>
 
         <div class="mix-input">

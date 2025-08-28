@@ -15,12 +15,13 @@
   <style>
     :root{
       --brand-teal:#5A8785;
-      /* new: fixed hero size + preview max width */
-      --hero-size:360px;          /* desktop hero art lock */
-      --preview-max:920px;        /* cap main preview width so it’s not too wide */
+
+      /* tuning knobs */
+      --hero-size:360px;   /* locked hero art (desktop) */
+      --preview-max:920px; /* cap preview width so it isn’t overly wide */
     }
 
-    /* ── HERO (desktop layout kept, but art is now fixed-size) ───────── */
+    /* ── HERO (desktop) ─────────────────────────────────────────────── */
     .djselects-hero{
       padding:.45rem .6rem .25rem;
       border:2px solid var(--brand-teal); border-left:0;border-right:0;
@@ -35,15 +36,13 @@
       font-size:clamp(1.235rem,2.21vw,1.495rem) !important;
       line-height:1.05;
     }
-
-    /* header line (without the name) */
     .djselects-hero .weekline{
       font-family:'Bebas Neue',sans-serif;
       font-size:clamp(2.7rem,6.2vw,4.0rem) !important;
       line-height:1; margin-top:.15rem; letter-spacing:.2px;
     }
 
-    /* big teal name on its own line (matches screenshot intent) */
+    /* Big teal name on its own line (matches your mock) */
     .selector-name{
       font-family:'Bebas Neue',sans-serif;
       color:var(--brand-teal);
@@ -53,7 +52,7 @@
       letter-spacing:.2px;
     }
 
-    /* keep old span for safety but don’t show it inline in the header */
+    /* Keep original span for compatibility but hide it visually */
     #djNameText{ display:none; }
 
     .hero-art{ display:flex; align-items:center; justify-content:center; }
@@ -92,7 +91,7 @@
     }
     .socials a:hover{ box-shadow:inset 0 0 0 2px var(--brand-teal); }
 
-    /* ── NEXT BAR ─────────────────────────────────────────────────────── */
+    /* ── NEXT BAR ───────────────────────────────────────────────────── */
     .nextbar{ margin:.25rem .6rem .55rem; }
     .nextbar-inner{
       display:flex; align-items:center; gap:.8rem;
@@ -102,16 +101,15 @@
     .nextbar .label{ font-family:'Bebas Neue',sans-serif; font-size:clamp(1rem,2vw,1.35rem); }
     .nextbar .when { font-family:'Bebas Neue',sans-serif; font-size:clamp(1.05rem,2.2vw,1.45rem); color:var(--brand-teal); }
 
-    /* ── TRACKS + PREVIEW ────────────────────────────────────────────── */
-    /* make the strip column ~20% thinner (300 -> 240px) */
+    /* ── TRACKS + PREVIEW ───────────────────────────────────────────── */
+    /* ~20% thinner list (300 → 240px) and cap preview width */
     .compact-grid{ display:grid; grid-template-columns:240px minmax(0,1fr); gap:.6rem; padding:0 .6rem 1rem; }
-    .strip-list{ display:grid; grid-template-rows:repeat(5,1fr); gap:.35rem; } /* slightly tighter gaps */
+    .strip-list{ display:grid; grid-template-rows:repeat(5,1fr); gap:.35rem; }
     .strip{ border:1px solid #264745; background:#0a0a0a; border-radius:6px; overflow:hidden; position:relative; }
     .strip.selected{ outline:2px solid var(--brand-teal); }
     .strip iframe{ width:100%; height:100%; border:0; display:block; position:relative; z-index:1; }
     .strip .overlayBtn{ position:absolute; inset:0; appearance:none; background:transparent; border:0; cursor:pointer; z-index:3; }
 
-    /* main preview: capped width + strict 16:9 so nothing looks cropped */
     .preview{
       display:flex; align-items:center; justify-content:center;
       max-width:var(--preview-max);
@@ -131,7 +129,7 @@
       width:100%; max-width:var(--preview-max);
     }
 
-    /* ── Bandcamp tile ───────────────────────────────────────────────── */
+    /* ── Bandcamp tile ──────────────────────────────────────────────── */
     .strip.bandcamp{ min-height:76px; }
     .strip .bc-tile{ position:relative; width:100%; background:#0f0f0f center/cover no-repeat; min-height:76px; }
     .strip .bc-tile::before{ content:""; position:absolute; left:0; right:0; bottom:0; height:42%; background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.65) 100%); pointer-events:none; }
@@ -139,7 +137,7 @@
     .strip .bc-title{ position:absolute; left:8px; right:44px; bottom:8px; font-family:'Bebas Neue',sans-serif; color:#fff; text-shadow:0 2px 4px rgba(0,0,0,.6); font-size:clamp(1rem,2vw,1.1rem); line-height:1.1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .strip .bc-play{ position:absolute; inset:auto 8px 8px auto; background:rgba(90,135,133,.95); color:#000; font-weight:700; border-radius:999px; width:28px; height:28px; display:flex; align-items:center; justify-content:center; }
 
-    /* ── Tablet+mobile ───────────────────────────────────────────────── */
+    /* ── Tablet+mobile ─────────────────────────────────────────────── */
     @media (max-width:1200px){
       :root{ --hero-size:300px; --preview-max:860px; }
     }
@@ -148,11 +146,10 @@
       :root{ --hero-size:260px; --preview-max:820px; }
     }
     @media (max-width:900px){
-      /* stack hero; keep fixed art; preview fills width but stays 16:9 */
-      .djselects-hero{ grid-template-columns:1fr; }
+      .djselects-hero{ grid-template-columns: 1fr; }
       .hero-right{ order:3 }
       .hero-art  { order:2; justify-content:flex-start }
-      .compact-grid{ grid-template-columns:1fr; }
+      .compact-grid{ grid-template-columns: 1fr; }
       .preview iframe{ max-height:66vh; min-height:220px; }
       .strip iframe{ pointer-events:none; }
       :root{ --hero-size:200px; --preview-max:92vw; }
@@ -162,7 +159,7 @@
       :root{ --hero-size:180px; }
     }
 
-    /* ── Admin overlay (unchanged) ───────────────────────────────────── */
+    /* ── Admin overlay (unchanged) ─────────────────────────────────── */
     .adminHidden{ display:none!important; }
     #adminOverlay{ position:fixed; inset:0; background:rgba(0,0,0,.82); color:#fff; z-index:9999; display:flex; align-items:center; justify-content:center; }
     #adminPanel{ width:min(840px,92vw); max-height:90vh; overflow:auto; background:#0e1414; border:2px solid var(--brand-teal); border-radius:10px; padding:16px; box-shadow:0 12px 40px rgba(0,0,0,.55); }
@@ -173,7 +170,7 @@
     #adminPanel button{ padding:10px 14px; border-radius:6px; border:1px solid #2a5653; background:#0b2322; color:#eaffff; cursor:pointer; }
     #adminStatus{ opacity:.9; font-size:.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:52ch; }
 
-    /* ── Top NAV smaller on very small phones only ───────────────────── */
+    /* Smaller nav on very small phones */
     @media (max-width:520px){
       #main-nav .nav-menu{ gap:.25rem; flex-wrap:wrap; justify-content:space-between; }
       #main-nav .nav-link{
@@ -214,7 +211,7 @@
       <div class="strap">EACH WEEK IN A NON SPECIFIC ORDER A DIFFERENT CUTTERS DJ SELECTS THEIR 5 TRACKS OF THE WEEK</div>
       <div class="weekline">THIS WEEKS CUTTERS DJ SELECTOR</div>
       <div id="djNameBig" class="selector-name">—</div>
-      <!-- keep the original span (hidden) so existing JS hooks remain harmless -->
+      <!-- keep for compatibility with existing code paths -->
       <span id="djNameText" aria-hidden="true">—</span>
     </div>
     <div class="hero-art"><img id="djProfileThumb" src="/images/default-dj.png" alt="DJ profile" /></div>
@@ -292,7 +289,7 @@
 
     const state = { selector:{ kind:'artist', id:'', slug:'selector', name:'', image:'', description:'', shareUrl:'', socials:{} }, tracks:[], authed:false };
 
-    /* ── utils ────────────────────────────────────────────────────────── */
+    /* ── utils ─────────────────────────────────────────────────────── */
     const headers = { 'x-api-key': API_KEY };
     const fetchJSON = async (url, opt={}) => { const r=await fetch(url,{cache:'no-store',...opt,headers:{...(opt.headers||{}),...headers}}); if(!r.ok) throw new Error(String(r.status)); return r.json(); };
     const nz = iso => { try{ const d=new Date(iso); return d.toLocaleString('en-NZ',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Pacific/Auckland',timeZoneName:'short'});}catch{return '';} };
@@ -303,7 +300,7 @@
       if(typeof v==='string') return v;
       if(Array.isArray(v)) return v.map(extractTextDeep).filter(Boolean).join('\n\n');
       if(typeof v==='object'){
-        if(v.html) return String(v.html);
+        if(v.html) return v.html;
         if(typeof v.text==='string') return v.text;
         if(v.plain_text) return String(v.plain_text);
         if(v.content) return extractTextDeep(v.content);
@@ -317,7 +314,8 @@
       if(!raw) return '';
       if (/<[a-z][\s\S]*>/i.test(raw)) {
         const div=document.createElement('div'); div.innerHTML=raw; div.querySelectorAll('script,style').forEach(n=>n.remove());
-        div.innerHTML = div.innerHTML.replace(/\bparagraph\b/gi,''); return div.innerHTML;
+        div.innerHTML = div.innerHTML.replace(/\bparagraph\b/gi,'');
+        return div.innerHTML;
       } else {
         const text = raw.replace(/\bparagraph\b/gi,'').replace(/\r?\n\s*\r?\n/g,'\n').trim();
         return text.split(/\r?\n/).filter(Boolean).map(t=>`<p>${escapeHtml(t.trim())}</p>`).join('');
@@ -342,7 +340,7 @@
       return out;
     }
 
-    /* ── SELECTOR + detail ───────────────────────────────────────────── */
+    /* ── SELECTOR + detail ─────────────────────────────────────────── */
     async function loadSelector(){
       const findBy = (arr) =>
         arr.find(x=>tags(x.tags).includes('selector')) ||
@@ -391,7 +389,7 @@
       add(S.soundcloud,'SoundCloud','fa-brands fa-soundcloud'); add(S.website,'Website','fa-solid fa-globe'); add(S.email,'Email','fa-solid fa-envelope');
     }
 
-    /* ── Next scheduled show ─────────────────────────────────────────── */
+    /* ── Next scheduled show ───────────────────────────────────────── */
     async function loadNextShow(){
       if(!state.selector.id){ nextWhen.textContent='TBA'; return; }
       const kindPath=(state.selector.kind==='presenter'?'presenters':'artists');
@@ -406,31 +404,52 @@
       }catch{ nextWhen.textContent='Unable to load schedule'; }
     }
 
-    /* ── Load track config (server → file → localStorage) ────────────── */
+    /* ── Load track config (server → file → localStorage) ──────────── */
     async function loadConfig(){
       let ok=false;
       try{
         const r=await fetch(`${CFG.CONFIG_ENDPOINT}?action=load`,{cache:'no-store'});
-        if(r.ok){ const j=await r.json(); if(Array.isArray(j?.tracks)){ state.tracks=j.tracks.slice(0,5); ok=true; } }
+        if(r.ok){
+          const j=await r.json();
+          if(Array.isArray(j?.tracks)){ state.tracks=j.tracks.slice(0,5); ok=true; }
+        }
       }catch{}
       if(!ok){
-        try{ const r=await fetch('dj-selects-data.json',{cache:'no-store'}); if(r.ok){ const j=await r.json(); if(Array.isArray(j?.tracks)){ state.tracks=j.tracks.slice(0,5); ok=true; } } }catch{}
+        try{
+          const r=await fetch('dj-selects-data.json',{cache:'no-store'});
+          if(r.ok){
+            const j=await r.json();
+            if(Array.isArray(j?.tracks)){ state.tracks=j.tracks.slice(0,5); ok=true; }
+          }
+        }catch{}
       }
       if(!ok){
-        try{ const s=localStorage.getItem('djselects_tracks'); if(s){ const a=JSON.parse(s); if(Array.isArray(a)) state.tracks=a.slice(0,5); } }catch{}
-    }
+        try{
+          const s=localStorage.getItem('djselects_tracks');
+          if(s){
+            const a=JSON.parse(s);
+            if(Array.isArray(a)) state.tracks=a.slice(0,5);
+          }
+        }catch{}
+      }
+    } /* ← FIX: properly close loadConfig() */
 
-    /* ── Media render ────────────────────────────────────────────────── */
-    const parseTrack=(u)=>{ if(!u) return null; try{ const x=new URL(u.trim()); const host=x.hostname.toLowerCase();
+    /* ── Media render ──────────────────────────────────────────────── */
+    const parseTrack=(u)=>{ if(!u) return null; try{
+      const x=new URL(u.trim()); const host=x.hostname.toLowerCase();
       if(host.endsWith('bandcamp.com')) return {kind:'bandcamp', url:u.trim()};
-      if(host.includes('youtu')){ let id=''; if(host==='youtu.be') id=x.pathname.slice(1);
+      if(host.includes('youtu')){
+        let id='';
+        if(host==='youtu.be') id=x.pathname.slice(1);
         else if(x.pathname.startsWith('/shorts/')) id=x.pathname.split('/')[2]||'';
         else if(x.searchParams.get('v')) id=x.searchParams.get('v');
         else if(/^\/embed\//.test(x.pathname)) id=x.pathname.split('/').pop();
         id=(id||'').split('?')[0].split('&')[0]; if(!id) return null;
-        return {kind:'youtube', src:`https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`}; }
+        return {kind:'youtube', src:`https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`};
+      }
       return {kind:'iframe', src:u.trim()};
     }catch{return null;} };
+
     const iframe=(src,title='Media player')=>`<iframe src="${src}" title="${title}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
 
     const bcCache=new Map();
@@ -448,7 +467,13 @@
         mainPreview.innerHTML=iframe(src, t.kind==='youtube'?'YouTube player':'Media player');
       }
     }
-    async function setPreviewBC(url){ try{ const m=await bcOEmbed(url); mainPreview.innerHTML=iframe(m.src,m.title||'Bandcamp player'); }catch(err){ mainPreview.innerHTML=`<div class="big-placeholder">Couldn’t load Bandcamp. <a href="${url}" target="_blank" rel="noopener">Open on Bandcamp</a></div>`; console.error('Bandcamp oEmbed error:',err); } }
+    async function setPreviewBC(url){
+      try{ const m=await bcOEmbed(url); mainPreview.innerHTML=iframe(m.src,m.title||'Bandcamp player'); }
+      catch(err){
+        mainPreview.innerHTML=`<div class="big-placeholder">Couldn’t load Bandcamp. <a href="${url}" target="_blank" rel="noopener">Open on Bandcamp</a></div>`;
+        console.error('Bandcamp oEmbed error:',err);
+      }
+    }
 
     function renderTracks(){
       stripList.innerHTML='';
@@ -459,7 +484,11 @@
           el.classList.add('bandcamp');
           el.innerHTML=`<div class="bc-tile"><div class="bc-badge">BANDCAMP — CLICK TO LOAD</div><div class="bc-title"></div><div class="bc-play">▶</div></div>`;
           el.addEventListener('click',()=>{ $$('.strip').forEach(s=>s.classList.remove('selected')); el.classList.add('selected'); setPreview(t,true); },{passive:true});
-          bcOEmbed(t.url).then(m=>{ const tile=el.querySelector('.bc-tile'); const ti=el.querySelector('.bc-title'); if(tile&&m?.thumb) tile.style.backgroundImage=`url("${m.thumb}")`; if(ti) ti.textContent=m?.title||'Bandcamp'; }).catch(()=>{});
+          bcOEmbed(t.url).then(m=>{
+            const tile=el.querySelector('.bc-tile'); const ti=el.querySelector('.bc-title');
+            if(tile&&m?.thumb) tile.style.backgroundImage=`url("${m.thumb}")`;
+            if(ti) ti.textContent=m?.title||'Bandcamp';
+          }).catch(()=>{});
         }else{
           el.innerHTML=iframe(t.src,'Media preview')+'<button class="overlayBtn" aria-label="Select"></button>';
           el.querySelector('.overlayBtn').addEventListener('click',()=>{ $$('.strip').forEach(s=>s.classList.remove('selected')); el.classList.add('selected'); setPreview(t,true); },{passive:true});
@@ -470,7 +499,7 @@
       if(items.length) setPreview(items[0]); else mainPreview.innerHTML='<div class="big-placeholder">Select a track</div>';
     }
 
-    /* ── Admin (SHIFT + A) ───────────────────────────────────────────── */
+    /* ── Admin (SHIFT + A) ─────────────────────────────────────────── */
     async function sha256hex(str){ const enc=new TextEncoder().encode(str); const h=await crypto.subtle.digest('SHA-256',enc); return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join(''); }
     function openAdmin(){ adminOverlay.classList.remove('adminHidden'); adminOverlay.setAttribute('aria-hidden','false'); adminTextarea.value=(state.tracks||[]).join('\n'); adminStatus.textContent=''; }
     function closeAdmin(){ adminOverlay.classList.add('adminHidden'); adminOverlay.setAttribute('aria-hidden','true'); }

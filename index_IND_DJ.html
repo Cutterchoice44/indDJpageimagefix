@@ -8,7 +8,7 @@
   <meta http-equiv="Expires"      content="0">
   <meta name="viewport"           content="width=device-width, initial-scale=1.0">
   <title>Merch – Cutters Choice Radio</title>
-  
+
   <!-- Main stylesheet & fonts/icons -->
   <link rel="stylesheet" href="style.css?v=1748228619634">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
@@ -25,33 +25,28 @@
       height:100%;
     }
 
-    /* ── NAV BAR (match Home: teal + two thin black lines; no Merch link here) ── */
+    /* ── NAV BAR (match Home: teal + two thin black lines) ─────────────── */
     #main-nav{
-      position:relative !important;                 /* for the stripe pseudo-elements */
       display:flex !important;
       align-items:center !important;
       width:100% !important;
-      padding:.10rem .65rem !important;             /* same spacing as Home bar */
-      margin:0 !important;                          /* flush under header */
+      padding:.10rem .65rem !important;   /* same spacing as Home */
+      margin:0 !important;                /* flush under header */
       background-color:var(--brand-teal) !important;
+      position:relative !important;
       z-index:1000 !important;
-      border:none !important;                       /* avoid double-thick lines */
-      overflow:visible !important;
-    }
-    /* Draw the thin black lines so they always show */
-    #main-nav::before,
-    #main-nav::after{
-      content:"";
-      position:absolute;
-      left:0; right:0;
-      height:2px;
-      background:#000;
-      pointer-events:none;
-    }
-    #main-nav::before{ top:0; }
-    #main-nav::after { bottom:0; }
 
-    /* Evenly spaced links across full width */
+      /* draw the thin black lines inside the bar (bullet-proof vs borders) */
+      background-image:
+        linear-gradient(#000,#000),        /* top stripe  */
+        linear-gradient(#000,#000);        /* bottom stripe */
+      background-size:100% 2px, 100% 2px;
+      background-position:top left, bottom left;
+      background-repeat:no-repeat;
+
+      /* ensure no other styles override with extra stripes/borders */
+      border:0 !important;
+    }
     #main-nav .nav-menu{
       display:flex !important;
       align-items:center !important;
@@ -68,13 +63,11 @@
       text-decoration:none !important;
       white-space:nowrap !important;
     }
-
-    /* Mobile: same bar, slightly smaller type */
     @media (max-width:768px){
       #main-nav a.nav-link{ font-size:1.6rem !important; }
     }
 
-    /* ── MERCH SECTION & IFRAME (unchanged) ── */
+    /* ── MERCH SECTION & IFRAME (unchanged) ───────────────────────────── */
     .merch-section{
       padding:2rem 0;
       margin:0 auto 200px;

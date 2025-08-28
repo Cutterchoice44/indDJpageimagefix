@@ -1,3 +1,554 @@
+Skip to content
+Chat history
+You said:
+On the cutters choice radio website we made a schedule page I would like to add to that a marker that is showing on the schedule the current time, something like the image I have uploaded, heres the code currently used, please edit adding this feature, without changing any other elements, then generate a complete and full version that can be copy and pasted, <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cutters Choice Radio — Schedule</title>
+
+  <!-- Site CSS + Fonts -->
+  <link rel="stylesheet" href="style.css?v=1755569209645" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- NAV + SCHEDULE STYLES -->
+  <style>
+    :root{
+      --brand-teal:#5A8785;
+
+      /* schedule scale */
+      --hourH:52px;                 /* height per hour (change once, affects all) */
+      --qH:calc(var(--hourH)/4);    /* 15-min slots */
+    }
+
+    /* NAV – unified with main bar (teal + thin black lines, no socials) */
+    #main-nav{
+      display:flex!important; align-items:center!important;
+      gap:.5rem!important; width:100%!important;
+      padding:.10rem .65rem!important; margin:0!important;
+      box-sizing:border-box!important;
+      background-color:var(--brand-teal)!important;
+      position:relative!important; z-index:1000!important;
+      border-top:2px solid #000; border-bottom:2px solid #000;
+    }
+    #main-nav::before,#main-nav::after{content:none!important;} /* prevent any decorative lines */
+
+    /* Evenly spaced links occupy full available width */
+    #main-nav .nav-menu{
+      display:flex!important; align-items:center!important;
+      justify-content:space-evenly!important;
+      gap:clamp(.25rem,2vw,1.5rem)!important;
+      flex:1 1 auto!important;
+      min-width:0!important;
+    }
+    #main-nav a.nav-link{
+      color:#fff!important; font-family:'Bebas Neue',sans-serif!important;
+      font-size:2rem!important; text-transform:uppercase!important;
+      text-decoration:none!important; white-space:nowrap!important;
+    }
+
+    /* Mobile: same bar, slightly smaller type (match main bar) */
+    @media (max-width:768px){
+      #main-nav a.nav-link{ font-size:1.6rem!important; }
+      #main-nav .nav-menu{ justify-content:space-evenly!important; gap:.5rem!important; }
+    }
+
+    /* PAGE base */
+    html,body{ background:#000; color:#fafafa; }
+    *{ box-sizing:border-box; }
+
+    /* Header bar above schedule */
+    .page-header{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:.5rem .75rem; border-bottom:2px solid #000; background:var(--brand-teal);
+      opacity:1 !important; filter:none !important; mix-blend-mode:normal !important;
+    }
+    .page-header h1{
+      font-family:'Bebas Neue',sans-serif; font-size:2.2rem;
+      letter-spacing:.5px; color:#fff !important; margin:0;
+      text-shadow:0 1px 0 rgba(0,0,0,.35);
+      opacity:1 !important; filter:none !important; mix-blend-mode:normal !important;
+      -webkit-text-fill-color:#fff !important;
+    }
+
+    .utilities{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+    .legend{display:flex;gap:.5rem;align-items:center}
+    .chip{width:.9rem;height:.9rem;border-radius:2px;border:1px solid #1f1f1f;display:inline-block}
+
+    /* Controls row (period title, tz, arrows) */
+    .month-controls{
+      display:flex; gap:.5rem; align-items:center; justify-content:space-between;
+      border-bottom:1px solid var(--brand-teal); padding:.75rem .75rem;
+      position:sticky; top:0; background:#000; z-index:20;
+    }
+    .month-controls .title{
+      font-family:'Bebas Neue',sans-serif; font-size:2rem;
+      color:#fff !important; letter-spacing:.5px;
+      text-shadow:0 1px 0 rgba(0,0,0,.35);
+      opacity:1 !important; filter:none !important; mix-blend-mode:normal !important;
+      -webkit-text-fill-color:#fff !important;
+    }
+    .ccr-btn{
+      background:var(--brand-teal); color:#fff; border:none; border-radius:6px;
+      padding:.5rem .75rem; cursor:pointer; font-weight:600; letter-spacing:.3px;
+    }
+
+    .weeks-stack{ display:flex; flex-direction:column; gap:1.25rem; padding:1rem .75rem 2rem; }
+
+    /* === Desktop: 2-row grid so time ruler aligns with day bodies === */
+    .week-grid{
+      display:grid;
+      grid-template-columns:64px repeat(7,1fr);
+      grid-template-rows:auto 1fr;     /* row 1 = headers, row 2 = bodies */
+      gap:6px;
+      border:2px solid var(--brand-teal); border-radius:8px;
+      overflow:hidden; background:#0f0f0f; padding:6px;
+    }
+
+    /* Empty cell top-left just to keep header row height consistent */
+    .time-head{ grid-column:1; grid-row:1; }
+
+    /* Time ruler (row 2) */
+    .time-col{
+      grid-column:1; grid-row:2;
+      position:relative; height:calc(var(--hourH)*24); border:1px solid #1c1c1c; border-radius:6px;
+      /* crisp hour lines that match day bodies exactly */
+      background-color:#0b0b0b;
+      background-image:linear-gradient(to bottom,#1e1e1e 1px,transparent 1px);
+      background-size:100% var(--hourH);
+    }
+    .time-col .hour-label{
+      position:absolute; left:6px;
+      font-size:1rem; color:#fff !important; line-height:1;
+      text-shadow:0 1px 0 rgba(0,0,0,.35);
+      pointer-events:none;
+    }
+
+    /* Day headers (row 1) */
+    .day-head{
+      grid-row:1;
+      background:#0d0d0d; border:1px solid #1e1e1e; padding:.48rem .6rem;
+      border-radius:6px; color:#fff !important; opacity:1 !important; filter:none !important;
+      mix-blend-mode:normal !important;
+    }
+    .day-head .dow{
+      font-family:'Bebas Neue',sans-serif;
+      font-size:1.38rem; color:#fff !important; opacity:1 !important;
+      text-shadow:0 1px 0 rgba(0,0,0,.35);
+      -webkit-text-fill-color:#fff !important;
+    }
+    .day-head .date{
+      font-size:1.06rem; color:#fff !important; opacity:1 !important;
+      text-shadow:0 1px 0 rgba(0,0,0,.35);
+      -webkit-text-fill-color:#fff !important;
+    }
+
+    /* Day bodies (row 2) */
+    .day-body{
+      grid-row:2;
+      display:grid; grid-template-rows:repeat(96,var(--qH)); position:relative;
+      height:calc(var(--hourH)*24); border:1px solid #1c1c1c; border-radius:6px; overflow:hidden;
+      background-color:#0b0b0b;
+      background-image:linear-gradient(to bottom,#1a1a1a 1px,transparent 1px);
+      background-size:100% var(--hourH);
+    }
+
+    /* Show block — full bright color */
+    .show{
+      grid-column:1/-1; margin:2px 4px;
+      background:var(--chip,#FBBF24); color:var(--fg,#1b0f00);
+      border-radius:10px; padding:.48rem .6rem; overflow:hidden;
+      box-shadow: inset 0 0 0 2px rgba(0,0,0,.2);
+    }
+    .show .time{ font-size:.78rem; opacity:.95; }
+    .show .title{ font-weight:800; line-height:1.2; }
+    .show .host{ font-size:.85rem; opacity:.92; }
+
+    /* Palette */
+    .tone-1{--chip:#FBBF24;--fg:#1b0f00}
+    .tone-2{--chip:#FB923C;--fg:#1a0900}
+    .tone-3{--chip:#EC4899;--fg:#220713}
+    .tone-4{--chip:#A78BFA;--fg:#0e0a1a}
+    .tone-5{--chip:#06B6D4;--fg:#001318}
+    .tone-6{--chip:#60A5FA;--fg:#0a1a35}
+    .tone-7{--chip:#10B981;--fg:#00150e}
+    .tone-8{--chip:#4ADE80;--fg:#041307}
+    .is-archive{--chip:#93C5FD;--fg:#0b1f3f}
+
+    /* ===== Mobile layout ===== */
+    @media (max-width:980px){
+      .weeks-stack{ gap:1rem; padding:0.5rem 0.5rem 1.25rem; }
+
+      .week-grid{
+        display:block;                 /* abandon the desktop grid */
+        padding:0; border:none; background:transparent;
+      }
+      .time-head, .time-col{ display:none !important; } /* hide left ruler on phones */
+
+      .day-head{
+        margin:12px 8px 0; padding:.55rem .7rem; border-radius:12px;
+      }
+      .day-head .dow{ font-size:1.22rem; }
+      .day-head .date{ font-size:1rem; }
+
+      .day-body{
+        margin:6px 8px 8px;            /* card spacing */
+        border-radius:14px;
+        height:calc(var(--hourH)*24);  /* keep same scale */
+      }
+
+      .show{ padding:.44rem .55rem; margin:2px 3px; }
+      .show .time{ font-size:.84rem; }
+      .show .title{ font-size:.98rem; }
+      .show .host{ font-size:.84rem; }
+    }
+
+    /* ===== Hard white override (beats any global dimming) ===== */
+    :where(.page-header, .page-header *, .month-controls .title,
+           .week-grid .day-head, .week-grid .day-head *){
+      color:#fff !important; opacity:1 !important; filter:none !important;
+      mix-blend-mode:normal !important; -webkit-text-fill-color:#fff !important;
+    }
+
+    /* Footer (unchanged) */
+    .banner{display:flex;gap:1rem;justify-content:center;padding:1rem;border-top:2px solid #000}
+    .banner a{color:#fff;text-decoration:none}
+  </style>
+
+  <!-- Chromecast init (safe to keep; nav no longer uses Cast button) -->
+  <script>
+    window.__onGCastApiAvailable = isAvailable => {
+      if (isAvailable) {
+        cast.framework.CastContext.getInstance().setOptions({
+          receiverApplicationId: '77E0F81B',
+          autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+        });
+      }
+    };
+  </script>
+  <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
+</head>
+
+<body>
+  <!-- NAV -->
+  <nav id="main-nav">
+    <div class="nav-menu">
+      <a href="index.html"         class="nav-link">HOME</a>
+      <a href="our-story.html"     class="nav-link">OUR STORY</a>
+      <a href="index-ourDJS.html"  class="nav-link">OUR DJS</a>
+      <a href="dj-selects.html"    class="nav-link">DJ SELECTS</a>
+      <a href="merch.html"         class="nav-link">MERCH</a>
+    </div>
+  </nav>
+
+  <header class="page-header">
+    <h1>MONTHLY SCHEDULE</h1>
+    <div class="utilities">
+      <button class="ccr-btn" id="todayBtn" title="Jump to current 4-week block">This Week</button>
+      <div class="legend">
+        <span class="chip" style="background:#FBBF24"></span>
+        <span class="chip" style="background:#FB923C"></span>
+        <span class="chip" style="background:#EC4899"></span>
+        <span class="chip" style="background:#A78BFA"></span>
+        <span class="chip" style="background:#06B6D4"></span>
+        <span class="chip" style="background:#60A5FA"></span>
+        <span class="chip" style="background:#10B981"></span>
+        <span class="chip" style="background:#4ADE80"></span>
+        <small style="opacity:.95;color:#fff">Order of shows each UK day</small>
+        <span class="chip" style="background:#93C5FD;margin-left:.5rem;"></span>
+        <small style="opacity:.95;color:#fff">Archives</small>
+      </div>
+    </div>
+  </header>
+
+  <section class="month-controls">
+    <div>
+      <button class="ccr-btn" id="prevMonthBtn" aria-label="Previous 4 weeks">◀</button>
+      <button class="ccr-btn" id="nextMonthBtn" aria-label="Next 4 weeks">▶</button>
+    </div>
+    <div class="title" id="monthTitle">Loading…</div>
+    <div>
+      <label style="display:flex;align-items:center;gap:.35rem;">
+        <span style="font-size:.95rem;color:#fff">Times in</span>
+        <select id="tzSelect" class="ccr-btn" style="background:#0a0a0a;border:1px solid #1c1c1c;color:#fff">
+          <option value="local">Your local time</option>
+          <option value="Europe/London">UK (Europe/London)</option>
+          <option value="UTC">UTC</option>
+        </select>
+      </label>
+    </div>
+  </section>
+
+  <main class="weeks-stack" id="weeksStack" aria-live="polite">
+    <p style="opacity:.8;color:#fff">Fetching…</p>
+  </main>
+
+  <footer class="banner">
+    <a href="privacy-policy.html">PRIVACY POLICY</a>
+    <a href="index.html">Back to Home</a>
+  </footer>
+
+  <script>
+    /* ===== API ===== */
+    const API_KEY    = "pk_0b8abc6f834b444f949f727e88a728e0";
+    const STATION_ID = "cutters-choice-radio";
+    const BASE_URL   = "https://api.radiocult.fm/api";
+    const rcFetch    = async (path) => {
+      const res = await fetch(BASE_URL + path, { headers: { "x-api-key": API_KEY } });
+      if (!res.ok) throw new Error(Fetch error ${res.status});
+      return res.json();
+    };
+
+    /* ===== Date helpers ===== */
+    const pad = n => String(n).padStart(2,"0");
+    const addDaysUTC = (d, n) => { const x = new Date(d); x.setUTCDate(x.getUTCDate()+n); return x; };
+    const startOfWeekUTC = (date) => { const d=new Date(Date.UTC(date.getUTCFullYear(),date.getUTCMonth(),date.getUTCDate())); const day=(d.getUTCDay()+6)%7; d.setUTCDate(d.getUTCDate()-day); d.setUTCHours(0,0,0,0); return d; };
+
+    // yyyy-mm-dd in chosen tz
+    const ymdInTz = (d, tz) => new Intl.DateTimeFormat('en-CA',{
+      timeZone: tz==='local'?undefined:tz, year:'numeric',month:'2-digit',day:'2-digit'
+    }).format(d);
+
+    // minutes since day start in tz
+    const minutesInDay = (d, tz) => {
+      const parts = new Intl.DateTimeFormat('en-GB',{
+        timeZone: tz==='local'?undefined:tz, hour:'2-digit', minute:'2-digit', hour12:false
+      }).formatToParts(d);
+      let hh=0,mm=0; for(const p of parts){ if(p.type==='hour') hh=parseInt(p.value,10); if(p.type==='minute') mm=parseInt(p.value,10); }
+      return hh*60+mm;
+    };
+
+    const fmtHM = (min) => {
+      let h = Math.floor(min/60), m = min % 60;
+      const ampm = h >= 12 ? 'pm':'am';
+      let hh = ((h + 11) % 12) + 1;
+      return ${String(hh).padStart(2,'0')}:${String(m).padStart(2,'0')} ${ampm};
+    };
+
+    /* === Timezone-aware labels === */
+    const dowInTz = (d, tz) =>
+      new Intl.DateTimeFormat('en-GB', {
+        timeZone: tz === 'local' ? undefined : tz,
+        weekday: 'short'
+      }).format(d).toUpperCase();
+
+    const fmtDMtz = (d, tz) =>
+      new Intl.DateTimeFormat(undefined, {
+        timeZone: tz === 'local' ? undefined : tz,
+        day: 'numeric',
+        month: 'short'
+      }).format(d);
+
+    const rangeLabelInTz = (startUtc, endUtc, tz) => {
+      const f = (d,opts)=> new Intl.DateTimeFormat(undefined, {
+        ...(tz==='local'?{}:{timeZone:tz}), ...opts
+      }).format(d);
+      const sameMonthYear =
+        f(startUtc,{month:'numeric',year:'numeric'}) === f(endUtc,{month:'numeric',year:'numeric'});
+      if (sameMonthYear) {
+        const moYr = f(startUtc,{month:'long',year:'numeric'});
+        return ${moYr} • ${f(startUtc,{day:'2-digit',month:'short'})}–${f(endUtc,{day:'2-digit'})};
+      }
+      return ${f(startUtc,{day:'2-digit',month:'short'})} – ${f(endUtc,{day:'2-digit',month:'short',year:'numeric'})};
+    };
+
+    /* ===== Fetch 4-week block ===== */
+    async function fetchRange(startUtc, endUtc) {
+      // pad by one day to survive DST & borders
+      const paddedStart = addDaysUTC(startUtc, -1).toISOString();
+      const paddedEnd   = addDaysUTC(endUtc,   1).toISOString();
+      const { schedules = [] } = await rcFetch(/station/${STATION_ID}/schedule?startDate=${encodeURIComponent(paddedStart)}&endDate=${encodeURIComponent(paddedEnd)});
+      return schedules.map(s => ({
+        start: s.startDateUtc || s.startDate || s.startAt || s.start,
+        end:   s.endDateUtc   || s.endDate   || s.endAt   || s.end,
+        title: s.title || s.content?.title || s.content?.name || "Untitled show",
+        host:  (Array.isArray(s.content?.presenters) ? s.content.presenters.map(p => p.name).filter(Boolean).join(", ") : "")
+               || s.metadata?.artist || s.dj || "",
+        raw: s
+      })).filter(s => s.start && s.end);
+    }
+
+    /* ===== Colour rules ===== */
+    const ORDER_CLASSES = ['tone-1','tone-2','tone-3','tone-4','tone-5','tone-6','tone-7','tone-8'];
+    const isArchive = (s) => {
+      const blob = ${s.title||''} ${s.host||''}.toLowerCase();
+      return blob.includes('archive') || blob.includes('archives');
+    };
+
+    /* ===== Split overnight and fill gaps with Archives ===== */
+    const incYMD = (s) => { const [y,m,d]=s.split('-').map(Number); const dt=new Date(Date.UTC(y,m-1,d)); dt.setUTCDate(dt.getUTCDate()+1); return ${dt.getUTCFullYear()}-${pad(dt.getUTCMonth()+1)}-${pad(dt.getUTCDate())}; };
+
+    function splitShowsIntoDailySegments(shows, tz) {
+      const map = new Map();
+      for (const s of shows) {
+        const st = new Date(s.start), en = new Date(s.end);
+        const kStart = ymdInTz(st, tz), kEnd = ymdInTz(en, tz);
+        let key = kStart;
+        while (true) {
+          const segStartMin = (key===kStart) ? minutesInDay(st, tz) : 0;
+          const segEndMin   = (key===kEnd)   ? minutesInDay(en, tz) : 24*60;
+          const seg = { ...s, segStartMin, segEndMin: Math.max(segStartMin+15, segEndMin), archive: isArchive(s) };
+          if (!map.has(key)) map.set(key, []);  /* fixed bracket */
+          map.get(key).push(seg);
+          if (key===kEnd) break;
+          key = incYMD(key);
+        }
+      }
+      // sort and fill gaps with archives to keep column solid
+      for (const [key, arr] of map) {
+        arr.sort((a,b)=> a.segStartMin - b.segStartMin);
+        const filled = [];
+        let cur = 0;
+        for (const seg of arr) {
+          if (seg.segStartMin > cur) {
+            filled.push({ title:"Choice Cuts Archives", host:"", archive:true, segStartMin:cur, segEndMin:seg.segStartMin });
+          }
+          filled.push(seg);
+          cur = Math.max(cur, seg.segEndMin);
+        }
+        if (cur < 24*60) filled.push({ title:"Choice Cuts Archives", host:"", archive:true, segStartMin:cur, segEndMin:24*60 });
+        map.set(key, filled);
+      }
+      return map;
+    }
+
+    /* ===== Build UK-day order lookup ===== */
+    function buildUkOrderLookup(shows){
+      const tz = 'Europe/London';
+      const byDay = new Map();
+      for(const s of shows){
+        if (isArchive(s)) continue;
+        const st = new Date(s.start);
+        const key = ymdInTz(st, tz);
+        if(!byDay.has(key)) byDay.set(key, []);
+        byDay.get(key).push(s);
+      }
+      for(const [,arr] of byDay){ arr.sort((a,b)=> new Date(a.start) - new Date(b.start)); }
+      const lookup = new Map();
+      for(const [,arr] of byDay){
+        arr.forEach((s, idx)=>{
+          const key = (s.start||'') + '|' + (s.title||'');
+          lookup.set(key, idx);
+        });
+      }
+      return lookup;
+    }
+
+    /* Build the time ruler (row 2) with perfectly aligned labels */
+    function buildTimeRuler(){
+      const col=document.createElement('div'); col.className='time-col';
+      for(let h=0;h<24;h++){
+        const lab=document.createElement('div'); lab.className='hour-label';
+        lab.style.top=calc(${h} * var(--hourH));     // align to the top of each hour cell (no offset)
+        lab.textContent=String(h).padStart(2,'0')+':00';
+        col.appendChild(lab);
+      }
+      return col;
+    }
+
+    function renderFourWeeks(anchorUtc, shows, tz, ukOrderLookup){
+      const mount=document.getElementById('weeksStack'); mount.innerHTML='';
+      const endUtc = addDaysUTC(anchorUtc, 27);
+      document.getElementById('monthTitle').textContent = rangeLabelInTz(anchorUtc, endUtc, tz);
+
+      const buckets = splitShowsIntoDailySegments(shows, tz);
+
+      for (let w=0; w<4; w++){
+        const weekEl=document.createElement('section'); weekEl.className='week-grid';
+
+        // top-left spacer so headers row height matches
+        const spacer=document.createElement('div'); spacer.className='time-head';
+        weekEl.appendChild(spacer);
+
+        // Time ruler (row 2, col 1)
+        weekEl.appendChild(buildTimeRuler());
+
+        // Day headers + bodies (interleaved to read well on mobile)
+        for(let i=0;i<7;i++){
+          const dayUtc = addDaysUTC(anchorUtc, w*7 + i);
+          const head=document.createElement('div'); head.className='day-head';
+          head.style.gridColumn = String(i+2);
+          head.innerHTML = 
+            <div class="dow"  style="color:#fff;opacity:1;filter:none;mix-blend-mode:normal;-webkit-text-fill-color:#fff">${dowInTz(dayUtc, tz)}</div>
+            <div class="date" style="color:#fff;opacity:1;filter:none;mix-blend-mode:normal;-webkit-text-fill-color:#fff">${fmtDMtz(dayUtc, tz)}</div>
+          ;
+          weekEl.appendChild(head);
+
+          const body=document.createElement('div'); body.className='day-body';
+          body.style.gridColumn = String(i+2);
+
+          const dayKey = ymdInTz(dayUtc, tz);
+          const segments = buckets.get(dayKey) || [];
+
+          segments.forEach(seg=>{
+            const startQ = Math.floor(seg.segStartMin/15);
+            const spanQ  = Math.max(1, Math.ceil((seg.segEndMin - seg.segStartMin)/15));
+            const show=document.createElement('div');
+            let classes = 'show ';
+            if (seg.archive) {
+              classes += 'is-archive';
+            } else {
+              const key = (seg.start||'') + '|' + (seg.title||'');
+              const ord = ukOrderLookup.get(key) ?? 0;
+              classes += ORDER_CLASSES[ord % ORDER_CLASSES.length];
+            }
+            show.className = classes;
+            show.style.gridRow = ${startQ+1} / span ${spanQ};
+            show.innerHTML = 
+              <div class="time">${fmtHM(seg.segStartMin)}–${fmtHM(seg.segEndMin)}</div>
+              <div class="title">${String(seg.title).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+              ${seg.host ? <div class="host">${String(seg.host).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div> : ""}
+            ;
+            body.appendChild(show);
+          });
+
+          weekEl.appendChild(body);
+        }
+
+        mount.appendChild(weekEl);
+      }
+    }
+
+    /* ===== State & controls ===== */
+    let anchorUtc = startOfWeekUTC(new Date());  // Monday (UTC)
+    let tzMode = "local";
+
+    async function loadBlock(){
+      const blockStart = anchorUtc;
+      const blockEnd   = addDaysUTC(anchorUtc, 28);
+      try{
+        const shows=await fetchRange(blockStart, blockEnd);
+        const ukOrderLookup = buildUkOrderLookup(shows);
+        renderFourWeeks(blockStart, shows, tzMode, ukOrderLookup);
+      }catch(e){
+        console.error(e);
+        document.getElementById('weeksStack').innerHTML="<p style='color:#fff'>Couldn’t load schedule.</p>";
+      }
+    }
+
+    document.getElementById('prevMonthBtn').addEventListener('click',()=>{ anchorUtc = addDaysUTC(anchorUtc, -28); loadBlock(); window.scrollTo({top:0}); });
+    document.getElementById('nextMonthBtn').addEventListener('click',()=>{ anchorUtc = addDaysUTC(anchorUtc, +28); loadBlock(); window.scrollTo({top:0}); });
+    document.getElementById('todayBtn').addEventListener('click',()=>{ anchorUtc = startOfWeekUTC(new Date()); loadBlock(); window.scrollTo({top:0,behavior:'smooth'}); });
+    document.getElementById('tzSelect').addEventListener('change',e=>{ tzMode=e.target.value; loadBlock(); });
+
+    loadBlock();
+
+    // manual cast fallback (button removed, handler safely no-ops)
+    document.getElementById('manualCastBtn')?.addEventListener('click',()=>{
+      const context = cast.framework.CastContext.getInstance();
+      context.requestSession().catch(err=>console.error('Fallback session error',err));
+    });
+  </script>
+</body>
+</html>
+ChatGPT said:
+
+Here’s your page with a live “current-time” marker added—just like your example (a thin red line plus a small dot on the left ruler). I didn’t change any existing layout or behavior; I only added minimal CSS and JS and a tiny data attribute on each day column so the marker knows where “today” is. It updates automatically every minute and respects the selected timezone.
+
+Copy-paste this whole file over your current one:
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -609,3 +1160,18 @@
   </script>
 </body>
 </html>
+
+Notes:
+
+    The only structural tweak is body.dataset.day = dayKey inside each day column (used to target “today”).
+
+    Styling added at the end under “Current-time marker”.
+
+    JS adds drawNowMarkers(tz) (called after render, on tz change, on tab focus, and every minute).
+
+    On desktop you’ll see the small dot on the left ruler; on mobile (where the ruler hides) you still get the red line inside each day card.
+
+Is this conversation helpful so far?
+
+
+ChatGPT can make mistakes. Check important info.

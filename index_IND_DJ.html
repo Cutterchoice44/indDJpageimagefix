@@ -9,48 +9,33 @@
   <meta name="viewport"           content="width=device-width, initial-scale=1.0">
   <title>Merch – Cutters Choice Radio</title>
 
-  <!-- Main stylesheet & fonts/icons -->
+  <!-- Site CSS + Fonts (unchanged) -->
   <link rel="stylesheet" href="style.css?v=1748228619634">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
-    :root { --brand-teal:#5A8785; --dark:#000; --light:#fafafa; }
-
-    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-    html, body {
-      background-color:var(--dark);
-      color:var(--light);
-      font-family:Arial, sans-serif;
-      height:100%;
-    }
-
-    /* ── NAV BAR (match Home: teal + two thin black lines) ─────────────── */
+    /* NAV BAR — copied from Home */
     #main-nav{
       display:flex !important;
       align-items:center !important;
+      gap:.5rem !important;
       width:100% !important;
-      padding:.10rem .65rem !important;   /* same spacing as Home */
-      margin:0 !important;                /* flush under header */
+      padding:.10rem .65rem !important;
+      margin:0 !important;
+      box-sizing:border-box !important;
       background-color:var(--brand-teal) !important;
       position:relative !important;
       z-index:1000 !important;
-
-      /* draw the thin black lines inside the bar (bullet-proof vs borders) */
-      background-image:
-        linear-gradient(#000,#000),        /* top stripe  */
-        linear-gradient(#000,#000);        /* bottom stripe */
-      background-size:100% 2px, 100% 2px;
-      background-position:top left, bottom left;
-      background-repeat:no-repeat;
-
-      /* ensure no other styles override with extra stripes/borders */
-      border:0 !important;
+      border-top:2px solid #000;   /* thin black line */
+      border-bottom:2px solid #000;/* thin black line */
     }
+
+    /* Evenly spaced links occupy full available width before icons */
     #main-nav .nav-menu{
       display:flex !important;
       align-items:center !important;
-      justify-content:space-evenly !important;
+      justify-content:space-evenly !important; /* even spacing */
       gap:clamp(.25rem,2vw,1.5rem) !important;
       flex:1 1 auto !important;
       min-width:0 !important;
@@ -63,11 +48,13 @@
       text-decoration:none !important;
       white-space:nowrap !important;
     }
+
+    /* Mobile sizing like Home */
     @media (max-width:768px){
       #main-nav a.nav-link{ font-size:1.6rem !important; }
     }
 
-    /* ── MERCH SECTION & IFRAME (unchanged) ───────────────────────────── */
+    /* Merch section (unchanged) */
     .merch-section{
       padding:2rem 0;
       margin:0 auto 200px;

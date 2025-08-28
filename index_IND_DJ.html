@@ -17,37 +17,34 @@
 
   <style>
     :root {
-      --teal: #5A8785;
-      --dark: #000;
-      --light: #fafafa;
+      --brand-teal:#5A8785;
+      --dark:#000;
+      --light:#fafafa;
     }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
     html, body {
-      background-color: var(--dark);
-      color: var(--light);
-      font-family: Arial, sans-serif;
-      height: 100%;
+      background-color:var(--dark);
+      color:var(--light);
+      font-family:Arial, sans-serif;
+      height:100%;
     }
 
-    /* ── NAV BAR (match home: wider teal + thin black lines, no socials) ── */
+    /* ── NAV BAR (identical to Home: teal + thin black lines; no socials) ── */
     #main-nav{
       display:flex !important;
       align-items:center !important;
       gap:.5rem !important;
       width:100% !important;
-      /* taller/wider teal */
-      padding:.40rem .85rem !important;   /* ↑ increased from ~.10rem to ~.40rem */
-      margin:0 !important;
-      margin-top:1rem !important;         /* keep the page’s original spacing */
+      padding:.10rem .65rem !important;   /* same as home */
+      margin:0 !important;                /* remove extra top gap */
       box-sizing:border-box !important;
-      background-color:var(--teal) !important;
+      background-color:var(--brand-teal) !important;
       position:relative !important;
       z-index:1000 !important;
-      /* thin black lines like the home page */
       border-top:2px solid #000 !important;
       border-bottom:2px solid #000 !important;
     }
-    /* Ensure no old decorative stripes override this look */
+    /* ensure no decorative stripes override this */
     #main-nav::before, #main-nav::after { content:none !important; }
 
     /* Evenly spaced links across full width */
@@ -72,8 +69,6 @@
     @media (max-width:768px){
       #main-nav a.nav-link{ font-size:1.6rem !important; }
       #main-nav .nav-menu{ justify-content:space-evenly !important; }
-      /* keep the taller/wider teal on mobile as well */
-      #main-nav{ padding:.36rem .75rem !important; }
     }
 
     /* ── MERCH SECTION & IFRAME (unchanged) ── */

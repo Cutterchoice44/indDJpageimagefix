@@ -15,7 +15,7 @@
   <style>
     :root { --brand-teal:#5A8785; }
 
-    /* ── HERO (layout unchanged; art locked; name on its own line) ───── */
+    /* ── HERO (original rules) ───────────────────────────────────────── */
     .djselects-hero{
       padding:.45rem .6rem .25rem;
       border:2px solid var(--brand-teal); border-left:0;border-right:0;
@@ -36,20 +36,22 @@
       line-height:1; margin-top:.15rem;
       letter-spacing:.2px;
     }
-    /* Make the selector name big and on a new line (like the mock) */
-    #djNameText{
-      color:var(--brand-teal);
-      display:block;
-      font-size:clamp(2.2rem,5.8vw,4.6rem);
-      line-height:1;
-      margin-top:.05rem;
-    }
+    #djNameText{ color:var(--brand-teal); }
 
     .hero-art{ display:flex; align-items:center; justify-content:center; }
-    /* LOCKED profile image size; remove any match-height behavior */
     .hero-art img{
-      width:220px; height:220px; object-fit:cover;
+      width:100px; height:100px; object-fit:cover;
       border:2px solid var(--brand-teal); border-radius:6px; background:#000;
+    }
+    @media (min-width: 901px){
+      .hero-art{ align-self:stretch; }
+      .hero-art img{
+        height:95%;
+        width:auto;
+        aspect-ratio:1 / 1;
+        min-width:160px;
+        min-height:160px;
+      }
     }
 
     .hero-right{
@@ -80,7 +82,7 @@
     }
     .socials a:hover{ box-shadow:inset 0 0 0 2px var(--brand-teal); }
 
-    /* ── NEXT BAR ─────────────────────────────────────────────────────── */
+    /* ── NEXT BAR (original) ─────────────────────────────────────────── */
     .nextbar{ margin:.25rem .6rem .55rem; }
     .nextbar-inner{
       display:flex; align-items:center; gap:.8rem;
@@ -90,38 +92,28 @@
     .nextbar .label{ font-family:'Bebas Neue',sans-serif; font-size:clamp(1rem,2vw,1.35rem); }
     .nextbar .when { font-family:'Bebas Neue',sans-serif; font-size:clamp(1.05rem,2.2vw,1.45rem); color:var(--brand-teal); }
 
-    /* ── TRACKS + PREVIEW (list ~20% thinner; cap page width) ───────── */
-    .compact-grid{
-      display:grid;
-      grid-template-columns:240px minmax(0,1fr); /* 300 → 240 (≈20% thinner) */
-      gap:.6rem;
-      padding:0 .6rem 1rem;
-      max-width:1180px; /* keep preview from going too wide */
-      margin:0 auto;
-      align-items:start;
-    }
+    /* ── TRACKS + PREVIEW (original) ─────────────────────────────────── */
+    .compact-grid{ display:grid; grid-template-columns:300px minmax(0,1fr); gap:.6rem; padding:0 .6rem 1rem; }
     .strip-list{ display:grid; grid-template-rows:repeat(5,1fr); gap:.45rem; }
     .strip{ border:1px solid #264745; background:#0a0a0a; border-radius:6px; overflow:hidden; position:relative; }
     .strip.selected{ outline:2px solid var(--brand-teal); }
     .strip iframe{ width:100%; height:100%; border:0; display:block; position:relative; z-index:1; }
     .strip .overlayBtn{ position:absolute; inset:0; appearance:none; background:transparent; border:0; cursor:pointer; z-index:3; }
 
-    /* Main preview: strict 16:9; let width dictate height so poster isn't cropped */
-    .preview{ display:flex; align-items:center; justify-content:center; }
     .preview iframe{
       width:100%;
       aspect-ratio:16/9;
-      height:auto;           /* no max-height clamp to avoid cropping */
-      border:0; display:block; border-radius:6px;
+      height:auto;
+      max-height:56vh;
+      border:0;
+      display:block;
     }
     .big-placeholder{
-      font-family:'Bebas Neue',sans-serif; color:#6fa39f; font-size:clamp(1rem,1.8vw,1.25rem);
-      width:100%; aspect-ratio:16/9; border:1px solid #264745; border-radius:6px;
-      display:flex; align-items:center; justify-content:center;
-      letter-spacing:.4px; text-transform:uppercase;
+      font-family:'Bebas Neue',sans-serif; color:#6fa39f; font-size:clamp(1rem,1.8vw,1.25rem); padding:.6rem;
     }
+    .preview{ display:flex; align-items:center; justify-content:center; }
 
-    /* ── Bandcamp tile (unchanged) ───────────────────────────────────── */
+    /* ── Bandcamp tile (original) ────────────────────────────────────── */
     .strip.bandcamp{ min-height:76px; }
     .strip .bc-tile{ position:relative; width:100%; background:#0f0f0f center/cover no-repeat; min-height:76px; }
     .strip .bc-tile::before{ content:""; position:absolute; left:0; right:0; bottom:0; height:42%; background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.65) 100%); pointer-events:none; }
@@ -129,25 +121,24 @@
     .strip .bc-title{ position:absolute; left:8px; right:44px; bottom:8px; font-family:'Bebas Neue',sans-serif; color:#fff; text-shadow:0 2px 4px rgba(0,0,0,.6); font-size:clamp(1rem,2vw,1.1rem); line-height:1.1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .strip .bc-play{ position:absolute; inset:auto 8px 8px auto; background:rgba(90,135,133,.95); color:#000; font-weight:700; border-radius:999px; width:28px; height:28px; display:flex; align-items:center; justify-content:center; }
 
-    /* ── Tablet+mobile tweaks ────────────────────────────────────────── */
+    /* ── Tablet+mobile (original) ────────────────────────────────────── */
     @media (max-width:1050px){
       .djselects-hero{ grid-template-columns: 1fr auto 1fr; }
-      .hero-art img{ width:170px; height:170px; } /* smaller but still locked */
+      .hero-art img{ width:170px; height:170px; }
     }
     @media (max-width:900px){
       .djselects-hero{ grid-template-columns: 1fr; }
       .hero-right{ order:3 }
       .hero-art  { order:2; justify-content:flex-start }
-
-      .compact-grid{ grid-template-columns: 1fr; max-width:96vw; }
-      .preview iframe{ min-height:220px; }
+      .compact-grid{ grid-template-columns: 1fr; }
+      .preview iframe{ max-height:66vh; min-height:220px; }
       .strip iframe{ pointer-events:none; }
     }
     @media (max-width:768px){
       .strip-list{ grid-template-rows:repeat(5,76px); }
     }
 
-    /* ── Admin overlay (unchanged) ───────────────────────────────────── */
+    /* ── Admin (original) ────────────────────────────────────────────── */
     .adminHidden{ display:none!important; }
     #adminOverlay{ position:fixed; inset:0; background:rgba(0,0,0,.82); color:#fff; z-index:9999; display:flex; align-items:center; justify-content:center; }
     #adminPanel{ width:min(840px,92vw); max-height:90vh; overflow:auto; background:#0e1414; border:2px solid var(--brand-teal); border-radius:10px; padding:16px; box-shadow:0 12px 40px rgba(0,0,0,.55); }
@@ -158,7 +149,6 @@
     #adminPanel button{ padding:10px 14px; border-radius:6px; border:1px solid #2a5653; background:#0b2322; color:#eaffff; cursor:pointer; }
     #adminStatus{ opacity:.9; font-size:.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:52ch; }
 
-    /* ── Top NAV smaller on very small phones only ───────────────────── */
     @media (max-width:520px){
       #main-nav .nav-menu{ gap:.25rem; flex-wrap:wrap; justify-content:space-between; }
       #main-nav .nav-link{
@@ -166,6 +156,45 @@
         padding:.35rem .28rem;
         letter-spacing:.5px;
       }
+    }
+
+    /* ───────────────────────────── OVERRIDES (ONLY CHANGES) ─────────── */
+
+    /* Selector name on its own big line (like your mock) */
+    #djNameText{
+      display:block;
+      font-size:clamp(2.2rem,5.8vw,4.6rem);
+      line-height:1;
+      margin-top:.05rem;
+    }
+
+    /* Lock hero image size (stops auto-stretching with bio) */
+    .hero-art img{ width:170px; height:170px; }
+    @media (min-width:901px){
+      .hero-art{ align-self:center; }
+      .hero-art img{
+        width:220px !important;
+        height:220px !important;
+        aspect-ratio:auto !important;
+        min-width:auto; min-height:auto;
+      }
+    }
+
+    /* Make the left video list ~20% thinner; keep preview reasonable */
+    .compact-grid{
+      grid-template-columns:240px minmax(0,1fr) !important; /* 300 → 240 */
+      max-width:1180px;
+      margin:0 auto;
+      align-items:start;
+    }
+
+    /* Ensure preview is clean 16:9 with no cropping clamp */
+    .preview iframe{ max-height:none !important; }
+    .big-placeholder{
+      width:100%; aspect-ratio:16/9;
+      border:1px solid #264745; border-radius:6px;
+      display:flex; align-items:center; justify-content:center;
+      letter-spacing:.4px; text-transform:uppercase;
     }
   </style>
 </head>
@@ -207,7 +236,7 @@
     </div>
   </section>
 
-  <!-- SELECTORS NEXT SCHEDULED SHOW -->
+  <!-- SELECTORS NEXT SCHEDULED SHOW (text only change) -->
   <section class="nextbar"><div class="nextbar-inner"><span class="label">SELECTORS NEXT SCHEDULED SHOW</span><span class="when" id="nextShowWhen"></span></div></section>
 
   <!-- TRACKS + PREVIEW -->
@@ -233,7 +262,7 @@
   <script>
     /* Page config */
     window.DJ_SELECTS = {
-      CONFIG_ENDPOINT: 'dj-selects-config.php', // server JSON gateway
+      CONFIG_ENDPOINT: 'dj-selects-config.php',
       PROXY_ENDPOINT:  'rc-proxy.php',
       // passphrase = ccr2025!
       ADMIN_HASH_HEX: '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e'
@@ -252,11 +281,11 @@
 
     const djNameText=$('#djNameText'), djProfile=$('#djProfileThumb'), djBioBox=$('#djBio'), nextWhen=$('#nextShowWhen'), profileLink=$('#djProfileLink'),
           socialsBox=$('#djSocials'), stripList=$('#stripList'), mainPreview=$('#mainPreview');
-    const adminOverlay=$('#adminOverlay'), adminTextarea=$('#adminTracks'), adminSaveBtn=$('#adminSave'), adminCloseBtn=$('#adminClose'), adminStatus=$('#adminStatus']);
+    const adminOverlay=$('#adminOverlay'), adminTextarea=$('#adminTracks'), adminSaveBtn=$('#adminSave'), adminCloseBtn=$('#adminClose'), adminStatus=$('#adminStatus');
 
     const state = { selector:{ kind:'artist', id:'', slug:'selector', name:'', image:'', description:'', shareUrl:'', socials:{} }, tracks:[], authed:false };
 
-    /* ── utils ────────────────────────────────────────────────────────── */
+    /* utils */
     const headers = { 'x-api-key': API_KEY };
     const fetchJSON = async (url, opt={}) => { const r=await fetch(url,{cache:'no-store',...opt,headers:{...(opt.headers||{}),...headers}}); if(!r.ok) throw new Error(String(r.status)); return r.json(); };
     const nz = iso => { try{ const d=new Date(iso); return d.toLocaleString('en-NZ',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Pacific/Auckland',timeZoneName:'short'});}catch{return '';} };
@@ -306,7 +335,7 @@
       return out;
     }
 
-    /* ── SELECTOR + detail ───────────────────────────────────────────── */
+    /* selector */
     async function loadSelector(){
       const findBy = (arr) =>
         arr.find(x=>tags(x.tags).includes('selector')) ||
@@ -336,7 +365,6 @@
       if(state.selector.image) djProfile.src=state.selector.image;
       djBioBox.innerHTML = formatBioHTML(state.selector.description||'');
 
-      /* Auto-condense bio based on paragraph count */
       (function applyBioDensity(){
         const n = djBioBox.querySelectorAll('p').length;
         djBioBox.classList.remove('bio-tight1','bio-tight2','bio-tight3');
@@ -354,7 +382,7 @@
       add(S.soundcloud,'SoundCloud','fa-brands fa-soundcloud'); add(S.website,'Website','fa-solid fa-globe'); add(S.email,'Email','fa-solid fa-envelope');
     }
 
-    /* ── Next scheduled show ─────────────────────────────────────────── */
+    /* schedule */
     async function loadNextShow(){
       if(!state.selector.id){ nextWhen.textContent='TBA'; return; }
       const kindPath=(state.selector.kind==='presenter'?'presenters':'artists');
@@ -369,7 +397,7 @@
       }catch{ nextWhen.textContent='Unable to load schedule'; }
     }
 
-    /* ── Load track config (server → file → localStorage) ────────────── */
+    /* config */
     async function loadConfig(){
       let ok=false;
       try{
@@ -384,7 +412,7 @@
       }
     }
 
-    /* ── Media render ────────────────────────────────────────────────── */
+    /* media */
     const parseTrack=(u)=>{ if(!u) return null; try{ const x=new URL(u.trim()); const host=x.hostname.toLowerCase();
       if(host.endsWith('bandcamp.com')) return {kind:'bandcamp', url:u.trim()};
       if(host.includes('youtu')){ let id=''; if(host==='youtu.be') id=x.pathname.slice(1);
@@ -434,7 +462,7 @@
       if(items.length) setPreview(items[0]); else mainPreview.innerHTML='<div class="big-placeholder">Select a track</div>';
     }
 
-    /* ── Admin (SHIFT + A) ───────────────────────────────────────────── */
+    /* admin */
     async function sha256hex(str){ const enc=new TextEncoder().encode(str); const h=await crypto.subtle.digest('SHA-256',enc); return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join(''); }
     function openAdmin(){ adminOverlay.classList.remove('adminHidden'); adminOverlay.setAttribute('aria-hidden','false'); adminTextarea.value=(state.tracks||[]).join('\n'); adminStatus.textContent=''; }
     function closeAdmin(){ adminOverlay.classList.add('adminHidden'); adminOverlay.setAttribute('aria-hidden','true'); }

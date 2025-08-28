@@ -8,53 +8,72 @@
   <meta http-equiv="Expires"      content="0">
   <meta name="viewport"           content="width=device-width, initial-scale=1.0">
   <title>Merch – Cutters Choice Radio</title>
-
-  <!-- Site CSS + Fonts (unchanged) -->
+  
+  <!-- Main stylesheet & fonts/icons -->
   <link rel="stylesheet" href="style.css?v=1748228619634">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
-    /* NAV BAR — copied from Home */
+    :root {
+      --teal: #5A8785;
+      --dark: #000;
+      --light: #fafafa;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background-color: var(--dark);
+      color: var(--light);
+      font-family: Arial, sans-serif;
+      height: 100%;
+    }
+
+    /* ─── NAVIGATION BAR (copy of main-site styling) ────────────────────── */
     #main-nav{
       display:flex !important;
       align-items:center !important;
       gap:.5rem !important;
       width:100% !important;
       padding:.10rem .65rem !important;
-      margin:0 !important;
+      margin:0 !important;                           /* flush under header */
       box-sizing:border-box !important;
-      background-color:var(--brand-teal) !important;
+      background-color:var(--brand-teal, var(--teal)) !important;
       position:relative !important;
       z-index:1000 !important;
-      border-top:2px solid #000;   /* thin black line */
-      border-bottom:2px solid #000;/* thin black line */
+      border-top:2px solid #000 !important;          /* thin black line */
+      border-bottom:2px solid #000 !important;       /* thin black line */
     }
+    /* kill any decorative stripes from other CSS */
+    #main-nav::before, #main-nav::after { content:none !important; }
 
-    /* Evenly spaced links occupy full available width before icons */
+    /* Evenly spaced links across full width */
     #main-nav .nav-menu{
       display:flex !important;
       align-items:center !important;
-      justify-content:space-evenly !important; /* even spacing */
+      justify-content:space-evenly !important;       /* even spacing */
       gap:clamp(.25rem,2vw,1.5rem) !important;
       flex:1 1 auto !important;
       min-width:0 !important;
     }
     #main-nav a.nav-link{
+      display:block;                                  /* bigger click target */
       color:#fff !important;
       font-family:'Bebas Neue',sans-serif !important;
       font-size:2rem !important;
       text-transform:uppercase !important;
       text-decoration:none !important;
       white-space:nowrap !important;
+      line-height:1.2;
+      padding:.05rem 0;                               /* subtle vertical pad */
     }
 
-    /* Mobile sizing like Home */
+    /* Mobile sizing like the other pages */
     @media (max-width:768px){
       #main-nav a.nav-link{ font-size:1.6rem !important; }
     }
 
-    /* Merch section (unchanged) */
+    /* ─── MERCH SECTION & IFRAME (unchanged) ───────────────────────────── */
     .merch-section{
       padding:2rem 0;
       margin:0 auto 200px;

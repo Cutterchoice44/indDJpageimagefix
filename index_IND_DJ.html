@@ -12,15 +12,11 @@
   <!-- Main stylesheet & fonts/icons -->
   <link rel="stylesheet" href="style.css?v=1748228619634">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
-  <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
-    :root {
-      --brand-teal:#5A8785;
-      --dark:#000;
-      --light:#fafafa;
-    }
+    :root { --brand-teal:#5A8785; --dark:#000; --light:#fafafa; }
+
     *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
     html, body {
       background-color:var(--dark);
@@ -29,23 +25,31 @@
       height:100%;
     }
 
-    /* ── NAV BAR (identical to Home: teal + thin black lines; no socials) ── */
+    /* ── NAV BAR (match Home: teal + two thin black lines; no Merch link here) ── */
     #main-nav{
+      position:relative !important;                 /* for the stripe pseudo-elements */
       display:flex !important;
       align-items:center !important;
-      gap:.5rem !important;
       width:100% !important;
-      padding:.10rem .65rem !important;   /* same as home */
-      margin:0 !important;                /* remove extra top gap */
-      box-sizing:border-box !important;
+      padding:.10rem .65rem !important;             /* same spacing as Home bar */
+      margin:0 !important;                          /* flush under header */
       background-color:var(--brand-teal) !important;
-      position:relative !important;
       z-index:1000 !important;
-      border-top:2px solid #000 !important;
-      border-bottom:2px solid #000 !important;
+      border:none !important;                       /* avoid double-thick lines */
+      overflow:visible !important;
     }
-    /* ensure no decorative stripes override this */
-    #main-nav::before, #main-nav::after { content:none !important; }
+    /* Draw the thin black lines so they always show */
+    #main-nav::before,
+    #main-nav::after{
+      content:"";
+      position:absolute;
+      left:0; right:0;
+      height:2px;
+      background:#000;
+      pointer-events:none;
+    }
+    #main-nav::before{ top:0; }
+    #main-nav::after { bottom:0; }
 
     /* Evenly spaced links across full width */
     #main-nav .nav-menu{
@@ -68,7 +72,6 @@
     /* Mobile: same bar, slightly smaller type */
     @media (max-width:768px){
       #main-nav a.nav-link{ font-size:1.6rem !important; }
-      #main-nav .nav-menu{ justify-content:space-evenly !important; }
     }
 
     /* ── MERCH SECTION & IFRAME (unchanged) ── */
@@ -106,7 +109,7 @@
     </div>
   </header>
 
-  <!-- NAV (Home • Our Story • Our DJs • DJ Selects • Schedule • Merch) -->
+  <!-- NAV (Home • Our Story • Our DJs • DJ Selects • Schedule) -->
   <nav id="main-nav">
     <div class="nav-menu">
       <a class="nav-link" href="index.html">Home</a>
@@ -114,7 +117,6 @@
       <a class="nav-link" href="index-ourDJS.html">Our DJs</a>
       <a class="nav-link" href="dj-selects.html">DJ Selects</a>
       <a class="nav-link" href="schedule.html">Schedule</a>
-      <a class="nav-link" href="merch.html">Merch</a>
     </div>
   </nav>
 

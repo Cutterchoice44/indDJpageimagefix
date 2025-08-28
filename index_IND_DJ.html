@@ -12,23 +12,24 @@
   <!-- Main stylesheet & fonts/icons -->
   <link rel="stylesheet" href="style.css?v=1748228619634">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
     :root {
-      --brand-teal:#5A8785;
-      --dark:#000;
-      --light:#fafafa;
+      --teal: #5A8785;
+      --dark: #000;
+      --light: #fafafa;
     }
-    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
-      background-color:var(--dark);
-      color:var(--light);
-      font-family:Arial, sans-serif;
-      height:100%;
+      background-color: var(--dark);
+      color: var(--light);
+      font-family: Arial, sans-serif;
+      height: 100%;
     }
 
-    /* ── NAV BAR (unified with main site: teal + thin black lines; no socials) ── */
+    /* ── NAV BAR (unified with main bar: teal + thin black lines; no socials) ── */
     #main-nav{
       display:flex !important;
       align-items:center !important;
@@ -36,17 +37,18 @@
       width:100% !important;
       padding:.10rem .65rem !important;
       margin:0 !important;
+      margin-top:1rem !important;            /* preserve original vertical spacing */
       box-sizing:border-box !important;
-      background-color:var(--brand-teal) !important;
+      background-color:var(--teal) !important;
       position:relative !important;
       z-index:1000 !important;
       border-top:2px solid #000 !important;   /* thin black line */
       border-bottom:2px solid #000 !important;/* thin black line */
     }
-    /* remove any decorative stripes from older styles */
+    /* remove any old decorative stripes */
     #main-nav::before, #main-nav::after { content:none !important; }
 
-    /* Evenly-spaced links across full width */
+    /* Evenly spaced links across full width */
     #main-nav .nav-menu{
       display:flex !important;
       align-items:center !important;
@@ -63,6 +65,7 @@
       text-decoration:none !important;
       white-space:nowrap !important;
     }
+
     /* Mobile: same bar, slightly smaller type */
     @media (max-width:768px){
       #main-nav a.nav-link{ font-size:1.6rem !important; }

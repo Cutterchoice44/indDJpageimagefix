@@ -16,51 +16,59 @@
     :root{
       --brand-teal:#5A8785;
 
-      /* Tweak here if needed */
-      --stripW: 240px;          /* thinner side list (was 300px) */
-      --stripH: 96px;           /* row height for each of 5 links */
-      --previewMaxW: 1200px;    /* caps tracks+player width */
-      --heroArt: 190px;         /* locked desktop hero art */
-      --heroArtSm: 150px;       /* locked tablet/mobile hero art */
-      --gridGap: .6rem;
+      /* ← tweak these if you need different sizes */
+      --hero-art-size: 220px;        /* locked desktop art size (square) */
+      --hero-art-size-sm: 170px;     /* locked tablet/mobile art size */
+      --strip-col: 240px;            /* ~20% thinner than 300px */
+      --preview-max: 1180px;         /* caps the tracks+player width */
     }
 
-    /* ── HERO ────────────────────────────────────────────────────────── */
+    /* ── HERO (same grid, adjusted type and locked art) ──────────────── */
     .djselects-hero{
       padding:.45rem .6rem .25rem;
       border:2px solid var(--brand-teal); border-left:0;border-right:0;
       margin-bottom:.35rem;
       display:grid;
       grid-template-columns:1.2fr auto 1.2fr;
-      gap:.55rem var(--gridGap);
-      align-items:center;
-      row-gap:.35rem;
+      gap:.55rem; align-items:center; row-gap:.35rem;
     }
 
     .strap{ font-family:'Bebas Neue',sans-serif; }
     .djselects-hero .strap{
       font-size:clamp(1.235rem,2.21vw,1.495rem)!important;
       line-height:1.05;
-      letter-spacing:.2px;
     }
     .djselects-hero .weekline{
       font-family:'Bebas Neue',sans-serif;
-      font-size:clamp(2.7rem,6.2vw,4rem)!important;
-      line-height:1.02;
-      margin-top:.2rem;
-      letter-spacing:.3px;
-      display:block;
+      font-size:clamp(2.7rem,6.2vw,4.0rem)!important;
+      line-height:1; margin-top:.15rem;
+      letter-spacing:.2px;
     }
-    #djNameText{ color:var(--brand-teal); }
+    /* Make the selector name appear on its own line, larger (like your ref image) */
+    #djNameText{
+      color:var(--brand-teal);
+      display:block;
+      font-size:clamp(2.2rem,5.8vw,4.6rem);
+      line-height:1;
+      margin-top:.1rem;
+    }
 
     .hero-art{ display:flex; align-items:center; justify-content:center; }
     .hero-art img{
-      width:var(--heroArt);
-      height:var(--heroArt);
+      /* LOCKED size (no more stretching to match bio height) */
+      width:var(--hero-art-size);
+      height:var(--hero-art-size);
       object-fit:cover;
-      border:2px solid var(--brand-teal);
-      border-radius:6px;
-      background:#000;
+      border:2px solid var(--brand-teal); border-radius:6px; background:#000;
+    }
+    /* remove previous “match-bio-height” behavior on desktop */
+    @media (min-width: 901px){
+      .hero-art{ align-self:center; }
+      .hero-art img{
+        width:var(--hero-art-size);
+        height:var(--hero-art-size);
+        object-fit:cover;
+      }
     }
 
     .hero-right{
@@ -101,96 +109,63 @@
     .nextbar .label{ font-family:'Bebas Neue',sans-serif; font-size:clamp(1rem,2vw,1.35rem); }
     .nextbar .when { font-family:'Bebas Neue',sans-serif; font-size:clamp(1.05rem,2.2vw,1.45rem); color:var(--brand-teal); }
 
-    /* ── TRACKS + PREVIEW ────────────────────────────────────────────── */
+    /* ── TRACKS + PREVIEW (thinner list + narrower overall) ──────────── */
     .compact-grid{
       display:grid;
-      grid-template-columns: var(--stripW) minmax(0, 1fr);
-      gap:var(--gridGap);
+      grid-template-columns: var(--strip-col) minmax(0,1fr); /* 240px + the rest */
+      gap:.6rem;
       padding:0 .6rem 1rem;
-      max-width: var(--previewMaxW);
+      max-width: var(--preview-max);    /* cap width so the player isn’t too wide */
       margin: 0 auto;
       align-items:start;
     }
-    .strip-list{
-      display:grid;
-      grid-template-rows: repeat(5, var(--stripH)); /* fixed heights to prevent collapse */
-      gap:.45rem;
-    }
-    .strip{
-      border:1px solid #264745; background:#0a0a0a; border-radius:6px;
-      overflow:hidden; position:relative;
-      min-height: var(--stripH);
-    }
+    .strip-list{ display:grid; grid-template-rows:repeat(5,1fr); gap:.45rem; }
+    .strip{ border:1px solid #264745; background:#0a0a0a; border-radius:6px; overflow:hidden; position:relative; }
     .strip.selected{ outline:2px solid var(--brand-teal); }
-    .strip iframe{
-      width:100%; height:100%; border:0; display:block; position:relative; z-index:1;
-    }
-    .strip .overlayBtn{
-      position:absolute; inset:0; appearance:none; background:transparent; border:0; cursor:pointer; z-index:3;
-    }
+    .strip iframe{ width:100%; height:100%; border:0; display:block; position:relative; z-index:1; }
+    .strip .overlayBtn{ position:absolute; inset:0; appearance:none; background:transparent; border:0; cursor:pointer; z-index:3; }
 
-    .preview{
-      display:flex; align-items:center; justify-content:center; width:100%;
-    }
+    /* Main preview: strict 16:9 so YouTube poster isn’t cropped */
+    .preview{ display:flex; align-items:center; justify-content:center; }
     .preview iframe{
       width:100%;
-      aspect-ratio:16/9;   /* keeps YouTube perfectly 16:9 */
-      height:auto;
-      max-height:56vh;
+      aspect-ratio:16/9;
+      height:auto;           /* no max-height clamp → prevents cropping */
       border:0;
       display:block;
-      border-radius:6px;
     }
     .big-placeholder{
-      display:flex; align-items:center; justify-content:center;
-      width:100%;
-      aspect-ratio:16/9;
-      border:1px solid #264745; border-radius:6px;
-      font-family:'Bebas Neue',sans-serif; color:#6fa39f;
-      font-size:clamp(1rem,1.8vw,1.25rem); padding:.4rem;
-      text-transform:uppercase;
-      letter-spacing:.5px;
+      font-family:'Bebas Neue',sans-serif; color:#6fa39f; font-size:clamp(1rem,1.8vw,1.25rem); padding:.6rem;
+      width:100%; aspect-ratio:16/9; border:1px solid #264745; border-radius:6px; display:flex; align-items:center; justify-content:center;
+      text-transform:uppercase; letter-spacing:.4px;
     }
 
-    /* ── Bandcamp tile ───────────────────────────────────────────────── */
+    /* ── Bandcamp tile (unchanged) ───────────────────────────────────── */
     .strip.bandcamp{ min-height:76px; }
-    .strip .bc-tile{
-      position:relative; width:100%; background:#0f0f0f center/cover no-repeat; min-height:76px;
-    }
-    .strip .bc-tile::before{
-      content:""; position:absolute; left:0; right:0; bottom:0; height:42%;
-      background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.65) 100%); pointer-events:none;
-    }
-    .strip .bc-badge{
-      font-family:'Bebas Neue',sans-serif; background:rgba(0,0,0,.65); border-top-right-radius:8px; padding:.3rem .5rem; margin:0;
-      font-size:clamp(1rem,2vw,1.1rem); color:#d8fff8; letter-spacing:.5px;
-    }
-    .strip .bc-title{
-      position:absolute; left:8px; right:44px; bottom:8px; font-family:'Bebas Neue',sans-serif; color:#fff;
-      text-shadow:0 2px 4px rgba(0,0,0,.6); font-size:clamp(1rem,2vw,1.1rem); line-height:1.1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-    }
-    .strip .bc-play{
-      position:absolute; inset:auto 8px 8px auto; background:rgba(90,135,133,.95); color:#000; font-weight:700; border-radius:999px;
-      width:28px; height:28px; display:flex; align-items:center; justify-content:center;
-    }
+    .strip .bc-tile{ position:relative; width:100%; background:#0f0f0f center/cover no-repeat; min-height:76px; }
+    .strip .bc-tile::before{ content:""; position:absolute; left:0; right:0; bottom:0; height:42%; background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.65) 100%); pointer-events:none; }
+    .strip .bc-badge{ font-family:'Bebas Neue',sans-serif; background:rgba(0,0,0,.65); border-top-right-radius:8px; padding:.3rem .5rem; margin:0; font-size:clamp(1rem,2vw,1.1rem); color:#d8fff8; letter-spacing:.5px; }
+    .strip .bc-title{ position:absolute; left:8px; right:44px; bottom:8px; font-family:'Bebas Neue',sans-serif; color:#fff; text-shadow:0 2px 4px rgba(0,0,0,.6); font-size:clamp(1rem,2vw,1.1rem); line-height:1.1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .strip .bc-play{ position:absolute; inset:auto 8px 8px auto; background:rgba(90,135,133,.95); color:#000; font-weight:700; border-radius:999px; width:28px; height:28px; display:flex; align-items:center; justify-content:center; }
 
-    /* ── Tablet & mobile ─────────────────────────────────────────────── */
+    /* ── Tablet + mobile ─────────────────────────────────────────────── */
     @media (max-width:1050px){
       .djselects-hero{ grid-template-columns: 1fr auto 1fr; }
-      .hero-art img{ width:var(--heroArtSm); height:var(--heroArtSm); }
+      .hero-art img{ width:var(--hero-art-size-sm); height:var(--hero-art-size-sm); }
     }
     @media (max-width:900px){
+      /* Hero stacks; preserve order */
       .djselects-hero{ grid-template-columns: 1fr; }
       .hero-right{ order:3 }
       .hero-art  { order:2; justify-content:flex-start }
-      .compact-grid{ grid-template-columns: 1fr; max-width:96vw; }
-      .strip iframe{ pointer-events:none; }
+
+      /* Tracks+preview stack; larger player; mini iframes ignore taps */
+      .compact-grid{ grid-template-columns: 1fr; max-width: 96vw; }
       .preview iframe{ min-height:220px; }
-      :root{ --stripH: 82px; }
+      .strip iframe{ pointer-events:none; }
     }
     @media (max-width:768px){
-      :root{ --stripH: 76px; }
-      .strip-list{ grid-template-rows: repeat(5, var(--stripH)); }
+      .strip-list{ grid-template-rows:repeat(5,76px); }
     }
 
     /* ── Admin overlay (unchanged) ───────────────────────────────────── */
@@ -253,8 +228,13 @@
     </div>
   </section>
 
-  <!-- SELECTOR'S NEXT SHOW -->
-  <section class="nextbar"><div class="nextbar-inner"><span class="label">SELECTORS NEXT SCHEDULED SHOW</span><span class="when" id="nextShowWhen"></span></div></section>
+  <!-- SELECTOR’S NEXT SHOW -->
+  <section class="nextbar">
+    <div class="nextbar-inner">
+      <span class="label">SELECTORS NEXT SCHEDULED SHOW</span>
+      <span class="when" id="nextShowWhen"></span>
+    </div>
+  </section>
 
   <!-- TRACKS + PREVIEW -->
   <main class="compact-grid">
@@ -382,7 +362,7 @@
       if(state.selector.image) djProfile.src=state.selector.image;
       djBioBox.innerHTML = formatBioHTML(state.selector.description||'');
 
-      /* Auto-condense bio based on paragraph count */
+      /* Auto-condense bio based on paragraph count (unchanged) */
       (function applyBioDensity(){
         const n = djBioBox.querySelectorAll('p').length;
         djBioBox.classList.remove('bio-tight1','bio-tight2','bio-tight3');

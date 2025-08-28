@@ -16,12 +16,13 @@
     :root{
       --brand-teal:#5A8785;
 
-      /* ← tweak here if you want */
-      --strip-width: 240px;         /* was 300px (≈20% thinner) */
-      --preview-max: 1180px;        /* caps the whole tracks+preview width */
-      --hero-art-size: 180px;       /* locked desktop art size */
-      --hero-art-size-sm: 150px;    /* locked tablet/mobile art size */
-      --grid-gap: .6rem;
+      /* Tweak here if needed */
+      --stripW: 240px;          /* thinner side list (was 300px) */
+      --stripH: 96px;           /* row height for each of 5 links */
+      --previewMaxW: 1200px;    /* caps tracks+player width */
+      --heroArt: 190px;         /* locked desktop hero art */
+      --heroArtSm: 150px;       /* locked tablet/mobile hero art */
+      --gridGap: .6rem;
     }
 
     /* ── HERO ────────────────────────────────────────────────────────── */
@@ -31,7 +32,7 @@
       margin-bottom:.35rem;
       display:grid;
       grid-template-columns:1.2fr auto 1.2fr;
-      gap:.55rem var(--grid-gap);
+      gap:.55rem var(--gridGap);
       align-items:center;
       row-gap:.35rem;
     }
@@ -49,19 +50,17 @@
       margin-top:.2rem;
       letter-spacing:.3px;
       display:block;
-      white-space:normal;
     }
     #djNameText{ color:var(--brand-teal); }
 
     .hero-art{ display:flex; align-items:center; justify-content:center; }
     .hero-art img{
-      width:var(--hero-art-size);
-      height:var(--hero-art-size);
+      width:var(--heroArt);
+      height:var(--heroArt);
       object-fit:cover;
       border:2px solid var(--brand-teal);
       border-radius:6px;
       background:#000;
-      /* locked — no stretching to match the bio height */
     }
 
     .hero-right{
@@ -105,21 +104,22 @@
     /* ── TRACKS + PREVIEW ────────────────────────────────────────────── */
     .compact-grid{
       display:grid;
-      grid-template-columns: var(--strip-width) minmax(0, 1fr);
-      gap:var(--grid-gap);
+      grid-template-columns: var(--stripW) minmax(0, 1fr);
+      gap:var(--gridGap);
       padding:0 .6rem 1rem;
-      max-width: var(--preview-max);
-      margin: 0 auto;               /* centers and prevents an over-wide preview */
+      max-width: var(--previewMaxW);
+      margin: 0 auto;
       align-items:start;
     }
     .strip-list{
       display:grid;
-      grid-template-rows:repeat(5,1fr);
+      grid-template-rows: repeat(5, var(--stripH)); /* fixed heights to prevent collapse */
       gap:.45rem;
     }
     .strip{
       border:1px solid #264745; background:#0a0a0a; border-radius:6px;
       overflow:hidden; position:relative;
+      min-height: var(--stripH);
     }
     .strip.selected{ outline:2px solid var(--brand-teal); }
     .strip iframe{
@@ -129,17 +129,27 @@
       position:absolute; inset:0; appearance:none; background:transparent; border:0; cursor:pointer; z-index:3;
     }
 
-    /* Main preview — strict 16:9, no cropping */
-    .preview{ display:block; }
+    .preview{
+      display:flex; align-items:center; justify-content:center; width:100%;
+    }
     .preview iframe{
       width:100%;
-      aspect-ratio:16/9;
+      aspect-ratio:16/9;   /* keeps YouTube perfectly 16:9 */
       height:auto;
+      max-height:56vh;
       border:0;
       display:block;
+      border-radius:6px;
     }
     .big-placeholder{
-      font-family:'Bebas Neue',sans-serif; color:#6fa39f; font-size:clamp(1rem,1.8vw,1.25rem); padding:.6rem;
+      display:flex; align-items:center; justify-content:center;
+      width:100%;
+      aspect-ratio:16/9;
+      border:1px solid #264745; border-radius:6px;
+      font-family:'Bebas Neue',sans-serif; color:#6fa39f;
+      font-size:clamp(1rem,1.8vw,1.25rem); padding:.4rem;
+      text-transform:uppercase;
+      letter-spacing:.5px;
     }
 
     /* ── Bandcamp tile ───────────────────────────────────────────────── */
@@ -167,22 +177,20 @@
     /* ── Tablet & mobile ─────────────────────────────────────────────── */
     @media (max-width:1050px){
       .djselects-hero{ grid-template-columns: 1fr auto 1fr; }
-      .hero-art img{ width:var(--hero-art-size-sm); height:var(--hero-art-size-sm); }
+      .hero-art img{ width:var(--heroArtSm); height:var(--heroArtSm); }
     }
     @media (max-width:900px){
       .djselects-hero{ grid-template-columns: 1fr; }
       .hero-right{ order:3 }
       .hero-art  { order:2; justify-content:flex-start }
-
-      .compact-grid{
-        grid-template-columns: 1fr;
-        max-width: 96vw;
-      }
-      .strip iframe{ pointer-events:none; }   /* prevent accidental taps on mini iframes */
+      .compact-grid{ grid-template-columns: 1fr; max-width:96vw; }
+      .strip iframe{ pointer-events:none; }
       .preview iframe{ min-height:220px; }
+      :root{ --stripH: 82px; }
     }
     @media (max-width:768px){
-      .strip-list{ grid-template-rows:repeat(5,76px); }
+      :root{ --stripH: 76px; }
+      .strip-list{ grid-template-rows: repeat(5, var(--stripH)); }
     }
 
     /* ── Admin overlay (unchanged) ───────────────────────────────────── */
@@ -237,32 +245,21 @@
       <div class="strap">EACH WEEK IN A NON SPECIFIC ORDER A DIFFERENT CUTTERS DJ SELECTS THEIR 5 TRACKS OF THE WEEK</div>
       <div class="weekline">THIS WEEKS CUTTERS DJ SELECTOR : <span id="djNameText">—</span></div>
     </div>
-    <div class="hero-art">
-      <img id="djProfileThumb" src="/images/default-dj.png" alt="DJ profile" />
-    </div>
+    <div class="hero-art"><img id="djProfileThumb" src="/images/default-dj.png" alt="DJ profile" /></div>
     <div class="hero-right">
-      <div class="profile-topline">
-        <a id="djProfileLink" class="profile-link" href="#" target="_blank" rel="noopener" style="display:none">View profile</a>
-      </div>
+      <div class="profile-topline"><a id="djProfileLink" class="profile-link" href="#" target="_blank" rel="noopener" style="display:none">View profile</a></div>
       <div id="djBio" class="hero-bio"></div>
       <div id="djSocials" class="socials"></div>
     </div>
   </section>
 
   <!-- SELECTOR'S NEXT SHOW -->
-  <section class="nextbar">
-    <div class="nextbar-inner">
-      <span class="label">SELECTORS NEXT SCHEDULED SHOW</span>
-      <span class="when" id="nextShowWhen"></span>
-    </div>
-  </section>
+  <section class="nextbar"><div class="nextbar-inner"><span class="label">SELECTORS NEXT SCHEDULED SHOW</span><span class="when" id="nextShowWhen"></span></div></section>
 
   <!-- TRACKS + PREVIEW -->
   <main class="compact-grid">
     <aside id="stripList" class="strip-list"></aside>
-    <section class="preview" id="mainPreview" aria-live="polite">
-      <div class="big-placeholder">Select a track</div>
-    </section>
+    <section class="preview" id="mainPreview" aria-live="polite"><div class="big-placeholder">Select a track</div></section>
   </main>
 
   <!-- Admin overlay (SHIFT + A) -->
@@ -418,7 +415,7 @@
       }catch{ nextWhen.textContent='Unable to load schedule'; }
     }
 
-    /* ── Load track config ───────────────────────────────────────────── */
+    /* ── Load track config (server → file → localStorage) ────────────── */
     async function loadConfig(){
       let ok=false;
       try{
@@ -450,7 +447,7 @@
     const bcOEmbed=async(url)=>{ if(bcCache.has(url)) return bcCache.get(url);
       const r=await fetch(`${CFG.PROXY_ENDPOINT}?fn=bandcamp_oembed&url=${encodeURIComponent(url)}`); const text=await r.text(); let j={};
       try{ j=JSON.parse(text);}catch{ throw new Error(text||'Proxy error'); }
-      const meta={ title:j?.title||'Bandcamp', thumb:j?.thumbnail_url||'', src:(()=>{const html=String(j?.html||''); const m=html.match(/src=["']([^"']+)["']/i); return m?m[1]:'';})() };
+      const meta={ title:j?.title||'Bandcamp', thumb=j?.thumbnail_url||'', src:(()=>{const html=String(j?.html||''); const m=html.match(/src=["']([^"']+)["']/i); return m?m[1]:'';})() };
       bcCache.set(url,meta); return meta; };
 
     function setPreview(t, play=false){

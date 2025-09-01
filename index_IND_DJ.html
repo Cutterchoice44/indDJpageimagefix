@@ -20,8 +20,20 @@
       --hero-size:360px;   /* locked hero art (desktop) */
       --preview-max:920px; /* cap preview width so it isn’t overly wide */
 
-      /* OPTIONAL: tweak the brick scale if needed */
-      --brick-size: 520px; /* matches DJ profile vibe; adjust to taste */
+      /* brick tuning */
+      --brick-image:url('/images/brick-bg.jpg'); /* update path if needed */
+      --brick-size:520px;                        /* scale to match profile pages */
+    }
+
+    /* Put the bricks behind everything (no JS changes needed) */
+    body{
+      /* draw bricks as the body background so empty areas show the texture */
+      background-color:#000;
+      background-image:var(--brick-image);
+      background-repeat:repeat;
+      background-position:center top;
+      background-size:var(--brick-size) auto;
+      background-attachment:fixed;
     }
 
     /* ── HERO (desktop) ─────────────────────────────────────────────── */
@@ -112,20 +124,15 @@
     .strip iframe{ width:100%; height:100%; border:0; display:block; position:relative; z-index:1; }
     .strip .overlayBtn{ position:absolute; inset:0; appearance:none; background:transparent; border:0; cursor:pointer; z-index:3; }
 
-    /* Brick frame behind the big player (CSS-only; JS untouched) */
+    /* Brick frame around the big player (no DOM/JS changes) */
     .preview{
       display:flex; align-items:center; justify-content:center;
       max-width:var(--preview-max);
       margin:0 auto;
       width:100%;
-      /* use page bricks if they exist, otherwise fall back to explicit image */
-      background: inherit;
-      background-image: inherit, url('/images/bricks.png'); /* explicit fallback */
-      background-repeat: repeat;
-      background-position: center;
-      background-size: auto, var(--brick-size) auto;
-      padding: clamp(10px, 1.4vw, 18px);   /* creates the visible brick border */
+      padding:clamp(10px,1.4vw,18px); /* shows a ring of bricks around the iframe */
       border-radius:6px;
+      background:transparent;
     }
     .preview iframe{
       width:100%;
@@ -135,11 +142,12 @@
       border:0;
       display:block;
       border-radius:4px;
-      background:#000; /* keeps player area solid if embed transparent */
+      background:#000;
     }
     .big-placeholder{
       font-family:'Bebas Neue',sans-serif; color:#6fa39f; font-size:clamp(1rem,1.8vw,1.25rem); padding:.6rem;
       width:100%; max-width:var(--preview-max);
+      background:#000; border-radius:4px;
     }
 
     /* ── Bandcamp tile ──────────────────────────────────────────────── */
@@ -155,7 +163,7 @@
       :root{ --hero-size:300px; --preview-max:860px; }
     }
     @media (max-width:1050px){
-      .djselects-hero{ grid-template-columns: 1fr auto 1.2fr; }
+      .djselects-hero{ grid-template-columns: 1fr auto 1fr; }
       :root{ --hero-size:260px; --preview-max:820px; }
     }
     @media (max-width:900px){
@@ -163,7 +171,7 @@
       .hero-right{ order:3 }
       .hero-art  { order:2; justify-content:flex-start }
       .compact-grid{ grid-template-columns: 1fr; }
-      .preview{ padding:12px; } /* keep visible brick frame on small screens */
+      .preview{ padding:12px; }
       .preview iframe{ max-height:66vh; min-height:220px; }
       .strip iframe{ pointer-events:none; }
       :root{ --hero-size:200px; --preview-max:92vw; }
@@ -209,7 +217,7 @@
   <!-- Nav -->
   <nav id="main-nav">
     <div class="nav-menu">
-         <a href="index.html" class="nav-link">HOME</a>
+      <a href="index.html" class="nav-link">HOME</a>
       <a href="our-story.html" class="nav-link">OUR STORY</a>
       <a href="index-ourDJS.html" class="nav-link">OUR DJS</a>
       <a href="schedule.html" class="nav-link">SCHEDULE</a>
@@ -385,6 +393,7 @@
       if(state.selector.image) djProfile.src=state.selector.image;
       djBioBox.innerHTML = formatBioHTML(state.selector.description||'');
 
+      /* Auto-condense bio based on paragraph count */
       (function applyBioDensity(){
         const n = djBioBox.querySelectorAll('p').length;
         djBioBox.classList.remove('bio-tight1','bio-tight2','bio-tight3');

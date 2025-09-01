@@ -19,21 +19,6 @@
       /* tuning knobs */
       --hero-size:360px;   /* locked hero art (desktop) */
       --preview-max:920px; /* cap preview width so it isn’t overly wide */
-
-      /* brick tuning */
-      --brick-image:url('/images/brick-bg.jpg'); /* update path if needed */
-      --brick-size:520px;                        /* scale to match profile pages */
-    }
-
-    /* Put the bricks behind everything (no JS changes needed) */
-    body{
-      /* draw bricks as the body background so empty areas show the texture */
-      background-color:#000;
-      background-image:var(--brick-image);
-      background-repeat:repeat;
-      background-position:center top;
-      background-size:var(--brick-size) auto;
-      background-attachment:fixed;
     }
 
     /* ── HERO (desktop) ─────────────────────────────────────────────── */
@@ -77,7 +62,20 @@
       object-fit:cover;
       border:2px solid var(--brand-teal); border-radius:6px; background:#000;
     }
-
+/* Bricks behind the tracks + preview row only */
+main.compact-grid{
+  background-image:url('/images/bricks.png');
+  background-repeat:repeat;
+  background-size:480px auto; /* adjust for bigger/smaller bricks */
+  background-position:center top;
+}
+/* Subtle frame around the big player */
+#mainPreview{
+  padding:16px;
+  background:rgba(0,0,0,.35);
+  box-shadow:inset 0 0 0 2px rgba(90,135,133,.45);
+  border-radius:8px;
+}
     .hero-right{
       background:#0b0b0b; border:2px solid var(--brand-teal); border-radius:6px;
       padding:.6rem .75rem;
@@ -117,6 +115,7 @@
     .nextbar .when { font-family:'Bebas Neue',sans-serif; font-size:clamp(1.05rem,2.2vw,1.45rem); color:var(--brand-teal); }
 
     /* ── TRACKS + PREVIEW ───────────────────────────────────────────── */
+    /* ~20% thinner list (300 → 240px) and cap preview width */
     .compact-grid{ display:grid; grid-template-columns:240px minmax(0,1fr); gap:.6rem; padding:0 .6rem 1rem; }
     .strip-list{ display:grid; grid-template-rows:repeat(5,1fr); gap:.35rem; }
     .strip{ border:1px solid #264745; background:#0a0a0a; border-radius:6px; overflow:hidden; position:relative; }
@@ -124,15 +123,11 @@
     .strip iframe{ width:100%; height:100%; border:0; display:block; position:relative; z-index:1; }
     .strip .overlayBtn{ position:absolute; inset:0; appearance:none; background:transparent; border:0; cursor:pointer; z-index:3; }
 
-    /* Brick frame around the big player (no DOM/JS changes) */
     .preview{
       display:flex; align-items:center; justify-content:center;
       max-width:var(--preview-max);
       margin:0 auto;
       width:100%;
-      padding:clamp(10px,1.4vw,18px); /* shows a ring of bricks around the iframe */
-      border-radius:6px;
-      background:transparent;
     }
     .preview iframe{
       width:100%;
@@ -141,13 +136,10 @@
       max-height:56vh;
       border:0;
       display:block;
-      border-radius:4px;
-      background:#000;
     }
     .big-placeholder{
       font-family:'Bebas Neue',sans-serif; color:#6fa39f; font-size:clamp(1rem,1.8vw,1.25rem); padding:.6rem;
       width:100%; max-width:var(--preview-max);
-      background:#000; border-radius:4px;
     }
 
     /* ── Bandcamp tile ──────────────────────────────────────────────── */
@@ -171,7 +163,6 @@
       .hero-right{ order:3 }
       .hero-art  { order:2; justify-content:flex-start }
       .compact-grid{ grid-template-columns: 1fr; }
-      .preview{ padding:12px; }
       .preview iframe{ max-height:66vh; min-height:220px; }
       .strip iframe{ pointer-events:none; }
       :root{ --hero-size:200px; --preview-max:92vw; }
@@ -217,7 +208,7 @@
   <!-- Nav -->
   <nav id="main-nav">
     <div class="nav-menu">
-      <a href="index.html" class="nav-link">HOME</a>
+         <a href="index.html" class="nav-link">HOME</a>
       <a href="our-story.html" class="nav-link">OUR STORY</a>
       <a href="index-ourDJS.html" class="nav-link">OUR DJS</a>
       <a href="schedule.html" class="nav-link">SCHEDULE</a>

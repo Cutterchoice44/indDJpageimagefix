@@ -12,8 +12,9 @@
   <meta name="google-cast-enabled" content="true">
 
   <title>Cutters Choice Radio</title>
-<link rel="canonical" href="https://cutterschoiceradio.com/">
-  
+  <link rel="canonical" href="https://cutterschoiceradio.com/">
+  <meta name="description" content="Cutters Choice Radio — underground, community-driven electronic music: breakbeat, bass, rave and more. Listen live 24/7.">
+
   <!-- Main stylesheet -->
   <link rel="stylesheet" href="style.css?v=1756726346407">
 
@@ -151,11 +152,11 @@
     gtag('config', 'G-3MSGZZ5QL6');
   </script>
 
-  <!-- ADDED: Site-wide Organization/RadioStation JSON-LD (static brand/entity) -->
+  <!-- ADDED: Site-wide Organization JSON-LD (static brand/entity) -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": ["Organization","RadioStation"],
+    "@type": "Organization",
     "name": "Cutters Choice Radio",
     "url": "https://cutterschoiceradio.com",
     "logo": "https://cutterschoiceradio.com/images/logo.png",
@@ -194,7 +195,7 @@
     <div class="nav-menu">
       <a href="our-story.html"    class="nav-link">OUR STORY</a>
       <a href="index-ourDJS.html" class="nav-link">OUR DJS</a>
-      <a href="dj-selects.html"   class="nav-link">DJ SELECTS</a>  <!-- NEW LINK -->
+      <a href="dj-selects.html"   class="nav-link">DJ SELECTS</a>
       <a href="schedule.html"     class="nav-link">SCHEDULE</a>
       <a href="merch.html"        class="nav-link">MERCH</a>
     </div>
@@ -360,66 +361,69 @@
     })();
   </script>
 
-<!-- ADDED: JSON-LD Events injector (client-only, no visual changes) -->
-<script>
-(function(){
-  const API_KEY = 'pk_0b8abc6f834b444f949f727e88a728e0';   // publishable (read-only)
-  const STATION_ID = 'cutters-choice-radio';
-  const DAYS_AHEAD = 7;
+  <!-- ADDED: JSON-LD Events injector (client-only, no visual changes) -->
+  <script>
+  (function(){
+    const API_KEY = 'pk_0b8abc6f834b444f949f727e88a728e0';   // publishable (read-only)
+    const STATION_ID = 'cutters-choice-radio';
+    const DAYS_AHEAD = 7;
 
-  // Build request window
-  const startISO = new Date().toISOString();
-  const endISO   = new Date(Date.now() + DAYS_AHEAD * 24 * 60 * 60 * 1000).toISOString();
+    // Build request window
+    const startISO = new Date().toISOString();
+    const endISO   = new Date(Date.now() + DAYS_AHEAD * 24 * 60 * 60 * 1000).toISOString();
 
-  const url = 'https://api.radiocult.fm/api/station/' + encodeURIComponent(STATION_ID) +
-              '/schedule?startDate=' + encodeURIComponent(startISO) +
-              '&endDate=' + encodeURIComponent(endISO) +
-              '&expand=artist';
+    const url = 'https://api.radiocult.fm/api/station/' + encodeURIComponent(STATION_ID) +
+                '/schedule?startDate=' + encodeURIComponent(startISO) +
+                '&endDate=' + encodeURIComponent(endISO) +
+                '&expand=artist';
 
-  fetch(url, { headers: { 'x-api-key': API_KEY } })
-    .then(r => r.ok ? r.json() : Promise.reject(new Error('Schedule fetch failed: ' + r.status)))
-    .then(data => {
-      const events = Array.isArray(data?.schedules) ? data.schedules
-                   : Array.isArray(data) ? data
-                   : [];
-      if (!events.length) return;
+    fetch(url, { headers: { 'x-api-key': API_KEY } })
+      .then(r => r.ok ? r.json() : Promise.reject(new Error('Schedule fetch failed: ' + r.status)))
+      .then(data => {
+        const events = Array.isArray(data?.schedules) ? data.schedules
+                     : Array.isArray(data) ? data
+                     : [];
+        if (!events.length) return;
 
-      const LISTEN_URL = 'https://cutterschoiceradio.com/listen';
-      const ORG = {
-        name: 'Cutters Choice Radio',
-        url:  'https://cutterschoiceradio.com',
-        logo: 'https://cutterschoiceradio.com/images/logo.png'
-      };
-
-      // Normalize fields and build Event objects
-      const items = events.map(ev => {
-        const sISO = ev.startDateUtc || ev.startDate || ev.start;
-        const eISO = ev.endDateUtc   || ev.endDate   || ev.end;
-        const performers = (ev.artists || [])
-          .map(a => a && a.name ? { '@type':'Person', name:a.name } : null)
-          .filter(Boolean);
-
-        const obj = {
-          '@type': 'Event',
-          name: ev.title || ev.name || 'Show',
-          startDate: sISO,
-          endDate:   eISO,
-          eventStatus: 'https://schema.org/EventScheduled',
-          eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
-          location: { '@type': 'VirtualLocation', url: LISTEN_URL },
-          organizer: { '@type': 'Organization', name: ORG.name, url: ORG.url, logo: ORG.logo }
+        const LISTEN_URL = 'https://cutterschoiceradio.com/listen';
+        const ORG = {
+          name: 'Cutters Choice Radio',
+          url:  'https://cutterschoiceradio.com',
+          logo: 'https://cutterschoiceradio.com/images/logo.png'
         };
-        if (performers.length) obj.performer = performers;
-        return obj;
-      });
 
-      // Inject JSON-LD into <head>
-      const script = document.createElement('script');
-      script.type = 'application/ld+json';
-      script.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': items });
-      document.head.appendChild(script);
-    })
-    .catch(err => console.warn('[CCR JSON-LD injector]', err));
-})();
-</script>
-<!-- /ADDED JSON-LD injector -->
+        // Normalize fields and build Event objects
+        const items = events.map(ev => {
+          const sISO = ev.startDateUtc || ev.startDate || ev.start;
+          const eISO = ev.endDateUtc   || ev.endDate   || ev.end;
+          const performers = (ev.artists || [])
+            .map(a => a && a.name ? { '@type':'Person', name:a.name } : null)
+            .filter(Boolean);
+
+          const obj = {
+            '@type': 'Event',
+            name: ev.title || ev.name || 'Show',
+            startDate: sISO,
+            endDate:   eISO,
+            eventStatus: 'https://schema.org/EventScheduled',
+            eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
+            location: { '@type': 'VirtualLocation', url: LISTEN_URL },
+            organizer: { '@type': 'Organization', name: ORG.name, url: ORG.url, logo: ORG.logo }
+          };
+          if (performers.length) obj.performer = performers;
+          return obj;
+        });
+
+        // Inject JSON-LD into <head>
+        const script = document.createElement('script');
+        script.type = 'application/ld+json';
+        script.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': items });
+        document.head.appendChild(script);
+      })
+      .catch(err => console.warn('[CCR JSON-LD injector]', err));
+  })();
+  </script>
+  <!-- /ADDED JSON-LD injector -->
+
+</body>
+</html>

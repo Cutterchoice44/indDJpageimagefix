@@ -2,48 +2,43 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
- <title>Cutters Choice DJs – Resident Artists & Hosts</title>
+  <!-- Prevent browser caching -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma"       content="no-cache">
+  <meta http-equiv="Expires"      content="0">
+  <meta name="viewport"           content="width=device-width, initial-scale=1.0">
+<title>Merch – Cutters Choice Radio Apparel & Stickers</title>
 
   <!-- Canonical + SEO -->
-  <link rel="canonical" href="https://cutterschoiceradio.com/index-ourDJS.html">
-  <meta name="description" content="Meet the Cutters Choice Radio DJs and see each selector’s next scheduled show.">
+  <link rel="canonical" href="https://cutterschoiceradio.com/merch.html">
+  <meta name="description" content="Official Cutters Choice Radio merch. Grab tees, hats, and more to support the station.">
   <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#5A8785">
 
   <!-- Social preview (Open Graph + Twitter) -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Cutters Choice DJs">
-  <meta property="og:description" content="Meet the Cutters Choice Radio DJs and see each selector’s next scheduled show.">
-  <meta property="og:url" content="https://cutterschoiceradio.com/index-ourDJS.html">
+  <meta property="og:title" content="Merch – Cutters Choice Radio">
+  <meta property="og:description" content="Official Cutters Choice Radio merch. Grab tees, hats, and more to support the station.">
+  <meta property="og:url" content="https://cutterschoiceradio.com/merch.html">
   <meta property="og:site_name" content="Cutters Choice Radio">
   <meta property="og:image" content="https://cutterschoiceradio.com/images/logo.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Cutters Choice DJs">
-  <meta name="twitter:description" content="Meet the Cutters Choice Radio DJs and see each selector’s next scheduled show.">
+  <meta name="twitter:title" content="Merch – Cutters Choice Radio">
+  <meta name="twitter:description" content="Official Cutters Choice Radio merch. Grab tees, hats, and more to support the station.">
   <meta name="twitter:image" content="https://cutterschoiceradio.com/images/logo.png">
 
   <!-- Performance hints -->
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://app.radiocult.fm" crossorigin>
-  <link rel="preconnect" href="https://cdn.socket.io" crossorigin>
+  <link rel="preconnect" href="https://direct.app" crossorigin>
 
-  <!-- Main stylesheet (includes grid, card, and global resets) -->
-  <link rel="stylesheet" href="style.css?v=1748691419259">
-
-  <!-- Bebas Neue font -->
+  <!-- Main stylesheet & fonts/icons -->
+  <link rel="stylesheet" href="style.css?v=1748228619634">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
-  <!-- (Left in place; safe even though we removed icons) -->
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    integrity="sha512-papVjzx2kwRr2jD+M6jXwHzB+vOavVxI1x5nC0Kp4xQkn8kDjgkZJ+6o7tXf3UcZ5TrTpdyja6a0bTnzlAAKlg=="
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"
-  >
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <!-- Organization JSON-LD (same as homepage, safe & static) -->
+  <!-- Organization JSON-LD (static, safe) -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -62,255 +57,116 @@
 
   <style>
     :root {
-      --brand-teal: #5A8785;
-      --bg-dark:    #000;
-      --text-light: #fafafa;
-      --gap:        1rem;
+      --teal: #5A8785;
+      --dark: #000;
+      --light: #fafafa;
     }
-    *, *::before, *::after {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
-      width: 100%;
-      height: 100%;
-      background: var(--bg-dark);
-      color: var(--text-light);
+      background-color: var(--dark);
+      color: var(--light);
       font-family: Arial, sans-serif;
-      line-height: 1.4;
+      height: 100%;
     }
 
-    /* ─── HEADER ───── */
-    header.header-banner {
-      background: #000;
-      padding: 1rem 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    /* ─── NAVIGATION BAR (copy of main-site styling) ────────────────────── */
+    #main-nav{
+      display:flex !important;
+      align-items:center !important;
+      gap:.5rem !important;
+      width:100% !important;
+      padding:.10rem .65rem !important;
+      margin:0 !important;
+      box-sizing:border-box !important;
+      background-color:var(--brand-teal, var(--teal)) !important;
+      position:relative !important;
+      z-index:1000 !important;
+      border-top:2px solid #000 !important;
+      border-bottom:2px solid #000 !important;
     }
-    header .logo-container img { height: 180px; width: auto; }
-    header .title h1 {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 6rem;
-      color: #fff;
-      text-transform: uppercase;
-      margin: 0;
-      line-height: 1;
-    }
-    header .title .tagline { font-size: 1.2rem; color: var(--brand-teal); margin-top: 0.25rem; }
-    @media (max-width: 600px) {
-      header.header-banner { padding: 0.5rem 0; }
-      header .logo-container img { height: 100px !important; }
-      header .title h1 { font-size: 1.5rem !important; margin: 0.5rem 0; }
-      header .title .tagline { font-size: 1rem !important; }
-    }
+    #main-nav::before, #main-nav::after { content:none !important; }
 
-    /* ─── THIN TEAL LINES (kept as-is) ───────────────────── */
-    .thin-teal-line { height: 2px; background-color: var(--brand-teal); width: 100%; }
-
-    /* ─── NAV: teal band + two thin inner black lines (consistent with site) ─── */
-    nav#main-nav{
-      --stripe-offset: 4px;        /* distance of black lines from top/bottom */
-      --stripe-thickness: 2px;     /* thickness of the black lines */
-      background:
-        linear-gradient(#000,#000) 0 var(--stripe-offset)/100% var(--stripe-thickness) no-repeat,
-        linear-gradient(#000,#000) 0 calc(100% - var(--stripe-offset))/100% var(--stripe-thickness) no-repeat,
-        var(--brand-teal);
-      padding: 18px 16px;
-      position: relative;
-      z-index: 1000;
+    #main-nav .nav-menu{
+      display:flex !important;
+      align-items:center !important;
+      justify-content:space-evenly !important;
+      gap:clamp(.25rem,2vw,1.5rem) !important;
+      flex:1 1 auto !important;
+      min-width:0 !important;
     }
-
-    /* Centered, evenly spaced links across the bar */
-    #main-nav .menu{
-      list-style:none;
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-      align-items:center;
-      margin:0;
-      padding:0;
-      width:100%;
-    }
-    #main-nav .menu a{
+    #main-nav a.nav-link{
       display:block;
-      text-align:center;
+      color:#fff !important;
       font-family:'Bebas Neue',sans-serif !important;
-      text-decoration:none;
-      color:#f7f9f9;
-      letter-spacing:.6px;
-      line-height:1.5;
-      font-size:clamp(22px,2.8vw,30px);
-      opacity:.95;
-      transition:opacity .15s ease;
-      text-transform: uppercase;
-      white-space: nowrap;
-    }
-    #main-nav .menu a:hover,
-    #main-nav .menu a.active{ opacity:1; color:#fff; }
-
-    /* ─── GRID & CARD STYLES (unchanged) ─────────────────── */
-    #artists-container { display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--gap); padding: var(--gap); width: 100%; }
-    @media (max-width: 900px) { #artists-container { grid-template-columns: repeat(4, 1fr) !important; } }
-    @media (max-width: 600px) { #artists-container { grid-template-columns: repeat(3, 1fr) !important; gap: 0.5rem; padding: 0.5rem; } }
-    .card { border: 2px solid var(--brand-teal); background: var(--bg-dark); display: flex; flex-direction: column; text-decoration: none; overflow: hidden; }
-    .card h2 { font-family: 'Bebas Neue', sans-serif; color: var(--brand-teal); font-size: 2rem; text-transform: uppercase; padding: 0.5rem; border-bottom: 1px solid var(--brand-teal); margin: 0; }
-    .card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block; }
-    .card .next-show { padding: 0.75rem; flex: 1; display: flex; flex-direction: column; justify-content: center; }
-    .card .next-show h3 { font-family: 'Bebas Neue', sans-serif; font-size: 0.9rem; text-transform: uppercase; margin: 0 0 0.5rem; color: var(--text-light); }
-    .card .next-show p { font-size: 0.85rem; line-height: 1.2; margin: 0; color: var(--brand-teal); }
-    @media (max-width: 600px) {
-      #main-nav{ padding:14px 10px; --stripe-offset:5px; --stripe-thickness:2px; }
-      #main-nav .menu a{ font-size:22px; }
-      .card h2 { font-size: 0.8rem; padding: 0.3rem; }
-      .card .next-show { padding: 0.4rem; }
-      .card .next-show h3, .card .next-show p { font-size: 0.8rem; }
+      font-size:2rem !important;
+      text-transform:uppercase !important;
+      text-decoration:none !important;
+      white-space:nowrap !important;
+      line-height:1.2;
+      padding:.05rem 0;
     }
 
-    .error { text-align: center; color: #f55; margin-top: 2rem; }
+    @media (max-width:768px){
+      #main-nav a.nav-link{ font-size:1.6rem !important; }
+    }
+
+    /* ─── MERCH SECTION & IFRAME (unchanged) ───────────────────────────── */
+    .merch-section{
+      padding:2rem 0;
+      margin:0 auto 200px;
+      max-width:100%;
+      text-align:center;
+    }
+    .merch-section iframe{
+      width:100%;
+      height:1300px;
+      border:none;
+      border-radius:16px;
+      display:block;
+      margin:0 auto;
+    }
   </style>
 </head>
 
 <body>
+  <!-- HEADER (unchanged) -->
   <header class="header-banner" role="banner">
+    <div class="header-gif-right" aria-hidden="true"></div>
+    <div class="header-gif-left" aria-hidden="true"></div>
     <div class="logo-container">
-      <img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="lazy">
+      <img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="lazy" decoding="async">
     </div>
     <div class="title">
-      <h1>Cutters Choice DJs</h1>
+      <h1>Cutters Choice Radio</h1>
       <p class="tagline">The home of relentless flavas and significant bangers!</p>
     </div>
     <div class="logo-container">
-      <img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="lazy">
+      <img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="lazy" decoding="async">
     </div>
   </header>
 
-  <div class="thin-teal-line" aria-hidden="true"></div>
-
-  <!-- UPDATED NAV -->
+  <!-- NAV (Home • Our Story • Our DJs • DJ Selects • Schedule) -->
   <nav id="main-nav" aria-label="Primary">
-    <ul class="menu" role="list">
-      <li><a href="index.html">HOME</a></li>
-      <li><a href="our-story.html">OUR STORY</a></li>
-      <li><a href="schedule.html">SCHEDULE</a></li>
-      <li><a href="dj-selects.html">DJ SELECTS</a></li>
-    </ul>
+    <div class="nav-menu" role="list">
+      <a class="nav-link" href="index.html">Home</a>
+      <a class="nav-link" href="our-story.html">Our Story</a>
+      <a class="nav-link" href="index-ourDJS.html">Our DJs</a>
+      <a class="nav-link" href="dj-selects.html">DJ Selects</a>
+      <a class="nav-link" href="schedule.html">Schedule</a>
+    </div>
   </nav>
 
-  <div class="thin-teal-line" aria-hidden="true"></div>
-
-  <main role="main">
-    <div id="artists-container" aria-live="polite"></div>
-    <p id="error" class="error" style="display:none;" role="status" aria-live="polite"></p>
+  <!-- MERCH CONTENT (unchanged) -->
+  <main class="merch-section" role="main">
+    <iframe
+      src="https://direct.app/embed/cutterschoiceradio"
+      title="Cutters Choice Radio Store"
+      loading="eager"
+      referrerpolicy="no-referrer-when-downgrade"
+    ></iframe>
   </main>
 
-  <script>
-    const BASE_URL   = 'https://api.radiocult.fm/api';
-    const STATION_ID = 'cutters-choice-radio';
-    const API_KEY    = 'pk_0b8abc6f834b444f949f727e88a728e0';
-
-    function normalizeTags(tags) {
-      if (Array.isArray(tags)) {
-        return tags.map(t => String(t).toLowerCase());
-      }
-      if (typeof tags === 'string') {
-        return tags.split(',').map(t => t.trim().toLowerCase());
-      }
-      return [];
-    }
-
-    async function loadArtists() {
-      try {
-        const res = await fetch(`${BASE_URL}/station/${STATION_ID}/artists`, {
-          headers: { 'x-api-key': API_KEY }
-        });
-        if (!res.ok) throw new Error(`API returned ${res.status}`);
-
-        const { artists = [] } = await res.json();
-        const visible = artists.filter(a =>
-          normalizeTags(a.tags).includes('website')
-        );
-
-        const container = document.getElementById('artists-container');
-        if (!visible.length) {
-          const err = document.getElementById('error');
-          err.textContent = 'No DJs found with the "website" tag.';
-          err.style.display = 'block';
-          return;
-        }
-
-        container.innerHTML = '';
-        for (let artist of visible) {
-          const card = document.createElement('a');
-          card.className = 'card';
-          card.href = `index_IND_DJ.html?id=${artist.id}`;
-          card.setAttribute('aria-label', `${artist.name} — view profile`);
-
-          const title = document.createElement('h2');
-          title.textContent = artist.name;
-          card.append(title);
-
-          const img = document.createElement('img');
-          img.src = (artist.logo && (artist.logo['512x512'] || artist.logo.default)) || '';
-          img.alt = artist.name;
-          img.loading = 'lazy';      // perf: lazy-load images
-          img.decoding = 'async';    // perf: async decode
-          card.append(img);
-
-          const show = document.createElement('div');
-          show.className = 'next-show';
-          show.innerHTML = `
-            <h3>Next Scheduled Show</h3>
-            <p id="next-${artist.id}">Loading…</p>
-          `;
-          card.append(show);
-
-          container.append(card);
-          loadNextShow(artist.id);
-        }
-      } catch (err) {
-        console.error('Error loading artists:', err);
-        const e = document.getElementById('error');
-        e.textContent = 'Error loading DJs: ' + err.message;
-        e.style.display = 'block';
-      }
-    }
-
-    async function loadNextShow(artistId) {
-      try {
-        const now = new Date().toISOString();
-        const nextYear = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
-
-        const res = await fetch(
-          `${BASE_URL}/station/${STATION_ID}/artists/${artistId}/schedule?startDate=${now}&endDate=${nextYear}`,
-          { headers: { 'x-api-key': API_KEY } }
-        );
-        if (!res.ok) throw new Error(`Schedule API returned ${res.status}`);
-
-        const { schedules = [] } = await res.json();
-
-        const el = document.getElementById(`next-${artistId}`);
-        if (!el) return;
-
-        if (schedules.length) {
-          const dt = new Date(schedules[0].startDateUtc || schedules[0].startDate || schedules[0].start);
-          el.textContent = dt.toLocaleString('en-NZ', {
-            day:   'numeric',
-            month: 'short',
-            hour:  '2-digit',
-            minute:'2-digit'
-          });
-        } else {
-          el.textContent = 'TBA';
-        }
-      } catch (err) {
-        console.error(`Error loading schedule for ${artistId}:`, err);
-        const el = document.getElementById(`next-${artistId}`);
-        if (el) el.textContent = 'Error';
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', loadArtists);
-  </script>
+  <!-- FOOTER (unchanged) -->
+  <footer class="banner" role="contentinfo"></footer>
 </body>
 </html>

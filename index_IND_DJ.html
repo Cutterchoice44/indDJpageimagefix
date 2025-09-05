@@ -5,58 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cutters Choice Radio — Schedule</title>
 
-  <!-- Canonical + SEO -->
-  <link rel="canonical" href="https://cutterschoiceradio.com/schedule.html">
-  <meta name="description" content="Cutters Choice Radio schedule — browse the next four weeks of shows. View times in your local timezone or UK.">
-  <meta name="robots" content="index, follow">
-  <meta name="theme-color" content="#5A8785">
-
-  <!-- Social preview (Open Graph + Twitter) -->
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Cutters Choice Radio — Schedule">
-  <meta property="og:description" content="See the next four weeks of Cutters Choice Radio shows, in your local time or UK.">
-  <meta property="og:url" content="https://cutterschoiceradio.com/schedule.html">
-  <meta property="og:site_name" content="Cutters Choice Radio">
-  <meta property="og:image" content="https://cutterschoiceradio.com/images/logo.png">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Cutters Choice Radio — Schedule">
-  <meta name="twitter:description" content="See the next four weeks of Cutters Choice Radio shows, in your local time or UK.">
-  <meta name="twitter:image" content="https://cutterschoiceradio.com/images/logo.png">
-
-  <!-- Performance hints -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://app.radiocult.fm" crossorigin>
-  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
-
-  <!-- Site CSS + Fonts -->
+  <!-- Site CSS + Fonts (keep versions consistent with your site) -->
   <link rel="stylesheet" href="style.css?v=1755569209645" />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-
-  <!-- Organization JSON-LD (static) -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "Cutters Choice Radio",
-    "url": "https://cutterschoiceradio.com",
-    "logo": "https://cutterschoiceradio.com/images/logo.png",
-    "sameAs": [
-      "https://www.instagram.com/cutterschoiceradio",
-      "https://www.facebook.com/cutterschoiceradio",
-      "https://www.mixcloud.com/cutterschoiceradio",
-      "https://tunein.com/radio/Cutters-Choice-Radio-s344746/"
-    ]
-  }
-  </script>
 
   <!-- NAV + SCHEDULE STYLES -->
   <style>
     :root{
       --brand-teal:#5A8785;
+
+      /* schedule scale */
       --hourH:52px;                 /* height per hour (change once, affects all) */
       --qH:calc(var(--hourH)/4);    /* 15-min slots */
+
+      /* current-time marker */
       --now-color:#ff5858;
     }
 
@@ -72,6 +35,7 @@
     }
     #main-nav::before,#main-nav::after{content:none!important;}
 
+    /* Evenly spaced links occupy full available width */
     #main-nav .nav-menu{
       display:flex!important; align-items:center!important;
       justify-content:space-evenly!important;
@@ -85,6 +49,7 @@
       text-decoration:none!important; white-space:nowrap!important;
     }
 
+    /* Mobile: same bar, slightly smaller type (match main bar) */
     @media (max-width:768px){
       #main-nav a.nav-link{ font-size:1.6rem!important; }
       #main-nav .nav-menu{ justify-content:space-evenly!important; gap:.5rem!important; }
@@ -98,14 +63,11 @@
     .page-header{
       display:flex; align-items:center; justify-content:space-between;
       padding:.5rem .75rem; border-bottom:2px solid #000; background:var(--brand-teal);
-      opacity:1 !important; filter:none !important; mix-blend-mode:normal !important;
     }
     .page-header h1{
       font-family:'Bebas Neue',sans-serif; font-size:2.2rem;
-      letter-spacing:.5px; color:#fff !important; margin:0;
+      letter-spacing:.5px; color:#fff; margin:0;
       text-shadow:0 1px 0 rgba(0,0,0,.35);
-      opacity:1 !important; filter:none !important; mix-blend-mode:normal !important;
-      -webkit-text-fill-color:#fff !important;
     }
 
     .utilities{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
@@ -119,11 +81,8 @@
       position:sticky; top:0; background:#000; z-index:20;
     }
     .month-controls .title{
-      font-family:'Bebas Neue',sans-serif; font-size:2rem;
-      color:#fff !important; letter-spacing:.5px;
+      font-family:'Bebas Neue',sans-serif; font-size:2rem; color:#fff; letter-spacing:.5px;
       text-shadow:0 1px 0 rgba(0,0,0,.35);
-      opacity:1 !important; filter:none !important; mix-blend-mode:normal !important;
-      -webkit-text-fill-color:#fff !important;
     }
     .ccr-btn{
       background:var(--brand-teal); color:#fff; border:none; border-radius:6px;
@@ -132,16 +91,19 @@
 
     .weeks-stack{ display:flex; flex-direction:column; gap:1.25rem; padding:1rem .75rem 2rem; }
 
-    /* Desktop grid */
+    /* === Desktop: 2-row grid so time ruler aligns with day bodies === */
     .week-grid{
       display:grid;
       grid-template-columns:64px repeat(7,1fr);
-      grid-template-rows:auto 1fr;
+      grid-template-rows:auto 1fr;     /* row 1 = headers, row 2 = bodies */
       gap:6px;
       border:2px solid var(--brand-teal); border-radius:8px;
       overflow:hidden; background:#0f0f0f; padding:6px;
     }
-    .time-head{ grid-column:1; grid-row:1; }
+
+    .time-head{ grid-column:1; grid-row:1; } /* spacer */
+
+    /* Time ruler (row 2) */
     .time-col{
       grid-column:1; grid-row:2;
       position:relative; height:calc(var(--hourH)*24); border:1px solid #1c1c1c; border-radius:6px;
@@ -151,29 +113,26 @@
     }
     .time-col .hour-label{
       position:absolute; left:6px;
-      font-size:1rem; color:#fff !important; line-height:1;
+      font-size:1rem; color:#fff; line-height:1;
       text-shadow:0 1px 0 rgba(0,0,0,.35);
       pointer-events:none;
     }
 
+    /* Day headers (row 1) */
     .day-head{
       grid-row:1;
       background:#0d0d0d; border:1px solid #1e1e1e; padding:.48rem .6rem;
-      border-radius:6px; color:#fff !important; opacity:1 !important; filter:none !important;
-      mix-blend-mode:normal !important;
+      border-radius:6px; color:#fff;
     }
     .day-head .dow{
-      font-family:'Bebas Neue',sans-serif;
-      font-size:1.38rem; color:#fff !important; opacity:1 !important;
+      font-family:'Bebas Neue',sans-serif; font-size:1.38rem; color:#fff;
       text-shadow:0 1px 0 rgba(0,0,0,.35);
-      -webkit-text-fill-color:#fff !important;
     }
     .day-head .date{
-      font-size:1.06rem; color:#fff !important; opacity:1 !important;
-      text-shadow:0 1px 0 rgba(0,0,0,.35);
-      -webkit-text-fill-color:#fff !important;
+      font-size:1.06rem; color:#fff; text-shadow:0 1px 0 rgba(0,0,0,.35);
     }
 
+    /* Day bodies (row 2) */
     .day-body{
       grid-row:2;
       display:grid; grid-template-rows:repeat(96,var(--qH)); position:relative;
@@ -183,6 +142,7 @@
       background-size:100% var(--hourH);
     }
 
+    /* Show block */
     .show{
       grid-column:1/-1; margin:2px 4px;
       background:var(--chip,#FBBF24); color:var(--fg,#1b0f00);
@@ -193,6 +153,7 @@
     .show .title{ font-weight:800; line-height:1.2; }
     .show .host{ font-size:.85rem; opacity:.92; }
 
+    /* Palette */
     .tone-1{--chip:#FBBF24;--fg:#1b0f00}
     .tone-2{--chip:#FB923C;--fg:#1a0900}
     .tone-3{--chip:#EC4899;--fg:#220713}
@@ -203,30 +164,39 @@
     .tone-8{--chip:#4ADE80;--fg:#041307}
     .is-archive{--chip:#93C5FD;--fg:#0b1f3f}
 
+    /* ===== Mobile layout ===== */
     @media (max-width:980px){
       .weeks-stack{ gap:1rem; padding:0.5rem 0.5rem 1.25rem; }
-      .week-grid{ display:block; padding:0; border:none; background:transparent; }
+
+      .week-grid{
+        display:block;
+        padding:0; border:none; background:transparent;
+      }
       .time-head, .time-col{ display:none !important; }
-      .day-head{ margin:12px 8px 0; padding:.55rem .7rem; border-radius:12px; }
+
+      .day-head{
+        margin:12px 8px 0; padding:.55rem .7rem; border-radius:12px;
+      }
       .day-head .dow{ font-size:1.22rem; }
       .day-head .date{ font-size:1rem; }
-      .day-body{ margin:6px 8px 8px; border-radius:14px; height:calc(var(--hourH)*24); }
+
+      .day-body{
+        margin:6px 8px 8px;
+        border-radius:14px;
+        height:calc(var(--hourH)*24);
+      }
+
       .show{ padding:.44rem .55rem; margin:2px 3px; }
       .show .time{ font-size:.84rem; }
       .show .title{ font-size:.98rem; }
       .show .host{ font-size:.84rem; }
     }
 
-    :where(.page-header, .page-header *, .month-controls .title,
-           .week-grid .day-head, .week-grid .day-head *){
-      color:#fff !important; opacity:1 !important; filter:none !important;
-      mix-blend-mode:normal !important; -webkit-text-fill-color:#fff !important;
-    }
-
+    /* Footer (unchanged) */
     .banner{display:flex;gap:1rem;justify-content:center;padding:1rem;border-top:2px solid #000}
     .banner a{color:#fff;text-decoration:none}
 
-    /* Current-time marker (ONLY current day) */
+    /* ===== Current-time marker (ONLY current day) ===== */
     .now-line{
       position:absolute; left:0; right:0; height:2px;
       background:var(--now-color);
@@ -239,19 +209,6 @@
       box-shadow:0 0 0 2px rgba(0,0,0,.25);
     }
   </style>
-
-  <!-- Chromecast init (safe to keep; nav no longer uses Cast button) -->
-  <script>
-    window.__onGCastApiAvailable = isAvailable => {
-      if (isAvailable) {
-        cast.framework.CastContext.getInstance().setOptions({
-          receiverApplicationId: '77E0F81B',
-          autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
-        });
-      }
-    };
-  </script>
-  <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
 </head>
 
 <body>
@@ -266,11 +223,11 @@
     </div>
   </nav>
 
-  <header class="page-header" role="banner">
+  <header class="page-header">
     <h1>MONTHLY SCHEDULE</h1>
-    <div class="utilities" role="group" aria-label="Legend and quick actions">
+    <div class="utilities">
       <button class="ccr-btn" id="todayBtn" title="Jump to current 4-week block">This Week</button>
-      <div class="legend" aria-hidden="true">
+      <div class="legend">
         <span class="chip" style="background:#FBBF24"></span>
         <span class="chip" style="background:#FB923C"></span>
         <span class="chip" style="background:#EC4899"></span>
@@ -286,7 +243,7 @@
     </div>
   </header>
 
-  <section class="month-controls" aria-label="Schedule controls">
+  <section class="month-controls">
     <div>
       <button class="ccr-btn" id="prevMonthBtn" aria-label="Previous 4 weeks">◀</button>
       <button class="ccr-btn" id="nextMonthBtn" aria-label="Next 4 weeks">▶</button>
@@ -295,7 +252,7 @@
     <div>
       <label style="display:flex;align-items:center;gap:.35rem;">
         <span style="font-size:.95rem;color:#fff">Times in</span>
-        <select id="tzSelect" class="ccr-btn" style="background:#0a0a0a;border:1px solid #1c1c1c;color:#fff" aria-label="Timezone">
+        <select id="tzSelect" class="ccr-btn" style="background:#0a0a0a;border:1px solid #1c1c1c;color:#fff">
           <option value="local">Your local time</option>
           <option value="Europe/London">UK (Europe/London)</option>
           <option value="UTC">UTC</option>
@@ -318,8 +275,9 @@
     const API_KEY    = "pk_0b8abc6f834b444f949f727e88a728e0";
     const STATION_ID = "cutters-choice-radio";
     const BASE_URL   = "https://api.radiocult.fm/api";
-    const rcFetch    = async (path) => {
-      const res = await fetch(BASE_URL + path, { headers: { "x-api-key": API_KEY } });
+
+    const rcFetch = async (path) => {
+      const res = await fetch(BASE_URL + path, { headers: { "x-api-key": API_KEY }, cache: "no-store" });
       if (!res.ok) throw new Error(`Fetch error ${res.status}`);
       return res.json();
     };
@@ -329,10 +287,12 @@
     const addDaysUTC = (d, n) => { const x = new Date(d); x.setUTCDate(x.getUTCDate()+n); return x; };
     const startOfWeekUTC = (date) => { const d=new Date(Date.UTC(date.getUTCFullYear(),date.getUTCMonth(),date.getUTCDate())); const day=(d.getUTCDay()+6)%7; d.setUTCDate(d.getUTCDate()-day); d.setUTCHours(0,0,0,0); return d; };
 
+    // yyyy-mm-dd in chosen tz
     const ymdInTz = (d, tz) => new Intl.DateTimeFormat('en-CA',{
       timeZone: tz==='local'?undefined:tz, year:'numeric',month:'2-digit',day:'2-digit'
     }).format(d);
 
+    // minutes since day start in tz
     const minutesInDay = (d, tz) => {
       const parts = new Intl.DateTimeFormat('en-GB',{
         timeZone: tz==='local'?undefined:tz, hour:'2-digit', minute:'2-digit', hour12:false
@@ -348,6 +308,7 @@
       return `${String(hh).padStart(2,'0')}:${String(m).padStart(2,'0')} ${ampm}`;
     };
 
+    /* === Timezone-aware labels === */
     const dowInTz = (d, tz) =>
       new Intl.DateTimeFormat('en-GB', {
         timeZone: tz === 'local' ? undefined : tz,
@@ -362,8 +323,11 @@
       }).format(d);
 
     const rangeLabelInTz = (startUtc, endUtc, tz) => {
-      const f = (d,opts)=> new Intl.DateTimeFormat(undefined, { ...(tz==='local'?{}:{timeZone:tz}), ...opts }).format(d);
-      const sameMonthYear = f(startUtc,{month:'numeric',year:'numeric'}) === f(endUtc,{month:'numeric',year:'numeric'});
+      const f = (d,opts)=> new Intl.DateTimeFormat(undefined, {
+        ...(tz==='local'?{}:{timeZone:tz}), ...opts
+      }).format(d);
+      const sameMonthYear =
+        f(startUtc,{month:'numeric',year:'numeric'}) === f(endUtc,{month:'numeric',year:'numeric'});
       if (sameMonthYear) {
         const moYr = f(startUtc,{month:'long',year:'numeric'});
         return `${moYr} • ${f(startUtc,{day:'2-digit',month:'short'})}–${f(endUtc,{day:'2-digit'})}`;
@@ -373,9 +337,11 @@
 
     /* ===== Fetch 4-week block ===== */
     async function fetchRange(startUtc, endUtc) {
+      // pad by one day to survive DST & borders
       const paddedStart = addDaysUTC(startUtc, -1).toISOString();
       const paddedEnd   = addDaysUTC(endUtc,   1).toISOString();
-      const { schedules = [] } = await rcFetch(`/station/${STATION_ID}/schedule?startDate=${encodeURIComponent(paddedStart)}&endDate=${encodeURIComponent(paddedEnd)}`);
+      const data = await rcFetch(`/station/${STATION_ID}/schedule?startDate=${encodeURIComponent(paddedStart)}&endDate=${encodeURIComponent(paddedEnd)}`);
+      const schedules = Array.isArray(data?.schedules) ? data.schedules : Array.isArray(data) ? data : [];
       return schedules.map(s => ({
         start: s.startDateUtc || s.startDate || s.startAt || s.start,
         end:   s.endDateUtc   || s.endDate   || s.endAt   || s.end,
@@ -386,13 +352,15 @@
       })).filter(s => s.start && s.end);
     }
 
+    /* ===== Colour rules ===== */
     const ORDER_CLASSES = ['tone-1','tone-2','tone-3','tone-4','tone-5','tone-6','tone-7','tone-8'];
     const isArchive = (s) => {
       const blob = `${s.title||''} ${s.host||''}`.toLowerCase();
       return blob.includes('archive') || blob.includes('archives');
     };
 
-    const incYMD = (s) => { const [y,m,d]=s.split('-').map(Number); const dt=new Date(Date.UTC(y,m-1,d)); dt.setUTCDate(dt.getUTCDate()+1); return `${dt.getFullYear()}-${String(dt.getUTCMonth()+1).padStart(2,'0')}-${String(dt.getUTCDate()).padStart(2,'0')}`; };
+    /* ===== Split overnight and fill gaps with Archives ===== */
+    const incYMD = (s) => { const [y,m,d]=s.split('-').map(Number); const dt=new Date(Date.UTC(y,m-1,d)); dt.setUTCDate(dt.getUTCDate()+1); return `${dt.getUTCFullYear()}-${pad(dt.getUTCMonth()+1)}-${pad(dt.getUTCDate())}`; };
 
     function splitShowsIntoDailySegments(shows, tz) {
       const map = new Map();
@@ -410,6 +378,7 @@
           key = incYMD(key);
         }
       }
+      // sort and fill gaps with archives to keep column solid
       for (const [key, arr] of map) {
         arr.sort((a,b)=> a.segStartMin - b.segStartMin);
         const filled = [];
@@ -427,6 +396,7 @@
       return map;
     }
 
+    /* ===== Build UK-day order lookup ===== */
     function buildUkOrderLookup(shows){
       const tz = 'Europe/London';
       const byDay = new Map();
@@ -448,6 +418,7 @@
       return lookup;
     }
 
+    /* Build the time ruler (row 2) with perfectly aligned labels */
     function buildTimeRuler(){
       const col=document.createElement('div'); col.className='time-col';
       for(let h=0;h<24;h++){
@@ -469,26 +440,32 @@
       for (let w=0; w<4; w++){
         const weekEl=document.createElement('section'); weekEl.className='week-grid';
 
+        // top-left spacer so headers row height matches
         const spacer=document.createElement('div'); spacer.className='time-head';
         weekEl.appendChild(spacer);
+
+        // Time ruler (row 2, col 1)
         weekEl.appendChild(buildTimeRuler());
 
+        // Day headers + bodies
         for(let i=0;i<7;i++){
           const dayUtc = addDaysUTC(anchorUtc, w*7 + i);
           const head=document.createElement('div'); head.className='day-head';
           head.style.gridColumn = String(i+2);
           head.innerHTML = `
-            <div class="dow"  style="color:#fff;opacity:1;filter:none;mix-blend-mode:normal;-webkit-text-fill-color:#fff">${dowInTz(dayUtc, tz)}</div>
-            <div class="date" style="color:#fff;opacity:1;filter:none;mix-blend-mode:normal;-webkit-text-fill-color:#fff">${fmtDMtz(dayUtc, tz)}</div>
+            <div class="dow">${dowInTz(dayUtc, tz)}</div>
+            <div class="date">${fmtDMtz(dayUtc, tz)}</div>
           `;
           weekEl.appendChild(head);
 
           const body=document.createElement('div'); body.className='day-body';
           body.style.gridColumn = String(i+2);
+
           const dayKey = ymdInTz(dayUtc, tz);
           body.dataset.day = dayKey;
 
           const segments = buckets.get(dayKey) || [];
+
           segments.forEach(seg=>{
             const startQ = Math.floor(seg.segStartMin/15);
             const spanQ  = Math.max(1, Math.ceil((seg.segEndMin - seg.segStartMin)/15));
@@ -514,20 +491,28 @@
           weekEl.appendChild(body);
         }
 
-        document.getElementById('weeksStack').appendChild(weekEl);
+        mount.appendChild(weekEl);
       }
 
-      drawNowMarker(tz);
+      drawNowMarker(tz);  /* place the single-day marker after render */
     }
 
+    /* ===== Live current-time marker (only current day) ===== */
     function drawNowMarker(tz){
+      // remove any previous markers
       document.querySelectorAll('.now-line,.now-dot').forEach(el=>el.remove());
+
       const now = new Date();
       const todayKey = ymdInTz(now, tz);
+
+      // find the only day column matching "today" in the chosen tz
       const body = document.querySelector(`.day-body[data-day="${todayKey}"]`);
       if (!body) return;
 
-      const hourH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hourH')) || 52;
+      // parse --hourH even if it's like "52px"
+      const raw = getComputedStyle(document.documentElement).getPropertyValue('--hourH');
+      const hourH = parseFloat(raw) || 52;
+
       const topPx = (minutesInDay(now, tz) / 60) * hourH;
 
       const line = document.createElement('div');
@@ -541,6 +526,7 @@
       body.appendChild(dot);
     }
 
+    /* ===== State & controls ===== */
     let anchorUtc = startOfWeekUTC(new Date());  // Monday (UTC)
     let tzMode = "local";
     let nowTimer = null;
@@ -550,9 +536,14 @@
       const blockEnd   = addDaysUTC(anchorUtc, 28);
       try{
         const shows=await fetchRange(blockStart, blockEnd);
+        if (!Array.isArray(shows) || !shows.length){
+          document.getElementById('weeksStack').innerHTML = "<p style='color:#fff;opacity:.9'>No schedule available for this period.</p>";
+          return;
+        }
         const ukOrderLookup = buildUkOrderLookup(shows);
         renderFourWeeks(blockStart, shows, tzMode, ukOrderLookup);
 
+        // (re)start 1-minute updater for the single marker
         if (nowTimer) clearInterval(nowTimer);
         nowTimer = setInterval(()=>drawNowMarker(tzMode), 60000);
       }catch(e){
@@ -565,57 +556,12 @@
     document.getElementById('nextMonthBtn').addEventListener('click',()=>{ anchorUtc = addDaysUTC(anchorUtc, +28); loadBlock(); window.scrollTo({top:0}); });
     document.getElementById('todayBtn').addEventListener('click',()=>{ anchorUtc = startOfWeekUTC(new Date()); loadBlock(); window.scrollTo({top:0,behavior:'smooth'}); });
     document.getElementById('tzSelect').addEventListener('change',e=>{ tzMode=e.target.value; loadBlock(); });
+
+    // keep marker correct after tab returns to foreground
     document.addEventListener('visibilitychange', ()=>{ if (!document.hidden) drawNowMarker(tzMode); });
 
+    // boot
     loadBlock();
-
-    document.getElementById('manualCastBtn')?.addEventListener('click',()=>{
-      const context = cast.framework.CastContext.getInstance();
-      context.requestSession().catch(err=>console.error('Fallback session error',err));
-    });
-  </script>
-
-  <!-- JSON-LD Events injector: next 7 days (non-visual, separate fetch) -->
-  <script>
-  (function(){
-    const API_KEY    = 'pk_0b8abc6f834b444f949f727e88a728e0';
-    const STATION_ID = 'cutters-choice-radio';
-    const BASE_URL   = 'https://api.radiocult.fm/api';
-    const LISTEN_URL = 'https://cutterschoiceradio.com/listen';
-    const startISO   = new Date().toISOString();
-    const endISO     = new Date(Date.now() + 7*24*60*60*1000).toISOString();
-
-    fetch(`${BASE_URL}/station/${STATION_ID}/schedule?startDate=${encodeURIComponent(startISO)}&endDate=${encodeURIComponent(endISO)}&expand=artist`, {
-      headers: { 'x-api-key': API_KEY }
-    })
-    .then(r => r.ok ? r.json() : Promise.reject())
-    .then(data => {
-      const events = Array.isArray(data?.schedules) ? data.schedules : [];
-      if (!events.length) return;
-      const graph = events.map(ev => {
-        const start = ev.startDateUtc || ev.startDate || ev.start;
-        const end   = ev.endDateUtc   || ev.endDate   || ev.end;
-        const performers = (ev.artists || []).filter(a => a?.name).map(a => ({ "@type":"Person", "name":a.name }));
-        const obj = {
-          "@type": "Event",
-          "name": ev.title || ev.name || "Show",
-          "startDate": start,
-          "endDate": end,
-          "eventStatus": "https://schema.org/EventScheduled",
-          "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
-          "location": { "@type": "VirtualLocation", "url": LISTEN_URL },
-          "organizer": { "@type": "Organization", "name": "Cutters Choice Radio", "url": "https://cutterschoiceradio.com" }
-        };
-        if (performers.length) obj.performer = performers;
-        return obj;
-      });
-      const s = document.createElement('script');
-      s.type = 'application/ld+json';
-      s.textContent = JSON.stringify({ "@context":"https://schema.org", "@graph": graph });
-      document.head.appendChild(s);
-    })
-    .catch(() => {});
-  })();
   </script>
 </body>
 </html>

@@ -8,9 +8,51 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cutters Choice Radio — DJ Selects</title>
 
+  <!-- Canonical + SEO (non-invasive) -->
+  <link rel="canonical" href="https://cutterschoiceradio.com/dj-selects.html">
+  <meta name="description" content="Each week a different Cutters Choice Radio DJ selects five tracks. Browse the picks, read the bio, and preview YouTube/Bandcamp.">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#5A8785">
+
+  <!-- Social preview (Open Graph + Twitter) -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="DJ Selects — Cutters Choice Radio">
+  <meta property="og:description" content="Weekly DJ picks: five tracks selected by a Cutters Choice Radio selector.">
+  <meta property="og:url" content="https://cutterschoiceradio.com/dj-selects.html">
+  <meta property="og:site_name" content="Cutters Choice Radio">
+  <meta property="og:image" content="https://cutterschoiceradio.com/images/logo.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="DJ Selects — Cutters Choice Radio">
+  <meta name="twitter:description" content="Weekly DJ picks: five tracks selected by a Cutters Choice Radio selector.">
+  <meta name="twitter:image" content="https://cutterschoiceradio.com/images/logo.png">
+
+  <!-- Performance hints (safe) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://api.radiocult.fm" crossorigin>
+  <link rel="preconnect" href="https://www.youtube-nocookie.com" crossorigin>
+  <link rel="preconnect" href="https://bandcamp.com" crossorigin>
+
   <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <!-- Organization JSON-LD (static; no visual changes) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Cutters Choice Radio",
+    "url": "https://cutterschoiceradio.com",
+    "logo": "https://cutterschoiceradio.com/images/logo.png",
+    "sameAs": [
+      "https://www.instagram.com/cutterschoiceradio",
+      "https://www.facebook.com/cutterschoiceradio",
+      "https://www.mixcloud.com/cutterschoiceradio",
+      "https://tunein.com/radio/Cutters-Choice-Radio-s344746/"
+    ]
+  }
+  </script>
 
   <style>
     :root{
@@ -196,17 +238,17 @@ main.compact-grid{
 </head>
 <body>
   <!-- Header -->
-  <header class="header-banner">
-    <div class="header-gif-right"></div><div class="header-gif-left"></div>
-    <div class="logo-container"><img class="logo" src="/images/logo.png" alt=""></div>
+  <header class="header-banner" role="banner">
+    <div class="header-gif-right" aria-hidden="true"></div><div class="header-gif-left" aria-hidden="true"></div>
+    <div class="logo-container"><img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="lazy" decoding="async"></div>
     <div class="title"><h1>Cutters Choice Radio</h1><p class="tagline">The home of relentless flavas and significant bangers!</p></div>
-    <div class="logo-container"><img class="logo" src="/images/logo.png" alt=""></div>
+    <div class="logo-container"><img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="lazy" decoding="async"></div>
   </header>
 
   <div style="height:2px;background-color:var(--brand-teal)"></div>
 
   <!-- Nav -->
-  <nav id="main-nav">
+  <nav id="main-nav" aria-label="Primary">
     <div class="nav-menu">
          <a href="index.html" class="nav-link">HOME</a>
       <a href="our-story.html" class="nav-link">OUR STORY</a>
@@ -244,7 +286,7 @@ main.compact-grid{
   </section>
 
   <!-- TRACKS + PREVIEW -->
-  <main class="compact-grid">
+  <main class="compact-grid" role="main">
     <aside id="stripList" class="strip-list"></aside>
     <section class="preview" id="mainPreview" aria-live="polite">
       <div class="big-placeholder">Select a track</div>

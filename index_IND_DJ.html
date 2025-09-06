@@ -138,54 +138,53 @@
       }
     }
 
-    /* ── ACCESSIBLE SEO TOGGLE (ABOUT THE STATION) ───────────────────── */
-    /* Scoped to avoid touching anything else */
-    #about-station {
-      max-width: 720px;
-      margin: .75rem 0 1rem auto; /* align right, above archives */
-      border: 2px solid var(--brand-teal);
-      border-radius: 6px;
-      background: rgba(90,135,133,0.08);
+    /* ── ABOUT THE STATION: accessible toggle in nav (beside Facebook) ── */
+    #about-toggle {
+      position: relative;           /* so the panel can be absolute to this */
+      display: inline-block;
     }
-    #about-station > summary {
+    #about-toggle > summary {
       list-style: none;
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
       cursor: pointer;
-      padding: .45rem .65rem;
+      padding: .1rem .35rem;
       font-family: 'Bebas Neue', sans-serif;
       font-size: 1.25rem;
-      letter-spacing: .5px;
-      color: #fff;
       text-transform: uppercase;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      color:#fff;
+      border:1px solid rgba(255,255,255,.35);
+      border-radius:4px;
+      background: transparent;
     }
-    /* caret */
-    #about-station > summary::after {
-      content: "▸";
-      display: inline-block;
+    #about-toggle > summary::-webkit-details-marker { display:none; }
+    #about-toggle > summary:focus { outline:2px solid #fff; outline-offset:2px; }
+
+    #about-toggle .about-panel{
+      position: absolute;
+      right: 0;
+      top: calc(100% + 8px);        /* dropdown under the nav bar */
+      width: min(520px, 80vw);
+      background: #000;
+      color: #fff;
+      border: 2px solid var(--brand-teal);
+      border-radius: 8px;
+      padding: .75rem .9rem;
+      line-height: 1.35;
+      box-shadow: 0 8px 18px rgba(0,0,0,.45);
+      z-index: 2000;                /* above page content */
+    }
+    /* caret indicator */
+    #about-toggle > summary::after{
+      content:"▸";
       transform: translateY(-1px);
     }
-    #about-station[open] > summary::after {
-      content: "▾";
-    }
-    #about-station .seo-toggle__content {
-      padding: .6rem .75rem .8rem;
-      color: #fff;
-      line-height: 1.35;
-      font-size: 1rem;
-    }
-    #about-station:focus-within,
-    #about-station > summary:focus {
-      outline: 2px solid #fff;
-      outline-offset: 2px;
-    }
-    @media (max-width: 768px) {
-      #about-station {
-        margin: .5rem .5rem .75rem .5rem; /* small side padding on mobile */
-      }
-      #about-station > summary { font-size: 1.05rem; }
-      #about-station .seo-toggle__content { font-size: .95rem; }
+    #about-toggle[open] > summary::after{ content:"▾"; }
+
+    @media (max-width:768px){
+      #about-toggle > summary{ font-size:1rem; padding:.1rem .3rem; }
+      #about-toggle .about-panel{ width: calc(100vw - 16px); right: -8px; }
     }
   </style>
 
@@ -263,6 +262,17 @@
       <a href="https://facebook.com/cutterschoiceradio"  target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="Facebook">
         <i class="fab fa-facebook-f"></i>
       </a>
+
+      <!-- ABOUT THE STATION toggle (next to Facebook) -->
+      <details id="about-toggle">
+        <summary aria-label="About the station">ABOUT THE STATION</summary>
+        <div class="about-panel" id="about-station-content">
+          <p>
+            Cutters Choice Radio is a community of resident DJs and selectors broadcasting across underground music of all genres, representing bass and rave culture. Explore each profile for bios, mixes and show times, and discover new artists on our weekly schedule.
+          </p>
+        </div>
+      </details>
+
       <a href="https://instagram.com/cutterschoiceradio" target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="Instagram">
         <i class="fab fa-instagram"></i>
       </a>
@@ -331,17 +341,6 @@
 
     <!-- MIXCLOUD ARCHIVE SECTION -->
     <section class="mixcloud" aria-labelledby="mixcloud-heading">
-      <!-- ABOUT/STATION SEO TOGGLE (collapsed by default; searchable content) -->
-      <details id="about-station" class="seo-toggle">
-        <summary>ABOUT THE STATION</summary>
-        <div class="seo-toggle__content" id="about-station-content">
-          <p>
-            Cutters Choice Radio is a community of resident DJs and selectors broadcasting across underground music of all genres, representing bass and rave culture.
-            Explore each profile for bios, mixes and show times, and discover new artists on our weekly schedule.
-          </p>
-        </div>
-      </details>
-
       <h2 id="mixcloud-heading">Latest Archived Shows</h2>
       <div id="mixcloud-list"></div>
       <div class="add-mixcloud">

@@ -137,6 +137,50 @@
         z-index:2;
       }
     }
+
+    /* ===== Option B: About toggle bar (right-aligned, above archives) ===== */
+    details.intro-accordion{
+      max-width:100%;
+      margin:.5rem 0 .35rem;
+      border-top:2px solid #000;
+      border-bottom:2px solid #000;
+      background:var(--brand-teal);
+    }
+    details.intro-accordion summary{
+      list-style:none;
+      display:block;
+      position:relative;
+      padding:.35rem .9rem;
+      text-align:right;                 /* put label on the FAR RIGHT */
+      cursor:pointer;
+      font-family:'Bebas Neue',sans-serif;
+      color:#fff;
+      letter-spacing:.6px;
+      user-select:none;
+    }
+    details.intro-accordion summary::-webkit-details-marker{ display:none; }
+    details.intro-accordion summary::marker{ content:""; }
+    details.intro-accordion summary::after{
+      content:"▸";
+      position:absolute;
+      right:.45rem; top:50%;
+      transform:translateY(-50%) rotate(0deg);
+      transition:transform .18s ease;
+      color:#fff;
+      font-size:1.05em;
+      line-height:1;
+    }
+    details.intro-accordion[open] summary::after{
+      transform:translateY(-50%) rotate(90deg);
+    }
+    details.intro-accordion .intro-content{
+      background:#0b0b0b;
+      padding:.6rem 0 .8rem;
+    }
+    details.intro-accordion .intro-inner{
+      max-width:860px; margin:0 auto; padding:0 .75rem;
+      font-size:.98rem; line-height:1.45; color:#fafafa; opacity:.92;
+    }
   </style>
 
   <!-- Chromecast Init & SDK -->
@@ -241,11 +285,6 @@
 
   <div style="height:2px;background-color:var(--brand-teal);"></div>
 
-  <!-- ✨ Intro blurb (added) -->
-  <section style="max-width:860px;margin:1rem auto;padding:0 .75rem;">
-    <p>Cutters Choice Radio is a community of resident DJs and selectors broadcasting across underground music of all genres, representing bass and rave culture. Explore each profile for bios, mixes and show times, and discover new artists on our weekly schedule.</p>
-  </section>
-
   <!-- MAIN GRID CONTENT -->
   <div class="grid-container">
     <!-- CHAT SECTION -->
@@ -283,6 +322,16 @@
         <p>Loading this week’s schedule…</p>
       </div>
     </section>
+
+    <!-- ===== OPTION B: Right-aligned toggle above Archives ===== -->
+    <details class="intro-accordion">
+      <summary>ABOUT THE STATION</summary>
+      <div class="intro-content">
+        <div class="intro-inner">
+          <p>Cutters Choice Radio is a community of resident DJs and selectors broadcasting across underground music of all genres, representing bass and rave culture. Explore each profile for bios, mixes and show times, and discover new artists on our weekly schedule.</p>
+        </div>
+      </div>
+    </details>
 
     <!-- MIXCLOUD ARCHIVE SECTION -->
     <section class="mixcloud" aria-labelledby="mixcloud-heading">

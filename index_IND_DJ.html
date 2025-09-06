@@ -1,39 +1,168 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cutters Choice Radio — Schedule</title>
+  <meta charset="UTF-8">
+  <!-- Prevent browser caching -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Canonical + SEO -->
-  <link rel="canonical" href="https://cutterschoiceradio.com/schedule.html">
-  <meta name="description" content="Monthly radio schedule for Cutters Choice Radio. Browse shows by day and time, with live timezone switching.">
+  <!-- Enable Cast -->
+  <meta name="google-cast-enabled" content="true">
+
+  <title>Cutters Choice Radio</title>
+  <link rel="canonical" href="https://cutterschoiceradio.com/">
+  <meta name="description" content="Cutters Choice Radio — underground, community-driven electronic music: breakbeat, bass, rave and more. Listen live 24/7.">
   <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#5A8785">
 
   <!-- Social preview (Open Graph + Twitter) -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Schedule — Cutters Choice Radio">
-  <meta property="og:description" content="See what's on Cutters Choice Radio. Full 4-week grid of shows by day and time.">
-  <meta property="og:url" content="https://cutterschoiceradio.com/schedule.html">
+  <meta property="og:title" content="Cutters Choice Radio">
+  <meta property="og:description" content="Underground, community-driven electronic music: breakbeat, bass, rave and more. Listen live 24/7.">
+  <meta property="og:url" content="https://cutterschoiceradio.com/">
   <meta property="og:site_name" content="Cutters Choice Radio">
   <meta property="og:image" content="https://cutterschoiceradio.com/images/logo.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Schedule — Cutters Choice Radio">
-  <meta name="twitter:description" content="See what's on Cutters Choice Radio. Full 4-week grid of shows by day and time.">
+  <meta name="twitter:title" content="Cutters Choice Radio">
+  <meta name="twitter:description" content="Underground, community-driven electronic music: breakbeat, bass, rave and more. Listen live 24/7.">
   <meta name="twitter:image" content="https://cutterschoiceradio.com/images/logo.png">
 
-  <!-- Perf hints (safe; no visual impact) -->
+  <!-- Performance hints -->
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://api.radiocult.fm" crossorigin>
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+  <link rel="preconnect" href="https://app.radiocult.fm" crossorigin>
+  <link rel="preconnect" href="https://cdn.socket.io" crossorigin>
+  <link rel="preconnect" href="https://i.imgur.com" crossorigin>
 
-  <!-- Site CSS + Fonts (keep versions consistent with your site) -->
-  <link rel="stylesheet" href="style.css?v=1755569209645" />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- Main stylesheet -->
+  <link rel="stylesheet" href="style.css?v=1757106631679">
 
-  <!-- Organization JSON-LD (static; no visual change) -->
+  <!-- Bebas Neue & FontAwesome -->
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- INLINE NAV + MOBILE LINEUP STYLING -->
+  <style>
+    :root { --brand-teal: #5A8785; }
+
+    /* NAV BAR */
+    #main-nav{
+      display:flex !important;
+      align-items:center !important;
+      gap:.5rem !important;
+      width:100% !important;
+      padding:.10rem .65rem !important;
+      margin:0 !important;
+      box-sizing:border-box !important;
+      background-color:var(--brand-teal) !important;
+      position:relative !important;
+      z-index:1000 !important;
+      border-top:2px solid #000;
+      border-bottom:2px solid #000;
+    }
+
+    #main-nav .nav-menu{
+      display:flex !important;
+      align-items:center !important;
+      justify-content:space-evenly !important;
+      gap:clamp(.25rem,2vw,1.5rem) !important;
+      flex:1 1 auto !important;
+      min-width:0 !important;
+    }
+    #main-nav a.nav-link{
+      color:#fff !important;
+      font-family:'Bebas Neue',sans-serif !important;
+      font-size:2rem !important;
+      text-transform:uppercase !important;
+      text-decoration:none !important;
+      white-space:nowrap !important;
+    }
+
+    #main-nav .nav-actions{
+      display:flex !important;
+      align-items:center !important;
+      justify-content:flex-end !important;
+      gap:.6rem !important;
+      flex:0 0 auto !important;
+    }
+
+    #main-nav .social-icon{
+      display:inline-flex !important;
+      align-items:center !important;
+      justify-content:center !important;
+      line-height:1 !important;
+      text-decoration:none !important;
+      color:#fff !important;
+    }
+    #main-nav .social-icon i{
+      font-size:2.1rem !important;
+    }
+
+    .icon-img{
+      width:2.6rem !important;
+      height:auto !important;
+      margin-left:.25rem !important;
+      vertical-align:middle !important;
+      display:inline-block !important;
+    }
+
+    #main-nav .nav-onemusic{ display:flex; align-items:center; }
+    #main-nav .nav-onemusic img{ max-height:2rem; width:auto; height:auto; display:block; }
+
+    #manualCastBtn{
+      background:none;border:none;color:#fff;font-size:1.8rem;cursor:pointer;margin-left:.25rem;
+    }
+
+    @media (max-width:768px){
+      #main-nav a.nav-link{ font-size:1rem !important; }
+      #main-nav .nav-menu{ justify-content:space-between !important; gap:.5rem !important; }
+      #main-nav .social-icon i{ font-size:1.4rem !important; }
+      #main-nav .icon-img, #main-nav .nav-onemusic{ display:none !important; }
+
+      #schedule-container{
+        max-height:55vh;
+        overflow-y:auto;
+        padding-right:6px;
+        scroll-behavior:smooth;
+        -webkit-overflow-scrolling:touch;
+      }
+      #schedule-container h3,
+      #schedule-container .day-title{
+        position:sticky;
+        top:0;
+        z-index:2;
+      }
+    }
+  </style>
+
+  <!-- Chromecast Init & SDK -->
+  <script>
+    window.__onGCastApiAvailable = isAvailable => {
+      if (isAvailable) {
+        cast.framework.CastContext.getInstance().setOptions({
+          receiverApplicationId: '77E0F81B',
+          autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+        });
+      }
+    };
+  </script>
+  <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
+
+  <!-- Other head scripts -->
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" defer></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-3MSGZZ5QL6"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}  
+    gtag('js', new Date());
+    gtag('config', 'G-3MSGZZ5QL6');
+  </script>
+
+  <!-- Site-wide Organization JSON-LD -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -49,564 +178,262 @@
     ]
   }
   </script>
-
-  <!-- NAV + SCHEDULE STYLES -->
-  <style>
-    :root{
-      --brand-teal:#5A8785;
-
-      /* schedule scale */
-      --hourH:52px;                 /* height per hour (change once, affects all) */
-      --qH:calc(var(--hourH)/4);    /* 15-min slots */
-
-      /* current-time marker */
-      --now-color:#ff5858;
-    }
-
-    /* NAV – unified with main bar (teal + thin black lines, no socials) */
-    #main-nav{
-      display:flex!important; align-items:center!important;
-      gap:.5rem!important; width:100%!important;
-      padding:.10rem .65rem!important; margin:0!important;
-      box-sizing:border-box!important;
-      background-color:var(--brand-teal)!important;
-      position:relative!important; z-index:1000!important;
-      border-top:2px solid #000; border-bottom:2px solid #000;
-    }
-    #main-nav::before,#main-nav::after{content:none!important;}
-
-    /* Evenly spaced links occupy full available width */
-    #main-nav .nav-menu{
-      display:flex!important; align-items:center!important;
-      justify-content:space-evenly!important;
-      gap:clamp(.25rem,2vw,1.5rem)!important;
-      flex:1 1 auto!important;
-      min-width:0!important;
-    }
-    #main-nav a.nav-link{
-      color:#fff!important; font-family:'Bebas Neue',sans-serif!important;
-      font-size:2rem!important; text-transform:uppercase!important;
-      text-decoration:none!important; white-space:nowrap!important;
-    }
-
-    /* Mobile: same bar, slightly smaller type (match main bar) */
-    @media (max-width:768px){
-      #main-nav a.nav-link{ font-size:1.6rem!important; }
-      #main-nav .nav-menu{ justify-content:space-evenly!important; gap:.5rem!important; }
-    }
-
-    /* PAGE base */
-    html,body{ background:#000; color:#fafafa; }
-    *{ box-sizing:border-box; }
-
-    /* Header bar above schedule */
-    .page-header{
-      display:flex; align-items:center; justify-content:space-between;
-      padding:.5rem .75rem; border-bottom:2px solid #000; background:var(--brand-teal);
-    }
-    .page-header h1{
-      font-family:'Bebas Neue',sans-serif; font-size:2.2rem;
-      letter-spacing:.5px; color:#fff; margin:0;
-      text-shadow:0 1px 0 rgba(0,0,0,.35);
-    }
-
-    .utilities{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
-    .legend{display:flex;gap:.5rem;align-items:center}
-    .chip{width:.9rem;height:.9rem;border-radius:2px;border:1px solid #1f1f1f;display:inline-block}
-
-    /* Controls row (period title, tz, arrows) */
-    .month-controls{
-      display:flex; gap:.5rem; align-items:center; justify-content:space-between;
-      border-bottom:1px solid var(--brand-teal); padding:.75rem .75rem;
-      position:sticky; top:0; background:#000; z-index:20;
-    }
-    .month-controls .title{
-      font-family:'Bebas Neue',sans-serif; font-size:2rem; color:#fff; letter-spacing:.5px;
-      text-shadow:0 1px 0 rgba(0,0,0,.35);
-    }
-    .ccr-btn{
-      background:var(--brand-teal); color:#fff; border:none; border-radius:6px;
-      padding:.5rem .75rem; cursor:pointer; font-weight:600; letter-spacing:.3px;
-    }
-
-    .weeks-stack{ display:flex; flex-direction:column; gap:1.25rem; padding:1rem .75rem 2rem; }
-
-    /* === Desktop: 2-row grid so time ruler aligns with day bodies === */
-    .week-grid{
-      display:grid;
-      grid-template-columns:64px repeat(7,1fr);
-      grid-template-rows:auto 1fr;     /* row 1 = headers, row 2 = bodies */
-      gap:6px;
-      border:2px solid var(--brand-teal); border-radius:8px;
-      overflow:hidden; background:#0f0f0f; padding:6px;
-    }
-
-    .time-head{ grid-column:1; grid-row:1; } /* spacer */
-
-    /* Time ruler (row 2) */
-    .time-col{
-      grid-column:1; grid-row:2;
-      position:relative; height:calc(var(--hourH)*24); border:1px solid #1c1c1c; border-radius:6px;
-      background-color:#0b0b0b;
-      background-image:linear-gradient(to bottom,#1e1e1e 1px,transparent 1px);
-      background-size:100% var(--hourH);
-    }
-    .time-col .hour-label{
-      position:absolute; left:6px;
-      font-size:1rem; color:#fff; line-height:1;
-      text-shadow:0 1px 0 rgba(0,0,0,.35);
-      pointer-events:none;
-    }
-
-    /* Day headers (row 1) */
-    .day-head{
-      grid-row:1;
-      background:#0d0d0d; border:1px solid #1e1e1e; padding:.48rem .6rem;
-      border-radius:6px; color:#fff;
-    }
-    .day-head .dow{
-      font-family:'Bebas Neue',sans-serif; font-size:1.38rem; color:#fff;
-      text-shadow:0 1px 0 rgba(0,0,0,.35);
-    }
-    .day-head .date{
-      font-size:1.06rem; color:#fff; text-shadow:0 1px 0 rgba(0,0,0,.35);
-    }
-
-    /* Day bodies (row 2) */
-    .day-body{
-      grid-row:2;
-      display:grid; grid-template-rows:repeat(96,var(--qH)); position:relative;
-      height:calc(var(--hourH)*24); border:1px solid #1c1c1c; border-radius:6px; overflow:hidden;
-      background-color:#0b0b0b;
-      background-image:linear-gradient(to bottom,#1a1a1a 1px,transparent 1px);
-      background-size:100% var(--hourH);
-    }
-
-    /* Show block */
-    .show{
-      grid-column:1/-1; margin:2px 4px;
-      background:var(--chip,#FBBF24); color:var(--fg,#1b0f00);
-      border-radius:10px; padding:.48rem .6rem; overflow:hidden;
-      box-shadow: inset 0 0 0 2px rgba(0,0,0,.2);
-    }
-    .show .time{ font-size:.78rem; opacity:.95; }
-    .show .title{ font-weight:800; line-height:1.2; }
-    .show .host{ font-size:.85rem; opacity:.92; }
-
-    /* Palette */
-    .tone-1{--chip:#FBBF24;--fg:#1b0f00}
-    .tone-2{--chip:#FB923C;--fg:#1a0900}
-    .tone-3{--chip:#EC4899;--fg:#220713}
-    .tone-4{--chip:#A78BFA;--fg:#0e0a1a}
-    .tone-5{--chip:#06B6D4;--fg:#001318}
-    .tone-6{--chip:#60A5FA;--fg:#0a1a35}
-    .tone-7{--chip:#10B981;--fg:#00150e}
-    .tone-8{--chip:#4ADE80;--fg:#041307}
-    .is-archive{--chip:#93C5FD;--fg:#0b1f3f}
-
-    /* ===== Mobile layout ===== */
-    @media (max-width:980px){
-      .weeks-stack{ gap:1rem; padding:0.5rem 0.5rem 1.25rem; }
-
-      .week-grid{
-        display:block;
-        padding:0; border:none; background:transparent;
-      }
-      .time-head, .time-col{ display:none !important; }
-
-      .day-head{
-        margin:12px 8px 0; padding:.55rem .7rem; border-radius:12px;
-      }
-      .day-head .dow{ font-size:1.22rem; }
-      .day-head .date{ font-size:1rem; }
-
-      .day-body{
-        margin:6px 8px 8px;
-        border-radius:14px;
-        height:calc(var(--hourH)*24);
-      }
-
-      .show{ padding:.44rem .55rem; margin:2px 3px; }
-      .show .time{ font-size:.84rem; }
-      .show .title{ font-size:.98rem; }
-      .show .host{ font-size:.84rem; }
-    }
-
-    /* Footer (unchanged) */
-    .banner{display:flex;gap:1rem;justify-content:center;padding:1rem;border-top:2px solid #000}
-    .banner a{color:#fff;text-decoration:none}
-
-    /* ===== Current-time marker (ONLY current day) ===== */
-    .now-line{
-      position:absolute; left:0; right:0; height:2px;
-      background:var(--now-color);
-      pointer-events:none; z-index:6;
-    }
-    .now-dot{
-      position:absolute; width:10px; height:10px; border-radius:50%;
-      background:var(--now-color); left:4px; top:-4px;
-      pointer-events:none; z-index:7;
-      box-shadow:0 0 0 2px rgba(0,0,0,.25);
-    }
-  </style>
 </head>
 
 <body>
-  <!-- NAV -->
-  <nav id="main-nav" aria-label="Primary">
-    <div class="nav-menu">
-      <a href="index.html"         class="nav-link">HOME</a>
-      <a href="our-story.html"     class="nav-link">OUR STORY</a>
-      <a href="index-ourDJS.html"  class="nav-link">OUR DJS</a>
-      <a href="dj-selects.html"    class="nav-link">DJ SELECTS</a>
-      <a href="merch.html"         class="nav-link">MERCH</a>
+  <!-- HEADER -->
+  <header class="header-banner" role="banner">
+    <div class="header-gif-right"></div>
+    <div class="header-gif-left"></div>
+    <div class="logo-container">
+      <img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="lazy">
     </div>
-  </nav>
-<main>
-  <!-- Intro blurb inside main -->
-  <section style="max-width:860px;margin:1rem auto;padding:0 .75rem;">
-    <p>Cutters Choice Radio is a community of resident DJs and selectors broadcasting across underground music of all genres, representing bass and rave culture. Explore each profile for bios, mixes and show times, and discover new artists on our weekly schedule.</p>
-  </section>
-  
-  <header class="page-header">
-    <h1>MONTHLY SCHEDULE</h1>
-    <div class="utilities">
-      <button class="ccr-btn" id="todayBtn" title="Jump to current 4-week block">This Week</button>
-      <div class="legend">
-        <span class="chip" style="background:#FBBF24"></span>
-        <span class="chip" style="background:#FB923C"></span>
-        <span class="chip" style="background:#EC4899"></span>
-        <span class="chip" style="background:#A78BFA"></span>
-        <span class="chip" style="background:#06B6D4"></span>
-        <span class="chip" style="background:#60A5FA"></span>
-        <span class="chip" style="background:#10B981"></span>
-        <span class="chip" style="background:#4ADE80"></span>
-        <small style="opacity:.95;color:#fff">Order of shows each UK day</small>
-        <span class="chip" style="background:#93C5FD;margin-left:.5rem;"></span>
-        <small style="opacity:.95;color:#fff">Archives</small>
-      </div>
+    <div class="title">
+      <h1>Cutters Choice Radio</h1>
+      <p class="tagline">The home of relentless flavas and significant bangers!</p>
+    </div>
+    <div class="logo-container">
+      <img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="lazy">
     </div>
   </header>
 
-  <section class="month-controls">
-    <div>
-      <button class="ccr-btn" id="prevMonthBtn" aria-label="Previous 4 weeks">◀</button>
-      <button class="ccr-btn" id="nextMonthBtn" aria-label="Next 4 weeks">▶</button>
+  <div style="height:2px;background-color:var(--brand-teal);"></div>
+
+  <!-- NAVIGATION -->
+  <nav id="main-nav" aria-label="Primary">
+    <div class="nav-menu">
+      <a href="our-story.html"    class="nav-link">OUR STORY</a>
+      <a href="index-ourDJS.html" class="nav-link">OUR DJS</a>
+      <a href="dj-selects.html"   class="nav-link">DJ SELECTS</a>
+      <a href="schedule.html"     class="nav-link">SCHEDULE</a>
+      <a href="merch.html"        class="nav-link">MERCH</a>
     </div>
-    <div class="title" id="monthTitle">Loading…</div>
-    <div>
-      <label style="display:flex;align-items:center;gap:.35rem;">
-        <span style="font-size:.95rem;color:#fff">Times in</span>
-        <select id="tzSelect" class="ccr-btn" style="background:#0a0a0a;border:1px solid #1c1c1c;color:#fff">
-          <option value="local">Your local time</option>
-          <option value="Europe/London">UK (Europe/London)</option>
-          <option value="UTC">UTC</option>
-        </select>
-      </label>
+
+    <div class="nav-actions">
+      <a href="https://facebook.com/cutterschoiceradio"  target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="Facebook">
+        <i class="fab fa-facebook-f"></i>
+      </a>
+      <a href="https://instagram.com/cutterschoiceradio" target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="Instagram">
+        <i class="fab fa-instagram"></i>
+      </a>
+
+      <!-- Alexa logo -->
+      <img src="/images/alexa-logo.webp" alt="Alexa" class="icon-img" loading="lazy">
+
+      <!-- TuneIn logo -->
+      <a href="https://tunein.com/radio/Cutters-Choice-Radio-s344746/" target="_blank" rel="noopener noreferrer" aria-label="TuneIn">
+        <img src="/images/tunein-logo.png" alt="TuneIn" class="icon-img" loading="lazy">
+      </a>
+
+      <!-- OneMusic badge -->
+      <div class="nav-onemusic">
+        <a href="https://onemusicnz.com" target="_blank" rel="noopener noreferrer">
+          <img src="/images/ONEMUSICLOGO.png" alt="We’re licensed to play OneMusic NZ" loading="lazy">
+        </a>
+      </div>
+
+      <google-cast-button aria-label="Cast to device"></google-cast-button>
+      <button id="manualCastBtn" title="Cast this stream" aria-label="Cast this stream">
+        <i class="fab fa-chromecast" aria-hidden="true"></i>
+      </button>
     </div>
+  </nav>
+
+  <div style="height:2px;background-color:var(--brand-teal);"></div>
+
+  <!-- ✨ Intro blurb (added) -->
+  <section style="max-width:860px;margin:1rem auto;padding:0 .75rem;">
+    <p>Cutters Choice Radio is a community of resident DJs and selectors broadcasting across underground music of all genres, representing bass and rave culture. Explore each profile for bios, mixes and show times, and discover new artists on our weekly schedule.</p>
   </section>
 
-  <main class="weeks-stack" id="weeksStack" aria-live="polite">
-    <p style="opacity:.8;color:#fff">Fetching…</p>
-  </main>
+  <!-- MAIN GRID CONTENT -->
+  <div class="grid-container">
+    <!-- CHAT SECTION -->
+    <section class="chat" aria-labelledby="chat-heading">
+      <h2 id="chat-heading">Cutters Chat</h2>
+      <iframe title="Cutters Choice Radio Chat"
+              src="https://app.radiocult.fm/embed/chat/cutters-choice-radio?theme=midnight&primaryColor=%235A8785&corners=sharp"
+              width="100%" height="700" frameborder="0"
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              loading="lazy" seamless>
+      </iframe>
+      <div class="chat-actions"><button class="popout-btn" onclick="openChatPopup()">Pop Out Chat</button></div>
+      <div class="rc-user-list-container"><div class="rc-user-list"></div></div>
+    </section>
 
+    <!-- LIVE PLAYER SECTION -->
+    <section class="live-player" aria-labelledby="now-dj">
+      <h2 id="now-dj">Live Now</h2>
+      <div class="player-container">
+        <iframe id="inlinePlayer" title="Cutters Choice Radio player"
+                src="https://app.radiocult.fm/embed/square-player/cutters-choice-radio?theme=midnight&primaryColor=%235A8785&corners=sharp"
+                allow="autoplay; encrypted-media" loading="lazy"></iframe>
+        <div id="now-archive" role="status" aria-live="polite">Loading archive show…</div>
+        <button id="popOutBtn" class="popout-btn">Pop Out Player</button>
+        <button id="chatPopupBtn" class="popout-btn chat-btn-mobile" onclick="openChatPopup()">Chat</button>
+      </div>
+      <h3>This Week’s Shows</h3>
+      <img id="now-art" src="https://i.imgur.com/EHhS47F.png" alt="Current DJ Artwork" loading="lazy">
+    </section>
+
+    <!-- SCHEDULE SECTION -->
+    <section class="schedule" aria-labelledby="schedule-heading">
+      <h2 class="schedule-heading" id="schedule-heading">This Week’s Lineup</h2>
+      <div class="schedule-scroll" id="schedule-container">
+        <p>Loading this week’s schedule…</p>
+      </div>
+    </section>
+
+    <!-- MIXCLOUD ARCHIVE SECTION -->
+    <section class="mixcloud" aria-labelledby="mixcloud-heading">
+      <h2 id="mixcloud-heading">Latest Archived Shows</h2>
+      <div id="mixcloud-list"></div>
+      <div class="add-mixcloud">
+        <input id="mixcloud-url" type="text" placeholder="Paste Mixcloud URL here…">
+        <button onclick="addMixcloud()">Add Show</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- FOOTER -->
   <footer class="banner">
-    <a href="privacy-policy.html">PRIVACY POLICY</a>
-    <a href="index.html">Back to Home</a>
+    <div style="
+      background-color: var(--brand-teal);
+      padding: 0.10rem 0.65rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    ">
+      <a href="privacy-policy.html"
+         style="
+           color: #fff;
+           font-family: 'Bebas Neue', sans-serif;
+           font-size: 2rem;
+           text-transform: uppercase;
+           text-decoration: none;
+         ">PRIVACY POLICY</a>
+      <span style="
+        color: #fff;
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+      ">
+        Amazon, Alexa and all related logos are trademarks of Amazon.com, Inc. or its affiliates.
+      </span>
+    </div>
   </footer>
 
+  <!-- YOUR SCRIPTS -->
+  <script src="script.js?v=1757106631679" defer></script>
+  <script src="slideshow.js?v=1757106631679" defer></script>
+
+  <!-- Chromecast Handler & Manual Fallback -->
   <script>
-    /* ===== API ===== */
-    const API_KEY    = "pk_0b8abc6f834b444f949f727e88a728e0";
-    const STATION_ID = "cutters-choice-radio";
-    const BASE_URL   = "https://api.radiocult.fm/api";
+    document.addEventListener('DOMContentLoaded', () => {
+      const context = cast.framework.CastContext.getInstance();
+      const manualBtn = document.getElementById('manualCastBtn');
+      const officialBtn = document.querySelector('google-cast-button');
+      context.addEventListener(cast.framework.CastContextEventType.CAST_STATE_CHANGED, e => {
+        officialBtn.style.display = e.castState !== cast.framework.CastState.NO_DEVICES_AVAILABLE
+          ? 'inline-block' : 'none';
+      });
+      manualBtn.addEventListener('click', () => {
+        context.requestSession().catch(err => console.error('Fallback session error', err));
+      });
+      officialBtn.addEventListener('click', async () => {
+        const session = context.getCurrentSession();
+        if (!session) return console.warn('No Chromecast session');
+        const mediaInfo = new chrome.cast.media.MediaInfo(
+          'https://cutters-choice-radio.radiocult.fm/stream',
+          'application/x-mpegurl'
+        );
+        mediaInfo.streamType = chrome.cast.media.StreamType.LIVE;
+        mediaInfo.metadata = new chrome.cast.media.MusicTrackMediaMetadata();
+        mediaInfo.metadata.title = document.getElementById('now-dj').textContent;
+        mediaInfo.metadata.albumName = 'Cutters Choice Radio';
+        const request = new chrome.cast.media.LoadRequest(mediaInfo);
+        await session.loadMedia(request).catch(err => console.error('Chromecast error:', err));
+      });
+    });
+  </script>
 
-    const rcFetch = async (path) => {
-      const res = await fetch(BASE_URL + path, { headers: { "x-api-key": API_KEY }, cache: "no-store" });
-      if (!res.ok) throw new Error(`Fetch error ${res.status}`);
-      return res.json();
-    };
+  <!-- GIF-SWAP SCRIPT -->
+  <script>
+    (function() {
+      const right = document.querySelector('.header-gif-right');
+      const left = document.querySelector('.header-gif-left');
+      let loop = 0;
+      const set1 = ["url('/images/Untitled%20design(4).gif')", "url('/images/Untitled%20design(5).gif')"];
+      const set2 = ["url('/images/Untitled%20design(7).gif')", "url('/images/Untitled%20design(8).gif')"];
+      right.style.backgroundImage = set1[0];
+      left.style.backgroundImage = set1[1];
+      right.addEventListener('animationiteration', () => {
+        loop++;
+        const s = (loop % 4 < 2) ? set1 : set2;
+        right.style.backgroundImage = s[0];
+        left.style.backgroundImage = s[1];
+      });
+    })();
+  </script>
 
-    /* ===== Date helpers ===== */
-    const pad = n => String(n).padStart(2,"0");
-    const addDaysUTC = (d, n) => { const x = new Date(d); x.setUTCDate(x.getUTCDate()+n); return x; };
-    const startOfWeekUTC = (date) => { const d=new Date(Date.UTC(date.getUTCFullYear(),date.getUTCMonth(),date.getUTCDate())); const day=(d.getUTCDay()+6)%7; d.setUTCDate(d.getUTCDate()-day); d.setUTCHours(0,0,0,0); return d; };
+  <!-- JSON-LD Events injector (client-only, no visual changes) -->
+  <script>
+  (function(){
+    const API_KEY = 'pk_0b8abc6f834b444f949f727e88a728e0';   // publishable (read-only)
+    const STATION_ID = 'cutters-choice-radio';
+    const DAYS_AHEAD = 7;
 
-    // yyyy-mm-dd in chosen tz
-    const ymdInTz = (d, tz) => new Intl.DateTimeFormat('en-CA',{
-      timeZone: tz==='local'?undefined:tz, year:'numeric',month:'2-digit',day:'2-digit'
-    }).format(d);
+    const startISO = new Date().toISOString();
+    const endISO   = new Date(Date.now() + DAYS_AHEAD * 24 * 60 * 60 * 1000).toISOString();
 
-    // minutes since day start in tz
-    const minutesInDay = (d, tz) => {
-      const parts = new Intl.DateTimeFormat('en-GB',{
-        timeZone: tz==='local'?undefined:tz, hour:'2-digit', minute:'2-digit', hour12:false
-      }).formatToParts(d);
-      let hh=0,mm=0; for(const p of parts){ if(p.type==='hour') hh=parseInt(p.value,10); if(p.type==='minute') mm=parseInt(p.value,10); }
-      return hh*60+mm;
-    };
+    const url = 'https://api.radiocult.fm/api/station/' + encodeURIComponent(STATION_ID) +
+                '/schedule?startDate=' + encodeURIComponent(startISO) +
+                '&endDate=' + encodeURIComponent(endISO) +
+                '&expand=artist';
 
-    const fmtHM = (min) => {
-      let h = Math.floor(min/60), m = min % 60;
-      const ampm = h >= 12 ? 'pm':'am';
-      let hh = ((h + 11) % 12) + 1;
-      return `${String(hh).padStart(2,'0')}:${String(m).padStart(2,'0')} ${ampm}`;
-    };
+    fetch(url, { headers: { 'x-api-key': API_KEY } })
+      .then(r => r.ok ? r.json() : Promise.reject(new Error('Schedule fetch failed: ' + r.status)))
+      .then(data => {
+        const events = Array.isArray(data?.schedules) ? data.schedules
+                     : Array.isArray(data) ? data
+                     : [];
+        if (!events.length) return;
 
-    /* === Timezone-aware labels === */
-    const dowInTz = (d, tz) =>
-      new Intl.DateTimeFormat('en-GB', {
-        timeZone: tz === 'local' ? undefined : tz,
-        weekday: 'short'
-      }).format(d).toUpperCase();
+        const LISTEN_URL = 'https://cutterschoiceradio.com/listen';
+        const ORG = {
+          name: 'Cutters Choice Radio',
+          url:  'https://cutterschoiceradio.com',
+          logo: 'https://cutterschoiceradio.com/images/logo.png'
+        };
 
-    const fmtDMtz = (d, tz) =>
-      new Intl.DateTimeFormat(undefined, {
-        timeZone: tz === 'local' ? undefined : tz,
-        day: 'numeric',
-        month: 'short'
-      }).format(d);
+        const items = events.map(ev => {
+          const sISO = ev.startDateUtc || ev.startDate || ev.start;
+          const eISO = ev.endDateUtc   || ev.endDate   || ev.end;
+          const performers = (ev.artists || [])
+            .map(a => a && a.name ? { '@type':'Person', name:a.name } : null)
+            .filter(Boolean);
 
-    const rangeLabelInTz = (startUtc, endUtc, tz) => {
-      const f = (d,opts)=> new Intl.DateTimeFormat(undefined, {
-        ...(tz==='local'?{}:{timeZone:tz}), ...opts
-      }).format(d);
-      const sameMonthYear =
-        f(startUtc,{month:'numeric',year:'numeric'}) === f(endUtc,{month:'numeric',year:'numeric'});
-      if (sameMonthYear) {
-        const moYr = f(startUtc,{month:'long',year:'numeric'});
-        return `${moYr} • ${f(startUtc,{day:'2-digit',month:'short'})}–${f(endUtc,{day:'2-digit'})}`;
-      }
-      return `${f(startUtc,{day:'2-digit',month:'short'})} – ${f(endUtc,{day:'2-digit',month:'short',year:'numeric'})}`;
-    };
-
-    /* ===== Fetch 4-week block ===== */
-    async function fetchRange(startUtc, endUtc) {
-      // pad by one day to survive DST & borders
-      const paddedStart = addDaysUTC(startUtc, -1).toISOString();
-      const paddedEnd   = addDaysUTC(endUtc,   1).toISOString();
-      const data = await rcFetch(`/station/${STATION_ID}/schedule?startDate=${encodeURIComponent(paddedStart)}&endDate=${encodeURIComponent(paddedEnd)}`);
-      const schedules = Array.isArray(data?.schedules) ? data.schedules : Array.isArray(data) ? data : [];
-      return schedules.map(s => ({
-        start: s.startDateUtc || s.startDate || s.startAt || s.start,
-        end:   s.endDateUtc   || s.endDate   || s.endAt   || s.end,
-        title: s.title || s.content?.title || s.content?.name || "Untitled show",
-        host:  (Array.isArray(s.content?.presenters) ? s.content.presenters.map(p => p.name).filter(Boolean).join(", ") : "")
-               || s.metadata?.artist || s.dj || "",
-        raw: s
-      })).filter(s => s.start && s.end);
-    }
-
-    /* ===== Colour rules ===== */
-    const ORDER_CLASSES = ['tone-1','tone-2','tone-3','tone-4','tone-5','tone-6','tone-7','tone-8'];
-    const isArchive = (s) => {
-      const blob = `${s.title||''} ${s.host||''}`.toLowerCase();
-      return blob.includes('archive') || blob.includes('archives');
-    };
-
-    /* ===== Split overnight and fill gaps with Archives ===== */
-    const incYMD = (s) => { const [y,m,d]=s.split('-').map(Number); const dt=new Date(Date.UTC(y,m-1,d)); dt.setUTCDate(dt.getUTCDate()+1); return `${dt.getUTCFullYear()}-${pad(dt.getUTCMonth()+1)}-${pad(dt.getUTCDate())}`; };
-
-    function splitShowsIntoDailySegments(shows, tz) {
-      const map = new Map();
-      for (const s of shows) {
-        const st = new Date(s.start), en = new Date(s.end);
-        const kStart = ymdInTz(st, tz), kEnd = ymdInTz(en, tz);
-        let key = kStart;
-        while (true) {
-          const segStartMin = (key===kStart) ? minutesInDay(st, tz) : 0;
-          const segEndMin   = (key===kEnd)   ? minutesInDay(en, tz) : 24*60;
-          const seg = { ...s, segStartMin, segEndMin: Math.max(segStartMin+15, segEndMin), archive: isArchive(s) };
-          if (!map.has(key)) map.set(key, []);
-          map.get(key).push(seg);
-          if (key===kEnd) break;
-          key = incYMD(key);
-        }
-      }
-      // sort and fill gaps with archives to keep column solid
-      for (const [key, arr] of map) {
-        arr.sort((a,b)=> a.segStartMin - b.segStartMin);
-        const filled = [];
-        let cur = 0;
-        for (const seg of arr) {
-          if (seg.segStartMin > cur) {
-            filled.push({ title:"Choice Cuts Archives", host:"", archive:true, segStartMin:cur, segEndMin:seg.segStartMin });
-          }
-          filled.push(seg);
-          cur = Math.max(cur, seg.segEndMin);
-        }
-        if (cur < 24*60) filled.push({ title:"Choice Cuts Archives", host:"", archive:true, segStartMin:cur, segEndMin:24*60 });
-        map.set(key, filled);
-      }
-      return map;
-    }
-
-    /* ===== Build UK-day order lookup ===== */
-    function buildUkOrderLookup(shows){
-      const tz = 'Europe/London';
-      const byDay = new Map();
-      for(const s of shows){
-        if (isArchive(s)) continue;
-        const st = new Date(s.start);
-        const key = ymdInTz(st, tz);
-        if(!byDay.has(key)) byDay.set(key, []);
-        byDay.get(key).push(s);
-      }
-      for(const [,arr] of byDay){ arr.sort((a,b)=> new Date(a.start) - new Date(b.start)); }
-      const lookup = new Map();
-      for(const [,arr] of byDay){
-        arr.forEach((s, idx)=>{
-          const key = (s.start||'') + '|' + (s.title||'');
-          lookup.set(key, idx);
+        const obj = {
+            '@type': 'Event',
+            name: ev.title || ev.name || 'Show',
+            startDate: sISO,
+            endDate:   eISO,
+            eventStatus: 'https://schema.org/EventScheduled',
+            eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
+            location: { '@type': 'VirtualLocation', url: LISTEN_URL },
+            organizer: { '@type': 'Organization', name: ORG.name, url: ORG.url, logo: ORG.logo }
+          };
+          if (performers.length) obj.performer = performers;
+          return obj;
         });
-      }
-      return lookup;
-    }
 
-    /* Build the time ruler (row 2) with perfectly aligned labels */
-    function buildTimeRuler(){
-      const col=document.createElement('div'); col.className='time-col';
-      for(let h=0;h<24;h++){
-        const lab=document.createElement('div'); lab.className='hour-label';
-        lab.style.top=`calc(${h} * var(--hourH))`;
-        lab.textContent=String(h).padStart(2,'0')+':00';
-        col.appendChild(lab);
-      }
-      return col;
-    }
-
-    function renderFourWeeks(anchorUtc, shows, tz, ukOrderLookup){
-      const mount=document.getElementById('weeksStack'); mount.innerHTML='';
-      const endUtc = addDaysUTC(anchorUtc, 27);
-      document.getElementById('monthTitle').textContent = rangeLabelInTz(anchorUtc, endUtc, tz);
-
-      const buckets = splitShowsIntoDailySegments(shows, tz);
-
-      for (let w=0; w<4; w++){
-        const weekEl=document.createElement('section'); weekEl.className='week-grid';
-
-        // top-left spacer so headers row height matches
-        const spacer=document.createElement('div'); spacer.className='time-head';
-        weekEl.appendChild(spacer);
-
-        // Time ruler (row 2, col 1)
-        weekEl.appendChild(buildTimeRuler());
-
-        // Day headers + bodies
-        for(let i=0;i<7;i++){
-          const dayUtc = addDaysUTC(anchorUtc, w*7 + i);
-          const head=document.createElement('div'); head.className='day-head';
-          head.style.gridColumn = String(i+2);
-          head.innerHTML = `
-            <div class="dow">${dowInTz(dayUtc, tz)}</div>
-            <div class="date">${fmtDMtz(dayUtc, tz)}</div>
-          `;
-          weekEl.appendChild(head);
-
-          const body=document.createElement('div'); body.className='day-body';
-          body.style.gridColumn = String(i+2);
-
-          const dayKey = ymdInTz(dayUtc, tz);
-          body.dataset.day = dayKey;
-
-          const segments = buckets.get(dayKey) || [];
-
-          segments.forEach(seg=>{
-            const startQ = Math.floor(seg.segStartMin/15);
-            const spanQ  = Math.max(1, Math.ceil((seg.segEndMin - seg.segStartMin)/15));
-            const show=document.createElement('div');
-            let classes = 'show ';
-            if (seg.archive) {
-              classes += 'is-archive';
-            } else {
-              const key = (seg.start||'') + '|' + (seg.title||'');
-              const ord = ukOrderLookup.get(key) ?? 0;
-              classes += ORDER_CLASSES[ord % ORDER_CLASSES.length];
-            }
-            show.className = classes;
-            show.style.gridRow = `${startQ+1} / span ${spanQ}`;
-            show.innerHTML = `
-              <div class="time">${fmtHM(seg.segStartMin)}–${fmtHM(seg.segEndMin)}</div>
-              <div class="title">${String(seg.title).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
-              ${seg.host ? `<div class="host">${String(seg.host).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>` : ""}
-            `;
-            body.appendChild(show);
-          });
-
-          weekEl.appendChild(body);
-        }
-
-        mount.appendChild(weekEl);
-      }
-
-      drawNowMarker(tz);  /* place the single-day marker after render */
-    }
-
-    /* ===== Live current-time marker (only current day) ===== */
-    function drawNowMarker(tz){
-      // remove any previous markers
-      document.querySelectorAll('.now-line,.now-dot').forEach(el=>el.remove());
-
-      const now = new Date();
-      const todayKey = ymdInTz(now, tz);
-
-      // find the only day column matching "today" in the chosen tz
-      const body = document.querySelector(`.day-body[data-day="${todayKey}"]`);
-      if (!body) return;
-
-      // parse --hourH even if it's like "52px"
-      const raw = getComputedStyle(document.documentElement).getPropertyValue('--hourH');
-      const hourH = parseFloat(raw) || 52;
-
-      const topPx = (minutesInDay(now, tz) / 60) * hourH;
-
-      const line = document.createElement('div');
-      line.className = 'now-line';
-      line.style.top = `${topPx}px`;
-      body.appendChild(line);
-
-      const dot = document.createElement('div');
-      dot.className = 'now-dot';
-      dot.style.top = `${topPx}px`;
-      body.appendChild(dot);
-    }
-
-    /* ===== State & controls ===== */
-    let anchorUtc = startOfWeekUTC(new Date());  // Monday (UTC)
-    let tzMode = "local";
-    let nowTimer = null;
-
-    async function loadBlock(){
-      const blockStart = anchorUtc;
-      const blockEnd   = addDaysUTC(anchorUtc, 28);
-      try{
-        const shows=await fetchRange(blockStart, blockEnd);
-        if (!Array.isArray(shows) || !shows.length){
-          document.getElementById('weeksStack').innerHTML = "<p style='color:#fff;opacity:.9'>No schedule available for this period.</p>";
-          return;
-        }
-        const ukOrderLookup = buildUkOrderLookup(shows);
-        renderFourWeeks(blockStart, shows, tzMode, ukOrderLookup);
-
-        // (re)start 1-minute updater for the single marker
-        if (nowTimer) clearInterval(nowTimer);
-        nowTimer = setInterval(()=>drawNowMarker(tzMode), 60000);
-      }catch(e){
-        console.error(e);
-        document.getElementById('weeksStack').innerHTML="<p style='color:#fff'>Couldn’t load schedule.</p>";
-      }
-    }
-
-    document.getElementById('prevMonthBtn').addEventListener('click',()=>{ anchorUtc = addDaysUTC(anchorUtc, -28); loadBlock(); window.scrollTo({top:0}); });
-    document.getElementById('nextMonthBtn').addEventListener('click',()=>{ anchorUtc = addDaysUTC(anchorUtc, +28); loadBlock(); window.scrollTo({top:0}); });
-    document.getElementById('todayBtn').addEventListener('click',()=>{ anchorUtc = startOfWeekUTC(new Date()); loadBlock(); window.scrollTo({top:0,behavior:'smooth'}); });
-    document.getElementById('tzSelect').addEventListener('change',e=>{ tzMode=e.target.value; loadBlock(); });
-
-    // keep marker correct after tab returns to foreground
-    document.addEventListener('visibilitychange', ()=>{ if (!document.hidden) drawNowMarker(tzMode); });
-
-    // boot
-    loadBlock();
+        const script = document.createElement('script');
+        script.type = 'application/ld+json';
+        script.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': items });
+        document.head.appendChild(script);
+      })
+      .catch(err => console.warn('[CCR JSON-LD injector]', err));
+  })();
   </script>
 </body>
 </html>

@@ -44,7 +44,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <!-- INLINE NAV + MOBILE LINEUP STYLING -->
+  <!-- INLINE NAV + MOBILE LINEUP STYLING (unchanged except button.nav-link already present) -->
   <style>
     :root { --brand-teal: #5A8785; }
 
@@ -71,8 +71,6 @@
       flex:1 1 auto !important;
       min-width:0 !important;
     }
-
-    /* ⬅️ include button.nav-link so buttons match links */
     #main-nav a.nav-link,
     #main-nav button.nav-link,
     #main-nav summary.nav-link{
@@ -135,48 +133,29 @@
     #main-nav .nav-onemusic{ display:flex; align-items:center; }
     #main-nav .nav-onemusic img{ max-height:2rem; width:auto; height:auto; display:block; }
 
-    /* 🔧 fallback CAST button: inherit nav-link typography, hidden by default (JS toggles) */
+    /* Fallback CAST button (hidden until JS shows it) */
     #manualCastBtn{
       display:none;
-      background:none;
-      border:none;
-      color:#fff;
-      margin-left:.25rem;
-      padding:0;
-      appearance:none;
-      -webkit-appearance:none;
-      font:inherit;               /* inherit Bebas + size from .nav-link */
-      line-height:inherit;
-      letter-spacing:inherit;
+      background:none;border:none;color:#fff;margin-left:.25rem;padding:0;
+      appearance:none;-webkit-appearance:none;font:inherit;line-height:inherit;letter-spacing:inherit;
     }
 
     @media (max-width:768px){
-      /* ⬅️ include button.nav-link on mobile too */
       #main-nav a.nav-link,
       #main-nav button.nav-link,
       #main-nav summary.nav-link{ font-size:1rem !important; }
-
       #main-nav .nav-menu{ justify-content:space-between !important; gap:.5rem !important; }
       #main-nav .social-icon i{ font-size:1.4rem !important; }
       #main-nav .icon-img, #main-nav .nav-onemusic{ display:none !important; }
       .nav-details .about-panel{ width:calc(100vw - 16px); right:-8px; }
 
       #schedule-container{
-        max-height:55vh;
-        overflow-y:auto;
-        padding-right:6px;
-        scroll-behavior:smooth;
-        -webkit-overflow-scrolling:touch;
+        max-height:55vh; overflow-y:auto; padding-right:6px; scroll-behavior:smooth; -webkit-overflow-scrolling:touch;
       }
-      #schedule-container h3,
-      #schedule-container .day-title{
-        position:sticky;
-        top:0;
-        z-index:2;
-      }
+      #schedule-container h3, #schedule-container .day-title{ position:sticky; top:0; z-index:2; }
     }
 
-    /* Header just anchors the GIFs/logos now */
+    /* Header just anchors the moving videos now */
     .header-banner{ position: relative; }
   </style>
 
@@ -193,7 +172,7 @@
   </script>
   <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
 
-  <!-- Other head scripts -->
+  <!-- Other head scripts (unchanged) -->
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" defer></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-3MSGZZ5QL6"></script>
   <script>
@@ -224,8 +203,23 @@
 <body>
   <!-- HEADER -->
   <header class="header-banner" role="banner">
-    <div class="header-gif-right"></div>
-    <div class="header-gif-left"></div>
+    <!-- ✅ replaced GIF divs with HTML5 videos that slide across -->
+    <video class="header-gif-right" autoplay muted loop playsinline preload="auto" aria-hidden="true">
+      <!-- set1 RIGHT = design4 -->
+      <source src="/images/untitled-design4_1080p.webm" type="video/webm" media="(min-width:1024px)">
+      <source src="/images/untitled-design4_1080p.mp4"  type="video/mp4"  media="(min-width:1024px)">
+      <source src="/images/untitled-design4_720p.webm"  type="video/webm">
+      <source src="/images/untitled-design4_720p.mp4"   type="video/mp4">
+    </video>
+
+    <video class="header-gif-left" autoplay muted loop playsinline preload="auto" aria-hidden="true">
+      <!-- set1 LEFT = design-5 (note the hyphen in your filenames) -->
+      <source src="/images/untitled-design-5_1080p.webm" type="video/webm" media="(min-width:1024px)">
+      <source src="/images/untitled-design-5_1080p.mp4"  type="video/mp4"  media="(min-width:1024px)">
+      <source src="/images/untitled-design-5_720p.webm"  type="video/webm">
+      <source src="/images/untitled-design-5_720p.mp4"   type="video/mp4">
+    </video>
+
     <div class="logo-container">
       <img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="lazy">
     </div>
@@ -236,12 +230,11 @@
     <div class="logo-container">
       <img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="lazy">
     </div>
-    <!-- (About toggle moved to nav) -->
   </header>
 
   <div style="height:2px;background-color:var(--brand-teal);"></div>
 
-  <!-- NAVIGATION -->
+  <!-- NAVIGATION (unchanged) -->
   <nav id="main-nav" aria-label="Primary">
     <div class="nav-menu">
       <a href="our-story.html"    class="nav-link">OUR STORY</a>
@@ -250,7 +243,6 @@
       <a href="schedule.html"     class="nav-link">SCHEDULE</a>
       <a href="merch.html"        class="nav-link">MERCH</a>
 
-      <!-- ABOUT THE STATION as SEO-friendly toggle in the nav (6th item) -->
       <details class="nav-details" id="about-overlay">
         <summary class="nav-link" aria-label="About the station">ABOUT THE STATION</summary>
         <div class="about-panel" id="about-station-content">
@@ -269,22 +261,18 @@
         <i class="fab fa-instagram"></i>
       </a>
 
-      <!-- Alexa logo -->
       <img src="/images/alexa-logo.webp" alt="Alexa" class="icon-img" loading="lazy">
 
-      <!-- TuneIn logo -->
       <a href="https://tunein.com/radio/Cutters-Choice-Radio-s344746/" target="_blank" rel="noopener noreferrer" aria-label="TuneIn">
         <img src="/images/tunein-logo.png" alt="TuneIn" class="icon-img" loading="lazy">
       </a>
 
-      <!-- OneMusic badge -->
       <div class="nav-onemusic">
         <a href="https://onemusicnz.com" target="_blank" rel="noopener noreferrer">
           <img src="/images/ONEMUSICLOGO.png" alt="We’re licensed to play OneMusic NZ" loading="lazy">
         </a>
       </div>
 
-      <!-- Cast controls (official button + fallback). Host has NO aria-* -->
       <google-cast-button id="castBtn" title="Cast"></google-cast-button>
       <button id="manualCastBtn" class="nav-link" type="button" title="Cast this stream" aria-label="Cast this stream">CAST</button>
     </div>
@@ -292,9 +280,8 @@
 
   <div style="height:2px;background-color:var(--brand-teal);"></div>
 
-  <!-- MAIN GRID CONTENT -->
+  <!-- MAIN GRID CONTENT (unchanged) -->
   <div class="grid-container">
-    <!-- CHAT SECTION -->
     <section class="chat" aria-labelledby="chat-heading">
       <h2 id="chat-heading">Cutters Chat</h2>
       <iframe title="Cutters Choice Radio Chat"
@@ -307,7 +294,6 @@
       <div class="rc-user-list-container"><div class="rc-user-list"></div></div>
     </section>
 
-    <!-- LIVE PLAYER SECTION -->
     <section class="live-player" aria-labelledby="now-dj">
       <h2 id="now-dj">Live Now</h2>
       <div class="player-container">
@@ -319,11 +305,9 @@
         <button id="chatPopupBtn" class="popout-btn chat-btn-mobile" onclick="openChatPopup()">Chat</button>
       </div>
       <h3>This Week’s Shows</h3>
-      <!-- Fallback image changed to your local asset (no Imgur) -->
       <img id="now-art" src="/images/archives-logo.jpeg" alt="Current DJ Artwork" loading="lazy">
     </section>
 
-    <!-- SCHEDULE SECTION -->
     <section class="schedule" aria-labelledby="schedule-heading">
       <h2 class="schedule-heading" id="schedule-heading">This Week’s Lineup</h2>
       <div class="schedule-scroll" id="schedule-container">
@@ -331,7 +315,6 @@
       </div>
     </section>
 
-    <!-- MIXCLOUD ARCHIVE SECTION -->
     <section class="mixcloud" aria-labelledby="mixcloud-heading">
       <h2 id="mixcloud-heading">Latest Archived Shows</h2>
       <div id="mixcloud-list"></div>
@@ -342,7 +325,7 @@
     </section>
   </div>
 
-  <!-- FOOTER -->
+  <!-- FOOTER (unchanged) -->
   <footer class="banner">
     <div style="
       background-color: var(--brand-teal);
@@ -374,7 +357,7 @@
   <script src="script.js?v=1757106631679" defer></script>
   <script src="slideshow.js?v=1757106631679" defer></script>
 
-  <!-- Chromecast Handler & Manual Fallback -->
+  <!-- Chromecast Handler & Manual Fallback (unchanged) -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const manualBtn   = document.getElementById('manualCastBtn');
@@ -438,29 +421,55 @@
     });
   </script>
 
-  <!-- GIF-SWAP SCRIPT -->
+  <!-- ✅ VIDEO-SWAP SCRIPT (replaces the old GIF-swap) -->
   <script>
-    (function() {
+    (function(){
       const right = document.querySelector('.header-gif-right');
-      const left = document.querySelector('.header-gif-left');
-      let loop = 0;
-      const set1 = ["url('/images/Untitled%20design(4).gif')", "url('/images/Untitled%20design(5).gif')"];
-      const set2 = ["url('/images/Untitled%20design(7).gif')", "url('/images/Untitled%20design(8).gif')"];
-      right.style.backgroundImage = set1[0];
-      left.style.backgroundImage = set1[1];
+      const left  = document.querySelector('.header-gif-left');
+      if (!right || !left) return;
+
+      // Your uploaded filenames:
+      // set1: RIGHT=untitled-design4, LEFT=untitled-design-5
+      // set2: RIGHT=untitled-design7, LEFT=untitled-design8
+      const sets = [
+        { right: 'untitled-design4',  left: 'untitled-design-5' },
+        { right: 'untitled-design7',  left: 'untitled-design8' }
+      ];
+
+      function loadVideo(el, base){
+        el.innerHTML =
+          `<source src="/images/${base}_1080p.webm" type="video/webm" media="(min-width:1024px)">
+           <source src="/images/${base}_1080p.mp4"  type="video/mp4"  media="(min-width:1024px)">
+           <source src="/images/${base}_720p.webm"  type="video/webm">
+           <source src="/images/${base}_720p.mp4"   type="video/mp4">`;
+        // (Re)load and play without flashing
+        el.load();
+        const p = el.play();
+        if (p && typeof p.catch === 'function') p.catch(()=>{});
+      }
+
+      // Already initialised in markup as set1, but make it explicit
+      loadVideo(right, sets[0].right);
+      loadVideo(left,  sets[0].left);
+
+      let sweeps = 0, idx = 0;
+      // Each time the moving element finishes a sweep, count;
+      // after two sweeps, toggle to the other set (matches your previous behavior).
       right.addEventListener('animationiteration', () => {
-        loop++;
-        const s = (loop % 4 < 2) ? set1 : set2;
-        right.style.backgroundImage = s[0];
-        left.style.backgroundImage = s[1];
+        sweeps++;
+        if (sweeps % 2 === 0){
+          idx = (idx + 1) % sets.length;
+          loadVideo(right, sets[idx].right);
+          loadVideo(left,  sets[idx].left);
+        }
       });
     })();
   </script>
 
-  <!-- JSON-LD Events injector (client-only, no visual changes) -->
+  <!-- JSON-LD injector (unchanged) -->
   <script>
   (function(){
-    const API_KEY = 'pk_0b8abc6f834b444f949f727e88a728e0';   // publishable (read-only)
+    const API_KEY = 'pk_0b8abc6f834b444f949f727e88a728e0';
     const STATION_ID = 'cutters-choice-radio';
     const DAYS_AHEAD = 7;
 
@@ -476,8 +485,7 @@
       .then(r => r.ok ? r.json() : Promise.reject(new Error('Schedule fetch failed: ' + r.status)))
       .then(data => {
         const events = Array.isArray(data?.schedules) ? data.schedules
-                     : Array.isArray(data) ? data
-                     : [];
+                     : Array.isArray(data) ? data : [];
         if (!events.length) return;
 
         const LISTEN_URL = 'https://cutterschoiceradio.com/listen';

@@ -2,7 +2,7 @@
 const API_KEY           = "pk_0b8abc6f834b444f949f727e88a728e0";              // ← Replace with your actual Radiocult API key
 const STATION_ID        = "cutters-choice-radio";
 const BASE_URL          = "https://api.radiocult.fm/api";
-const FALLBACK_ART      = "/images/archives-logo.jpeg";
+const FALLBACK_ART      = "/images/archives-logox.jpeg";
 const MIXCLOUD_PASSWORD = "cutters44";
 const STREAM_URL        = "https://cutters-choice-radio.radiocult.fm/stream";  // HLS stream URL
 const isMobile          = /Mobi|Android/i.test(navigator.userAgent);

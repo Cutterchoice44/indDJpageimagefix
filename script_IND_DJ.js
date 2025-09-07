@@ -214,47 +214,67 @@ async function fetchWeeklySchedule() {
   const container = document.getElementById("schedule-container");
   if (!container) return;
   container.innerHTML = "<p>Loading this week’s schedule…</p>";
+
   try {
-    const now = new Date();
+    const now  = new Date();
     const then = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
     const { schedules } = await rcFetch(
       `/station/${STATION_ID}/schedule?startDate=${now.toISOString()}&endDate=${then.toISOString()}`
     );
+
     if (!schedules.length) {
       container.innerHTML = "<p>No shows scheduled this week.</p>";
       return;
     }
+
     container.innerHTML = "";
-    const fmt = iso => new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+    const fmt = iso =>
+      new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+
     const byDay = schedules.reduce((acc, ev) => {
-      const day = new Date(ev.startDateUtc).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "short" });
+      const day = new Date(ev.startDateUtc)
+        .toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "short" });
       (acc[day] = acc[day] || []).push(ev);
       return acc;
     }, {});
-    Object.entries(byDay).forEach(([day, evs]) => {
-      const h3 = document.createElement("h3"); h3.textContent = day;
-      container.appendChild(h3);
-      const ul = document.createElement("ul"); ul.style.listStyle = "none"; ul.style.padding = "0";
-      evs.forEach(ev => {
-        const li = document.createElement("li"); li.style.marginBottom = "1rem";
-        const wrap = document.createElement("div"); wrap.style.display = "flex"; wrap.style.alignItems = "center"; wrap.style.gap = "8px";
-        const t = document.createElement("strong"); t.textContent = `${fmt(ev.startDateUtc)}–${fmt(ev.endDateUtc)}`; wrap.appendChild(t);
 
-        // sanitize artwork URL used in schedule list
-        const rawArt = ev.metadata?.artwork?.default || ev.metadata?.artwork?.original;
-        const artUrl = trustedArt(rawArt);
-        if (artUrl) {
-          const img = document.createElement("img"); img.src = artUrl; img.alt = `${ev.title} artwork`;
-          img.style.cssText = "width:30px;height:30px;object-fit:cover;border-radius:3px;"; wrap.appendChild(img);
-        }
-        const span = document.createElement("span"); span.textContent = ev.title; wrap.appendChild(span);
-        li.appendChild(wrap); ul.appendChild(li);
+    Object.entries(byDay).forEach(([day, evs]) => {
+      const h3 = document.createElement("h3");
+      h3.textContent = day;
+      container.appendChild(h3);
+
+      const ul = document.createElement("ul");
+      ul.style.listStyle = "none";
+      ul.style.padding = "0";
+
+      evs.forEach(ev => {
+        const li = document.createElement("li");
+        li.style.marginBottom = "1rem";
+
+        const wrap = document.createElement("div");
+        wrap.style.display = "flex";
+        wrap.style.alignItems = "center";
+        wrap.style.gap = "8px";
+
+        const t = document.createElement("strong");
+        t.textContent = `${fmt(ev.startDateUtc)}–${fmt(ev.endDateUtc)}`;
+        wrap.appendChild(t);
+
+        // ⛔️ No image/icon in schedule rows anymore
+        const span = document.createElement("span");
+        span.textContent = ev.title || "Untitled show";
+        wrap.appendChild(span);
+
+        li.appendChild(wrap);
+        ul.appendChild(li);
       });
+
       container.appendChild(ul);
     });
   } catch (e) {
     console.error("Schedule error:", e);
-    document.getElementById("schedule-container").innerHTML = "<p>Error loading schedule.</p>";
+    container.innerHTML = "<p>Error loading schedule.</p>";
   }
 }
 

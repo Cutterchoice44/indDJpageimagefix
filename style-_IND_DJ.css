@@ -62,9 +62,55 @@ html, body {
   background: url('/images/Untitled%20design(5).gif') no-repeat center center;
   background-size: cover;
   animation: slideLeftToRight var(--gif-speed) linear infinite;
+}/* ─── HEADER WITH ANIMATED VIDEOS (replaces GIF backgrounds) ───────────── */
+.header-banner {
+  position: relative;
+  height: var(--gif-height);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  overflow: hidden;
 }
 
-/* ─── ANIMATIONS ───────────────────────────────────────────────────────────── */
+/* Limit a subtle dark overlay to the banner only */
+.header-banner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0,0,0,0.4);
+  z-index: 0;
+}
+
+/* The two moving video elements */
+.header-gif-right,
+.header-gif-left {
+  position: absolute;
+  top: 0;
+  height: var(--gif-height);
+  width: var(--gif-width);
+  opacity: var(--gif-opacity);
+  z-index: 0;
+  object-fit: cover;
+  pointer-events: none;
+  /* keep the same motion as before */
+  animation-duration: var(--gif-speed);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+/* RIGHT element moves right-to-left */
+.header-gif-right {
+  left: 50%;
+  animation-name: slideRightToLeft;
+}
+
+/* LEFT element moves left-to-right */
+.header-gif-left {
+  right: 50%;
+  animation-name: slideLeftToRight;
+}
+
+/* Motion keyframes (unchanged) */
 @keyframes slideRightToLeft {
   0%   { transform: translateX(100vw); }
   100% { transform: translateX(-100vw); }
@@ -72,6 +118,13 @@ html, body {
 @keyframes slideLeftToRight {
   0%   { transform: translateX(-100vw); }
   100% { transform: translateX(100vw); }
+}
+
+/* Keep logos/titles above the moving videos */
+header .logo-container,
+header .title {
+  position: relative;
+  z-index: 1;
 }
 
 /* ✅ limit the dark overlay to the animated banner only */

@@ -147,14 +147,43 @@ header .title .tagline {
   gap:clamp(.25rem,2vw,1.5rem) !important;
   flex:1 1 auto !important;
 }
-#main-nav a.nav-link{
+
+/* Make summary.nav-link look like the other links */
+#main-nav a.nav-link,
+#main-nav summary.nav-link{
   color:#fff !important;
   font-family:'Bebas Neue',sans-serif !important;
   font-size:2rem !important;
   text-transform:uppercase !important;
   text-decoration:none !important;
   white-space:nowrap !important;
+  list-style:none !important;
+  display:inline-flex;
+  align-items:center;
+  cursor:pointer;
 }
+
+/* ABOUT dropdown that now lives inside the nav */
+.nav-details{ position:relative; }
+.nav-details .about-panel{
+  position:absolute;
+  top:calc(100% + 8px);
+  right:0;
+  width:min(520px,86vw);
+  background:#000;
+  color:#fff;
+  border:2px solid var(--brand-teal);
+  border-radius:8px;
+  padding:.75rem .9rem;
+  line-height:1.35;
+  box-shadow:0 8px 18px rgba(0,0,0,.45);
+  display:none;
+  z-index:1100;
+}
+.nav-details[open] .about-panel{ display:block; }
+.nav-details > summary::-webkit-details-marker{ display:none; }
+.nav-details > summary:focus{ outline:2px solid #fff; outline-offset:2px; }
+
 #main-nav .nav-actions{
   display:flex !important;
   align-items:center !important;
@@ -193,6 +222,17 @@ google-cast-button {
   margin-left: 0.5rem;
   vertical-align: middle;
   display: inline-block;
+}
+
+/* Fallback cast button (hidden by default; JS shows it when no devices) */
+#manualCastBtn {
+  display: none;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.8rem;
+  cursor: pointer;
+  margin-left: .25rem;
 }
 
 /* ─── GRID LAYOUT ─────────────────────────────────────────────────── */
@@ -424,6 +464,44 @@ section h2::after {
   header .title h1 { font-size: 1.8rem; line-height: 1.2; }
   header .title .tagline { font-size: 1rem; }
 
+  /* Two stacked nav rows on phones */
+  nav#main-nav {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: .35rem .55rem !important;
+  }
+  /* Row 1: text links spread across */
+  nav#main-nav .nav-menu {
+    order: 1 !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    gap: .35rem !important;
+    min-width: 0 !important;
+  }
+  nav#main-nav a.nav-link,
+  nav#main-nav summary.nav-link {
+    font-size: 1rem !important;
+    letter-spacing: .5px !important;
+    white-space: nowrap !important;
+  }
+  /* Row 2: social icons centered under links */
+  nav#main-nav .nav-actions {
+    order: 2 !important;
+    position: static !important;
+    width: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+    gap: .9rem !important;
+    padding: .35rem 0 .25rem !important;
+    margin-top: .15rem !important;
+    border-top: 1px solid rgba(0,0,0,.25) !important;
+  }
+  nav#main-nav .social-icon i { font-size: 1.4rem !important; }
+  /* Hide large image badges on phones so nothing collides */
+  nav#main-nav .icon-img,
+  nav#main-nav .nav-onemusic { display: none !important; }
+
   /* Single-column flow */
   .grid-container {
     display: flex;
@@ -445,7 +523,7 @@ section h2::after {
   /* Schedule stays scrollable */
   .schedule { overflow-y: auto; }
 
-  /* NEW: Show ~2 days of lineup, scroll for more */
+  /* Show ~2 days of lineup, scroll for more */
   #schedule-container{
     max-height:55vh;
     overflow-y:auto;
@@ -460,22 +538,17 @@ section h2::after {
     top:0;
     z-index:2;
   }
-/* MOBILE: shrink the bottom banner (footer) */
-@media (max-width: 768px) {
-  /* overall footer block */
+
+  /* MOBILE footer shrink */
   .banner{
-    padding: .35rem .55rem !important;   /* ↓ space around the banner */
+    padding: .35rem .55rem !important;
     gap: .25rem !important;
   }
-
-  /* the inner <div> you styled inline in HTML */
   footer.banner > div{
-    padding: .35rem .55rem !important;   /* overrides inline padding */
+    padding: .35rem .55rem !important;
   }
-
-  /* text sizes inside the banner */
   .banner a{
-    font-size: 1rem !important;          /* was 1.4rem (and 2rem inline) */
+    font-size: 1rem !important;
     padding: .3rem .5rem !important;
   }
   .banner span,
@@ -483,7 +556,7 @@ section h2::after {
     font-size: .72rem !important;
     line-height: 1.15 !important;
   }
-}
+
   /* Hide any leftover desktop‐only buttons */
   #popOutBtn,
   header .logo-container:last-of-type { display: none; }
@@ -555,8 +628,9 @@ section h2::after {
 
 /* ─── MIXCLOUD DELETE LINK STYLES ─────────────────────────────────────────── */
 .mixcloud-item { position: relative; }
+/* hide for everyone by default */
 .remove-link {
-  display: block;
+  display: none !important;
   text-align: right;
   font-size: 0.9rem;
   color: var(--brand-teal);
@@ -564,10 +638,8 @@ section h2::after {
   margin-top: 0.3rem;
   cursor: pointer;
 }
-.remove-link:hover {
-  color: #5A8785;
-  text-decoration: #5A8785;
-}
+/* only show when in admin mode */
+.admin-mode .remove-link { display: inline-block !important; }
 
 /* ─── MOBILE ONLY: hide in-chat pop-out, show player pop-out ───────── */
 @media (max-width: 768px) {
@@ -583,21 +655,6 @@ section h2::after {
   section.chat .chat-actions { display: block !important; }
   #chatPopupBtn { display: none !important; }
 }
-
-/* ─── MIXCLOUD DELETE LINK STYLES (admin mode toggle) ─────────────── */
-.mixcloud-item { position: relative; }
-/* hide for everyone by default */
-.remove-link {
-  display: none !important;
-  text-align: right;
-  font-size: 0.9rem;
-  color: var(--brand-teal);
-  text-decoration: underline;
-  margin-top: 0.3rem;
-  cursor: pointer;
-}
-/* only show when in admin mode */
-.admin-mode .remove-link { display: inline-block !important; }
 
 /* ─── MOBILE-ONLY LOGO SIZING ──────────────────────────────────── */
 @media only screen and (max-width: 768px) {
@@ -626,54 +683,5 @@ section h2::after {
 }
 
 /* ─────────────────────────────────────────────────────────────── */
-/* ✅ FINAL MOBILE OVERRIDES: 2-row nav + smaller "This Week’s Shows" */
+/* ✅ FINAL MOBILE OVERRIDES already merged into the 768px block */
 /* ─────────────────────────────────────────────────────────────── */
-@media (max-width: 768px) {
-  /* Two stacked nav rows on phones */
-  nav#main-nav {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: stretch !important;
-    padding: .35rem .55rem !important;
-  }
-
-  /* Row 1: text links spread across */
-  nav#main-nav .nav-menu {
-    order: 1 !important;
-    display: flex !important;
-    justify-content: space-between !important;
-    gap: .35rem !important;
-    min-width: 0 !important;
-  }
-  nav#main-nav a.nav-link {
-    font-size: 1rem !important;
-    letter-spacing: .5px !important;
-    white-space: nowrap !important;
-  }
-
-  /* Row 2: social icons centered under links */
-  nav#main-nav .nav-actions {
-    order: 2 !important;
-    position: static !important;
-    width: 100% !important;
-    display: flex !important;
-    justify-content: center !important;
-    gap: .9rem !important;
-    padding: .35rem 0 .25rem !important;
-    margin-top: .15rem !important;
-    border-top: 1px solid rgba(0,0,0,.25) !important;
-  }
-  nav#main-nav .social-icon i { font-size: 1.4rem !important; }
-
-  /* Hide large image badges on phones so nothing collides */
-  nav#main-nav .icon-img,
-  nav#main-nav .nav-onemusic { display: none !important; }
-
-  /* “This Week’s Shows” artwork ~30% smaller on phones */
-  #now-art {
-    width: 70% !important;
-    max-width: 315px !important; /* 70% of 450px cap */
-    margin-left: auto !important;
-    margin-right: auto !important;
-  }
-}

@@ -1,11 +1,14 @@
 // 1) GLOBAL CONFIG & MOBILE DETECTION
-const API_KEY           = "pk_0b8abc6f834b444f949f727e88a728e0";              // ← Replace with your actual Radiocult API key
+const API_KEY           = "pk_0b8abc6f834b444f949f727e88a728e0"; // ← your Radiocult API key
 const STATION_ID        = "cutters-choice-radio";
 const BASE_URL          = "https://api.radiocult.fm/api";
-const FALLBACK_ART      = "/images/archives-logox.jpeg";
+const FALLBACK_ART      = "/images/archives-logo.jpeg";
 const MIXCLOUD_PASSWORD = "cutters44";
-const STREAM_URL        = "https://cutters-choice-radio.radiocult.fm/stream";  // HLS stream URL
+const STREAM_URL        = "https://cutters-choice-radio.radiocult.fm/stream"; // HLS stream URL
 const isMobile          = /Mobi|Android/i.test(navigator.userAgent);
+
+// If your HTML uses a different container id for the preview, change this:
+const NEXT_PREVIEW_EL_ID = "This Week’s Shows";
 
 let chatPopupWindow;
 let visitorId;
@@ -16,6 +19,7 @@ if (window.location.hash === "#admin") {
 }
 
 // 2) BAN LOGIC (FingerprintJS v3+)
+// (Kept; you only asked to remove ghost-login cleanup, not the ban tools)
 function blockChat() {
   document.getElementById("popOutBtn")?.remove();
   document.getElementById("chatModal")?.remove();
@@ -61,7 +65,7 @@ window.sendBan = sendBan;
 window.__onGCastApiAvailable = isAvailable => {
   if (isAvailable) {
     cast.framework.CastContext.getInstance().setOptions({
-      receiverApplicationId: '77E0F81B',                // ← Your Cast App ID
+      receiverApplicationId: "77E0F81B", // ← Your Cast App ID
       autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
     });
   }
@@ -99,21 +103,29 @@ function trustedArt(url) {
   }
 }
 
-function shuffleIframesDaily() {
+function shuffleInPlace(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function shuffleIframesHourly() {
   const container = document.getElementById("mixcloud-list");
   if (!container) return;
   const HOUR = 3600000;
   const last = +localStorage.getItem("lastShuffleTime");
   if (last && Date.now() - last < HOUR) return;
 
-  const iframes = Array.from(container.querySelectorAll("iframe"));
-  for (let i = iframes.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    container.appendChild(iframes[j]);
-    iframes.splice(j, 1);
-  }
+  const nodes = Array.from(container.children);
+  shuffleInPlace(nodes).forEach(n => container.appendChild(n));
+
   localStorage.setItem("lastShuffleTime", Date.now());
 }
+
+// Normalise names for matching (artist directory ↔ schedule)
+const normName = s => String(s || "").trim().toLowerCase().replace(/\s+/g, " ");
 
 // 5) MIXCLOUD ARCHIVES
 async function loadArchives() {
@@ -149,7 +161,8 @@ async function loadArchives() {
       }
       container.prepend(item);
     });
-    shuffleIframesDaily();
+
+    shuffleIframesHourly();
   } catch (err) {
     console.error("Archive load error:", err);
   }
@@ -196,17 +209,21 @@ async function deleteMixcloud(index) {
 async function fetchLiveNow() {
   try {
     const { result } = await rcFetch(`/station/${STATION_ID}/schedule/live`);
-    const { metadata: md = {}, content: ct = {} } = result;
+    const { metadata: md = {}, content: ct = {} } = result || {};
     document.getElementById("now-dj").textContent =
-      md.artist ? `${md.artist} – ${md.title}` : ct.title || "No live show";
+      md.artist ? `${md.artist} – ${md.title || ct.title || ""}`.trim() :
+      ct.title || "No live show";
 
     // sanitize artwork URL
-    const art = trustedArt(md.artwork_url);
-    document.getElementById("now-art").src = art;
+    const art = trustedArt(md.artwork_url || ct.artwork_url);
+    const imgEl = document.getElementById("now-art");
+    if (imgEl) imgEl.src = art;
   } catch (e) {
     console.error("Live fetch error:", e);
-    document.getElementById("now-dj").textContent = "Error fetching live info";
-    document.getElementById("now-art").src = FALLBACK_ART;
+    const nd = document.getElementById("now-dj");
+    const na = document.getElementById("now-art");
+    if (nd) nd.textContent = "Error fetching live info";
+    if (na) na.src = FALLBACK_ART;
   }
 }
 
@@ -219,7 +236,7 @@ async function fetchWeeklySchedule() {
     const now  = new Date();
     const then = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-    const { schedules } = await rcFetch(
+    const { schedules = [] } = await rcFetch(
       `/station/${STATION_ID}/schedule?startDate=${now.toISOString()}&endDate=${then.toISOString()}`
     );
 
@@ -281,17 +298,156 @@ async function fetchWeeklySchedule() {
 async function fetchNowPlayingArchive() {
   try {
     const { result } = await rcFetch(`/station/${STATION_ID}/schedule/live`);
-    const { metadata: md = {}, content: ct = {} } = result;
+    const { metadata: md = {}, content: ct = {} } = result || {};
     let text = "Now Playing: ";
     if (md.title) text += md.artist ? `${md.artist} – ${md.title}` : md.title;
     else if (md.filename) text += md.filename;
     else if (ct.title) text += ct.title;
     else if (ct.name) text += ct.name;
     else text += "Unknown Show";
-    document.getElementById("now-archive").textContent = text;
+    const el = document.getElementById("now-archive");
+    if (el) el.textContent = text;
   } catch (e) {
     console.error("Archive-now error:", e);
-    document.getElementById("now-archive").textContent = "Unable to load archive show";
+    const el = document.getElementById("now-archive");
+    if (el) el.textContent = "Unable to load archive show";
+  }
+}
+
+/** 6b) NEXT WEEK'S SHOWS PREVIEW (randomized)
+ *  - Gathers all artists with a scheduled show in the next 8 days
+ *  - Attempts to use their profile artwork; falls back to event artwork; otherwise local fallback
+ *  - Randomizes the order before rendering
+ */
+async function fetchNextWeekPreview() {
+  const grid = document.getElementById(NEXT_PREVIEW_EL_ID);
+  if (!grid) return; // nothing to do if the container isn't present
+
+  grid.innerHTML = "<p>Loading next week’s shows…</p>";
+
+  // helper: tolerant artist extraction from a schedule event
+  const extractArtistFromEvent = ev => {
+    // Try common places an artist/host name might live
+    return (
+      ev.artist ||
+      ev.metadata?.artist ||
+      ev.content?.artist ||
+      ev.content?.host ||
+      ev.content?.hosts?.[0] ||
+      ev.content?.name ||
+      (typeof ev.title === "string" ? ev.title.split(" – ")[0] : "") ||
+      ""
+    );
+  };
+
+  // helper: tolerant artwork extraction from a schedule event
+  const extractArtFromEvent = ev => {
+    return (
+      ev.artwork_url ||
+      ev.metadata?.artwork_url ||
+      ev.content?.artwork_url ||
+      ev.content?.image_url ||
+      ev.content?.cover_url ||
+      null
+    );
+  };
+
+  // try to fetch an artist directory (if the endpoint exists)
+  async function fetchArtistDirectoryMap() {
+    try {
+      // Most common endpoint naming; if RC changes, we just fall back gracefully.
+      const { artists = [] } = await rcFetch(`/station/${STATION_ID}/artists`);
+      const map = new Map();
+      artists.forEach(a => {
+        const name = normName(a.name || a.title || a.artist || "");
+        const art =
+          a.artwork_url || a.image_url || a.avatar_url || a.cover_url || a.picture_url || null;
+        if (name) map.set(name, art);
+      });
+      return map;
+    } catch {
+      return new Map(); // silently fall back
+    }
+  }
+
+  try {
+    // 8 days forward window
+    const start = new Date();
+    const end   = new Date(start.getTime() + 8 * 24 * 60 * 60 * 1000);
+
+    const [{ schedules = [] }, artistMap] = await Promise.all([
+      rcFetch(
+        `/station/${STATION_ID}/schedule?startDate=${start.toISOString()}&endDate=${end.toISOString()}`
+      ),
+      fetchArtistDirectoryMap()
+    ]);
+
+    if (!schedules.length) {
+      grid.innerHTML = "<p>No shows scheduled in the next 8 days.</p>";
+      return;
+    }
+
+    // Unique artists with shows in window
+    const byArtist = new Map(); // name -> { name, artCandidate }
+    schedules.forEach(ev => {
+      const rawName = extractArtistFromEvent(ev);
+      const name = normName(rawName);
+      if (!name) return;
+      if (!byArtist.has(name)) {
+        // prefer artist directory artwork; else try event artwork; else fallback
+        const dirArt = artistMap.get(name);
+        const evArt  = extractArtFromEvent(ev);
+        byArtist.set(name, {
+          name: rawName || "Unknown Artist",
+          art: trustedArt(dirArt || evArt || FALLBACK_ART),
+        });
+      }
+    });
+
+    const cards = Array.from(byArtist.values());
+    if (!cards.length) {
+      grid.innerHTML = "<p>No artist profiles found for next 8 days.</p>";
+      return;
+    }
+
+    // Randomize
+    shuffleInPlace(cards);
+
+    // Render
+    const frag = document.createDocumentFragment();
+    cards.forEach(({ name, art }) => {
+      const item = document.createElement("div");
+      item.className = "next-week-item";
+      item.style.display = "inline-block";
+      item.style.margin = "6px";
+      item.style.width = "120px";
+      item.style.textAlign = "center";
+
+      const img = document.createElement("img");
+      img.src = trustedArt(art);
+      img.alt = name;
+      img.loading = "lazy";
+      img.decoding = "async";
+      img.style.width = "100%";
+      img.style.height = "120px";
+      img.style.objectFit = "cover";
+      img.style.borderRadius = "6px";
+
+      const cap = document.createElement("div");
+      cap.textContent = name;
+      cap.style.fontSize = "12px";
+      cap.style.marginTop = "6px";
+
+      item.appendChild(img);
+      item.appendChild(cap);
+      frag.appendChild(item);
+    });
+
+    grid.innerHTML = "";
+    grid.appendChild(frag);
+  } catch (err) {
+    console.error("Next-week preview error:", err);
+    grid.innerHTML = "<p>Error loading next week’s shows.</p>";
   }
 }
 
@@ -329,11 +485,12 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchLiveNow();
   fetchWeeklySchedule();
   fetchNowPlayingArchive();
+  fetchNextWeekPreview();
   loadArchives();
 
   // ---- Chromecast controls: show official OR fallback (accessibility-clean) ----
-  const officialBtn = document.querySelector('google-cast-button');
-  const manualBtn   = document.getElementById('manualCastBtn');
+  const officialBtn = document.querySelector("google-cast-button");
+  const manualBtn   = document.getElementById("manualCastBtn");
 
   if (officialBtn && manualBtn && window.cast?.framework) {
     const context = cast.framework.CastContext.getInstance();
@@ -341,8 +498,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Toggle visibility based on availability
     const updateCastVisibility = () => {
       const hasDevices = context.getCastState() !== cast.framework.CastState.NO_DEVICES_AVAILABLE;
-      officialBtn.style.display = hasDevices ? 'inline-block' : 'none';
-      manualBtn.style.display   = hasDevices ? 'none'         : 'inline-flex';
+      officialBtn.style.display = hasDevices ? "inline-block" : "none";
+      manualBtn.style.display   = hasDevices ? "none"         : "inline-flex";
     };
     updateCastVisibility();
     if (!window.__ccrCastStateBound) {
@@ -352,35 +509,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Manual fallback starts a session (only bind once)
     if (!manualBtn.dataset.ccrBound) {
-      manualBtn.dataset.ccrBound = '1';
-      manualBtn.addEventListener('click', () => {
-        context.requestSession().catch(err => console.error('Fallback session error', err));
+      manualBtn.dataset.ccrBound = "1";
+      manualBtn.addEventListener("click", () => {
+        context.requestSession().catch(err => console.error("Fallback session error", err));
       });
     }
 
     // Official button: when session exists, load our stream (only bind once)
     if (!officialBtn.dataset.ccrBound) {
-      officialBtn.dataset.ccrBound = '1';
-      officialBtn.addEventListener('click', async () => {
+      officialBtn.dataset.ccrBound = "1";
+      officialBtn.addEventListener("click", async () => {
         const session = context.getCurrentSession();
         if (!session) return; // the Cast UI will handle device picker
-        const mediaInfo = new chrome.cast.media.MediaInfo(STREAM_URL, 'application/x-mpegurl');
+        const mediaInfo = new chrome.cast.media.MediaInfo(STREAM_URL, "application/x-mpegurl");
         mediaInfo.streamType = chrome.cast.media.StreamType.LIVE;
         mediaInfo.metadata = new chrome.cast.media.MusicTrackMediaMetadata();
-        mediaInfo.metadata.title = document.getElementById('now-dj')?.textContent || 'Cutters Choice Radio';
-        mediaInfo.metadata.albumName = 'Cutters Choice Radio';
+        mediaInfo.metadata.title = document.getElementById("now-dj")?.textContent || "Cutters Choice Radio";
+        mediaInfo.metadata.albumName = "Cutters Choice Radio";
         const request = new chrome.cast.media.LoadRequest(mediaInfo);
-        try { await session.loadMedia(request); console.log('Casting started'); }
-        catch (err) { console.error('Chromecast error:', err); }
+        try { await session.loadMedia(request); console.log("Casting started"); }
+        catch (err) { console.error("Chromecast error:", err); }
       });
     }
   }
   // ------------------------------------------------------------------------------
 
-  // Cleanup & auto-refresh
+  // Mobile cleanup
   if (window.matchMedia("(max-width: 768px)").matches) {
     document.querySelectorAll("section.chat .chat-actions").forEach(el => el.remove());
   }
+
+  // Refreshers
   setInterval(fetchLiveNow, 30000);
   setInterval(fetchNowPlayingArchive, 30000);
 
@@ -409,15 +568,10 @@ document.addEventListener("DOMContentLoaded", () => {
     w.document.close();
   });
 
-  // Chat ghost cleanup
-  const ul = document.querySelector(".rc-user-list");
-  if (ul) {
-    new MutationObserver(() => {
-      ul.querySelectorAll("li").forEach(li => { if (!li.textContent.trim()) li.remove(); });
-    }).observe(ul, { childList: true });
-  }
+  // ⛔️ REMOVED: “ghost chat logins” MutationObserver cleanup you no longer need.
+  // (If you see it anywhere else, it’s safe to delete.)
 
-  // Ban check timing
+  // Ban check timing (kept)
   if ("requestIdleCallback" in window) requestIdleCallback(initBanCheck, { timeout: 2000 });
   else setTimeout(initBanCheck, 2000);
 });

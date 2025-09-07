@@ -1,645 +1,403 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cutters Choice Radio — DJ Selects</title>
+// 1) GLOBAL CONFIG & MOBILE DETECTION
+const API_KEY           = "pk_0b8abc6f834b444f949f727e88a728e0";              // ← Replace with your actual Radiocult API key
+const STATION_ID        = "cutters-choice-radio";
+const BASE_URL          = "https://api.radiocult.fm/api";
+const FALLBACK_ART      = "/images/archives-logo.jpeg";
+const MIXCLOUD_PASSWORD = "cutters44";
+const STREAM_URL        = "https://cutters-choice-radio.radiocult.fm/stream";  // HLS stream URL
+const isMobile          = /Mobi|Android/i.test(navigator.userAgent);
 
-  <!-- Canonical + SEO (non-invasive) -->
-  <link rel="canonical" href="https://cutterschoiceradio.com/dj-selects.html">
-  <meta name="description" content="Each week a different Cutters Choice Radio DJ selects five tracks. Browse the picks, read the bio, and preview YouTube/Bandcamp.">
-  <meta name="robots" content="index, follow">
-  <meta name="theme-color" content="#5A8785">
+let chatPopupWindow;
+let visitorId;
 
-  <!-- Social preview (Open Graph + Twitter) -->
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="DJ Selects — Cutters Choice Radio">
-  <meta property="og:description" content="Weekly DJ picks: five tracks selected by a Cutters Choice Radio selector.">
-  <meta property="og:url" content="https://cutterschoiceradio.com/dj-selects.html">
-  <meta property="og:site_name" content="Cutters Choice Radio">
-  <meta property="og:image" content="https://cutterschoiceradio.com/images/logo.png">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="DJ Selects — Cutters Choice Radio">
-  <meta name="twitter:description" content="Weekly DJ picks: five tracks selected by a Cutters Choice Radio selector.">
-  <meta name="twitter:image" content="https://cutterschoiceradio.com/images/logo.png">
+// ADMIN-MODE TOGGLE (URL hash #admin)
+if (window.location.hash === "#admin") {
+  document.body.classList.add("admin-mode");
+}
 
-  <!-- Performance hints (safe) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://api.radiocult.fm" crossorigin>
-  <link rel="preconnect" href="https://www.youtube-nocookie.com" crossorigin>
-  <link rel="preconnect" href="https://bandcamp.com" crossorigin>
+// 2) BAN LOGIC (FingerprintJS v3+)
+function blockChat() {
+  document.getElementById("popOutBtn")?.remove();
+  document.getElementById("chatModal")?.remove();
+  const cont = document.getElementById("radiocult-chat-container");
+  if (cont) cont.innerHTML = "<p>Chat disabled.</p>";
+}
 
-  <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+async function initBanCheck() {
+  if (!window.FingerprintJS) return;
+  try {
+    const fp = await FingerprintJS.load();
+    const { visitorId: id } = await fp.get();
+    visitorId = id;
 
-  <!-- Organization JSON-LD (static; no visual changes) -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "Cutters Choice Radio",
-    "url": "https://cutterschoiceradio.com",
-    "logo": "https://cutterschoiceradio.com/images/logo.png",
-    "sameAs": [
-      "https://www.instagram.com/cutterschoiceradio",
-      "https://www.facebook.com/cutterschoiceradio",
-      "https://www.mixcloud.com/cutterschoiceradio",
-      "https://tunein.com/radio/Cutters-Choice-Radio-s344746/"
-    ]
-  }
-  </script>
-
-  <style>
-    :root{
-      --brand-teal:#5A8785;
-
-      /* tuning knobs */
-      --hero-size:360px;   /* locked hero art (desktop) */
-      --preview-max:920px; /* cap preview width so it isn’t overly wide */
-    }
-
-    /* ── NAV: add ABOUT item in-bar (white, Bebas, even spacing) ───── */
-    /* Keep base nav styles from style.css; only extend where needed */
-    #main-nav .nav-menu{ justify-content: space-evenly !important; }
-    #main-nav summary.nav-link{
-      color:#fff !important;
-      font-family:'Bebas Neue',sans-serif !important;
-      font-size:2rem !important;
-      text-transform:uppercase !important;
-      text-decoration:none !important;
-      white-space:nowrap !important;
-      list-style:none !important;
-      cursor:pointer !important;
-      display:inline-flex; align-items:center;
-    }
-    .nav-details{ position:relative; }
-    .nav-details .about-panel{
-      position:absolute;
-      top:calc(100% + 8px);
-      right:0;
-      width:min(520px, 86vw);
-      background:#000; color:#fff;
-      border:2px solid var(--brand-teal);
-      border-radius:8px;
-      padding:.75rem .9rem;
-      line-height:1.35;
-      box-shadow:0 8px 18px rgba(0,0,0,.45);
-      display:none; z-index:1100;
-    }
-    .nav-details[open] .about-panel{ display:block; }
-    .nav-details > summary::-webkit-details-marker{ display:none; }
-    .nav-details > summary:focus{ outline:2px solid #fff; outline-offset:2px; }
-
-    /* Smaller nav on very small phones (kept from your file) */
-    @media (max-width:520px){
-      #main-nav .nav-menu{ gap:.25rem; flex-wrap:wrap; justify-content:space-between; }
-      #main-nav .nav-link,
-      #main-nav summary.nav-link{
-        font-size:clamp(.78rem,3.6vw,.95rem) !important;
-        padding:.35rem .28rem;
-        letter-spacing:.5px;
-      }
-      .nav-details .about-panel{ width:calc(100vw - 16px); right:-8px; }
-    }
-
-    /* ── HERO (desktop) ─────────────────────────────────────────────── */
-    .djselects-hero{
-      padding:.45rem .6rem .25rem;
-      border:2px solid var(--brand-teal); border-left:0;border-right:0;
-      margin-bottom:.35rem;
-      display:grid;
-      grid-template-columns:1.2fr auto 1.2fr;
-      gap:.55rem; align-items:center; row-gap:.35rem;
-    }
-
-    .strap{ font-family:'Bebas Neue',sans-serif; }
-    .djselects-hero .strap{
-      font-size:clamp(1.235rem,2.21vw,1.495rem) !important;
-      line-height:1.05;
-    }
-    .djselects-hero .weekline{
-      font-family:'Bebas Neue',sans-serif;
-      font-size:clamp(4.3rem,6.2vw,4.0rem) !important;
-      line-height:1; margin-top:.15rem; letter-spacing:.2px;
-    }
-
-    /* Big teal name on its own line */
-    .selector-name{
-      font-family:'Bebas Neue',sans-serif;
-      color:var(--brand-teal);
-      font-size:clamp(3.2rem,8.2vw,5.6rem);
-      line-height:.95;
-      margin-top:.08rem;
-      letter-spacing:.2px;
-    }
-
-    /* Keep original span for compatibility but hide it visually */
-    #djNameText{ display:none; }
-
-    .hero-art{ display:flex; align-items:center; justify-content:center; }
-    .hero-art img{
-      width:var(--hero-size);
-      height:var(--hero-size);
-      object-fit:cover;
-      border:2px solid var(--brand-teal); border-radius:6px; background:#000;
-    }
-
-    /* Bricks behind the tracks + preview row only */
-    main.compact-grid{
-      background-image:url('/images/bricks2.png');
-      background-repeat:repeat;
-      background-size:3000px auto;
-      background-position:center top;
-    }
-
-    /* Subtle frame around the big player */
-    #mainPreview{
-      padding:16px;
-      background:rgba(0,0,0,.35);
-      box-shadow:inset 0 0 0 2px rgba(90,135,133,.45);
-      border-radius:8px;
-    }
-
-    .hero-right{
-      background:#0b0b0b; border:2px solid var(--brand-teal); border-radius:6px;
-      padding:.6rem .75rem;
-    }
-
-    .hero-bio{ font-size:clamp(1rem,1.8vw,1.3rem); line-height:1.38; }
-    .hero-bio p{ margin:.25rem 0 .45rem; }
-    .hero-bio.bio-tight1{ font-size:1.65em; line-height:1.32; }
-    .hero-bio.bio-tight1 p{ margin:.18rem 0 .36rem; }
-    .hero-bio.bio-tight2{ font-size:0.90em; line-height:1.28; }
-    .hero-bio.bio-tight2 p{ margin:.14rem 0 .28rem; }
-    .hero-bio.bio-tight3{ font-size:0.84em; line-height:1.22; letter-spacing:.1px; }
-    .hero-bio.bio-tight3 p{ margin:.12rem 0 .22rem; }
-
-    .profile-topline{ display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; margin-bottom:.2rem; }
-    .profile-link{
-      display:inline-block; font-size:.88rem; border:1px solid #335d5b; padding:.16rem .4rem;
-      border-radius:4px; background:#0b0b0b; color:#dff; text-decoration:none;
-    }
-
-    .socials{ display:flex; align-items:center; gap:.45rem; flex-wrap:wrap; margin-top:.15rem; }
-    .socials a{
-      display:inline-flex; align-items:center; justify-content:center;
-      width:32px; height:32px; border-radius:999px;
-      border:1px solid #335d5b; background:#0f0f0f; color:#e9ffff; text-decoration:none;
-    }
-    .socials a:hover{ box-shadow:inset 0 0 0 2px var(--brand-teal); }
-
-    /* ── NEXT BAR ───────────────────────────────────────────────────── */
-    .nextbar{ margin:.25rem .6rem .55rem; }
-    .nextbar-inner{
-      display:flex; align-items:center; gap:.8rem;
-      background:#0b0b0b; border:2px solid var(--brand-teal);
-      padding:.45rem .6rem; border-radius:6px;
-    }
-    .nextbar .label{ font-family:'Bebas Neue',sans-serif; font-size:clamp(1rem,2vw,1.35rem); }
-    .nextbar .when { font-family:'Bebas Neue',sans-serif; font-size:clamp(1.05rem,2.2vw,1.45rem); color:var(--brand-teal); }
-
-    /* ── TRACKS + PREVIEW ───────────────────────────────────────────── */
-    .compact-grid{ display:grid; grid-template-columns:240px minmax(0,1fr); gap:.6rem; padding:0 .6rem 1rem; }
-    .strip-list{ display:grid; grid-template-rows:repeat(5,1fr); gap:.35rem; }
-    .strip{ border:1px solid #264745; background:#0a0a0a; border-radius:6px; overflow:hidden; position:relative; }
-    .strip.selected{ outline:2px solid var(--brand-teal); }
-    .strip iframe{ width:100%; height:100%; border:0; display:block; position:relative; z-index:1; }
-    .strip .overlayBtn{ position:absolute; inset:0; appearance:none; background:transparent; border:0; cursor:pointer; z-index:3; }
-
-    .preview{
-      display:flex; align-items:center; justify-content:center;
-      max-width:var(--preview-max);
-      margin:0 auto;
-      width:100%;
-    }
-    .preview iframe{
-      width:100%;
-      aspect-ratio:16/9;
-      height:auto;
-      max-height:56vh;
-      border:0;
-      display:block;
-    }
-    .big-placeholder{
-      font-family:'Bebas Neue',sans-serif; color:#6fa39f; font-size:clamp(1rem,1.8vw,1.25rem); padding:.6rem;
-      width:100%; max-width:var(--preview-max);
-    }
-
-    /* ── Bandcamp tile ──────────────────────────────────────────────── */
-    .strip.bandcamp{ min-height:76px; }
-    .strip .bc-tile{ position:relative; width:100%; background:#0f0f0f center/cover no-repeat; min-height:76px; }
-    .strip .bc-tile::before{ content:""; position:absolute; left:0; right:0; bottom:0; height:42%; background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.65) 100%); pointer-events:none; }
-    .strip .bc-badge{ font-family:'Bebas Neue',sans-serif; background:rgba(0,0,0,.65); border-top-right-radius:8px; padding:.3rem .5rem; margin:0; font-size:clamp(1rem,2vw,1.1rem); color:#d8fff8; letter-spacing:.5px; }
-    .strip .bc-title{ position:absolute; left:8px; right:44px; bottom:8px; font-family:'Bebas Neue',sans-serif; color:#fff; text-shadow:0 2px 4px rgba(0,0,0,.6); font-size:clamp(1rem,2vw,1.1rem); line-height:1.1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .strip .bc-play{ position:absolute; inset:auto 8px 8px auto; background:rgba(90,135,133,.95); color:#000; font-weight:700; border-radius:999px; width:28px; height:28px; display:flex; align-items:center; justify-content:center; }
-
-    /* ── Tablet+mobile ─────────────────────────────────────────────── */
-    @media (max-width:1200px){
-      :root{ --hero-size:300px; --preview-max:860px; }
-    }
-    @media (max-width:1050px){
-      .djselects-hero{ grid-template-columns: 1fr auto 1fr; }
-      :root{ --hero-size:260px; --preview-max:820px; }
-    }
-    @media (max-width:900px){
-      .djselects-hero{ grid-template-columns: 1fr; }
-      .hero-right{ order:3 }
-      .hero-art  { order:2; justify-content:flex-start }
-      .compact-grid{ grid-template-columns: 1fr; }
-      .preview iframe{ max-height:66vh; min-height:220px; }
-      .strip iframe{ pointer-events:none; }
-      :root{ --hero-size:200px; --preview-max:92vw; }
-    }
-    @media (max-width:768px){
-      .strip-list{ grid-template-rows:repeat(5,76px); }
-      :root{ --hero-size:180px; }
-    }
-
-    /* ── Admin overlay (unchanged) ─────────────────────────────────── */
-    .adminHidden{ display:none!important; }
-    #adminOverlay{ position:fixed; inset:0; background:rgba(0,0,0,.82); color:#fff; z-index:9999; display:flex; align-items:center; justify-content:center; }
-    #adminPanel{ width:min(840px,92vw); max-height:90vh; overflow:auto; background:#0e1414; border:2px solid var(--brand-teal); border-radius:10px; padding:16px; box-shadow:0 12px 40px rgba(0,0,0,.55); }
-    #adminPanel h3{ font-family:'Bebas Neue',sans-serif; letter-spacing:.5px; margin:0 0 6px; }
-    #adminPanel p.hint b{ font-weight:700; }
-    #adminPanel textarea{ width:100%; height:200px; background:#050808; color:#eaffff; border:1px solid #2a5653; border-radius:6px; padding:8px; }
-    #adminPanel .row{ display:flex; gap:8px; margin-top:10px; align-items:center; }
-    #adminPanel button{ padding:10px 14px; border-radius:6px; border:1px solid #2a5653; background:#0b2322; color:#eaffff; cursor:pointer; }
-    #adminStatus{ opacity:.9; font-size:.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:52ch; }
-  </style>
-</head>
-<body>
-  <!-- Header -->
-  <header class="header-banner" role="banner">
-    <div class="header-gif-right" aria-hidden="true"></div><div class="header-gif-left" aria-hidden="true"></div>
-    <div class="logo-container"><img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="lazy" decoding="async"></div>
-    <div class="title"><h1>Cutters Choice Radio</h1><p class="tagline">The home of relentless flavas and significant bangers!</p></div>
-    <div class="logo-container"><img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="lazy" decoding="async"></div>
-    <!-- (About DJ Selects toggle moved into the nav) -->
-  </header>
-
-  <div style="height:2px;background-color:var(--brand-teal)"></div>
-
-  <!-- Nav -->
-  <nav id="main-nav" aria-label="Primary">
-    <div class="nav-menu">
-      <a href="index.html"        class="nav-link">HOME</a>
-      <a href="our-story.html"    class="nav-link">OUR STORY</a>
-      <a href="index-ourDJS.html" class="nav-link">OUR DJS</a>
-      <a href="schedule.html"     class="nav-link">SCHEDULE</a>
-      <a href="merch.html"        class="nav-link">MERCH</a>
-
-      <!-- NEW: ABOUT DJ SELECTS as the 6th nav item (white, Bebas) -->
-      <details class="nav-details" id="selects-overlay">
-        <summary class="nav-link" aria-label="About DJ Selects">ABOUT DJ SELECTS</summary>
-        <div class="about-panel" id="dj-selects-blurb">
-          <p>
-            Every week a different resident curates five essential tracks across the spectrum of underground electronic music.
-            Use the embeds to preview and follow the artists and labels featured.
-          </p>
-        </div>
-      </details>
-    </div>
-  </nav>
-
-  <div style="height:2px;background-color:var(--brand-teal)"></div>
-
-  <!-- HERO -->
-  <section class="djselects-hero">
-    <div class="hero-left">
-      <div class="strap">EACH WEEK IN A NON SPECIFIC ORDER A DIFFERENT CUTTERS DJ SELECTS THEIR 5 TRACKS OF THE WEEK</div>
-      <div class="weekline">THIS WEEKS CUTTERS DJ SELECTOR</div>
-      <div id="djNameBig" class="selector-name">—</div>
-      <!-- keep for compatibility with existing code paths -->
-      <span id="djNameText" aria-hidden="true">—</span>
-    </div>
-    <div class="hero-art"><img id="djProfileThumb" src="/images/default-dj.png" alt="DJ profile" /></div>
-    <div class="hero-right">
-      <div class="profile-topline"><a id="djProfileLink" class="profile-link" href="#" target="_blank" rel="noopener" style="display:none">View profile</a></div>
-      <div id="djBio" class="hero-bio"></div>
-      <div id="djSocials" class="socials"></div>
-    </div>
-  </section>
-
-  <!-- SELECTOR'S NEXT SHOW -->
-  <section class="nextbar">
-    <div class="nextbar-inner">
-      <span class="label">SELECTORS NEXT SCHEDULED SHOW</span>
-      <span class="when" id="nextShowWhen"></span>
-    </div>
-  </section>
-
-  <!-- TRACKS + PREVIEW -->
-  <main class="compact-grid" role="main">
-    <aside id="stripList" class="strip-list"></aside>
-    <section class="preview" id="mainPreview" aria-live="polite">
-      <div class="big-placeholder">Select a track</div>
-    </section>
-  </main>
-
-  <!-- Admin overlay (SHIFT + A) -->
-  <div id="adminOverlay" class="adminHidden" aria-hidden="true">
-    <div id="adminPanel">
-      <h3>DJ Selects — Admin</h3>
-      <p class="hint">Paste up to 5 URLs (YouTube or Bandcamp), one per line. Press <b>Save</b> to update.</p>
-      <textarea id="adminTracks"></textarea>
-      <div class="row">
-        <button id="adminSave">Save</button>
-        <button id="adminClose">Close</button>
-        <div id="adminStatus"></div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    /* Page config */
-    window.DJ_SELECTS = {
-      CONFIG_ENDPOINT: 'dj-selects-config.php', // server JSON gateway
-      PROXY_ENDPOINT:  'rc-proxy.php',
-      // passphrase = ccr2025!
-      ADMIN_HASH_HEX: '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e'
-    };
-  </script>
-
-  <script>
-  (() => {
-    const BASE_URL   = 'https://api.radiocult.fm/api';
-    const STATION_ID = 'cutters-choice-radio';
-    const API_KEY    = 'pk_0b8abc6f834b444f949f727e88a728e0';
-
-    const CFG = window.DJ_SELECTS || {};
-    const $  = (s, r=document) => r.querySelector(s);
-    const $$ = (s, r=document) => [...r.querySelectorAll(s)];
-
-    const djNameText=$('#djNameText'),
-          djNameBig=$('#djNameBig'),
-          djProfile=$('#djProfileThumb'),
-          djBioBox=$('#djBio'),
-          nextWhen=$('#nextShowWhen'),
-          profileLink=$('#djProfileLink'),
-          socialsBox=$('#djSocials'),
-          stripList=$('#stripList'),
-          mainPreview=$('#mainPreview');
-    const adminOverlay=$('#adminOverlay'),
-          adminTextarea=$('#adminTracks'),
-          adminSaveBtn=$('#adminSave'),
-          adminCloseBtn=$('#adminClose'),
-          adminStatus=$('#adminStatus');
-
-    const state = { selector:{ kind:'artist', id:'', slug:'selector', name:'', image:'', description:'', shareUrl:'', socials:{} }, tracks:[], authed:false };
-
-    /* ── utils ─────────────────────────────────────────────────────── */
-    const headers = { 'x-api-key': API_KEY };
-    const fetchJSON = async (url, opt={}) => { const r=await fetch(url,{cache:'no-store',...opt,headers:{...(opt.headers||{}),...headers}}); if(!r.ok) throw new Error(String(r.status)); return r.json(); };
-    const nz = iso => { try{ const d=new Date(iso); return d.toLocaleString('en-NZ',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Pacific/Auckland',timeZoneName:'short'});}catch{return '';} };
-    const tags = t => Array.isArray(t) ? t.map(x=>String(x).toLowerCase()) : (typeof t==='string' ? t.split(',').map(s=>s.trim().toLowerCase()) : []);
-
-    function extractTextDeep(v){
-      if(!v) return '';
-      if(typeof v==='string') return v;
-      if(Array.isArray(v)) return v.map(extractTextDeep).filter(Boolean).join('\n\n');
-      if(typeof v==='object'){
-        if(v.html) return v.html;
-        if(typeof v.text==='string') return v.text;
-        if(v.plain_text) return String(v.plain_text);
-        if(v.content) return extractTextDeep(v.content);
-        if(v.description) return extractTextDeep(v.description);
-        let out=[]; for(const k in v){ const sub=extractTextDeep(v[k]); if(sub) out.push(sub);} return out.join('\n');
-      }
-      return String(v);
-    }
-    const escapeHtml = s => s.replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-    function formatBioHTML(raw){
-      if(!raw) return '';
-      if (/<[a-z][\s\S]*>/i.test(raw)) {
-        const div=document.createElement('div'); div.innerHTML=raw; div.querySelectorAll('script,style').forEach(n=>n.remove());
-        div.innerHTML = div.innerHTML.replace(/\bparagraph\b/gi,'');
-        return div.innerHTML;
-      } else {
-        const text = raw.replace(/\bparagraph\b/gi,'').replace(/\r?\n\s*\r?\n/g,'\n').trim();
-        return text.split(/\r?\n/).filter(Boolean).map(t=>`<p>${escapeHtml(t.trim())}</p>`).join('');
-      }
-    }
-    function pickDescription(a){
-      const c = a?.description ?? a?.bio ?? a?.about ?? a?.profile ?? a?.details?.description ?? '';
-      return extractTextDeep(c);
-    }
-    function extractSocials(obj){
-      const buckets=[obj?.socials,obj?.social,obj?.links,obj?.contact,obj?.contacts,obj].filter(Boolean);
-      const out={}, set=(k,v)=>{ if(v && !out[k]) out[k]=String(v).trim(); };
-      for(const b of buckets){ set('website',b.website||b.url); set('facebook',b.facebook||b.fb); set('instagram',b.instagram||b.ig);
-        set('twitter',b.twitter||b.x); set('mixcloud',b.mixcloud); set('soundcloud',b.soundcloud||b.sc); set('email',b.email); }
-      const norm=s=>s?.startsWith('@')?s.slice(1):s;
-      if(out.twitter&&!/^https?:/i.test(out.twitter)) out.twitter=`https://twitter.com/${norm(out.twitter)}`;
-      if(out.instagram&&!/^https?:/i.test(out.instagram)) out.instagram=`https://instagram.com/${norm(out.instagram)}`;
-      if(out.facebook&&!/^https?:/i.test(out.facebook)) out.facebook=`https://facebook.com/${norm(out.facebook)}`;
-      if(out.mixcloud&&!/^https?:/i.test(out.mixcloud)) out.mixcloud=`https://www.mixcloud.com/${norm(out.mixcloud)}/`;
-      if(out.soundcloud&&!/^https?:/i.test(out.soundcloud)) out.soundcloud=`https://soundcloud.com/${norm(out.soundcloud)}`;
-      if(out.email&&!/^mailto:/i.test(out.email)) out.email=`mailto:${out.email}`;
-      return out;
-    }
-
-    /* ── SELECTOR + detail ─────────────────────────────────────────── */
-    async function loadSelector(){
-      const findBy = (arr) =>
-        arr.find(x=>tags(x.tags).includes('selector')) ||
-        arr.find(x=>(x.slug||'').toLowerCase()==='selector') ||
-        arr.find(x=>(x.name||'').toLowerCase()==='selector');
-
-      let a=null, kind='artist';
-      try{ const j=await fetchJSON(`${BASE_URL}/station/${STATION_ID}/artists`); a=findBy(j?.artists||j?.data||j||[]);}catch{}
-      if(!a){ try{ const j=await fetchJSON(`${BASE_URL}/station/${STATION_ID}/presenters`); a=findBy(j?.presenters||j?.data||j||[]); if(a) kind='presenter';}catch{} }
-      if(!a){ djNameText.textContent='—'; if(djNameBig) djNameBig.textContent='—'; djBioBox.innerHTML='<p>No artist/presenter tagged “SELECTOR”.</p>'; return; }
-
-      const kindPath = (kind==='presenter'?'presenters':'artists');
-      let detail=null;
-      try{ detail=await fetchJSON(`${BASE_URL}/station/${STATION_ID}/${kindPath}/${a.id}`);}catch{}
-      if(!detail){ try{ detail=await fetchJSON(`${BASE_URL}/station/${STATION_ID}/${kindPath}/${a.slug||'selector'}`);}catch{} }
-
-      const merged={...a,...(detail||{})};
-      state.selector={
-        kind,id:merged.id||a.id||'',slug:(merged.slug||a.slug||'selector'),name:(merged.name||a.name||''),
-        image:merged.logo?.['512x512']||merged.logo?.default||merged.image||a.image||'',
-        description:pickDescription(merged)||pickDescription(a),
-        shareUrl:merged.shareUrl||merged.url||a.shareUrl||a.url||'',
-        socials:extractSocials(merged)
-      };
-
-      djNameText.textContent=state.selector.name||'';
-      if(djNameBig) djNameBig.textContent=state.selector.name||'';
-      if(state.selector.image) djProfile.src=state.selector.image;
-      djBioBox.innerHTML = formatBioHTML(state.selector.description||'');
-
-      /* Auto-condense bio based on paragraph count */
-      (function applyBioDensity(){
-        const n = djBioBox.querySelectorAll('p').length;
-        djBioBox.classList.remove('bio-tight1','bio-tight2','bio-tight3');
-        if (n >= 9)      djBioBox.classList.add('bio-tight3');
-        else if (n >= 6) djBioBox.classList.add('bio-tight2');
-        else if (n >= 4) djBioBox.classList.add('bio-tight1');
-      })();
-
-      if(state.selector.shareUrl){ profileLink.href=state.selector.shareUrl; profileLink.style.display='inline-block'; }
-
-      socialsBox.innerHTML='';
-      const S=state.selector.socials||{}; const add=(href,title,icon)=>{ if(!href) return; const a=document.createElement('a'); a.href=href;a.target='_blank';a.rel='noopener';a.title=title;a.innerHTML=`<i class="${icon}"></i>`;socialsBox.appendChild(a); };
-      add(S.twitter,'X / Twitter','fa-brands fa-x-twitter'); add(S.instagram,'Instagram','fa-brands fa-instagram');
-      add(S.facebook,'Facebook','fa-brands fa-facebook-f'); add(S.mixcloud,'Mixcloud','fa-brands fa-mixcloud');
-      add(S.soundcloud,'SoundCloud','fa-brands fa-soundcloud'); add(S.website,'Website','fa-solid fa-globe'); add(S.email,'Email','fa-solid fa-envelope');
-    }
-
-    /* ── Next scheduled show ───────────────────────────────────────── */
-    async function loadNextShow(){
-      if(!state.selector.id){ nextWhen.textContent='TBA'; return; }
-      const kindPath=(state.selector.kind==='presenter'?'presenters':'artists');
-      const now=new Date().toISOString(), end=new Date(Date.now()+365*24*60*60*1000).toISOString();
-      try{
-        const j=await fetchJSON(`${BASE_URL}/station/${STATION_ID}/${kindPath}/${state.selector.id}/schedule?startDate=${encodeURIComponent(now)}&endDate=${encodeURIComponent(end)}`);
-        const list=j?.schedules||j?.data||j?.items||[];
-        if(!Array.isArray(list)||!list.length){ nextWhen.textContent='TBA'; return; }
-        const iso=s=>s.startDateUtc||s.startDate||s.start||s.scheduledStart||s.start_time||s.start_at;
-        const future=list.map(s=>({s,t:new Date(iso(s)||0)})).filter(x=>x.t>new Date()).sort((a,b)=>a.t-b.t)[0];
-        nextWhen.textContent=future?nz(iso(future.s)):nz(iso(list[0]));
-      }catch{ nextWhen.textContent='Unable to load schedule'; }
-    }
-
-    /* ── Load track config (server → file → localStorage) ──────────── */
-    async function loadConfig(){
-      let ok=false;
-      try{
-        const r=await fetch(`${CFG.CONFIG_ENDPOINT}?action=load`,{cache:'no-store'});
-        if(r.ok){
-          const j=await r.json();
-          if(Array.isArray(j?.tracks)){ state.tracks=j.tracks.slice(0,5); ok=true; }
-        }
-      }catch{}
-      if(!ok){
-        try{
-          const r=await fetch('dj-selects-data.json',{cache:'no-store'});
-          if(r.ok){
-            const j=await r.json();
-            if(Array.isArray(j?.tracks)){ state.tracks=j.tracks.slice(0,5); ok=true; }
-          }
-        }catch{}
-      }
-      if(!ok){
-        try{
-          const s=localStorage.getItem('djselects_tracks');
-          if(s){
-            const a=JSON.parse(s);
-            if(Array.isArray(a)) state.tracks=a.slice(0,5);
-          }
-        }catch{}
-      }
-    } /* ← FIX: properly close loadConfig() */
-
-    /* ── Media render ──────────────────────────────────────────────── */
-    const parseTrack=(u)=>{ if(!u) return null; try{
-      const x=new URL(u.trim()); const host=x.hostname.toLowerCase();
-      if(host.endsWith('bandcamp.com')) return {kind:'bandcamp', url:u.trim()};
-      if(host.includes('youtu')){
-        let id='';
-        if(host==='youtu.be') id=x.pathname.slice(1);
-        else if(x.pathname.startsWith('/shorts/')) id=x.pathname.split('/')[2]||'';
-        else if(x.searchParams.get('v')) id=x.searchParams.get('v');
-        else if(/^\/embed\//.test(x.pathname)) id=x.pathname.split('/').pop();
-        id=(id||'').split('?')[0].split('&')[0]; if(!id) return null;
-        return {kind:'youtube', src:`https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`};
-      }
-      return {kind:'iframe', src:u.trim()};
-    }catch{return null;} };
-
-    const iframe=(src,title='Media player')=>`<iframe src="${src}" title="${title}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
-
-    const bcCache=new Map();
-    const bcOEmbed=async(url)=>{ if(bcCache.has(url)) return bcCache.get(url);
-      const r=await fetch(`${CFG.PROXY_ENDPOINT}?fn=bandcamp_oembed&url=${encodeURIComponent(url)}`); const text=await r.text(); let j={};
-      try{ j=JSON.parse(text);}catch{ throw new Error(text||'Proxy error'); }
-      const meta={ title:j?.title||'Bandcamp', thumb:j?.thumbnail_url||'', src:(()=>{const html=String(j?.html||''); const m=html.match(/src=["']([^"']+)["']/i); return m?m[1]:'';})() };
-      bcCache.set(url,meta); return meta; };
-
-    function setPreview(t, play=false){
-      if(t.kind==='bandcamp'){ setPreviewBC(t.url); }
-      else {
-        let src=t.src;
-        if (play && t.kind==='youtube') src += (src.includes('?') ? '&' : '?') + 'autoplay=1';
-        mainPreview.innerHTML=iframe(src, t.kind==='youtube'?'YouTube player':'Media player');
-      }
-    }
-    async function setPreviewBC(url){
-      try{ const m=await bcOEmbed(url); mainPreview.innerHTML=iframe(m.src,m.title||'Bandcamp player'); }
-      catch(err){
-        mainPreview.innerHTML=`<div class="big-placeholder">Couldn’t load Bandcamp. <a href="${url}" target="_blank" rel="noopener">Open on Bandcamp</a></div>`;
-        console.error('Bandcamp oEmbed error:',err);
-      }
-    }
-
-    function renderTracks(){
-      stripList.innerHTML='';
-      const items=state.tracks.map(parseTrack).filter(Boolean).slice(0,5);
-      items.forEach((t,idx)=>{
-        const el=document.createElement('div'); el.className='strip';
-        if(t.kind==='bandcamp'){
-          el.classList.add('bandcamp');
-          el.innerHTML=`<div class="bc-tile"><div class="bc-badge">BANDCAMP — CLICK TO LOAD</div><div class="bc-title"></div><div class="bc-play">▶</div></div>`;
-          el.addEventListener('click',()=>{ $$('.strip').forEach(s=>s.classList.remove('selected')); el.classList.add('selected'); setPreview(t,true); },{passive:true});
-          bcOEmbed(t.url).then(m=>{
-            const tile=el.querySelector('.bc-tile'); const ti=el.querySelector('.bc-title');
-            if(tile&&m?.thumb) tile.style.backgroundImage=`url("${m.thumb}")`;
-            if(ti) ti.textContent=m?.title||'Bandcamp';
-          }).catch(()=>{});
-        }else{
-          el.innerHTML=iframe(t.src,'Media preview')+'<button class="overlayBtn" aria-label="Select"></button>';
-          el.querySelector('.overlayBtn').addEventListener('click',()=>{ $$('.strip').forEach(s=>s.classList.remove('selected')); el.classList.add('selected'); setPreview(t,true); },{passive:true});
-        }
-        if(idx===0) el.classList.add('selected');
-        stripList.appendChild(el);
-      });
-      if(items.length) setPreview(items[0]); else mainPreview.innerHTML='<div class="big-placeholder">Select a track</div>';
-    }
-
-    /* ── Admin (SHIFT + A) ─────────────────────────────────────────── */
-    async function sha256hex(str){ const enc=new TextEncoder().encode(str); const h=await crypto.subtle.digest('SHA-256',enc); return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join(''); }
-    function openAdmin(){ adminOverlay.classList.remove('adminHidden'); adminOverlay.setAttribute('aria-hidden','false'); adminTextarea.value=(state.tracks||[]).join('\n'); adminStatus.textContent=''; }
-    function closeAdmin(){ adminOverlay.classList.add('adminHidden'); adminOverlay.setAttribute('aria-hidden','true'); }
-    document.addEventListener('keydown', async (e)=>{ if(e.shiftKey && e.code==='KeyA'){ e.preventDefault(); if(!state.authed){ const pw=prompt('Enter passphrase'); if(!pw) return; const hex=await sha256hex(pw); if(hex===CFG.ADMIN_HASH_HEX){ state.authed=true; openAdmin(); } else alert('Incorrect passphrase'); } else openAdmin(); } });
-    adminCloseBtn.addEventListener('click', closeAdmin);
-
-    async function serverSave(lines){
-      const r=await fetch(CFG.CONFIG_ENDPOINT+'?action=save',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({tracks:lines,auth:CFG.ADMIN_HASH_HEX})
-      });
-      const txt=await r.text();
-      let j=null; try{ j=JSON.parse(txt); }catch{}
-      if(!r.ok || !(j&&j.ok)){
-        const msg = j?.error ? ('Server error: '+j.error) : ('HTTP '+r.status+' '+txt.slice(0,180));
-        throw new Error(msg);
-      }
-      return j.tracks || lines;
-    }
-    adminSaveBtn.addEventListener('click', async ()=>{
-      const lines=adminTextarea.value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean).slice(0,5);
-      adminStatus.textContent='Saving…';
-      try{
-        const saved=await serverSave(lines);
-        state.tracks=saved; localStorage.setItem('djselects_tracks',JSON.stringify(saved)); renderTracks();
-        adminStatus.textContent='Saved.';
-      }catch(err){
-        console.error('Admin save error:',err);
-        state.tracks=lines; localStorage.setItem('djselects_tracks',JSON.stringify(lines)); renderTracks();
-        adminStatus.textContent=String(err.message||err) || 'Saved locally only (check server perms).';
-      }
+    const res = await fetch("/api/chat/checkban", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ visitorId })
     });
+    const { banned } = await res.json();
+    if (banned) blockChat();
+  } catch (err) {
+    console.warn("Ban check error:", err);
+  }
+}
 
-    async function boot(){ await loadConfig(); await loadSelector(); await loadNextShow(); renderTracks(); }
-    document.addEventListener('DOMContentLoaded', boot);
-  })();
-  </script>
-</body>
-</html>
+async function sendBan() {
+  if (!visitorId) return;
+  try {
+    await fetch("/api/chat/ban", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ visitorId })
+    });
+    blockChat();
+  } catch (err) {
+    console.error("Error sending ban:", err);
+  }
+}
+window.sendBan = sendBan;
+
+// 3) Chromecast Web Sender SDK Initialization
+window.__onGCastApiAvailable = isAvailable => {
+  if (isAvailable) {
+    cast.framework.CastContext.getInstance().setOptions({
+      receiverApplicationId: '77E0F81B',                // ← Your Cast App ID
+      autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+    });
+  }
+};
+
+// 4) HELPERS
+function createGoogleCalLink(title, startUtc, endUtc) {
+  if (!startUtc || !endUtc) return "#";
+  const fmt = dt => new Date(dt).toISOString().replace(/[-:]|\.\d{3}/g, "");
+  return [
+    "https://calendar.google.com/calendar/render?action=TEMPLATE",
+    `&text=${encodeURIComponent(title)}`,
+    `&dates=${fmt(startUtc)}/${fmt(endUtc)}`,
+    `&details=Tune in live at https://cutterschoiceradio.com`,
+    `&location=https://cutterschoiceradio.com`
+  ].join("");
+}
+
+async function rcFetch(path) {
+  const res = await fetch(BASE_URL + path, { headers: { "x-api-key": API_KEY } });
+  if (!res.ok) throw new Error(`Fetch error ${res.status}`);
+  return res.json();
+}
+
+/* Refuse Imgur (and the specific EHhS47F asset) for artwork and fall back locally */
+function trustedArt(url) {
+  if (!url) return FALLBACK_ART;
+  try {
+    const u = new URL(url, location.origin);
+    const isImgur   = /(^|\.)imgur\.com$/i.test(u.hostname);
+    const isBadFile = /EHhS47F/i.test(u.pathname);
+    return (isImgur || isBadFile) ? FALLBACK_ART : url;
+  } catch {
+    return FALLBACK_ART;
+  }
+}
+
+function shuffleIframesDaily() {
+  const container = document.getElementById("mixcloud-list");
+  if (!container) return;
+  const HOUR = 3600000;
+  const last = +localStorage.getItem("lastShuffleTime");
+  if (last && Date.now() - last < HOUR) return;
+
+  const iframes = Array.from(container.querySelectorAll("iframe"));
+  for (let i = iframes.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    container.appendChild(iframes[j]);
+    iframes.splice(j, 1);
+  }
+  localStorage.setItem("lastShuffleTime", Date.now());
+}
+
+// 5) MIXCLOUD ARCHIVES
+async function loadArchives() {
+  try {
+    const res = await fetch("get_archives.php");
+    if (!res.ok) throw new Error("Failed to load archives");
+    const archives = await res.json();
+    const container = document.getElementById("mixcloud-list");
+    if (!container) return;
+
+    container.innerHTML = "";
+    archives.forEach((entry, idx) => {
+      const feed = encodeURIComponent(entry.url);
+      const item = document.createElement("div");
+      item.className = "mixcloud-item";
+
+      const iframe = document.createElement("iframe");
+      iframe.className = "mixcloud-iframe";
+      iframe.src = `https://www.mixcloud.com/widget/iframe/?hide_cover=1&light=1&feed=${feed}`;
+      iframe.loading = "lazy";
+      iframe.width = "100%";
+      iframe.height = "120";
+      iframe.frameBorder = "0";
+      item.appendChild(iframe);
+
+      if (!isMobile) {
+        const remove = document.createElement("a");
+        remove.href = "#";
+        remove.className = "remove-link";
+        remove.textContent = "Remove show";
+        remove.addEventListener("click", e => { e.preventDefault(); deleteMixcloud(idx); });
+        item.appendChild(remove);
+      }
+      container.prepend(item);
+    });
+    shuffleIframesDaily();
+  } catch (err) {
+    console.error("Archive load error:", err);
+  }
+}
+
+async function addMixcloud() {
+  const input = document.getElementById("mixcloud-url");
+  if (!input) return;
+  const url = input.value.trim();
+  if (!url) return alert("Please paste a valid Mixcloud URL");
+
+  const pw = prompt("Enter archive password:");
+  if (pw !== MIXCLOUD_PASSWORD) return alert("Incorrect password");
+
+  try {
+    const form = new FormData();
+    form.append("url", url);
+    form.append("password", pw);
+    const res = await fetch("add_archive.php", { method: "POST", body: form });
+    if (!res.ok) throw new Error((await res.json()).error || res.statusText);
+    input.value = "";
+    await loadArchives();
+  } catch (err) {
+    alert("Add failed: " + err.message);
+  }
+}
+
+async function deleteMixcloud(index) {
+  const pw = prompt("Enter archive password:");
+  if (pw !== MIXCLOUD_PASSWORD) return alert("Incorrect password");
+  try {
+    const form = new FormData();
+    form.append("index", index);
+    form.append("password", pw);
+    const res = await fetch("delete_archive.php", { method: "POST", body: form });
+    if (!res.ok) throw new Error((await res.json()).error || res.statusText);
+    await loadArchives();
+  } catch (err) {
+    alert("Delete failed: " + err.message);
+  }
+}
+
+// 6) DATA FETCHERS
+async function fetchLiveNow() {
+  try {
+    const { result } = await rcFetch(`/station/${STATION_ID}/schedule/live`);
+    const { metadata: md = {}, content: ct = {} } = result;
+    document.getElementById("now-dj").textContent =
+      md.artist ? `${md.artist} – ${md.title}` : ct.title || "No live show";
+
+    // sanitize artwork URL
+    const art = trustedArt(md.artwork_url);
+    document.getElementById("now-art").src = art;
+  } catch (e) {
+    console.error("Live fetch error:", e);
+    document.getElementById("now-dj").textContent = "Error fetching live info";
+    document.getElementById("now-art").src = FALLBACK_ART;
+  }
+}
+
+async function fetchWeeklySchedule() {
+  const container = document.getElementById("schedule-container");
+  if (!container) return;
+  container.innerHTML = "<p>Loading this week’s schedule…</p>";
+  try {
+    const now = new Date();
+    const then = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const { schedules } = await rcFetch(
+      `/station/${STATION_ID}/schedule?startDate=${now.toISOString()}&endDate=${then.toISOString()}`
+    );
+    if (!schedules.length) {
+      container.innerHTML = "<p>No shows scheduled this week.</p>";
+      return;
+    }
+    container.innerHTML = "";
+    const fmt = iso => new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+    const byDay = schedules.reduce((acc, ev) => {
+      const day = new Date(ev.startDateUtc).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "short" });
+      (acc[day] = acc[day] || []).push(ev);
+      return acc;
+    }, {});
+    Object.entries(byDay).forEach(([day, evs]) => {
+      const h3 = document.createElement("h3"); h3.textContent = day;
+      container.appendChild(h3);
+      const ul = document.createElement("ul"); ul.style.listStyle = "none"; ul.style.padding = "0";
+      evs.forEach(ev => {
+        const li = document.createElement("li"); li.style.marginBottom = "1rem";
+        const wrap = document.createElement("div"); wrap.style.display = "flex"; wrap.style.alignItems = "center"; wrap.style.gap = "8px";
+        const t = document.createElement("strong"); t.textContent = `${fmt(ev.startDateUtc)}–${fmt(ev.endDateUtc)}`; wrap.appendChild(t);
+
+        // sanitize artwork URL used in schedule list
+        const rawArt = ev.metadata?.artwork?.default || ev.metadata?.artwork?.original;
+        const artUrl = trustedArt(rawArt);
+        if (artUrl) {
+          const img = document.createElement("img"); img.src = artUrl; img.alt = `${ev.title} artwork`;
+          img.style.cssText = "width:30px;height:30px;object-fit:cover;border-radius:3px;"; wrap.appendChild(img);
+        }
+        const span = document.createElement("span"); span.textContent = ev.title; wrap.appendChild(span);
+        li.appendChild(wrap); ul.appendChild(li);
+      });
+      container.appendChild(ul);
+    });
+  } catch (e) {
+    console.error("Schedule error:", e);
+    document.getElementById("schedule-container").innerHTML = "<p>Error loading schedule.</p>";
+  }
+}
+
+async function fetchNowPlayingArchive() {
+  try {
+    const { result } = await rcFetch(`/station/${STATION_ID}/schedule/live`);
+    const { metadata: md = {}, content: ct = {} } = result;
+    let text = "Now Playing: ";
+    if (md.title) text += md.artist ? `${md.artist} – ${md.title}` : md.title;
+    else if (md.filename) text += md.filename;
+    else if (ct.title) text += ct.title;
+    else if (ct.name) text += ct.name;
+    else text += "Unknown Show";
+    document.getElementById("now-archive").textContent = text;
+  } catch (e) {
+    console.error("Archive-now error:", e);
+    document.getElementById("now-archive").textContent = "Unable to load archive show";
+  }
+}
+
+// 7) ADMIN & UI ACTIONS
+function openChatPopup() {
+  const url = `https://app.radiocult.fm/embed/chat/${STATION_ID}?theme=midnight&primaryColor=%235A8785&corners=sharp`;
+  if (isMobile) window.open(url, "CuttersChatMobile", "noopener");
+  else if (chatPopupWindow && !chatPopupWindow.closed) chatPopupWindow.focus();
+  else chatPopupWindow = window.open(url, "CuttersChatPopup", "width=400,height=700,resizable=yes,scrollbars=yes");
+}
+
+// 8) BANNER GIF ROTATION
+const rightEl = document.querySelector(".header-gif-right");
+const leftEl  = document.querySelector(".header-gif-left");
+if (rightEl && leftEl) {
+  const sets = [
+    { right: "/images/Untitled design(4).gif", left: "/images/Untitled design(5).gif" },
+    { right: "/images/Untitled design(7).gif", left: "/images/Untitled design(8).gif" }
+  ];
+  let current = 0, sweepCount = 0;
+  const speedMs = (parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--gif-speed").replace("s", "")) || 12) * 1000;
+  setInterval(() => {
+    sweepCount++;
+    if (sweepCount >= 2) {
+      current = (current + 1) % sets.length;
+      rightEl.style.backgroundImage = `url('${sets[current].right}')`;
+      leftEl.style.backgroundImage = `url('${sets[current].left}')`;
+      sweepCount = 0;
+    }
+  }, speedMs);
+}
+
+// 9) INITIALIZATION
+document.addEventListener("DOMContentLoaded", () => {
+  fetchLiveNow();
+  fetchWeeklySchedule();
+  fetchNowPlayingArchive();
+  loadArchives();
+
+  // ---- Chromecast controls: show official OR fallback (accessibility-clean) ----
+  const officialBtn = document.querySelector('google-cast-button');
+  const manualBtn   = document.getElementById('manualCastBtn');
+
+  if (officialBtn && manualBtn && window.cast?.framework) {
+    const context = cast.framework.CastContext.getInstance();
+
+    // Toggle visibility based on availability
+    const updateCastVisibility = () => {
+      const hasDevices = context.getCastState() !== cast.framework.CastState.NO_DEVICES_AVAILABLE;
+      officialBtn.style.display = hasDevices ? 'inline-block' : 'none';
+      manualBtn.style.display   = hasDevices ? 'none'         : 'inline-flex';
+    };
+    updateCastVisibility();
+    if (!window.__ccrCastStateBound) {
+      context.addEventListener(cast.framework.CastContextEventType.CAST_STATE_CHANGED, updateCastVisibility);
+      window.__ccrCastStateBound = true;
+    }
+
+    // Manual fallback starts a session (only bind once)
+    if (!manualBtn.dataset.ccrBound) {
+      manualBtn.dataset.ccrBound = '1';
+      manualBtn.addEventListener('click', () => {
+        context.requestSession().catch(err => console.error('Fallback session error', err));
+      });
+    }
+
+    // Official button: when session exists, load our stream (only bind once)
+    if (!officialBtn.dataset.ccrBound) {
+      officialBtn.dataset.ccrBound = '1';
+      officialBtn.addEventListener('click', async () => {
+        const session = context.getCurrentSession();
+        if (!session) return; // the Cast UI will handle device picker
+        const mediaInfo = new chrome.cast.media.MediaInfo(STREAM_URL, 'application/x-mpegurl');
+        mediaInfo.streamType = chrome.cast.media.StreamType.LIVE;
+        mediaInfo.metadata = new chrome.cast.media.MusicTrackMediaMetadata();
+        mediaInfo.metadata.title = document.getElementById('now-dj')?.textContent || 'Cutters Choice Radio';
+        mediaInfo.metadata.albumName = 'Cutters Choice Radio';
+        const request = new chrome.cast.media.LoadRequest(mediaInfo);
+        try { await session.loadMedia(request); console.log('Casting started'); }
+        catch (err) { console.error('Chromecast error:', err); }
+      });
+    }
+  }
+  // ------------------------------------------------------------------------------
+
+  // Cleanup & auto-refresh
+  if (window.matchMedia("(max-width: 768px)").matches) {
+    document.querySelectorAll("section.chat .chat-actions").forEach(el => el.remove());
+  }
+  setInterval(fetchLiveNow, 30000);
+  setInterval(fetchNowPlayingArchive, 30000);
+
+  if (isMobile) document.querySelector(".mixcloud")?.remove();
+
+  // Inject Mixcloud widget script
+  const mcScript = document.createElement("script");
+  mcScript.src = "https://widget.mixcloud.com/widget.js";
+  mcScript.async = true;
+  document.body.appendChild(mcScript);
+
+  // Pop-out player
+  document.getElementById("popOutBtn")?.addEventListener("click", () => {
+    const src = document.getElementById("inlinePlayer").src;
+    const w = window.open("", "CCRPlayer", "width=400,height=200,resizable=yes");
+    w.document.write(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+      <title>Cutters Choice Player</title>
+      <style>body{margin:0;background:#111;display:flex;align-items:center;justify-content:center;height:100vh}iframe{width:100%;height:180px;border:none;border-radius:4px}</style>
+      </head>
+      <body><iframe src="${src}" allow="autoplay"></iframe></body>
+      </html>
+    `);
+    w.document.close();
+  });
+
+  // Chat ghost cleanup
+  const ul = document.querySelector(".rc-user-list");
+  if (ul) {
+    new MutationObserver(() => {
+      ul.querySelectorAll("li").forEach(li => { if (!li.textContent.trim()) li.remove(); });
+    }).observe(ul, { childList: true });
+  }
+
+  // Ban check timing
+  if ("requestIdleCallback" in window) requestIdleCallback(initBanCheck, { timeout: 2000 });
+  else setTimeout(initBanCheck, 2000);
+});

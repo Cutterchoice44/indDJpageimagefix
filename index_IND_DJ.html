@@ -360,26 +360,42 @@
   <script src="slideshow.js?v=1757106631679" defer></script>
 
   <!-- Chromecast Handler & Manual Fallback -->
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const context     = cast.framework.CastContext.getInstance();
-      const manualBtn   = document.getElementById('manualCastBtn');
-      const officialBtn = document.querySelector('google-cast-button');
+ <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const manualBtn   = document.getElementById('manualCastBtn');
+    const officialBtn = document.querySelector('google-cast-button');
 
-      // Show one control or the other for clarity & accessibility
-      context.addEventListener(cast.framework.CastContextEventType.CAST_STATE_CHANGED, e => {
-        const hasDevices = e.castState !== cast.framework.CastState.NO_DEVICES_AVAILABLE;
-        officialBtn.style.display = hasDevices ? 'inline-block' : 'none';
-        manualBtn.style.display   = hasDevices ? 'none'         : 'inline-flex';
+    // Helper to flip visibility
+    function setButtonsByState(state) {
+      const noDevices =
+        !state ||
+        state === cast.framework.CastState.NO_DEVICES_AVAILABLE ||
+        state === cast.framework.CastState.NOT_CONNECTED;
+
+      if (officialBtn) officialBtn.style.display = noDevices ? 'none' : 'inline-block';
+      if (manualBtn)   manualBtn.style.display   = noDevices ? 'inline-flex' : 'none';
+    }
+
+    // If Cast SDK never arrives, show the fallback after a short grace period.
+    let sdkSeen = false;
+    window.__onGCastApiAvailable = isAvailable => {
+      if (!isAvailable) return;
+      sdkSeen = true;
+      const context = cast.framework.CastContext.getInstance();
+      context.setOptions({
+        receiverApplicationId: '77E0F81B',
+        autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
       });
 
-      // Manual fallback: request a Cast session
-      manualBtn.addEventListener('click', () => {
-        context.requestSession().catch(err => console.error('Fallback session error', err));
-      });
+      // Initial state + react to changes
+      try { setButtonsByState(context.getCastState()); } catch {}
+      context.addEventListener(
+        cast.framework.CastContextEventType.CAST_STATE_CHANGED,
+        e => setButtonsByState(e.castState)
+      );
 
-      // When a Cast session exists, load our live stream
-      officialBtn.addEventListener('click', async () => {
+      // Official button click still loads our stream
+      officialBtn?.addEventListener('click', async () => {
         const session = context.getCurrentSession();
         if (!session) return console.warn('No Chromecast session');
         const mediaInfo = new chrome.cast.media.MediaInfo(
@@ -391,10 +407,28 @@
         mediaInfo.metadata.title = document.getElementById('now-dj').textContent;
         mediaInfo.metadata.albumName = 'Cutters Choice Radio';
         const request = new chrome.cast.media.LoadRequest(mediaInfo);
-        await session.loadMedia(request).catch(err => console.error('Chromecast error:', err));
+        try { await session.loadMedia(request); } catch (err) { console.error('Chromecast error:', err); }
       });
+    };
+
+    // Grace period: if the SDK isn’t ready after 2.5s, show the CAST text fallback
+    setTimeout(() => {
+      if (!sdkSeen && manualBtn) manualBtn.style.display = 'inline-flex';
+      if (!sdkSeen && officialBtn) officialBtn.style.display = 'none';
+    }, 2500);
+
+    // Fallback button: try to start a session (will error if no devices, but users still see CAST)
+    manualBtn?.addEventListener('click', async () => {
+      try {
+        const context = cast.framework.CastContext.getInstance();
+        await context.requestSession();
+      } catch (err) {
+        // No devices / user cancelled — that’s fine. We simply keep the CAST text visible.
+        console.warn('Fallback session error', err);
+      }
     });
-  </script>
+  });
+</script>
 
   <!-- GIF-SWAP SCRIPT -->
   <script>

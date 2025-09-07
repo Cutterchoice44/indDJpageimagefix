@@ -148,8 +148,9 @@ header .title .tagline {
   flex:1 1 auto !important;
 }
 
-/* Make summary.nav-link look like the other links */
+/* Make all nav links (a, button, summary) look identical */
 #main-nav a.nav-link,
+#main-nav button.nav-link,
 #main-nav summary.nav-link{
   color:#fff !important;
   font-family:'Bebas Neue',sans-serif !important;
@@ -158,8 +159,10 @@ header .title .tagline {
   text-decoration:none !important;
   white-space:nowrap !important;
   list-style:none !important;
-  display:inline-flex;
-  align-items:center;
+  display:inline-flex !important;
+  align-items:center !important;
+  line-height:1.2 !important;
+  letter-spacing:.5px;
   cursor:pointer;
 }
 
@@ -224,17 +227,19 @@ google-cast-button {
   display: inline-block;
 }
 
-/* Fallback cast button (hidden by default; JS shows it when no devices) */
-/* Fallback CAST button — uses the same styles as .nav-link */
+/* Fallback CAST button — hidden by default; JS shows inline-flex when needed */
 #manualCastBtn{
-  display: none;                 /* JS toggles to inline-flex when needed */
+  display: none;
   background: none;
   border: none;
-  color: #fff;                   /* inherits .nav-link color anyway */
+  color: #fff;
   cursor: pointer;
   margin-left: .25rem;
   padding: 0;
-  /* no font-size here — let .nav-link control it (2rem desktop, 1rem mobile) */
+  appearance: none;
+  -webkit-appearance: none;
+  font: inherit;              /* inherit Bebas + size from .nav-link */
+  line-height: inherit;
 }
 
 /* ─── GRID LAYOUT ─────────────────────────────────────────────────── */
@@ -481,7 +486,9 @@ section h2::after {
     gap: .35rem !important;
     min-width: 0 !important;
   }
+  /* Include button.nav-link here too */
   nav#main-nav a.nav-link,
+  nav#main-nav button.nav-link,
   nav#main-nav summary.nav-link {
     font-size: 1rem !important;
     letter-spacing: .5px !important;

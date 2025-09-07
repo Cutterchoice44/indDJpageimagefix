@@ -225,14 +225,16 @@ google-cast-button {
 }
 
 /* Fallback cast button (hidden by default; JS shows it when no devices) */
-#manualCastBtn {
-  display: none;
+/* Fallback CAST button — uses the same styles as .nav-link */
+#manualCastBtn{
+  display: none;                 /* JS toggles to inline-flex when needed */
   background: none;
   border: none;
-  color: #fff;
-  font-size: 1.8rem;
+  color: #fff;                   /* inherits .nav-link color anyway */
   cursor: pointer;
   margin-left: .25rem;
+  padding: 0;
+  /* no font-size here — let .nav-link control it (2rem desktop, 1rem mobile) */
 }
 
 /* ─── GRID LAYOUT ─────────────────────────────────────────────────── */

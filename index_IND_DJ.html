@@ -36,7 +36,6 @@
   <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
   <link rel="preconnect" href="https://app.radiocult.fm" crossorigin>
   <link rel="preconnect" href="https://cdn.socket.io" crossorigin>
-  <!-- removed preconnect to i.imgur.com -->
 
   <!-- Main stylesheet -->
   <link rel="stylesheet" href="style.css?v=1757106631679">
@@ -72,7 +71,10 @@
       flex:1 1 auto !important;
       min-width:0 !important;
     }
+
+    /* ⬅️ include button.nav-link so buttons match links */
     #main-nav a.nav-link,
+    #main-nav button.nav-link,
     #main-nav summary.nav-link{
       color:#fff !important;
       font-family:'Bebas Neue',sans-serif !important;
@@ -132,13 +134,28 @@
     }
     #main-nav .nav-onemusic{ display:flex; align-items:center; }
     #main-nav .nav-onemusic img{ max-height:2rem; width:auto; height:auto; display:block; }
+
+    /* 🔧 fallback CAST button: inherit nav-link typography, hidden by default (JS toggles) */
     #manualCastBtn{
-      background:none;border:none;color:#fff;font-size:1.8rem;cursor:pointer;margin-left:.25rem;
+      display:none;
+      background:none;
+      border:none;
+      color:#fff;
+      margin-left:.25rem;
+      padding:0;
+      appearance:none;
+      -webkit-appearance:none;
+      font:inherit;               /* inherit Bebas + size from .nav-link */
+      line-height:inherit;
+      letter-spacing:inherit;
     }
 
     @media (max-width:768px){
+      /* ⬅️ include button.nav-link on mobile too */
       #main-nav a.nav-link,
+      #main-nav button.nav-link,
       #main-nav summary.nav-link{ font-size:1rem !important; }
+
       #main-nav .nav-menu{ justify-content:space-between !important; gap:.5rem !important; }
       #main-nav .social-icon i{ font-size:1.4rem !important; }
       #main-nav .icon-img, #main-nav .nav-onemusic{ display:none !important; }
@@ -269,9 +286,7 @@
 
       <!-- Cast controls (official button + fallback). Host has NO aria-* -->
       <google-cast-button id="castBtn" title="Cast"></google-cast-button>
-      <button id="manualCastBtn" class="nav-link" type="button" title="Cast this stream" aria-label="Cast this stream">
-  CAST
-</button>
+      <button id="manualCastBtn" class="nav-link" type="button" title="Cast this stream" aria-label="Cast this stream">CAST</button>
     </div>
   </nav>
 
@@ -360,75 +375,68 @@
   <script src="slideshow.js?v=1757106631679" defer></script>
 
   <!-- Chromecast Handler & Manual Fallback -->
- <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const manualBtn   = document.getElementById('manualCastBtn');
-    const officialBtn = document.querySelector('google-cast-button');
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const manualBtn   = document.getElementById('manualCastBtn');
+      const officialBtn = document.querySelector('google-cast-button');
 
-    // Helper to flip visibility
-    function setButtonsByState(state) {
-      const noDevices =
-        !state ||
-        state === cast.framework.CastState.NO_DEVICES_AVAILABLE ||
-        state === cast.framework.CastState.NOT_CONNECTED;
+      function setButtonsByState(state) {
+        const noDevices =
+          !state ||
+          state === cast.framework.CastState.NO_DEVICES_AVAILABLE ||
+          state === cast.framework.CastState.NOT_CONNECTED;
 
-      if (officialBtn) officialBtn.style.display = noDevices ? 'none' : 'inline-block';
-      if (manualBtn)   manualBtn.style.display   = noDevices ? 'inline-flex' : 'none';
-    }
-
-    // If Cast SDK never arrives, show the fallback after a short grace period.
-    let sdkSeen = false;
-    window.__onGCastApiAvailable = isAvailable => {
-      if (!isAvailable) return;
-      sdkSeen = true;
-      const context = cast.framework.CastContext.getInstance();
-      context.setOptions({
-        receiverApplicationId: '77E0F81B',
-        autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
-      });
-
-      // Initial state + react to changes
-      try { setButtonsByState(context.getCastState()); } catch {}
-      context.addEventListener(
-        cast.framework.CastContextEventType.CAST_STATE_CHANGED,
-        e => setButtonsByState(e.castState)
-      );
-
-      // Official button click still loads our stream
-      officialBtn?.addEventListener('click', async () => {
-        const session = context.getCurrentSession();
-        if (!session) return console.warn('No Chromecast session');
-        const mediaInfo = new chrome.cast.media.MediaInfo(
-          'https://cutters-choice-radio.radiocult.fm/stream',
-          'application/x-mpegurl'
-        );
-        mediaInfo.streamType = chrome.cast.media.StreamType.LIVE;
-        mediaInfo.metadata = new chrome.cast.media.MusicTrackMediaMetadata();
-        mediaInfo.metadata.title = document.getElementById('now-dj').textContent;
-        mediaInfo.metadata.albumName = 'Cutters Choice Radio';
-        const request = new chrome.cast.media.LoadRequest(mediaInfo);
-        try { await session.loadMedia(request); } catch (err) { console.error('Chromecast error:', err); }
-      });
-    };
-
-    // Grace period: if the SDK isn’t ready after 2.5s, show the CAST text fallback
-    setTimeout(() => {
-      if (!sdkSeen && manualBtn) manualBtn.style.display = 'inline-flex';
-      if (!sdkSeen && officialBtn) officialBtn.style.display = 'none';
-    }, 2500);
-
-    // Fallback button: try to start a session (will error if no devices, but users still see CAST)
-    manualBtn?.addEventListener('click', async () => {
-      try {
-        const context = cast.framework.CastContext.getInstance();
-        await context.requestSession();
-      } catch (err) {
-        // No devices / user cancelled — that’s fine. We simply keep the CAST text visible.
-        console.warn('Fallback session error', err);
+        if (officialBtn) officialBtn.style.display = noDevices ? 'none' : 'inline-block';
+        if (manualBtn)   manualBtn.style.display   = noDevices ? 'inline-flex' : 'none';
       }
+
+      let sdkSeen = false;
+      window.__onGCastApiAvailable = isAvailable => {
+        if (!isAvailable) return;
+        sdkSeen = true;
+        const context = cast.framework.CastContext.getInstance();
+        context.setOptions({
+          receiverApplicationId: '77E0F81B',
+          autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+        });
+
+        try { setButtonsByState(context.getCastState()); } catch {}
+        context.addEventListener(
+          cast.framework.CastContextEventType.CAST_STATE_CHANGED,
+          e => setButtonsByState(e.castState)
+        );
+
+        officialBtn?.addEventListener('click', async () => {
+          const session = context.getCurrentSession();
+          if (!session) return console.warn('No Chromecast session');
+          const mediaInfo = new chrome.cast.media.MediaInfo(
+            'https://cutters-choice-radio.radiocult.fm/stream',
+            'application/x-mpegurl'
+          );
+          mediaInfo.streamType = chrome.cast.media.StreamType.LIVE;
+          mediaInfo.metadata = new chrome.cast.media.MusicTrackMediaMetadata();
+          mediaInfo.metadata.title = document.getElementById('now-dj').textContent;
+          mediaInfo.metadata.albumName = 'Cutters Choice Radio';
+          const request = new chrome.cast.media.LoadRequest(mediaInfo);
+          try { await session.loadMedia(request); } catch (err) { console.error('Chromecast error:', err); }
+        });
+      };
+
+      setTimeout(() => {
+        if (!sdkSeen && manualBtn) manualBtn.style.display = 'inline-flex';
+        if (!sdkSeen && officialBtn) officialBtn.style.display = 'none';
+      }, 2500);
+
+      manualBtn?.addEventListener('click', async () => {
+        try {
+          const context = cast.framework.CastContext.getInstance();
+          await context.requestSession();
+        } catch (err) {
+          console.warn('Fallback session error', err);
+        }
+      });
     });
-  });
-</script>
+  </script>
 
   <!-- GIF-SWAP SCRIPT -->
   <script>

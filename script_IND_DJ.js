@@ -1,336 +1,375 @@
-/* DJ Selects — robust schedule + equal-height strips (mobile-aware) */
-(() => {
-  const CFG = window.DJ_SELECTS || {};
+// 1) GLOBAL CONFIG & MOBILE DETECTION
+const API_KEY           = "pk_0b8abc6f834b444f949f727e88a728e0";              // ← Replace with your actual Radiocult API key
+const STATION_ID        = "cutters-choice-radio";
+const BASE_URL          = "https://api.radiocult.fm/api";
+const FALLBACK_ART      = "/images/archives-logo.jpeg";
+const MIXCLOUD_PASSWORD = "cutters44";
+const STREAM_URL        = "https://cutters-choice-radio.radiocult.fm/stream";  // HLS stream URL
+const isMobile          = /Mobi|Android/i.test(navigator.userAgent);
 
-  const $  = (s, r=document) => r.querySelector(s);
-  const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+let chatPopupWindow;
+let visitorId;
 
-  const stripList   = $('#stripList');
-  const mainPreview = $('#mainPreview');
-  const djNameText  = $('#djNameText');
-  const djProfile   = $('#djProfileThumb');
-  const nextWhen    = $('#nextShowWhen');
-  const adminMount  = $('#adminMount');
+// ADMIN-MODE TOGGLE (URL hash #admin)
+if (window.location.hash === "#admin") {
+  document.body.classList.add("admin-mode");
+}
 
-  let shared = {
-    djName: 'DJ NAME',
-    profileImage: '/images/default-dj.png',
-    stationId: 'cutters-choice-radio',
-    apiKey: '',
-    tracks: [],
-    contributorId: '',           // manual artist/presenter id override (optional)
-    contributorKind: 'auto'      // 'auto' | 'artist' | 'presenter'
-  };
+// 2) BAN LOGIC (FingerprintJS v3+)
+function blockChat() {
+  document.getElementById("popOutBtn")?.remove();
+  document.getElementById("chatModal")?.remove();
+  const cont = document.getElementById("radiocult-chat-container");
+  if (cont) cont.innerHTML = "<p>Chat disabled.</p>";
+}
 
-  /* ---------- utils ---------- */
-  const sha256hex = async (t) => {
-    const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
-    return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
-  };
-  const toEmbed = (u) => {
-    if (!u) return null;
-    try {
-      const x = new URL(u.trim());
-      if (x.hostname.includes('youtu')) {
-        let id='';
-        if (x.hostname==='youtu.be') id=x.pathname.slice(1);
-        else if (x.pathname.startsWith('/shorts/')) id=x.pathname.split('/')[2]||'';
-        else if (x.searchParams.get('v')) id=x.searchParams.get('v');
-        else if (/^\/embed\//.test(x.pathname)) id=x.pathname.split('/').pop();
-        id=(id||'').split('?')[0].split('&')[0];
-        if (!id) return null;
-        return `https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`;
+async function initBanCheck() {
+  if (!window.FingerprintJS) return;
+  try {
+    const fp = await FingerprintJS.load();
+    const { visitorId: id } = await fp.get();
+    visitorId = id;
+
+    const res = await fetch("/api/chat/checkban", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ visitorId })
+    });
+    const { banned } = await res.json();
+    if (banned) blockChat();
+  } catch (err) {
+    console.warn("Ban check error:", err);
+  }
+}
+
+async function sendBan() {
+  if (!visitorId) return;
+  try {
+    await fetch("/api/chat/ban", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ visitorId })
+    });
+    blockChat();
+  } catch (err) {
+    console.error("Error sending ban:", err);
+  }
+}
+window.sendBan = sendBan;
+
+// 3) Chromecast Web Sender SDK Initialization
+window.__onGCastApiAvailable = isAvailable => {
+  if (isAvailable) {
+    cast.framework.CastContext.getInstance().setOptions({
+      receiverApplicationId: '77E0F81B',                // ← Your Cast App ID
+      autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+    });
+  }
+};
+
+// 4) HELPERS
+function createGoogleCalLink(title, startUtc, endUtc) {
+  if (!startUtc || !endUtc) return "#";
+  const fmt = dt => new Date(dt).toISOString().replace(/[-:]|\.\d{3}/g, "");
+  return [
+    "https://calendar.google.com/calendar/render?action=TEMPLATE",
+    `&text=${encodeURIComponent(title)}`,
+    `&dates=${fmt(startUtc)}/${fmt(endUtc)}`,
+    `&details=Tune in live at https://cutterschoiceradio.com`,
+    `&location=https://cutterschoiceradio.com`
+  ].join("");
+}
+
+async function rcFetch(path) {
+  const res = await fetch(BASE_URL + path, { headers: { "x-api-key": API_KEY } });
+  if (!res.ok) throw new Error(`Fetch error ${res.status}`);
+  return res.json();
+}
+
+/* NEW: refuse Imgur (and the specific EHhS47F asset) for artwork and fall back locally */
+function trustedArt(url) {
+  if (!url) return FALLBACK_ART;
+  try {
+    const u = new URL(url, location.origin);
+    const isImgur = /(^|\.)imgur\.com$/i.test(u.hostname);
+    const isBadFile = /EHhS47F/i.test(u.pathname); // that placeholder you mentioned
+    return (isImgur || isBadFile) ? FALLBACK_ART : url;
+  } catch {
+    return FALLBACK_ART;
+  }
+}
+
+function shuffleIframesDaily() {
+  const container = document.getElementById("mixcloud-list");
+  if (!container) return;
+  const HOUR = 3600000;
+  const last = +localStorage.getItem("lastShuffleTime");
+  if (last && Date.now() - last < HOUR) return;
+
+  const iframes = Array.from(container.querySelectorAll("iframe"));
+  for (let i = iframes.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    container.appendChild(iframes[j]);
+    iframes.splice(j, 1);
+  }
+  localStorage.setItem("lastShuffleTime", Date.now());
+}
+
+// 5) MIXCLOUD ARCHIVES
+async function loadArchives() {
+  try {
+    const res = await fetch("get_archives.php");
+    if (!res.ok) throw new Error("Failed to load archives");
+    const archives = await res.json();
+    const container = document.getElementById("mixcloud-list");
+    if (!container) return;
+
+    container.innerHTML = "";
+    archives.forEach((entry, idx) => {
+      const feed = encodeURIComponent(entry.url);
+      const item = document.createElement("div");
+      item.className = "mixcloud-item";
+
+      const iframe = document.createElement("iframe");
+      iframe.className = "mixcloud-iframe";
+      iframe.src = `https://www.mixcloud.com/widget/iframe/?hide_cover=1&light=1&feed=${feed}`;
+      iframe.loading = "lazy";
+      iframe.width = "100%";
+      iframe.height = "120";
+      iframe.frameBorder = "0";
+      item.appendChild(iframe);
+
+      if (!isMobile) {
+        const remove = document.createElement("a");
+        remove.href = "#";
+        remove.className = "remove-link";
+        remove.textContent = "Remove show";
+        remove.addEventListener("click", e => { e.preventDefault(); deleteMixcloud(idx); });
+        item.appendChild(remove);
       }
-      return u;
-    } catch { return null; }
-  };
-  const iframeAttrs = (src,big=false)=>`<iframe src="${src}" title="YouTube video" loading="${big?'eager':'lazy'}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
-  const setPreview = (src)=>{ mainPreview.innerHTML=`<div class="ratio big">${iframeAttrs(src,true)}</div>`; syncHeightsSoon(); };
-  const renderStrips=(embeds)=>{ 
-    stripList.innerHTML=''; 
-    embeds.slice(0,5).forEach((src,i)=>{ 
-      const el=document.createElement('div'); 
-      el.className='strip'; 
-      el.innerHTML=iframeAttrs(src,false)+'<div class="select-overlay" aria-hidden="true"></div>'; 
-      el.querySelector('.select-overlay').addEventListener('click',()=>{ 
-        $$('.strip').forEach(s=>s.classList.remove('selected')); 
-        el.classList.add('selected'); 
-        setPreview(src); 
-      }); 
-      stripList.appendChild(el); 
-      if (i===0){ el.classList.add('selected'); setPreview(src); } 
-    }); 
-    if (!embeds.length) mainPreview.innerHTML='<div class="big-placeholder">Select a track</div>'; 
-    syncHeightsSoon(); 
-  };
-  const fmtLocal = iso => { try{ const d=new Date(iso); return d.toLocaleString(undefined,{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:false,timeZoneName:'short'});}catch{ return ''; } };
-  const slug = s => (s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
-  const nameEq=(a,b)=>{const A=(a||'').trim().toLowerCase(),B=(b||'').trim().toLowerCase();return A&&B&&(A===B||slug(A)===slug(B));};
-  const firstImageUrl=o=> (o && ((o.logo && (o.logo['512x512']||o.logo.default)) || o.image || o.imageUrl || o.avatar || o.avatarUrl || (Array.isArray(o.images)&&o.images[0]&&(o.images[0].url||o.images[0].src)))) || '';
-
-  const fetchJSON = async (url) => {
-    const r = await fetch(url, {headers:{'Accept':'application/json'}, cache:'no-store'});
-    if (!r.ok) throw new Error('HTTP '+r.status);
-    return r.json();
-  };
-
-  /* ---------- persistence ---------- */
-  async function loadSharedConfig(){
-    try{
-      const r=await fetch(`${CFG.CONFIG_ENDPOINT}?action=load`,{cache:'no-store'});
-      if(!r.ok) throw 0;
-      const data=await r.json();
-      if (data && data.djName) shared={...shared, ...data};
-    }catch{
-      const raw=localStorage.getItem('dj-selects-config');
-      if(raw) shared={...shared, ...JSON.parse(raw)};
-    }
+      container.prepend(item);
+    });
+    shuffleIframesDaily();
+  } catch (err) {
+    console.error("Archive load error:", err);
   }
+}
 
-  /* ---------- RC helpers ---------- */
-  // Returns {kind,id,obj} using override or by name
-  async function findContributor(){
-    if (shared.contributorId) {
-      return { kind: shared.contributorKind || 'auto', id: shared.contributorId, obj:null };
-    }
-    const base=`${CFG.PROXY_ENDPOINT}?stationId=${encodeURIComponent(shared.stationId)}`;
-    const [artists,presenters]=await Promise.all([
-      fetchJSON(`${base}&fn=artists`).then(j=>j?.artists||j?.data||j||[]).catch(()=>[]),
-      fetchJSON(`${base}&fn=presenters`).then(j=>j?.presenters||j?.data||j||[]).catch(()=>[])
-    ]);
-    const nm=shared.djName;
-    const from=(arr,kind)=>{
-      const hit = arr.find(x=>nameEq(x?.name,nm)) || arr.find(x=>slug(x?.name)===slug(nm)) || arr.find(x=>(x?.name||'').toLowerCase().includes(nm.toLowerCase()));
-      return hit ? {kind,id:(hit.id||hit._id||hit.slug||hit.uuid||hit.name),obj:hit} : null;
-    };
-    return from(artists,'artist') || from(presenters,'presenter') || {kind:'auto',id:'',obj:null};
+async function addMixcloud() {
+  const input = document.getElementById("mixcloud-url");
+  if (!input) return;
+  const url = input.value.trim();
+  if (!url) return alert("Please paste a valid Mixcloud URL");
+
+  const pw = prompt("Enter archive password:");
+  if (pw !== MIXCLOUD_PASSWORD) return alert("Incorrect password");
+
+  try {
+    const form = new FormData();
+    form.append("url", url);
+    form.append("password", pw);
+    const res = await fetch("add_archive.php", { method: "POST", body: form });
+    if (!res.ok) throw new Error((await res.json()).error || res.statusText);
+    input.value = "";
+    await loadArchives();
+  } catch (err) {
+    alert("Add failed: " + err.message);
   }
+}
 
-  async function trySchedule(kind, id, startISO, endISO){
-    if (!id) return null;
-    const fn = kind==='presenter' ? 'presenter_schedule' : 'artist_schedule';
-    const url = `${CFG.PROXY_ENDPOINT}?fn=${fn}&stationId=${encodeURIComponent(shared.stationId)}&${kind}Id=${encodeURIComponent(id)}&startDate=${encodeURIComponent(startISO)}&endDate=${encodeURIComponent(endISO)}`;
-    const j = await fetchJSON(url);
-    const list = j?.schedules || j?.data || j?.items || [];
-    if (!Array.isArray(list) || !list.length) return null;
+async function deleteMixcloud(index) {
+  const pw = prompt("Enter archive password:");
+  if (pw !== MIXCLOUD_PASSWORD) return alert("Incorrect password");
+  try {
+    const form = new FormData();
+    form.append("index", index);
+    form.append("password", pw);
+    const res = await fetch("delete_archive.php", { method: "POST", body: form });
+    if (!res.ok) throw new Error((await res.json()).error || res.statusText);
+    await loadArchives();
+  } catch (err) {
+    alert("Delete failed: " + err.message);
+  }
+}
 
-    const getIso = (s)=> s.startDateUtc || s.startDate || s.start || s.scheduledStart || s.start_time || s.start_at;
+// 6) DATA FETCHERS
+async function fetchLiveNow() {
+  try {
+    const { result } = await rcFetch(`/station/${STATION_ID}/schedule/live`);
+    const { metadata: md = {}, content: ct = {} } = result;
+    document.getElementById("now-dj").textContent =
+      md.artist ? `${md.artist} – ${md.title}` : ct.title || "No live show";
+
+    // CHANGED: sanitize artwork URL
+    const art = trustedArt(md.artwork_url);
+    document.getElementById("now-art").src = art;
+  } catch (e) {
+    console.error("Live fetch error:", e);
+    document.getElementById("now-dj").textContent = "Error fetching live info";
+    document.getElementById("now-art").src = FALLBACK_ART;
+  }
+}
+
+async function fetchWeeklySchedule() {
+  const container = document.getElementById("schedule-container");
+  if (!container) return;
+  container.innerHTML = "<p>Loading this week’s schedule…</p>";
+  try {
     const now = new Date();
-    const next = list
-      .map(s=>({s, t:new Date(getIso(s)||0)}))
-      .filter(x=>x.t instanceof Date && !isNaN(x.t) && x.t>now)
-      .sort((a,b)=>a.t-b.t)[0]?.s || list[0];
-    return {next, from: j};
-  }
-
-  async function loadDjImage(){
-    if (shared.profileImage && !/default-dj\.png$/i.test(shared.profileImage)) return;
-    try{
-      const who=await findContributor();
-      const img = firstImageUrl(who?.obj) || firstImageUrl(who?.artist) || firstImageUrl(who?.presenter);
-      if (img) djProfile.src = img;
-    }catch{}
-  }
-
-  async function loadNextShow(){
-    nextWhen.textContent = 'Loading…';
-    try{
-      const who = await findContributor();
-      const now = new Date();
-      const end = new Date(now.getTime()+365*24*60*60*1000);
-      const startISO = now.toISOString(), endISO = end.toISOString();
-
-      let res = null;
-
-      if (who.kind === 'artist' || who.kind === 'presenter') {
-        res = await trySchedule(who.kind, who.id, startISO, endISO);
-      } else {
-        // auto: try artist then presenter with same id if user pasted one
-        if (shared.contributorId) {
-          res = await trySchedule('artist', shared.contributorId, startISO, endISO) ||
-                await trySchedule('presenter', shared.contributorId, startISO, endISO);
-        } else {
-          // nothing certain; try name-derived: artist first then presenter
-          const a = await trySchedule('artist', who.id, startISO, endISO);
-          res = a || await trySchedule('presenter', who.id, startISO, endISO);
-        }
-      }
-
-      if (!res) {
-        // fallback to station upcoming expanded
-        const u = `${CFG.PROXY_ENDPOINT}?fn=upcoming&stationId=${encodeURIComponent(shared.stationId)}&limit=200&expand=artist,presenter`;
-        const up = await fetchJSON(u);
-        const list = up?.data || up?.items || up || [];
-        const nm = shared.djName, djSlug = slug(nm);
-        const byName = list.filter(e=>{
-          const n=(e?.artist?.name||e?.presenter?.name||e?.name||e?.title||'').toLowerCase();
-          const tags=(e?.tags||e?.categories||[]).map(t=>typeof t==='string'?t:(t?.slug||t?.name||'')).map(slug);
-          return n.includes(nm.toLowerCase()) || tags.includes(djSlug);
-        });
-        const getIso=e=>e.startDate||e.start||e.startDateUtc||e.scheduledStart||e.start_time||e.start_at;
-        const future = byName
-          .map(s=>({s, t:new Date(getIso(s)||0)}))
-          .filter(x=>x.t>new Date())
-          .sort((a,b)=>a.t-b.t)[0]?.s || null;
-        if (future) res = {next: future, from: up};
-      }
-
-      if (res && res.next) {
-        const whenISO = res.next.startDateUtc || res.next.startDate || res.next.start || res.next.scheduledStart || res.next.start_time || res.next.start_at;
-        if (whenISO) {
-          nextWhen.textContent = fmtLocal(whenISO);
-          nextWhen.setAttribute('data-utc', whenISO);
-          nextWhen.title = `Start (UTC): ${new Date(whenISO).toUTCString()}`;
-        } else {
-          nextWhen.textContent = 'TBA';
-        }
-        if (/default-dj\.png$/i.test(djProfile.src||'')) {
-          const img = firstImageUrl(res.from?.artist) || firstImageUrl(res.from?.presenter) || firstImageUrl(res.next?.artist) || firstImageUrl(res.next?.presenter);
-          if (img) djProfile.src = img;
-        }
-        return;
-      }
-
-      nextWhen.textContent = 'No upcoming show found';
-    }catch{
-      nextWhen.textContent = 'Unable to load schedule';
-    }
-  }
-
-  /* ---------- equal-height 5-row sidebar (desktop) / compact rows (mobile) ---------- */
-  function syncHeights(){
-    const mobile = window.matchMedia('(max-width: 768px)').matches;
-    if (mobile){
-      // On phones, don't lock a fixed height; use compact equal rows
-      stripList.style.height = 'auto';
-      stripList.style.display = 'grid';
-      stripList.style.gridTemplateRows = 'repeat(5, 72px)';
+    const then = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const { schedules } = await rcFetch(
+      `/station/${STATION_ID}/schedule?startDate=${now.toISOString()}&endDate=${then.toISOString()}`
+    );
+    if (!schedules.length) {
+      container.innerHTML = "<p>No shows scheduled this week.</p>";
       return;
     }
-    // Desktop: match the preview's height and split into 5 equal rows
-    const ratio = mainPreview.querySelector('.ratio.big');
-    const h = (ratio && ratio.getBoundingClientRect().height) || mainPreview.getBoundingClientRect().height;
-    if (h > 0) {
-      stripList.style.height = h + 'px';
-      stripList.style.display = 'grid';
-      stripList.style.gridTemplateRows = 'repeat(5, 1fr)';
+    container.innerHTML = "";
+    const fmt = iso => new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+    const byDay = schedules.reduce((acc, ev) => {
+      const day = new Date(ev.startDateUtc).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "short" });
+      (acc[day] = acc[day] || []).push(ev);
+      return acc;
+    }, {});
+    Object.entries(byDay).forEach(([day, evs]) => {
+      const h3 = document.createElement("h3"); h3.textContent = day;
+      container.appendChild(h3);
+      const ul = document.createElement("ul"); ul.style.listStyle = "none"; ul.style.padding = "0";
+      evs.forEach(ev => {
+        const li = document.createElement("li"); li.style.marginBottom = "1rem";
+        const wrap = document.createElement("div"); wrap.style.display = "flex"; wrap.style.alignItems = "center"; wrap.style.gap = "8px";
+        const t = document.createElement("strong"); t.textContent = `${fmt(ev.startDateUtc)}–${fmt(ev.endDateUtc)}`; wrap.appendChild(t);
+
+        // CHANGED: sanitize artwork URL used in schedule list
+        const rawArt = ev.metadata?.artwork?.default || ev.metadata?.artwork?.original;
+        const artUrl = trustedArt(rawArt);
+        if (artUrl) {
+          const img = document.createElement("img"); img.src = artUrl; img.alt = `${ev.title} artwork`;
+          img.style.cssText = "width:30px;height:30px;object-fit:cover;border-radius:3px;"; wrap.appendChild(img);
+        }
+        const span = document.createElement("span"); span.textContent = ev.title; wrap.appendChild(span);
+        li.appendChild(wrap); ul.appendChild(li);
+      });
+      container.appendChild(ul);
+    });
+  } catch (e) {
+    console.error("Schedule error:", e);
+    document.getElementById("schedule-container").innerHTML = "<p>Error loading schedule.</p>";
+  }
+}
+
+async function fetchNowPlayingArchive() {
+  try {
+    const { result } = await rcFetch(`/station/${STATION_ID}/schedule/live`);
+    const { metadata: md = {}, content: ct = {} } = result;
+    let text = "Now Playing: ";
+    if (md.title) text += md.artist ? `${md.artist} – ${md.title}` : md.title;
+    else if (md.filename) text += md.filename;
+    else if (ct.title) text += ct.title;
+    else if (ct.name) text += ct.name;
+    else text += "Unknown Show";
+    document.getElementById("now-archive").textContent = text;
+  } catch (e) {
+    console.error("Archive-now error:", e);
+    document.getElementById("now-archive").textContent = "Unable to load archive show";
+  }
+}
+
+// 7) ADMIN & UI ACTIONS
+function openChatPopup() {
+  const url = `https://app.radiocult.fm/embed/chat/${STATION_ID}?theme=midnight&primaryColor=%235A8785&corners=sharp`;
+  if (isMobile) window.open(url, "CuttersChatMobile", "noopener");
+  else if (chatPopupWindow && !chatPopupWindow.closed) chatPopupWindow.focus();
+  else chatPopupWindow = window.open(url, "CuttersChatPopup", "width=400,height=700,resizable=yes,scrollbars=yes");
+}
+
+// 8) BANNER GIF ROTATION
+const rightEl = document.querySelector(".header-gif-right");
+const leftEl = document.querySelector(".header-gif-left");
+if (rightEl && leftEl) {
+  const sets = [
+    { right: "/images/Untitled design(4).gif", left: "/images/Untitled design(5).gif" },
+    { right: "/images/Untitled design(7).gif", left: "/images/Untitled design(8).gif" }
+  ];
+  let current = 0, sweepCount = 0;
+  const speedMs = (parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--gif-speed").replace("s", "")) || 12) * 1000;
+  setInterval(() => {
+    sweepCount++;
+    if (sweepCount >= 2) {
+      current = (current + 1) % sets.length;
+      rightEl.style.backgroundImage = `url('${sets[current].right}')`;
+      leftEl.style.backgroundImage = `url('${sets[current].left}')`;
+      sweepCount = 0;
     }
-  }
-  const syncHeightsSoon = () => setTimeout(syncHeights, 60);
-  new ResizeObserver(syncHeights).observe(mainPreview);
-  window.addEventListener('resize', syncHeightsSoon);
-  setInterval(syncHeights, 800); // keep it in sync during dynamic loads
+  }, speedMs);
+}
 
-  /* ---------- admin ---------- */
-  function renderAdmin(){
-    const btn=document.createElement('button'); btn.className='admin-btn'; btn.innerHTML='<i class="fa-solid fa-gear"></i>';
+// 9) INITIALIZATION
+document.addEventListener("DOMContentLoaded", () => {
+  fetchLiveNow();
+  fetchWeeklySchedule();
+  fetchNowPlayingArchive();
+  loadArchives();
 
-    const panel=document.createElement('div'); panel.className='admin-panel';
-    panel.innerHTML = `
-      <div class="admin-head">
-        <strong>DJ SELECTS — Admin</strong>
-        <button id="x" class="admin-close" aria-label="Close">&times;</button>
-      </div>
-      <div class="admin-body">
-        <label>DJ Name<input id="aDj" value="${shared.djName}"></label>
-        <div class="two-col">
-          <label>Station ID<input id="aSt" value="${shared.stationId}"></label>
-          <label>Publishable API Key (optional)<input id="aKey" placeholder="pk_..." value="${shared.apiKey}"></label>
-        </div>
-
-        <div class="two-col">
-          <label>Schedule type
-            <select id="aKind">
-              <option value="auto" ${shared.contributorKind==='auto'?'selected':''}>Auto (try both)</option>
-              <option value="artist" ${shared.contributorKind==='artist'?'selected':''}>Artist</option>
-              <option value="presenter" ${shared.contributorKind==='presenter'?'selected':''}>Presenter</option>
-            </select>
-          </label>
-          <label>Artist/Presenter ID (optional)
-            <input type="text" id="aId" placeholder="e.g. 25b015d2-01a5-4abb-8e2c-c5d425e0483d" value="${shared.contributorId||''}">
-          </label>
-        </div>
-
-        <label>Profile Image URL<input id="aImg" value="${shared.profileImage||''}"></label>
-
-        <div class="admin-subhead" style="margin:.5rem 0 .25rem;font-family:'Bebas Neue',sans-serif;font-size:1.3rem;">YouTube Track URLs (up to 5)</div>
-        <div id="aTracks"></div>
-
-        <div class="admin-actions">
-          <button id="save" class="primary">Save</button>
-          <button id="logout" class="ghost">Logout</button>
-          <button id="reset" class="danger">Reset (local only)</button>
-        </div>
-      </div>`;
-
-    adminMount.after(btn, panel); adminMount.remove();
-
-    const close=()=>panel.classList.remove('open'); 
-    btn.onclick=()=>panel.classList.add('open'); 
-    panel.querySelector('#x').onclick=close;
-
-    const wrap=panel.querySelector('#aTracks');
-    const draw=()=>{ 
-      wrap.innerHTML=''; 
-      [...shared.tracks,'','','',''].slice(0,5).forEach(v=>{ 
-        const row=document.createElement('div'); 
-        row.className='track-input'; 
-        row.innerHTML=`<input type="url" value="${v||''}" placeholder="https://www.youtube.com/watch?v=..."><button data-a="clear">Clear</button><button data-a="paste">Paste</button>`; 
-        row.querySelector('[data-a="clear"]').onclick=()=>row.querySelector('input').value=''; 
-        row.querySelector('[data-a="paste"]').onclick=async()=>{ try{ row.querySelector('input').value=await navigator.clipboard.readText(); }catch{} }; 
-        wrap.appendChild(row); 
-      }); 
-    };
-    draw();
-
-    panel.querySelector('#save').onclick = async () => {
-      shared.djName        = panel.querySelector('#aDj').value.trim() || shared.djName;
-      shared.stationId     = panel.querySelector('#aSt').value.trim() || shared.stationId;
-      shared.apiKey        = panel.querySelector('#aKey').value.trim();
-      shared.profileImage  = panel.querySelector('#aImg').value.trim();
-      shared.contributorId = panel.querySelector('#aId').value.trim();
-      shared.contributorKind = panel.querySelector('#aKind').value;
-      shared.tracks        = $$('#aTracks input', panel).map(i=>i.value.trim()).filter(Boolean).slice(0,5);
-
-      localStorage.setItem('dj-selects-config', JSON.stringify(shared));
-      try {
-        const r = await fetch(`${CFG.CONFIG_ENDPOINT}?action=save`, {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ token: CFG.SAVE_TOKEN, data: shared })
-        });
-        if (!r.ok) throw 0;
-        alert('Saved to server. Live for everyone.');
-      } catch {
-        alert('Saved locally. To save for everyone, ensure tokens match.');
-      }
-
-      apply(); close();
-    };
-
-    panel.querySelector('#logout').onclick = () => { sessionStorage.removeItem('dj-selects-auth'); location.reload(); };
-    panel.querySelector('#reset').onclick  = () => { localStorage.removeItem('dj-selects-config'); alert('Local data cleared. Reloading…'); location.reload(); };
+  // Chromecast Cast button handler
+  const castButton = document.querySelector('google-cast-button');
+  if (castButton) {
+    castButton.addEventListener('click', async () => {
+      const context = cast.framework.CastContext.getInstance();
+      const session = context.getCurrentSession();
+      if (!session) return console.warn('No Chromecast session');
+      const mediaInfo = new chrome.cast.media.MediaInfo(STREAM_URL, 'application/x-mpegurl');
+      mediaInfo.streamType = chrome.cast.media.StreamType.LIVE;
+      mediaInfo.metadata = new chrome.cast.media.MusicTrackMediaMetadata();
+      mediaInfo.metadata.title = document.getElementById('now-dj').textContent;
+      mediaInfo.metadata.albumName = 'Cutters Choice Radio';
+      const request = new chrome.cast.media.LoadRequest(mediaInfo);
+      try { await session.loadMedia(request); console.log('Casting started'); }
+      catch (err) { console.error('Chromecast error:', err); }
+    });
   }
 
-  async function ensureAdmin(){
-    const prompt=async()=>{ const p=window.prompt('Enter admin passphrase:'); if(!p) return; const ok=await sha256hex(p)===CFG.ADMIN_HASH_HEX; if(ok){ sessionStorage.setItem('dj-selects-auth','1'); renderAdmin(); } else alert('Wrong passphrase.'); };
-    if(new URLSearchParams(location.search).get('admin')==='1') await prompt();
-    document.addEventListener('keydown', async e=>{ if(e.key.toLowerCase()==='a' && e.shiftKey) await prompt(); });
-    if(sessionStorage.getItem('dj-selects-auth')==='1') renderAdmin();
+  // Cleanup & auto-refresh
+  if (window.matchMedia("(max-width: 768px)").matches) {
+    document.querySelectorAll("section.chat .chat-actions").forEach(el => el.remove());
   }
+  setInterval(fetchLiveNow, 30000);
+  setInterval(fetchNowPlayingArchive, 30000);
 
-  function apply(){
-    djNameText.textContent = shared.djName || 'DJ NAME';
-    if (shared.profileImage) djProfile.src = shared.profileImage;
-    const embeds=(shared.tracks||[]).map(toEmbed).filter(Boolean);
-    renderStrips(embeds);
-    loadDjImage();
-    loadNextShow();
-  }
+  if (isMobile) document.querySelector(".mixcloud")?.remove();
 
-  window.addEventListener('DOMContentLoaded', async ()=>{
-    await loadSharedConfig();
-    apply();
-    ensureAdmin();
-    syncHeightsSoon();
+  // Inject Mixcloud widget script
+  const mcScript = document.createElement("script");
+  mcScript.src = "https://widget.mixcloud.com/widget.js";
+  mcScript.async = true;
+  document.body.appendChild(mcScript);
+
+  // Pop-out player
+  document.getElementById("popOutBtn")?.addEventListener("click", () => {
+    const src = document.getElementById("inlinePlayer").src;
+    const w = window.open("", "CCRPlayer", "width=400,height=200,resizable=yes");
+    w.document.write(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+      <title>Cutters Choice Player</title>
+      <style>body{margin:0;background:#111;display:flex;align-items:center;justify-content:center;height:100vh}iframe{width:100%;height:180px;border:none;border-radius:4px}</style>
+      </head>
+      <body><iframe src="${src}" allow="autoplay"></iframe></body>
+      </html>
+    `);
+    w.document.close();
   });
-})();
+
+  // Chat ghost cleanup
+  const ul = document.querySelector(".rc-user-list");
+  if (ul) {
+    new MutationObserver(() => {
+      ul.querySelectorAll("li").forEach(li => { if (!li.textContent.trim()) li.remove(); });
+    }).observe(ul, { childList: true });
+  }
+
+  // Ban check timing
+  if ("requestIdleCallback" in window) requestIdleCallback(initBanCheck, { timeout: 2000 });
+  else setTimeout(initBanCheck, 2000);
+});

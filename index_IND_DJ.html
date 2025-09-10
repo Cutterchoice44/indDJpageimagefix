@@ -80,16 +80,13 @@
     #main-nav .social-icon{ display:inline-flex !important; align-items:center !important; justify-content:center !important; line-height:1 !important; text-decoration:none !important; color:#fff !important; }
     #main-nav .social-icon i{ font-size:2.1rem !important; }
     .icon-img{ width:2.6rem !important; height:auto !important; margin-left:.25rem !important; vertical-align:middle !important; display:inline-block !important; }
-    #main-nav .nav-onemusic{ display:flex; align-items:center; }
     #main-nav .nav-onemusic img{ max-height:2rem; width:auto; height:auto; display:block; }
 
     /* HEADER layout: [logo] [wave] [title] [wave] [logo] */
     .header-banner{
       position:relative; display:flex; align-items:center; justify-content:space-between;
-      gap:0;                               /* no gaps so waves meet logos/title */
-      background:#000; padding:clamp(12px, 3vw, 24px) 0;
-      overflow:hidden; isolation:isolate;
-      flex-wrap:nowrap;                    /* one line on desktop so waves can stretch */
+      gap:0; background:#000; padding:clamp(12px, 3vw, 24px) 0;
+      overflow:hidden; isolation:isolate; flex-wrap:nowrap;
     }
     /* Allow wrap on mobile */
     @media (max-width:768px){ .header-banner{ flex-wrap:wrap; gap:4px; } }
@@ -99,14 +96,10 @@
 
     /* Stretchy WEBM strips (from logo → title each side) */
     .header-wave{
-      flex:1 2 0;          /* stretch to fill available space */
-      width:auto;          /* ignore any width attributes */
-      min-width:60px;
+      flex:1 1 0; width:auto; min-width:60px;
       height:var(--wave-height-desktop);
-      display:block;
-      object-fit:cover;
-      border-top:2px solid #000; border-bottom:2px solid #000;
-      background:#000;     /* paints before video shows */
+      display:block; object-fit:cover;
+      border-top:2px solid #000; border-bottom:2px solid #000; background:#000;
     }
     @media (max-width:768px){ .header-wave{ height:var(--wave-height-mobile); min-width:40px; } }
 
@@ -114,24 +107,54 @@
     .header-banner .title{ flex:0 1 auto; text-align:center; padding:0 .25rem; min-width:260px; }
     @media (max-width:768px){ .header-banner .title{ min-width:180px; } }
 
-    /* Logo dimensions reserved to prevent CLS, remove extra margin */
+    /* Logo dimensions reserved to prevent CLS */
     .logo{ width:160px; height:160px; aspect-ratio:1/1; margin:0; }
 
-    /* Defer below-the-fold work a bit for faster first paint */
+    /* Defer below-the-fold work */
     .schedule, .mixcloud{ content-visibility:auto; contain-intrinsic-size: 800px 600px; }
 
-    /* Mobile nav tweaks */
-    @media (max-width:768px){
-      #main-nav a.nav-link, #main-nav button.nav-link, #main-nav summary.nav-link{ font-size:1rem !important; }
-      #main-nav .nav-menu{ justify-content:space-between !important; gap:.5rem !important; }
-      #main-nav .social-icon i{ font-size:1.4rem !important; }
-      #main-nav .icon-img, #main-nav .nav-onemusic{ display:none !important; }
-      .nav-details .about-panel{ width:calc(100vw - 16px); right:-8px; }
+    /* === MOBILE OVERRIDES (phones only) =============================== */
+    @media (max-width: 768px){
+      /* 1) Make WEBM windows a bit bigger; slim header */
+      :root{ --wave-height-mobile: 110px; } /* was 80px */
+      .header-banner{ padding:10px 0 6px; }
+      .logo{ width:120px; height:120px; }              /* tighter top band */
+      .header-banner .title h1{ font-size:9.2vw; line-height:1; margin:0; }
+      .header-banner .title .tagline{ font-size:4vw; margin-top:4px; }
 
-      /* Scrollable schedule list on mobile */
-      #schedule-container{ max-height:55vh; overflow-y:auto; padding-right:6px; scroll-behavior:smooth; -webkit-overflow-scrolling:touch; }
-      #schedule-container h3, #schedule-container .day-title{ position:sticky; top:0; z-index:2; }
+      /* 2) Reflow nav: main links on row 1; “About the Station” on row 2, smaller */
+      #main-nav{ flex-direction:column; align-items:stretch !important; gap:.25rem !important; }
+      #main-nav .nav-menu{ flex-wrap:wrap; justify-content:space-between !important; gap:.35rem !important; }
+      #main-nav a.nav-link{ font-size:1rem !important; padding:.15rem .25rem; }
+
+      /* push details to its own full-width row */
+      .nav-details{ order:2; width:100%; }
+      .nav-details > summary.nav-link{
+        font-size:.9rem !important;
+        display:inline-block;
+        padding:.35rem .55rem;
+        background:rgba(0,0,0,.18);
+        border:1px solid rgba(255,255,255,.28);
+        border-radius:999px;
+        margin:.25rem 0 .1rem;
+        text-align:center;
+        width:max-content;
+      }
+      /* center the pill under the first row */
+      #main-nav .nav-menu{ align-content:flex-start; }
+      .nav-details .about-panel{ width:calc(100vw - 22px); right:-6px; }
+
+      /* 3) Trim right-side extras to avoid crowding */
+      #main-nav .social-icon i{ font-size:1.35rem !important; }
+      .icon-img, .nav-onemusic{ display:none !important; }
+
+      /* 4) Space below nav just a touch on phones */
+      #main-nav + div[style*="height:2px"]{ margin-top:2px; }
+
+      /* 5) Live player / buttons breathing room on phones */
+      .player-container #chatPopupBtn{ position:static; margin-top:.5rem; }
     }
+    /* ================================================================== */
 
     /* Reduced motion: hide decorative video strips */
     @media (prefers-reduced-motion: reduce){
@@ -148,9 +171,6 @@
           receiverApplicationId: '77E0F81B',
           autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
         });
-        :root{
-  --wave-height-desktop: 220px;
-  --wave-height-mobile: 110px;
       }
     };
   </script>
@@ -225,7 +245,7 @@
       <a href="schedule.html"     class="nav-link">SCHEDULE</a>
       <a href="merch.html"        class="nav-link">MERCH</a>
 
-      <!-- ABOUT THE STATION as SEO-friendly toggle in the nav (6th item) -->
+      <!-- ABOUT THE STATION (moved to second row on mobile via CSS) -->
       <details class="nav-details" id="about-overlay">
         <summary class="nav-link" aria-label="About the station">ABOUT THE STATION</summary>
         <div class="about-panel" id="about-station-content">
@@ -259,7 +279,7 @@
         </a>
       </div>
 
-      <!-- Cast controls (official button + fallback). Host has NO aria-* -->
+      <!-- Cast controls -->
       <google-cast-button id="castBtn" title="Cast"></google-cast-button>
       <button id="manualCastBtn" class="nav-link" type="button" title="Cast this stream" aria-label="Cast this stream">CAST</button>
     </div>
@@ -412,7 +432,7 @@
     });
   </script>
 
-  <!-- JSON-LD Events injector (client-only, no visual changes) -->
+  <!-- JSON-LD Events injector -->
   <script>
   (function(){
     const API_KEY = 'pk_0b8abc6f834b444f949f727e88a728e0';   // publishable (read-only)

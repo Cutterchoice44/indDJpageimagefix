@@ -59,7 +59,7 @@ html, body {
 
 /* Decorative WEBM strips: stretch to fill from logo → title on each side */
 .header-wave {
-  flex: 1 1 0;            /* grow to take all remaining space */
+  flex: 1 2 0;            /* grow to take all remaining space */
   width: auto;            /* ignore fixed widths — we stretch */
   min-width: 100px;        /* don’t collapse too small */
   height: var(--wave-height-desktop);

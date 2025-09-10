@@ -10,10 +10,8 @@
   --bg-dark: #000;
   --text-light: #fafafa;
 
-  /* Header video strip sizing (kept small to avoid LCP & CLS) */
-  --wave-width-desktop: 320px;
+  /* Header video strip sizing */
   --wave-height-desktop: 120px;
-  --wave-width-mobile: 240px;
   --wave-height-mobile: 80px;
 
   /* Logo sizing (space reserved to prevent CLS) */
@@ -32,52 +30,90 @@ html, body {
 }
 
 /* ─── HEADER (Video strips replacing GIFs) ───────────────────────────────── */
-/* Keep header items on one line on desktop (no wrap), wrap on small screens */
-.header-banner{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
+.header-banner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: clamp(8px, 2vw, 16px);
-  flex-wrap: nowrap;              /* <= force one line so waves can stretch */
+  background: #000;
+  padding: clamp(12px, 3vw, 24px) 0;
+  overflow: hidden;
+  isolation: isolate;
+
+  /* Waves need one line on desktop so they can stretch */
+  flex-wrap: nowrap;
 }
+
+/* Allow wrap on small screens so items stack cleanly */
 @media (max-width: 768px){
-  .header-banner{ flex-wrap: wrap; }  /* allow wrap on phones */
+  .header-banner{ flex-wrap: wrap; }
 }
 
-/* Logos stay fixed size (prevents CLS) */
-header .logo{
-  height: var(--logo-size-desktop);
-  width:  var(--logo-size-desktop);
-  max-width: var(--logo-size-desktop);
+/* Hide legacy moving GIF layers (kept for safety) */
+.header-gif-right,
+.header-gif-left {
+  display: none !important;
+  background: none !important;
 }
 
-/* Title takes only what it needs */
-header .title{
-  flex: 0 1 auto;
-  min-width: 220px;               /* ensure room for the title */
-}
-
-/* Waves stretch to fill from logo → title on each side */
-.header-wave{
-  flex: 1 1 0;                     /* <= this makes them grow to fill space */
-  width: auto;                     /* ignore the old fixed width */
+/* Decorative WEBM strips: stretch to fill from logo → title on each side */
+.header-wave {
+  flex: 1 1 0;            /* grow to take all remaining space */
+  width: auto;            /* ignore fixed widths — we stretch */
+  min-width: 60px;        /* don’t collapse too small */
   height: var(--wave-height-desktop);
-  min-width: 60px;                 /* don’t collapse too small */
-  object-fit: cover;
   display: block;
+  object-fit: cover;
+  background: #000;       /* paints immediately while metadata loads */
   border-top: 2px solid #000;
   border-bottom: 2px solid #000;
-  background:#000;
 }
 
-/* Mobile sizes */
+/* Mobile wave height & a slightly smaller min-width */
 @media (max-width: 768px){
-  header .title{ min-width: 180px; }
   .header-wave{
     height: var(--wave-height-mobile);
     min-width: 40px;
   }
 }
+
+/* Title & logo (keep your style) */
+header .logo-container,
+header .title { position: relative; z-index: 1; }
+
+/* Logos keep fixed size to avoid CLS */
+header .logo {
+  height: var(--logo-size-desktop);
+  width: var(--logo-size-desktop);
+  max-width: var(--logo-size-desktop);
+  aspect-ratio: 1/1;
+  margin-bottom: 0.3rem;
+  margin-left: 0.7rem;
+}
+
+/* Title takes only what it needs so waves can expand */
+header .title {
+  flex: 0 1 auto;
+  text-align: center;
+  min-width: 260px; /* ensure room for the title on desktop */
+}
+header .title h1 {
+  font-size: 2rem;
+  margin: 0;
+  font-family: 'Bebas Neue', sans-serif;
+}
+header .title .tagline {
+  font-size: 1.2rem;
+  color: var(--brand-teal);
+  margin-top: 0;
+}
+
+/* Mobile title min-width */
+@media (max-width: 768px){
+  header .title{ min-width: 180px; }
+}
+
 /* Respect user preference: reduce motion by removing the strips */
 @media (prefers-reduced-motion: reduce) {
   .header-wave { display: none !important; }
@@ -407,12 +443,6 @@ section h2::after {
     width: var(--logo-size-mobile) !important;
     max-width: var(--logo-size-mobile) !important;
     margin-bottom: 1.5rem !important;
-  }
-
-  /* Smaller video strips on mobile */
-  .header-wave{
-    width: var(--wave-width-mobile);
-    height: var(--wave-height-mobile);
   }
 
   header .title h1 { font-size: 1.8rem; line-height: 1.2; }

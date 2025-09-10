@@ -47,9 +47,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <!-- INLINE NAV + HEADER + MOBILE TUNING (kept minimal; you can refine in CSS file) -->
+  <!-- INLINE NAV + HEADER + MOBILE TUNING -->
   <style>
-    :root { --brand-teal: #5A8785; }
+    :root { --brand-teal: #5A8785; --wave-height-desktop: 120px; --wave-height-mobile: 80px; }
 
     /* NAV BAR (unchanged layout) */
     #main-nav{
@@ -83,36 +83,44 @@
     #main-nav .nav-onemusic{ display:flex; align-items:center; }
     #main-nav .nav-onemusic img{ max-height:2rem; width:auto; height:auto; display:block; }
 
-    /* HEADER layout: [logo] [video strip] [title] [video strip] [logo] */
+    /* HEADER layout: [logo] [wave] [title] [wave] [logo] */
     .header-banner{
       position:relative; display:flex; align-items:center; justify-content:space-between;
-      gap:clamp(8px, 2vw, 16px); background:#000; padding:clamp(12px, 3vw, 24px) 0;
-      overflow:hidden; isolation:isolate; flex-wrap:wrap; /* wrap on very small widths */
+      gap:0;                               /* no gaps so waves meet logos/title */
+      background:#000; padding:clamp(12px, 3vw, 24px) 0;
+      overflow:hidden; isolation:isolate;
+      flex-wrap:nowrap;                    /* one line on desktop so waves can stretch */
     }
-
-    /* Decorative video strips: fixed size to avoid LCP inflation & CLS */
-    .header-wave{
-      flex:0 0 auto;
-      width:320px; height:120px;
-      display:block; object-fit:cover; border-top:2px solid #000; border-bottom:2px solid #000;
-      background:#000; /* paints immediately while video metadata loads */
-    }
+    /* Allow wrap on mobile */
+    @media (max-width:768px){ .header-banner{ flex-wrap:wrap; gap:4px; } }
 
     /* Hide legacy side-GIF layers */
     .header-gif-right, .header-gif-left{ display:none !important; }
 
-    /* Title block */
-    .header-banner .title{ flex:0 1 auto; text-align:center; padding:0 .25rem; }
-    .header-banner .title h1{ margin:0; }
-    .header-banner .title .tagline{ margin:.15rem 0 0 0; }
+    /* Stretchy WEBM strips (from logo → title each side) */
+    .header-wave{
+      flex:1 1 0;          /* stretch to fill available space */
+      width:auto;          /* ignore any width attributes */
+      min-width:60px;
+      height:var(--wave-height-desktop);
+      display:block;
+      object-fit:cover;
+      border-top:2px solid #000; border-bottom:2px solid #000;
+      background:#000;     /* paints before video shows */
+    }
+    @media (max-width:768px){ .header-wave{ height:var(--wave-height-mobile); min-width:40px; } }
 
-    /* Explicit logo size to reserve space (prevents CLS) */
-    .logo{ width:160; height:160; aspect-ratio:1/1; }
-    /* If you prefer attributes, we also add width/height on the <img> tags below */
+    /* Title block takes only what it needs */
+    .header-banner .title{ flex:0 1 auto; text-align:center; padding:0 .25rem; min-width:260px; }
+    @media (max-width:768px){ .header-banner .title{ min-width:180px; } }
+
+    /* Logo dimensions reserved to prevent CLS, remove extra margin */
+    .logo{ width:160px; height:160px; aspect-ratio:1/1; margin:0; }
 
     /* Defer below-the-fold work a bit for faster first paint */
     .schedule, .mixcloud{ content-visibility:auto; contain-intrinsic-size: 800px 600px; }
 
+    /* Mobile nav tweaks */
     @media (max-width:768px){
       #main-nav a.nav-link, #main-nav button.nav-link, #main-nav summary.nav-link{ font-size:1rem !important; }
       #main-nav .nav-menu{ justify-content:space-between !important; gap:.5rem !important; }
@@ -120,12 +128,15 @@
       #main-nav .icon-img, #main-nav .nav-onemusic{ display:none !important; }
       .nav-details .about-panel{ width:calc(100vw - 16px); right:-8px; }
 
-      /* Smaller video strips on mobile */
-      .header-wave{ width:240px; height:80px; }
-
       /* Scrollable schedule list on mobile */
       #schedule-container{ max-height:55vh; overflow-y:auto; padding-right:6px; scroll-behavior:smooth; -webkit-overflow-scrolling:touch; }
       #schedule-container h3, #schedule-container .day-title{ position:sticky; top:0; z-index:2; }
+    }
+
+    /* Reduced motion: hide decorative video strips */
+    @media (prefers-reduced-motion: reduce){
+      .header-wave{ display:none !important; }
+      .header-banner{ justify-content:center; }
     }
   </style>
 
@@ -181,11 +192,8 @@
     </div>
 
     <!-- WEBM wave between left logo and titles -->
-    <video class="header-wave header-wave-left" aria-hidden="true" muted loop autoplay playsinline preload="metadata" width="320" height="120">
+    <video class="header-wave header-wave-left" aria-hidden="true" muted loop autoplay playsinline preload="metadata">
       <source src="/images/audiowave.webm" type="video/webm">
-      <!-- Optional MP4 fallback if you add it later:
-      <source src="/images/audiowave.mp4" type="video/mp4">
-      -->
     </video>
 
     <div class="title">
@@ -194,14 +202,13 @@
     </div>
 
     <!-- WEBM wave between titles and right logo -->
-    <video class="header-wave header-wave-right" aria-hidden="true" muted loop autoplay playsinline preload="metadata" width="320" height="120">
+    <video class="header-wave header-wave-right" aria-hidden="true" muted loop autoplay playsinline preload="metadata">
       <source src="/images/audiowave.webm" type="video/webm">
     </video>
 
     <div class="logo-container">
       <img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="eager" decoding="async" width="160" height="160">
     </div>
-    <!-- (About toggle moved to nav) -->
   </header>
 
   <div style="height:2px;background-color:var(--brand-teal);"></div>
@@ -284,7 +291,6 @@
         <button id="chatPopupBtn" class="popout-btn chat-btn-mobile" onclick="openChatPopup()">Chat</button>
       </div>
       <h3>This Week’s Shows</h3>
-      <!-- Fallback image changed to your local asset (no Imgur) -->
       <img id="now-art" src="/images/archives-logo.jpeg" alt="Current DJ Artwork" loading="lazy" decoding="async" width="512" height="512">
     </section>
 

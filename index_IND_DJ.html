@@ -37,6 +37,9 @@
   <link rel="preconnect" href="https://app.radiocult.fm" crossorigin>
   <link rel="preconnect" href="https://cdn.socket.io" crossorigin>
 
+  <!-- Preload likely-LCP (logo) to speed first paint -->
+  <link rel="preload" href="/images/logo.png" as="image" imagesrcset="/images/logo.png 1x">
+
   <!-- Main stylesheet -->
   <link rel="stylesheet" href="style.css?v=1757106631679">
 
@@ -44,183 +47,85 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <!-- INLINE NAV + MOBILE LINEUP STYLING -->
+  <!-- INLINE NAV + HEADER + MOBILE TUNING (kept minimal; you can refine in CSS file) -->
   <style>
     :root { --brand-teal: #5A8785; }
 
-    /* NAV BAR */
+    /* NAV BAR (unchanged layout) */
     #main-nav{
-      display:flex !important;
-      align-items:center !important;
-      gap:.5rem !important;
-      width:100% !important;
-      padding:.10rem .65rem !important;
-      margin:0 !important;
-      box-sizing:border-box !important;
-      background-color:var(--brand-teal) !important;
-      position:relative !important;
-      z-index:1000 !important;
-      border-top:2px solid #000;
-      border-bottom:2px solid #000;
+      display:flex !important; align-items:center !important; gap:.5rem !important;
+      width:100% !important; padding:.10rem .65rem !important; margin:0 !important;
+      box-sizing:border-box !important; background-color:var(--brand-teal) !important;
+      position:relative !important; z-index:1000 !important; border-top:2px solid #000; border-bottom:2px solid #000;
     }
     #main-nav .nav-menu{
-      display:flex !important;
-      align-items:center !important;
-      justify-content:space-evenly !important; /* 6 items spaced evenly */
-      gap:clamp(.25rem,2vw,1.5rem) !important;
-      flex:1 1 auto !important;
-      min-width:0 !important;
+      display:flex !important; align-items:center !important; justify-content:space-evenly !important;
+      gap:clamp(.25rem,2vw,1.5rem) !important; flex:1 1 auto !important; min-width:0 !important;
     }
-
-    /* ⬅️ include button.nav-link so buttons match links */
-    #main-nav a.nav-link,
-    #main-nav button.nav-link,
-    #main-nav summary.nav-link{
-      color:#fff !important;
-      font-family:'Bebas Neue',sans-serif !important;
-      font-size:2rem !important;
-      text-transform:uppercase !important;
-      text-decoration:none !important;
-      white-space:nowrap !important;
-      list-style:none !important;
-      cursor:pointer !important;
-      display:inline-flex;
-      align-items:center;
+    #main-nav a.nav-link, #main-nav button.nav-link, #main-nav summary.nav-link{
+      color:#fff !important; font-family:'Bebas Neue',sans-serif !important; font-size:2rem !important;
+      text-transform:uppercase !important; text-decoration:none !important; white-space:nowrap !important;
+      list-style:none !important; cursor:pointer !important; display:inline-flex; align-items:center;
     }
-
-    /* About dropdown living inside nav as 6th item */
     .nav-details{ position:relative; }
     .nav-details .about-panel{
-      position:absolute;
-      top:calc(100% + 8px);
-      right:0;
-      width:min(520px, 86vw);
-      background:#000;
-      color:#fff;
-      border:2px solid var(--brand-teal);
-      border-radius:8px;
-      padding:.75rem .9rem;
-      line-height:1.35;
-      box-shadow:0 8px 18px rgba(0,0,0,.45);
-      display:none;
-      z-index:1100;
+      position:absolute; top:calc(100% + 8px); right:0; width:min(520px, 86vw);
+      background:#000; color:#fff; border:2px solid var(--brand-teal); border-radius:8px;
+      padding:.75rem .9rem; line-height:1.35; box-shadow:0 8px 18px rgba(0,0,0,.45); display:none; z-index:1100;
     }
     .nav-details[open] .about-panel{ display:block; }
     .nav-details > summary::-webkit-details-marker{ display:none; }
     .nav-details > summary:focus{ outline:2px solid #fff; outline-offset:2px; }
-
-    #main-nav .nav-actions{
-      display:flex !important;
-      align-items:center !important;
-      justify-content:flex-end !important;
-      gap:.6rem !important;
-      flex:0 0 auto !important;
-    }
-    #main-nav .social-icon{
-      display:inline-flex !important;
-      align-items:center !important;
-      justify-content:center !important;
-      line-height:1 !important;
-      text-decoration:none !important;
-      color:#fff !important;
-    }
+    #main-nav .nav-actions{ display:flex !important; align-items:center !important; justify-content:flex-end !important; gap:.6rem !important; flex:0 0 auto !important; }
+    #main-nav .social-icon{ display:inline-flex !important; align-items:center !important; justify-content:center !important; line-height:1 !important; text-decoration:none !important; color:#fff !important; }
     #main-nav .social-icon i{ font-size:2.1rem !important; }
-    .icon-img{
-      width:2.6rem !important;
-      height:auto !important;
-      margin-left:.25rem !important;
-      vertical-align:middle !important;
-      display:inline-block !important;
-    }
+    .icon-img{ width:2.6rem !important; height:auto !important; margin-left:.25rem !important; vertical-align:middle !important; display:inline-block !important; }
     #main-nav .nav-onemusic{ display:flex; align-items:center; }
     #main-nav .nav-onemusic img{ max-height:2rem; width:auto; height:auto; display:block; }
 
-    /* 🔧 fallback CAST button: inherit nav-link typography, hidden by default (JS toggles) */
-    #manualCastBtn{
-      display:none;
-      background:none;
-      border:none;
-      color:#fff;
-      margin-left:.25rem;
-      padding:0;
-      appearance:none;
-      -webkit-appearance:none;
-      font:inherit;               /* inherit Bebas + size from .nav-link */
-      line-height:inherit;
-      letter-spacing:inherit;
+    /* HEADER layout: [logo] [video strip] [title] [video strip] [logo] */
+    .header-banner{
+      position:relative; display:flex; align-items:center; justify-content:space-between;
+      gap:clamp(8px, 2vw, 16px); background:#000; padding:clamp(12px, 3vw, 24px) 0;
+      overflow:hidden; isolation:isolate; flex-wrap:wrap; /* wrap on very small widths */
     }
 
-    @media (max-width:768px){
-      /* ⬅️ include button.nav-link on mobile too */
-      #main-nav a.nav-link,
-      #main-nav button.nav-link,
-      #main-nav summary.nav-link{ font-size:1rem !important; }
+    /* Decorative video strips: fixed size to avoid LCP inflation & CLS */
+    .header-wave{
+      flex:0 0 auto;
+      width:320px; height:120px;
+      display:block; object-fit:cover; border-top:2px solid #000; border-bottom:2px solid #000;
+      background:#000; /* paints immediately while video metadata loads */
+    }
 
+    /* Hide legacy side-GIF layers */
+    .header-gif-right, .header-gif-left{ display:none !important; }
+
+    /* Title block */
+    .header-banner .title{ flex:0 1 auto; text-align:center; padding:0 .25rem; }
+    .header-banner .title h1{ margin:0; }
+    .header-banner .title .tagline{ margin:.15rem 0 0 0; }
+
+    /* Explicit logo size to reserve space (prevents CLS) */
+    .logo{ width:160; height:160; aspect-ratio:1/1; }
+    /* If you prefer attributes, we also add width/height on the <img> tags below */
+
+    /* Defer below-the-fold work a bit for faster first paint */
+    .schedule, .mixcloud{ content-visibility:auto; contain-intrinsic-size: 800px 600px; }
+
+    @media (max-width:768px){
+      #main-nav a.nav-link, #main-nav button.nav-link, #main-nav summary.nav-link{ font-size:1rem !important; }
       #main-nav .nav-menu{ justify-content:space-between !important; gap:.5rem !important; }
       #main-nav .social-icon i{ font-size:1.4rem !important; }
       #main-nav .icon-img, #main-nav .nav-onemusic{ display:none !important; }
       .nav-details .about-panel{ width:calc(100vw - 16px); right:-8px; }
 
-      #schedule-container{
-        max-height:55vh;
-        overflow-y:auto;
-        padding-right:6px;
-        scroll-behavior:smooth;
-        -webkit-overflow-scrolling:touch;
-      }
-      #schedule-container h3,
-      #schedule-container .day-title{
-        position:sticky;
-        top:0;
-        z-index:2;
-      }
-    }
+      /* Smaller video strips on mobile */
+      .header-wave{ width:240px; height:80px; }
 
-    /* HEADER now lays out: [logo] [wave] [title] [wave] [logo] */
-    .header-banner{
-      position: relative;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:clamp(8px, 2vw, 16px);
-      background:#000;
-      padding: clamp(12px, 3vw, 24px) 0;
-      overflow:hidden;
-      isolation:isolate;
-      flex-wrap:wrap; /* lets items wrap on very small widths */
-    }
-
-    /* Wave strips */
-    .header-wave{
-      flex:1 1 20%;
-      min-width:90px;
-      height:120px;
-      background: url('/images/audiowave.gif') center / cover no-repeat;
-      border-top:2px solid #000; /* preserves top/bottom edge crispness on some displays */
-      border-bottom:2px solid #000;
-    }
-
-    /* Keep old side-GIF layers hidden (safe no-op) */
-    .header-gif-right,
-    .header-gif-left{
-      display:none !important;
-      background:none !important;
-    }
-
-    /* Title block can stay as-is; ensure it doesn't squish too small */
-    .header-banner .title{
-      flex:0 1 auto;
-      text-align:center;
-      padding:0 .25rem;
-    }
-
-    /* Logos keep natural size; prevent overflow */
-    .header-banner .logo-container{
-      flex:0 0 auto;
-    }
-
-    @media (max-width:768px){
-      .header-wave{ height:80px; min-width:70px; }
+      /* Scrollable schedule list on mobile */
+      #schedule-container{ max-height:55vh; overflow-y:auto; padding-right:6px; scroll-behavior:smooth; -webkit-overflow-scrolling:touch; }
+      #schedule-container h3, #schedule-container .day-title{ position:sticky; top:0; z-index:2; }
     }
   </style>
 
@@ -272,22 +177,29 @@
     <div class="header-gif-left"></div>
 
     <div class="logo-container">
-      <img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="lazy">
+      <img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="eager" decoding="async" width="160" height="160" fetchpriority="high">
     </div>
 
-    <!-- NEW: wave between left logo and titles -->
-    <div class="header-wave header-wave-left" aria-hidden="true"></div>
+    <!-- WEBM wave between left logo and titles -->
+    <video class="header-wave header-wave-left" aria-hidden="true" muted loop autoplay playsinline preload="metadata" width="320" height="120">
+      <source src="/images/audiowave.webm" type="video/webm">
+      <!-- Optional MP4 fallback if you add it later:
+      <source src="/images/audiowave.mp4" type="video/mp4">
+      -->
+    </video>
 
     <div class="title">
       <h1>Cutters Choice Radio</h1>
       <p class="tagline">The home of relentless flavas and significant bangers!</p>
     </div>
 
-    <!-- NEW: wave between titles and right logo -->
-    <div class="header-wave header-wave-right" aria-hidden="true"></div>
+    <!-- WEBM wave between titles and right logo -->
+    <video class="header-wave header-wave-right" aria-hidden="true" muted loop autoplay playsinline preload="metadata" width="320" height="120">
+      <source src="/images/audiowave.webm" type="video/webm">
+    </video>
 
     <div class="logo-container">
-      <img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="lazy">
+      <img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="eager" decoding="async" width="160" height="160">
     </div>
     <!-- (About toggle moved to nav) -->
   </header>
@@ -323,17 +235,17 @@
       </a>
 
       <!-- Alexa logo -->
-      <img src="/images/alexa-logo.webp" alt="Alexa" class="icon-img" loading="lazy">
+      <img src="/images/alexa-logo.webp" alt="Alexa" class="icon-img" loading="lazy" decoding="async" width="42" height="42">
 
       <!-- TuneIn logo -->
       <a href="https://tunein.com/radio/Cutters-Choice-Radio-s344746/" target="_blank" rel="noopener noreferrer" aria-label="TuneIn">
-        <img src="/images/tunein-logo.png" alt="TuneIn" class="icon-img" loading="lazy">
+        <img src="/images/tunein-logo.png" alt="TuneIn" class="icon-img" loading="lazy" decoding="async" width="42" height="42">
       </a>
 
       <!-- OneMusic badge -->
       <div class="nav-onemusic">
         <a href="https://onemusicnz.com" target="_blank" rel="noopener noreferrer">
-          <img src="/images/ONEMUSICLOGO.png" alt="We’re licensed to play OneMusic NZ" loading="lazy">
+          <img src="/images/ONEMUSICLOGO.png" alt="We’re licensed to play OneMusic NZ" loading="lazy" decoding="async" width="120" height="40">
         </a>
       </div>
 
@@ -373,7 +285,7 @@
       </div>
       <h3>This Week’s Shows</h3>
       <!-- Fallback image changed to your local asset (no Imgur) -->
-      <img id="now-art" src="/images/archives-logo.jpeg" alt="Current DJ Artwork" loading="lazy">
+      <img id="now-art" src="/images/archives-logo.jpeg" alt="Current DJ Artwork" loading="lazy" decoding="async" width="512" height="512">
     </section>
 
     <!-- SCHEDULE SECTION -->
@@ -466,12 +378,12 @@
             'https://cutters-choice-radio.radiocult.fm/stream',
             'application/x-mpegurl'
           );
-            mediaInfo.streamType = chrome.cast.media.StreamType.LIVE;
-            mediaInfo.metadata = new chrome.cast.media.MusicTrackMediaMetadata();
-            mediaInfo.metadata.title = document.getElementById('now-dj').textContent;
-            mediaInfo.metadata.albumName = 'Cutters Choice Radio';
-            const request = new chrome.cast.media.LoadRequest(mediaInfo);
-            try { await session.loadMedia(request); } catch (err) { console.error('Chromecast error:', err); }
+          mediaInfo.streamType = chrome.cast.media.StreamType.LIVE;
+          mediaInfo.metadata = new chrome.cast.media.MusicTrackMediaMetadata();
+          mediaInfo.metadata.title = document.getElementById('now-dj').textContent;
+          mediaInfo.metadata.albumName = 'Cutters Choice Radio';
+          const request = new chrome.cast.media.LoadRequest(mediaInfo);
+          try { await session.loadMedia(request); } catch (err) { console.error('Chromecast error:', err); }
         });
       };
 

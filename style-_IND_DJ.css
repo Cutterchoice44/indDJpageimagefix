@@ -12,11 +12,11 @@
 
   /* Header video strip sizing */
   --wave-height-desktop: 200px;
-  --wave-height-mobile: 80px; /* overridden on phones */
+  --wave-height-mobile: 80px; /* phones override to 100px */
 
   /* Logo sizing (space reserved to prevent CLS) */
-  --logo-size-desktop: 200px;
-  --logo-size-mobile: 100px;  /* overridden on phones */
+  --logo-size-desktop: 200px; /* desktop */
+  --logo-size-mobile: 100px;  /* phones */
 }
 
 html, body {
@@ -40,19 +40,12 @@ html, body {
   padding: clamp(12px, 3vw, 24px) 0;
   overflow: hidden;
   isolation: isolate;
-  flex-wrap: nowrap; /* one line on desktop */
+  flex-wrap: nowrap; /* stay on one line on desktop */
 }
+@media (max-width: 768px){ .header-banner{ flex-wrap: wrap; } }
 
-/* Allow wrap on small screens so items stack cleanly */
-@media (max-width: 768px){
-  .header-banner{ flex-wrap: wrap; }
-}
+.header-gif-right, .header-gif-left { display:none !important; background:none !important; }
 
-/* Hide legacy moving GIF layers (kept for safety) */
-.header-gif-right,
-.header-gif-left { display: none !important; background: none !important; }
-
-/* Decorative WEBM strips: stretch to fill from logo → title on each side */
 .header-wave {
   flex: 1 1 0;
   width: auto;
@@ -64,16 +57,12 @@ html, body {
   border-top: 2px solid #000;
   border-bottom: 2px solid #000;
 }
-
-/* Mobile wave height & a slightly smaller min-width */
 @media (max-width: 768px){
   .header-wave{ height: var(--wave-height-mobile); min-width: 40px; }
 }
 
-/* Title & logo (keep your style) */
 header .logo-container, header .title { position: relative; z-index: 1; }
 
-/* Logos keep fixed size to avoid CLS */
 header .logo {
   height: var(--logo-size-desktop);
   width:  var(--logo-size-desktop);
@@ -83,44 +72,52 @@ header .logo {
   margin-left: 0.7rem;
 }
 
-/* Title takes only what it needs so waves can expand */
-header .title { flex: 0 1 auto; text-align: center; min-width: 260px; }
-header .title h1 { font-size: 2rem; margin: 0; font-family: 'Bebas Neue', sans-serif; }
-header .title .tagline { font-size: 1.2rem; color: var(--brand-teal); margin-top: 0; }
+header .title {
+  flex: 0 1 auto;
+  text-align: center;
+  min-width: 260px;
+}
+header .title h1 {
+  font-size: 2rem;
+  margin: 0;
+  font-family: 'Bebas Neue', sans-serif;
+}
+header .title .tagline {
+  font-size: 1.2rem;
+  color: var(--brand-teal);
+  margin-top: 0;
+}
+@media (max-width: 768px){
+  header .title{ min-width: 180px; }
+}
 
-/* Mobile title min-width */
-@media (max-width: 768px){ header .title{ min-width: 180px; } }
-
-/* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   .header-wave { display: none !important; }
   .header-banner { justify-content: center; }
 }
 
 /* ─── NAVIGATION BAR ─────────────────────────────────────────────── */
-#main-nav {
+#main-nav{
   position: relative;
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-  width: 100% !important;
-  padding: 0.25rem 0.75rem !important;
-  background-color: var(--brand-teal) !important;
-  border-top:    2px solid #000 !important;
-  border-bottom: 2px solid #000 !important;
-  z-index: 1000 !important;
+  display:flex !important;
+  justify-content:space-between !important;
+  align-items:center !important;
+  width:100% !important;
+  padding:0.25rem 0.75rem !important;
+  background-color:var(--brand-teal) !important;
+  border-top:2px solid #000 !important;
+  border-bottom:2px solid #000 !important;
+  z-index:1000 !important;
 }
 
-/* Legacy items */
 #main-nav .nav-item { position: relative; z-index: 1; }
-#main-nav .nav-item a {
-  color: #fff !important;
-  font-size: 2rem !important;
-  text-transform: uppercase !important;
-  text-decoration: none !important;
+#main-nav .nav-item a{
+  color:#fff !important;
+  font-size:2rem !important;
+  text-transform:uppercase !important;
+  text-decoration:none !important;
 }
 
-/* Menu links + icons cluster (desktop defaults) */
 #main-nav .nav-menu{
   display:flex !important;
   align-items:center !important;
@@ -129,7 +126,8 @@ header .title .tagline { font-size: 1.2rem; color: var(--brand-teal); margin-top
   flex:1 1 auto !important;
 }
 
-#main-nav a.nav-link, #main-nav summary.nav-link{
+#main-nav a.nav-link,
+#main-nav summary.nav-link{
   color:#fff !important;
   font-family:'Bebas Neue',sans-serif !important;
   font-size:2rem !important;
@@ -142,12 +140,21 @@ header .title .tagline { font-size: 1.2rem; color: var(--brand-teal); margin-top
   cursor:pointer;
 }
 
-/* ABOUT dropdown that lives inside the nav */
 .nav-details{ position:relative; }
 .nav-details .about-panel{
-  position:absolute; top:calc(100% + 8px); right:0; width:min(520px,86vw);
-  background:#000; color:#fff; border:2px solid var(--brand-teal); border-radius:8px;
-  padding:.75rem .9rem; line-height:1.35; box-shadow:0 8px 18px rgba(0,0,0,.45); display:none; z-index:1100;
+  position:absolute;
+  top:calc(100% + 8px);
+  right:0;
+  width:min(520px,86vw);
+  background:#000;
+  color:#fff;
+  border:2px solid var(--brand-teal);
+  border-radius:8px;
+  padding:.75rem .9rem;
+  line-height:1.35;
+  box-shadow:0 8px 18px rgba(0,0,0,.45);
+  display:none;
+  z-index:1100;
 }
 .nav-details[open] .about-panel{ display:block; }
 .nav-details > summary::-webkit-details-marker{ display:none; }
@@ -167,14 +174,19 @@ header .title .tagline { font-size: 1.2rem; color: var(--brand-teal); margin-top
   height:auto !important;
 }
 
-/* OneMusic badge in NAV bar */
-#main-nav .nav-onemusic { display: flex; align-items: center; margin-left: 0.5rem; }
-#main-nav .nav-onemusic img { max-height: 2rem; width: auto; height: auto; display: block; }
+#main-nav .nav-onemusic { display:flex; align-items:center; margin-left:.5rem; }
+#main-nav .nav-onemusic img { max-height:2rem; width:auto; height:auto; display:block; }
 @media (max-width: 400px) { #main-nav .nav-onemusic { display: none; } }
 
-/* Chromecast button */
-google-cast-button { --icon-color:#fff; width:1.5rem; height:1.5rem; margin-left: .5rem; vertical-align: middle; display:inline-block; }
-#manualCastBtn { display:none; background:none; border:none; color:#fff; font-size:1.8rem; cursor:pointer; margin-left:.25rem; }
+google-cast-button {
+  --icon-color:#fff;
+  width:1.5rem; height:1.5rem;
+  margin-left:.5rem; vertical-align:middle; display:inline-block;
+}
+#manualCastBtn {
+  display:none; background:none; border:none; color:#fff;
+  font-size:1.8rem; cursor:pointer; margin-left:.25rem;
+}
 
 /* ─── GRID LAYOUT ─────────────────────────────────────────────────── */
 .grid-container {
@@ -214,9 +226,12 @@ section h2 {
 section h2::after {
   content: '';
   position: absolute;
-  bottom: 0; right: 0;
-  height: 4px; background: var(--brand-teal);
-  width: 0; animation: drawLineReverse 2s ease-out forwards;
+  bottom: 0;
+  right: 0;
+  height: 4px;
+  background: var(--brand-teal);
+  width: 0;
+  animation: drawLineReverse 2s ease-out forwards;
 }
 @keyframes drawLineReverse { to { width: 100%; } }
 
@@ -260,7 +275,12 @@ section h2::after {
   display: block;
 }
 .player-container { max-width: 1000px; margin: 0 auto; }
-#now-archive { font-weight: bold; color: var(--brand-teal); font-size: 1.5rem; margin: 0.3rem 0 1rem; }
+#now-archive {
+  font-weight: bold;
+  color: var(--brand-teal);
+  font-size: 1.5rem;
+  margin: 0.3rem 0 1rem;
+}
 
 /* ─── CURRENT DJ ARTWORK / PREVIEW ──────────────────────────────── */
 #now-art {
@@ -274,13 +294,43 @@ section h2::after {
 }
 
 /* ─── MIXCLOUD ARCHIVE ─────────────────────────────────────────── */
-.mixcloud { display:flex; flex-direction:column; overflow:hidden; padding:0.5rem; }
-#mixcloud-list { flex:1; overflow-y:auto; max-height:1900px; padding-right:5px; scroll-behavior:smooth; margin-top:0.4rem; }
-#mixcloud-list iframe { width:100%; height:120px; margin-bottom:0.5rem; border:none; }
-.add-mixcloud { text-align:center; padding-top:0.5rem; }
-.add-mixcloud input, .add-mixcloud button { font-size:1rem; }
-.add-mixcloud input { width:80%; max-width:600px; padding:0.5rem; }
-.add-mixcloud button { margin-top:0.5rem; padding:0.5rem 2rem; background:var(--brand-teal); color:#fff; border:none; border-radius:6px; cursor:pointer; }
+.mixcloud {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0.5rem;
+}
+#mixcloud-list {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 1900px;
+  padding-right: 5px;
+  scroll-behavior: smooth;
+  margin-top: 0.4rem;
+}
+#mixcloud-list iframe {
+  width: 100%;
+  height: 120px;
+  margin-bottom: 0.5rem;
+  border: none;
+}
+.add-mixcloud { text-align: center; padding-top: 0.5rem; }
+.add-mixcloud input,
+.add-mixcloud button { font-size: 1rem; }
+.add-mixcloud input {
+  width: 80%;
+  max-width: 600px;
+  padding: 0.5rem;
+}
+.add-mixcloud button {
+  margin-top: 0.5rem;
+  padding: 0.5rem 2rem;
+  background: var(--brand-teal);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
 
 /* ─── WEEKLY SCHEDULE (legacy list) ─────────────────────────────── */
 .schedule {
@@ -292,137 +342,155 @@ section h2::after {
   line-height: 1.4;
 }
 .schedule-heading {
-  position: sticky; top: 0; background: #111; z-index: 10;
-  padding: 0.4rem 0; font-size: 1.5rem; border-bottom: 0.4px solid var(--brand-teal);
+  position: sticky;
+  top: 0;
+  background: #111;
+  z-index: 10;
+  padding: 0.4rem 0;
+  font-size: 1.5rem;
+  border-bottom: 0.4px solid var(--brand-teal);
 }
 
-/* Day title = white on solid teal (matches nav) */
-#schedule-container h3, #schedule-container .day-title {
-  background: var(--brand-teal); color:#fff; padding:0.4rem 0.6rem; border-radius:4px;
-  margin:0.6rem 0 0.2rem; font-family:'Bebas Neue', sans-serif; letter-spacing:0.5px;
+#schedule-container h3,
+#schedule-container .day-title {
+  background: var(--brand-teal);
+  color: #fff;
+  padding: 0.4rem 0.6rem;
+  border-radius: 4px;
+  margin: 0.6rem 0 0.2rem;
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 0.5px;
 }
-
-/* Thin teal line between shows */
-#schedule-container h3 ~ *, #schedule-container .day-title ~ * {
+#schedule-container h3 ~ * ,
+#schedule-container .day-title ~ * {
   border-top: 2px solid var(--brand-teal);
   padding: 0.35rem 0.6rem;
 }
 
 /* ─── FOOTER BANNER ────────────────────────────────────────────── */
 .banner {
-  display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
-  background: var(--brand-teal); padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--brand-teal);
+  padding: 1rem;
 }
 .banner a {
-  flex: 1; text-align: center; text-decoration: none; color: #000; font-weight: 700;
-  font-size: 1.4rem; letter-spacing: 0.5px; text-transform: uppercase; padding: 0.5rem 1rem;
+  flex: 1;
+  text-align: center;
+  text-decoration: none;
+  color: #000;
+  font-weight: 700;
+  font-size: 1.4rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 0.5rem 1rem;
 }
 .banner a:hover { color: var(--text-light); }
 
-/* ─── MOBILE LAYOUT (phones ≤ 768px) ────────────────────────────── */
-@media (max-width: 768px) {
-  /* Smaller logo + tighter header; bigger strips */
-  :root { --wave-height-mobile: 110px; --logo-size-mobile: 90px; } /* ← key changes */
-  .header-banner { padding: 6px 0 4px; }
-  header .logo {
+/* ─── MOBILE (≤768px): match Image B ─────────────────────────────── */
+@media (max-width: 768px){
+
+  /* Slightly taller WEBM windows + tighter header */
+  :root { --wave-height-mobile: 100px; } /* from 80px */
+  .header-banner { padding: 8px 0 4px; }
+  header .logo{
     height: var(--logo-size-mobile) !important;
     width:  var(--logo-size-mobile) !important;
     max-width: var(--logo-size-mobile) !important;
-    margin-bottom: 0.3rem !important;
-    margin-left: 0.4rem !important;
+    margin-bottom: .3rem !important;
+    margin-left: .4rem !important;
   }
-  header .title h1 { font-size: 8.8vw; line-height: 1; margin: 0; }
-  header .title .tagline { font-size: 3.6vw; margin-top: 4px; }
+  header .title h1{ font-size: 9vw; line-height: 1; margin:0; }
+  header .title .tagline{ font-size: 3.9vw; margin-top: 4px; }
+  /* ensure both logos show */
+  header .logo-container:last-of-type { display:block !important; }
 
-  /* Ensure BOTH logos show on mobile */
-  header .logo-container:last-of-type { display: block !important; }
-
-  /* === NAV becomes a 2-row grid ===
-     Row 1: the 5 main links
-     Row 2: ABOUT (left) + icons/CAST across the rest of the row              */
+  /* NAV becomes two physical rows: */
+  /* Row 1: links; Row 2: ABOUT (left) + social + CAST (right) */
   #main-nav{
-    display: grid !important;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    grid-auto-rows: auto;
-    row-gap: 6px;
-    align-items: center !important;
-    padding: .35rem .55rem !important;
+    padding: .40rem .65rem 2.2rem !important;  /* extra bottom space for row 2 */
+  }
+  #main-nav .nav-menu{
+    justify-content: space-between !important;
+    flex-wrap: wrap !important;
+    gap: .35rem !important;
+  }
+  #main-nav a.nav-link,
+  #main-nav summary.nav-link{
+    font-size: 1rem !important;
+    letter-spacing: .5px !important;
+    padding: .15rem .25rem;
   }
 
-  /* Turn nav-menu into "pass-through" so its children are grid items */
-  #main-nav .nav-menu { display: contents !important; }
-
-  /* Row 1 = main links */
-  #main-nav .nav-menu > a.nav-link { grid-row: 1; }
-  #main-nav a.nav-link, #main-nav summary.nav-link {
-    font-size: 1rem !important; letter-spacing: .5px !important; white-space: nowrap !important; padding: .15rem .25rem;
+  /* Place ABOUT on the second “row” left, by absolutely positioning it */
+  #main-nav { position: relative; }
+  #about-overlay{
+    position: absolute;
+    left: 8px;
+    bottom: 6px;         /* aligns to second row */
   }
-
-  /* ABOUT pill sits on row 2, first column */
-  .nav-details { grid-row: 2; grid-column: 1; justify-self: start; width: max-content; }
+  .nav-details{ position: static; } /* so the details summary can be absolutely placed */
   .nav-details > summary.nav-link{
     font-size: .9rem !important;
-    display: inline-block;
     padding: .35rem .55rem;
     background: rgba(0,0,0,.18);
     border: 1px solid rgba(255,255,255,.28);
     border-radius: 999px;
-    margin: .25rem 0 .1rem;
   }
-  .nav-details .about-panel { width: calc(100vw - 22px); right: -6px; }
+  /* Make the dropdown open from the left on mobile */
+  .nav-details .about-panel{ left:0; right:auto; width: calc(100vw - 22px); }
 
-  /* Icons/CAST occupy columns 2 → end on row 2 */
+  /* Move the social/CAST group to the same second row on the right */
   #main-nav .nav-actions{
-    grid-row: 2; grid-column: 2 / -1;
-    display: flex !important; justify-content: space-evenly !important; align-items: center !important;
-    border-top: none !important; padding: 0 !important; margin: 0 !important;
+    position: absolute !important;
+    right: 8px;
+    bottom: 2px;
+    gap: .75rem !important;
   }
-  #main-nav .social-icon i { font-size: 1.35rem !important; }
+  #main-nav .social-icon i{ font-size: 1.35rem !important; }
   #main-nav .icon-img, #main-nav .nav-onemusic { display: none !important; }
 
-  /* Single-column content flow */
-  .grid-container { display: flex; flex-direction: column; padding: 0 0.5rem; }
+  /* Content flow */
+  .grid-container{ display:flex; flex-direction:column; padding:0 .5rem; }
+  .mixcloud{ display:none !important; }
+  .live-player{ order:1; }
+  .chat{ order:2; }
+  .schedule{ order:3; }
 
-  /* Remove Mixcloud entirely on mobile */
-  .mixcloud { display: none !important; }
-
-  /* Re-order main sections */
-  .live-player { order: 1; }
-  .chat        { order: 2; }
-  .schedule    { order: 3; }
-
-  /* Tweak chat iframe */
-  .chat iframe { height: 70vh; max-height: 70vh; }
-
-  /* Schedule stays scrollable */
-  .schedule { overflow-y: auto; }
-  #schedule-container{ max-height:55vh; overflow-y:auto; padding-right:6px; scroll-behavior:smooth; -webkit-overflow-scrolling:touch; }
-  #schedule-container h3, #schedule-container .day-title{ position:sticky; top:0; z-index:2; }
-
-  /* Mobile footer shrink */
-  .banner{ padding: .35rem .55rem !important; gap: .25rem !important; }
-  footer.banner > div{ padding: .35rem .55rem !important; }
-  .banner a{ font-size: 1rem !important; padding: .3rem .5rem !important; }
-  .banner span, .banner p{ font-size: .72rem !important; line-height: 1.15 !important; }
-
-  /* Only hide the desktop-only popout button */
-  #popOutBtn { display: none; }
-
-  /* Chat modal */
-  #chatModal {
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: rgba(0,0,0,0.9); display: none; z-index: 9999;
-    justify-content: center; align-items: center;
+  .chat iframe{ height:70vh; max-height:70vh; }
+  .schedule{ overflow-y:auto; }
+  #schedule-container{
+    max-height:55vh; overflow-y:auto; padding-right:6px;
+    scroll-behavior:smooth; -webkit-overflow-scrolling:touch;
   }
-  #chatModal .modal-content { width: 100%; height: 100%; }
-  #chatModal iframe { width: 100%; height: 100%; border: none; border-radius: 4px; }
-  #chatModal .close-btn {
-    position: absolute; top: 1rem; right: 1rem; background: var(--brand-teal);
-    color:#fff; border:none; padding:0.5rem; border-radius:4px; font-size:1rem; cursor:pointer; z-index:10000;
+  #schedule-container h3, #schedule-container .day-title{
+    position:sticky; top:0; z-index:2;
   }
 
-  /* Chat button placement on mobile */
-  .player-container #chatPopupBtn{ position: static; margin-top: .5rem; }
+  .banner{ padding:.35rem .55rem !important; gap:.25rem !important; }
+  footer.banner > div{ padding:.35rem .55rem !important; }
+  .banner a{ font-size:1rem !important; padding:.3rem .5rem !important; }
+  .banner span, .banner p{ font-size:.72rem !important; line-height:1.15 !important; }
+
+  /* Keep only the desktop-only popout hidden */
+  #popOutBtn{ display:none; }
+
+  /* Mobile chat modal */
+  #chatModal{
+    position:fixed; top:0; left:0; width:100vw; height:100vh;
+    background:rgba(0,0,0,0.9); display:none; z-index:9999;
+    justify-content:center; align-items:center;
+  }
+  #chatModal .modal-content{ width:100%; height:100%; }
+  #chatModal iframe{ width:100%; height:100%; border:none; border-radius:4px; }
+  #chatModal .close-btn{
+    position:absolute; top:1rem; right:1rem; background:var(--brand-teal);
+    color:#fff; border:none; padding:.5rem; border-radius:4px; font-size:1rem; cursor:pointer; z-index:10000;
+  }
+
+  .player-container #chatPopupBtn{ position:static; margin-top:.5rem; }
 }
 
 /* ─── DESKTOP LAYOUT OVERWRITES ──────────────────────────────────── */
@@ -432,7 +500,14 @@ section h2::after {
 }
 @media (min-width: 769px) {
   .live-player iframe, .live-player audio { height: 600px; max-height: 150vh; }
-  #slideshow { grid-column: 1 / -1; width: 100%; height: 500px; transform: none; max-width: none; max-height: 100vh; }
+  #slideshow {
+    grid-column: 1 / -1;
+    width: 100%;
+    height: 500px;
+    transform: none;
+    max-width: none;
+    max-height: 100vh;
+  }
   #slideshow > * { height: 100%; }
   .grid-container { grid-template-columns: 1fr 1.5fr 1fr 1fr; }
   .chat iframe { height: 1200px; }
@@ -440,7 +515,11 @@ section h2::after {
 @media (min-width: 900px) {
   header .title h1 { font-size: 8rem; }
   header .title .tagline { font-size: 2.45rem; }
-  header .logo { height: var(--logo-size-desktop); width: var(--logo-size-desktop); max-width: var(--logo-size-desktop); }
+  header .logo {
+    height: var(--logo-size-desktop);
+    width:  var(--logo-size-desktop);
+    max-width: var(--logo-size-desktop);
+  }
   #now-art { max-width: 600px; }
 }
 
@@ -465,7 +544,7 @@ section h2::after {
 /* ─── MOBILE/ DESKTOP POP-OUT BUTTON RULES (keep behavior) ───────── */
 @media (max-width: 768px) {
   section.chat .chat-actions { display: none !important; }
-  #chatPopupBtn { display: inline-block !important; margin: 0.5rem auto 1rem !important; }
+  #chatPopupBtn { display: inline-block !important; margin: .5rem auto 1rem !important; }
 }
 @media (min-width: 769px) {
   section.chat .chat-actions { display: block !important; }
@@ -473,9 +552,8 @@ section h2::after {
 }
 
 /* ─── SCHEDULE PAGE: ensure headings are white ───────────────────── */
-.page-header h1, .month-controls .title { color:#fff !important; }
-
-/* Day-of-week + date labels in grid */
-.week-grid .day-head, .week-grid .day-head .dow, .week-grid .day-head .date {
-  color:#fff !important; opacity:1 !important; filter:none !important; mix-blend-mode:normal !important;
-}
+.page-header h1,
+.month-controls .title { color:#fff !important; }
+.week-grid .day-head,
+.week-grid .day-head .dow,
+.week-grid .day-head .date { color:#fff !important; opacity:1 !important; filter:none !important; mix-blend-mode:normal !important; }

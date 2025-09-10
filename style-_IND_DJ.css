@@ -240,14 +240,13 @@ google-cast-button {
   margin: 0 auto;
   border: 2px solid var(--brand-teal);
   box-sizing: border-box;
-  /* FIX: do not scale the container (prevents preview crop) */
+  /* keep container at natural scale to avoid implicit cropping */
   transform: none;
   transform-origin: center;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
 }
-/* keep, but don’t force non-image children to stretch vertically */
 #slideshow > * { height: 100%; }
 
 /* ─── SECTION & TYPOGRAPHY ────────────────────────────────────────── */
@@ -323,12 +322,14 @@ section h2::after {
   margin: 0.3rem 0 1rem;
 }
 
-/* ─── CURRENT DJ ARTWORK ───────────────────────────────────────── */
+/* ─── CURRENT DJ ARTWORK / PREVIEW ──────────────────────────────── */
+/* This is the image that shows the upcoming/this week's artwork. Use contain + auto height so nothing is cropped. */
 #now-art {
   width: 100%;
   max-width: 450px;
+  height: auto;          /* NEW */
   border-radius: 8px;
-  object-fit: cover;
+  object-fit: contain;   /* NEW (was cover → cropped) */
   display: block;
   margin: 1rem auto;
 }
@@ -408,16 +409,6 @@ section h2::after {
 #schedule-container .day-title ~ * {
   border-top: 2px solid var(--brand-teal);
   padding: 0.35rem 0.6rem;
-}
-
-/* Prevent preview images in schedule/preview cards from cropping */
-.schedule .show-card img,
-#schedule-container .show-card img,
-#schedule-container .next-week img,
-#schedule-container .preview img {
-  width: 100%;
-  height: auto;
-  object-fit: contain;
 }
 
 /* ─── FOOTER BANNER ────────────────────────────────────────────── */
@@ -598,7 +589,7 @@ section h2::after {
     grid-column: 1 / -1;
     width: 100%;
     height: 500px;
-    transform: none; /* keep explicit on desktop too */
+    transform: none; /* ensure no scale on desktop */
     max-width: none;
     max-height: 100vh;
   }

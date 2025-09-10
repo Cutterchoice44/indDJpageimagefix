@@ -32,66 +32,52 @@ html, body {
 }
 
 /* ─── HEADER (Video strips replacing GIFs) ───────────────────────────────── */
-.header-banner {
-  position: relative;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+/* Keep header items on one line on desktop (no wrap), wrap on small screens */
+.header-banner{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
   gap: clamp(8px, 2vw, 16px);
-  background: #000;
-  padding: clamp(12px, 3vw, 24px) 0;
-  overflow: hidden;
-  isolation: isolate;
-  flex-wrap: wrap; /* allows wrap on very small widths */
+  flex-wrap: nowrap;              /* <= force one line so waves can stretch */
+}
+@media (max-width: 768px){
+  .header-banner{ flex-wrap: wrap; }  /* allow wrap on phones */
 }
 
-/* Hide legacy moving GIF layers (kept for safety) */
-.header-gif-right,
-.header-gif-left {
-  display: none !important;
-  background: none !important;
+/* Logos stay fixed size (prevents CLS) */
+header .logo{
+  height: var(--logo-size-desktop);
+  width:  var(--logo-size-desktop);
+  max-width: var(--logo-size-desktop);
 }
 
-/* Decorative WEBM strips (match HTML <video.header-wave ...>) */
-.header-wave {
-  flex: 0 0 auto;
-  width: var(--wave-width-desktop);
+/* Title takes only what it needs */
+header .title{
+  flex: 0 1 auto;
+  min-width: 220px;               /* ensure room for the title */
+}
+
+/* Waves stretch to fill from logo → title on each side */
+.header-wave{
+  flex: 1 1 0;                     /* <= this makes them grow to fill space */
+  width: auto;                     /* ignore the old fixed width */
   height: var(--wave-height-desktop);
-  display: block;
+  min-width: 60px;                 /* don’t collapse too small */
   object-fit: cover;
-  background: #000; /* paints immediately while metadata loads */
+  display: block;
   border-top: 2px solid #000;
   border-bottom: 2px solid #000;
+  background:#000;
 }
 
-/* Title & logo (keep your style) */
-header .logo-container,
-header .title { position: relative; z-index: 1; }
-
-header .logo {
-  height: var(--logo-size-desktop);
-  width: var(--logo-size-desktop);
-  max-width: var(--logo-size-desktop);
-  aspect-ratio: 1/1;
-  margin-bottom: 0.3rem;
-  margin-left: 0.7rem;
+/* Mobile sizes */
+@media (max-width: 768px){
+  header .title{ min-width: 180px; }
+  .header-wave{
+    height: var(--wave-height-mobile);
+    min-width: 40px;
+  }
 }
-
-header .title {
-  flex: 1 1 auto;
-  text-align: center;
-}
-header .title h1 {
-  font-size: 2rem;
-  margin: 0;
-  font-family: 'Bebas Neue', sans-serif;
-}
-header .title .tagline {
-  font-size: 1.2rem;
-  color: var(--brand-teal);
-  margin-top: 0;
-}
-
 /* Respect user preference: reduce motion by removing the strips */
 @media (prefers-reduced-motion: reduce) {
   .header-wave { display: none !important; }

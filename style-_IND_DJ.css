@@ -111,20 +111,20 @@ header .title .tagline{
   font-weight: 600;
   letter-spacing: .5px;
   text-shadow:
-    0 0 2px  rgba(90,243,230,.65),
-    0 0 6px  rgba(90,243,230,.55),
-    0 0 14px rgba(90,243,230,.45),
-    0 0 28px rgba(90,243,230,.35);
+    0 0 2px  rgba(90,243,230,.35),
+    0 0 4px  rgba(90,243,230,.25),
+    0 0 7px rgba(90,243,230,.15),
+    0 0 14px rgba(90,243,230,.15);
 }
 
 /* Slightly stronger glow on large screens */
 @media (min-width: 900px){
   header .title .tagline{
     text-shadow:
-      0 0 3px  rgba(90,243,230,.7),
-      0 0 8px  rgba(90,243,230,.6),
-      0 0 18px rgba(90,243,230,.5),
-      0 0 36px rgba(90,243,230,.4);
+      0 0 2px  rgba(90,243,230,.5),
+      0 0 6px  rgba(90,243,230,.4),
+      0 0 12px rgba(90,243,230,.3),
+      0 0 22px rgba(90,243,230,.2);
   }
 }
 

@@ -11,7 +11,7 @@
   --text-light: #fafafa;
 
   /* Header video strip sizing */
-  --wave-height-desktop: 120px;
+  --wave-height-desktop: 200px;
   --wave-height-mobile: 80px;
 
   /* Logo sizing (space reserved to prevent CLS) */

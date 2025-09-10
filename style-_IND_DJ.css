@@ -35,7 +35,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: clamp(1px, 2vw, 16px);
+  gap: clamp(8px, 2vw, 16px);
   background: #000;
   padding: clamp(12px, 3vw, 24px) 0;
   overflow: hidden;

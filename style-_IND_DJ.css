@@ -61,7 +61,7 @@ html, body {
 .header-wave {
   flex: 1 1 0;            /* grow to take all remaining space */
   width: auto;            /* ignore fixed widths — we stretch */
-  min-width: 60px;        /* don’t collapse too small */
+  min-width: 30px;        /* don’t collapse too small */
   height: var(--wave-height-desktop);
   display: block;
   object-fit: cover;

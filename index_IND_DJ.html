@@ -176,21 +176,51 @@
       }
     }
 
-    /* HEADER: now uses a single full-width background GIF */
+    /* HEADER now lays out: [logo] [wave] [title] [wave] [logo] */
     .header-banner{
       position: relative;
-      background: #000 url('/images/audiowave.gif') center / cover no-repeat;
-      /* Add some breathing room around logo/titles; adjust if your external CSS already handles this */
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:clamp(8px, 2vw, 16px);
+      background:#000;
       padding: clamp(12px, 3vw, 24px) 0;
-      overflow: hidden;
-      isolation: isolate; /* keep stacking context clean */
+      overflow:hidden;
+      isolation:isolate;
+      flex-wrap:wrap; /* lets items wrap on very small widths */
     }
 
-    /* Hide the old side GIF layers (kept in DOM for safety) */
+    /* Wave strips */
+    .header-wave{
+      flex:1 1 20%;
+      min-width:90px;
+      height:120px;
+      background: url('/images/audiowave.gif') center / cover no-repeat;
+      border-top:2px solid #000; /* preserves top/bottom edge crispness on some displays */
+      border-bottom:2px solid #000;
+    }
+
+    /* Keep old side-GIF layers hidden (safe no-op) */
     .header-gif-right,
     .header-gif-left{
       display:none !important;
       background:none !important;
+    }
+
+    /* Title block can stay as-is; ensure it doesn't squish too small */
+    .header-banner .title{
+      flex:0 1 auto;
+      text-align:center;
+      padding:0 .25rem;
+    }
+
+    /* Logos keep natural size; prevent overflow */
+    .header-banner .logo-container{
+      flex:0 0 auto;
+    }
+
+    @media (max-width:768px){
+      .header-wave{ height:80px; min-width:70px; }
     }
   </style>
 
@@ -240,13 +270,22 @@
   <header class="header-banner" role="banner">
     <div class="header-gif-right"></div>
     <div class="header-gif-left"></div>
+
     <div class="logo-container">
       <img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="lazy">
     </div>
+
+    <!-- NEW: wave between left logo and titles -->
+    <div class="header-wave header-wave-left" aria-hidden="true"></div>
+
     <div class="title">
       <h1>Cutters Choice Radio</h1>
       <p class="tagline">The home of relentless flavas and significant bangers!</p>
     </div>
+
+    <!-- NEW: wave between titles and right logo -->
+    <div class="header-wave header-wave-right" aria-hidden="true"></div>
+
     <div class="logo-container">
       <img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="lazy">
     </div>
@@ -451,8 +490,6 @@
       });
     });
   </script>
-
-  <!-- (Removed old GIF-SWAP SCRIPT; header now uses a single background GIF) -->
 
   <!-- JSON-LD Events injector (client-only, no visual changes) -->
   <script>

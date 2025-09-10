@@ -12,7 +12,7 @@
 
   /* Header video strip sizing */
   --wave-height-desktop: 200px;
-  --wave-height-mobile: 80px;
+  --wave-height-mobile: 80px; /* overridden to 110px on phones below */
 
   /* Logo sizing (space reserved to prevent CLS) */
   --logo-size-desktop: 200px; /* matches your desktop layout targets */
@@ -29,7 +29,7 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ─── HEADER (Video strips replacing GIFs) ───────────────────────────────── */
+/* ─── HEADER (Video strips replacing GIFs) ───────────────────────── */
 .header-banner {
   position: relative;
   display: flex;
@@ -61,7 +61,7 @@ html, body {
 .header-wave {
   flex: 1 1 0;            /* grow to take all remaining space */
   width: auto;            /* ignore fixed widths — we stretch */
-  min-width: 100px;        /* don’t collapse too small */
+  min-width: 100px;       /* don’t collapse too small */
   height: var(--wave-height-desktop);
   display: block;
   object-fit: cover;
@@ -120,7 +120,7 @@ header .title .tagline {
   .header-banner { justify-content: center; }
 }
 
-/* ─── NAVIGATION BAR ───────────────────────────────────────────────────── */
+/* ─── NAVIGATION BAR ─────────────────────────────────────────────── */
 #main-nav {
   position: relative;
   display: flex !important;
@@ -323,13 +323,12 @@ section h2::after {
 }
 
 /* ─── CURRENT DJ ARTWORK / PREVIEW ──────────────────────────────── */
-/* This is the image that shows the upcoming/this week's artwork. Use contain + auto height so nothing is cropped. */
 #now-art {
   width: 100%;
   max-width: 450px;
-  height: auto;          /* NEW */
+  height: auto;          /* Avoid cropping */
   border-radius: 8px;
-  object-fit: contain;   /* NEW (was cover → cropped) */
+  object-fit: contain;   /* Avoid cropping */
   display: block;
   margin: 1rem auto;
 }
@@ -433,35 +432,37 @@ section h2::after {
 }
 .banner a:hover { color: var(--text-light); }
 
-/* ─── MOBILE LAYOUT OVERWRITES ──────────────────────────────────── */
+/* ─── MOBILE LAYOUT (phones ≤ 768px) ────────────────────────────── */
 @media (max-width: 768px) {
-  /* Header adjustments */
-  header {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
+  /* Bigger WEBM “windows”; tighter header */
+  :root { --wave-height-mobile: 110px; } /* ↑ from 80px */
+  .header-banner { padding: 10px 0 6px; }
   header .logo {
     height: var(--logo-size-mobile) !important;
-    width: var(--logo-size-mobile) !important;
+    width:  var(--logo-size-mobile) !important;
     max-width: var(--logo-size-mobile) !important;
-    margin-bottom: 1.5rem !important;
+    margin-bottom: 0.3rem !important;
+    margin-left: 0.4rem !important;
   }
+  header .title h1 { font-size: 9.2vw; line-height: 1; margin: 0; }
+  header .title .tagline { font-size: 4vw; margin-top: 4px; }
 
-  header .title h1 { font-size: 1.8rem; line-height: 1.2; }
-  header .title .tagline { font-size: 1rem; }
+  /* Ensure BOTH logos show on mobile (don’t hide the right logo) */
+  header .logo-container:last-of-type { display: block !important; }
 
-  /* Two stacked nav rows on phones */
+  /* Two stacked nav rows: links row + “About the Station” pill below */
   nav#main-nav {
     display: flex !important;
     flex-direction: column !important;
     align-items: stretch !important;
     padding: .35rem .55rem !important;
+    gap: .25rem !important;
   }
   nav#main-nav .nav-menu {
     order: 1 !important;
     display: flex !important;
     justify-content: space-between !important;
+    flex-wrap: wrap !important;
     gap: .35rem !important;
     min-width: 0 !important;
   }
@@ -470,23 +471,29 @@ section h2::after {
     font-size: 1rem !important;
     letter-spacing: .5px !important;
     white-space: nowrap !important;
+    padding: .15rem .25rem;
   }
-  nav#main-nav .nav-actions {
-    order: 2 !important;
-    position: static !important;
-    width: 100% !important;
-    display: flex !important;
-    justify-content: center !important;
-    gap: .9rem !important;
-    padding: .35rem 0 .25rem !important;
-    margin-top: .15rem !important;
-    border-top: 1px solid rgba(0,0,0,.25) !important;
+
+  /* About pill on its own line */
+  .nav-details { order: 2; width: 100%; text-align: center; }
+  .nav-details > summary.nav-link{
+    font-size: .9rem !important;
+    display: inline-block;
+    padding: .35rem .55rem;
+    background: rgba(0,0,0,.18);
+    border: 1px solid rgba(255,255,255,.28);
+    border-radius: 999px;
+    margin: .25rem 0 .1rem;
+    width: max-content;
   }
-  nav#main-nav .social-icon i { font-size: 1.4rem !important; }
+  .nav-details .about-panel { width: calc(100vw - 22px); right: -6px; }
+
+  /* Trim right-side extras to reduce crowding */
+  nav#main-nav .social-icon i { font-size: 1.35rem !important; }
   nav#main-nav .icon-img,
   nav#main-nav .nav-onemusic { display: none !important; }
 
-  /* Single-column flow */
+  /* Single-column content flow */
   .grid-container {
     display: flex;
     flex-direction: column;
@@ -496,7 +503,7 @@ section h2::after {
   /* Remove Mixcloud entirely on mobile */
   .mixcloud { display: none !important; }
 
-  /* Re‐order so that Live → Chat → Schedule */
+  /* Re-order so that Live → Chat → Schedule */
   .live-player { order: 1; }
   .chat        { order: 2; }
   .schedule    { order: 3; }
@@ -540,11 +547,10 @@ section h2::after {
     line-height: 1.15 !important;
   }
 
-  /* Hide any leftover desktop‐only buttons */
-  #popOutBtn,
-  header .logo-container:last-of-type { display: none; }
+  /* Only hide the desktop-only popout button (keep both logos visible) */
+  #popOutBtn { display: none; }
 
-  /* Chat modal (kept from your CSS) */
+  /* Chat modal */
   #chatModal {
     position: fixed;
     top: 0; left: 0;
@@ -572,6 +578,9 @@ section h2::after {
     cursor: pointer;
     z-index: 10000;
   }
+
+  /* Chat button placement on mobile */
+  .player-container #chatPopupBtn{ position: static; margin-top: .5rem; }
 }
 
 /* ─── DESKTOP LAYOUT OVERWRITES ──────────────────────────────────── */
@@ -613,7 +622,7 @@ section h2::after {
   section.chat .chat-actions { display: none !important; }
 }
 
-/* ─── MIXCLOUD DELETE LINK STYLES ───────────────────────────────────────── */
+/* ─── MIXCLOUD DELETE LINK STYLES ────────────────────────────────── */
 .mixcloud-item { position: relative; }
 .remove-link {
   display: none !important;

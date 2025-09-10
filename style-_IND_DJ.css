@@ -61,7 +61,7 @@ html, body {
 .header-wave {
   flex: 1 1 0;            /* grow to take all remaining space */
   width: auto;            /* ignore fixed widths — we stretch */
-  min-width: 10px;        /* don’t collapse too small */
+  min-width: 100px;        /* don’t collapse too small */
   height: var(--wave-height-desktop);
   display: block;
   object-fit: cover;
@@ -103,34 +103,10 @@ header .title h1 {
   margin: 0;
   font-family: 'Bebas Neue', sans-serif;
 }
-/* Neon tagline */
-header .title .tagline{
+header .title .tagline {
   font-size: 1.2rem;
-  color: var(--neon-base);
+  color: var(--brand-teal);
   margin-top: 0;
-  font-weight: 600;
-  letter-spacing: .5px;
-  text-shadow:
-    0 0 2px  rgba(90,243,230,.25),
-    0 0 4px  rgba(90,243,230,.15),
-    0 0 6px rgba(90,243,230,.7),
-    0 0 10px rgba(90,243,230,.7);
-}
-
-/* Slightly stronger glow on large screens */
-@media (min-width: 900px){
-  header .title .tagline{
-    text-shadow:
-      0 0 2px  rgba(90,243,230,.5),
-      0 0 6px  rgba(90,243,230,.4),
-      0 0 10px rgba(90,243,230,.3),
-      0 0 18px rgba(90,243,230,.2);
-  }
-}
-
-/* Accessibility */
-@media (prefers-contrast: more){
-  header .title .tagline{ text-shadow: none; }
 }
 
 /* Mobile title min-width */

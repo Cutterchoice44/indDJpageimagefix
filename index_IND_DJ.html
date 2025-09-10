@@ -174,7 +174,7 @@
     .hero-bio p{ margin:.25rem 0 .45rem; }
     .hero-bio.bio-tight1{ font-size:1.65em; line-height:1.32; }
     .hero-bio.bio-tight1 p{ margin:.18rem 0 .36rem; }
-    .hero-bio.bio-tight2{ font-size:1.40em; line-height:1.28; }
+    .hero-bio.bio-tight2{ font-size:2.00em; line-height:1.28; }
     .hero-bio.bio-tight2 p{ margin:.14rem 0 .28rem; }
     .hero-bio.bio-tight3{ font-size:0.84em; line-height:1.22; letter-spacing:.1px; }
     .hero-bio.bio-tight3 p{ margin:.12rem 0 .22rem; }
@@ -395,7 +395,10 @@
     /* ── utils ─────────────────────────────────────────────────────── */
     const headers = { 'x-api-key': API_KEY };
     const fetchJSON = async (url, opt={}) => { const r=await fetch(url,{cache:'no-store',...opt,headers:{...(opt.headers||{}),...headers}}); if(!r.ok) throw new Error(String(r.status)); return r.json(); };
-    const nz = iso => { try{ const d=new Date(iso); return d.toLocaleString('en-NZ',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Pacific/Auckland',timeZoneName:'short'});}catch{return '';} };
+
+    /* LOCAL TZ fix: format in the viewer's local timezone (no explicit timeZone set) */
+    const nz = iso => { try{ const d=new Date(iso); return d.toLocaleString(undefined,{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:false,timeZoneName:'short'});}catch{return '';} };
+
     const tags = t => Array.isArray(t) ? t.map(x=>String(x).toLowerCase()) : (typeof t==='string' ? t.split(',').map(s=>s.trim().toLowerCase()) : []);
 
     function extractTextDeep(v){

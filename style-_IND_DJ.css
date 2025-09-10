@@ -111,10 +111,10 @@ header .title .tagline{
   font-weight: 600;
   letter-spacing: .5px;
   text-shadow:
-    0 0 2px  rgba(90,243,230,.35),
-    0 0 4px  rgba(90,243,230,.25),
-    0 0 7px rgba(90,243,230,.15),
-    0 0 14px rgba(90,243,230,.15);
+    0 0 2px  rgba(90,243,230,.25),
+    0 0 4px  rgba(90,243,230,.15),
+    0 0 6px rgba(90,243,230,.7),
+    0 0 10px rgba(90,243,230,.7);
 }
 
 /* Slightly stronger glow on large screens */
@@ -123,8 +123,8 @@ header .title .tagline{
     text-shadow:
       0 0 2px  rgba(90,243,230,.5),
       0 0 6px  rgba(90,243,230,.4),
-      0 0 12px rgba(90,243,230,.3),
-      0 0 22px rgba(90,243,230,.2);
+      0 0 10px rgba(90,243,230,.3),
+      0 0 18px rgba(90,243,230,.2);
   }
 }
 

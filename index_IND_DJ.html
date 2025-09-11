@@ -142,7 +142,29 @@
     <div id="artists-container" aria-live="polite"></div>
     <p id="error" class="error" style="display:none;" role="status" aria-live="polite"></p>
   </main>
+<style>
+/* Our DJs — remove the mobile "second bar" */
+@media (max-width:768px){
+  /* if the global CSS added a divider & extra bottom padding */
+  #main-nav { padding-bottom: .40rem !important; }
+  #main-nav::after { content: none !important; }
 
+  /* hide the thin teal separator immediately AFTER the nav
+     (this is what's reading as the second bar on mobile) */
+  #main-nav + .thin-teal-line,
+  #djs-nav  + .thin-teal-line { display: none !important; }
+
+  /* make sure the local menu stays a single row */
+  #djs-nav .menu {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: .30rem !important;
+    justify-content: space-between !important;
+    min-width: 0 !important;
+  }
+}
+</style>
+  
   <script>
     const BASE_URL   = 'https://api.radiocult.fm/api';
     const STATION_ID = 'cutters-choice-radio';

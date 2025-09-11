@@ -53,6 +53,19 @@
       "https://tunein.com/radio/Cutters-Choice-Radio-s344746/"
     ]
   }
+    /* DJ Selects — mobile bio size */
+@media (max-width:768px){
+  body.dj-selects .hero-bio{
+    /* tweak these two values */
+    font-size: clamp(.9rem, 3.2vw, 1.05rem);
+    line-height: 1.4;
+  }
+
+  /* Optional: if the auto-tightening classes feel too big on phones */
+  body.dj-selects .hero-bio.bio-tight1{ font-size: 1.2em; }
+  body.dj-selects .hero-bio.bio-tight2{ font-size: 1.3em; }
+  body.dj-selects .hero-bio.bio-tight3{ font-size: 0.9em; }
+}
   </script>
 
   <style>

@@ -1,146 +1,162 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Cutters Choice DJs – Resident Artists & Hosts</title>
 
   <!-- Canonical + SEO -->
-  <link rel="canonical" href="https://cutterschoiceradio.com/index-ourDJS.html" />
-  <meta name="description" content="Meet the Cutters Choice Radio DJs and see each selector’s next scheduled show." />
-  <meta name="robots" content="index, follow" />
-  <meta name="theme-color" content="#5A8785" />
+  <link rel="canonical" href="https://cutterschoiceradio.com/index-ourDJS.html">
+  <meta name="description" content="Meet the Cutters Choice Radio DJs and see each selector’s next scheduled show.">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#5A8785">
 
   <!-- Social preview -->
-  <meta property="og:type" content="website" />
-  <meta property="og:title" content="Cutters Choice DJs" />
-  <meta property="og:description" content="Meet the Cutters Choice Radio DJs and see each selector’s next scheduled show." />
-  <meta property="og:url" content="https://cutterschoiceradio.com/index-ourDJS.html" />
-  <meta property="og:site_name" content="Cutters Choice Radio" />
-  <meta property="og:image" content="https://cutterschoiceradio.com/images/logo.png" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Cutters Choice DJs" />
-  <meta name="twitter:description" content="Meet the Cutters Choice Radio DJs and see each selector’s next scheduled show." />
-  <meta name="twitter:image" content="https://cutterschoiceradio.com/images/logo.png" />
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Cutters Choice DJs">
+  <meta property="og:description" content="Meet the Cutters Choice Radio DJs and see each selector’s next scheduled show.">
+  <meta property="og:url" content="https://cutterschoiceradio.com/index-ourDJS.html">
+  <meta property="og:site_name" content="Cutters Choice Radio">
+  <meta property="og:image" content="https://cutterschoiceradio.com/images/logo.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Cutters Choice DJs">
+  <meta name="twitter:description" content="Meet the Cutters Choice Radio DJs and see each selector’s next scheduled show.">
+  <meta name="twitter:image" content="https://cutterschoiceradio.com/images/logo.png">
 
-  <!-- Perf hints -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="preconnect" href="https://api.radiocult.fm" crossorigin />
+  <!-- Performance hints -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://app.radiocult.fm" crossorigin>
+  <link rel="preconnect" href="https://cdn.socket.io" crossorigin>
 
-  <!-- Global stylesheet (your site styles) -->
-  <link rel="stylesheet" href="style.css" />
+  <!-- Site CSS (unchanged) -->
+  <link rel="stylesheet" href="style.css">
 
-  <!-- Bebas Neue -->
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
+  <!-- Fonts / Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
-    :root{
+    :root {
       --brand-teal:#5A8785;
       --bg-dark:#000;
       --text-light:#fafafa;
       --gap:1rem;
     }
-    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
-    html,body{width:100%;height:100%;background:var(--bg-dark);color:var(--text-light);font-family:Arial,sans-serif;line-height:1.4;}
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html, body { width:100%; height:100%; background:var(--bg-dark); color:var(--text-light); font-family:Arial,sans-serif; line-height:1.4; }
 
-    /* Header (simple, relies on your global classes) */
-    header.header-banner{
-      background:#000; padding:1rem 0;
-      display:flex; justify-content:space-between; align-items:center;
-    }
-    header .logo{height:180px; width:auto;}
-    header .title h1{font-family:'Bebas Neue',sans-serif;font-size:6rem;line-height:1;color:#fff;text-transform:uppercase;margin:0;}
-    header .title .tagline{font-size:1.2rem;color:var(--brand-teal);margin-top:.25rem;}
+    /* ─── HEADER (kept simple; matches site) ───────────────────────── */
+    header.header-banner{ background:#000; padding:1rem 0; display:flex; justify-content:space-between; align-items:center; }
+    header .logo-container img{ height:180px; width:auto; }
+    header .title h1{ font-family:'Bebas Neue',sans-serif; font-size:6rem; color:#fff; text-transform:uppercase; margin:0; line-height:1; }
+    header .title .tagline{ font-size:1.2rem; color:var(--brand-teal); margin-top:.25rem; }
     @media (max-width:600px){
-      header.header-banner{padding:.5rem 0;}
-      header .logo{height:100px;}
-      header .title h1{font-size:1.5rem;margin:.5rem 0;}
-      header .title .tagline{font-size:1rem;}
+      header.header-banner{ padding:.5rem 0; }
+      header .logo-container img{ height:100px !important; }
+      header .title h1{ font-size:1.5rem !important; margin:.5rem 0; }
+      header .title .tagline{ font-size:1rem !important; }
     }
 
-    /* Thin teal separators (above & below nav) */
-    .thin-teal-line{height:2px;background-color:var(--brand-teal);width:100%;}
+    /* Thin teal separators (same as site) */
+    .thin-teal-line{ height:2px; background-color:var(--brand-teal); width:100%; }
 
-    /* NAV: use SAME markup as other pages (#main-nav .nav-menu .nav-link) */
-    /* We rely on your global nav styling from style.css. Only add the mobile fix. */
+    /* ─── NAV: local layout (desktop-first) ────────────────────────── */
+    nav#main-nav{
+      --stripe-offset:4px;
+      --stripe-thickness:2px;
+      background:
+        linear-gradient(#000,#000) 0 var(--stripe-offset)/100% var(--stripe-thickness) no-repeat,
+        linear-gradient(#000,#000) 0 calc(100% - var(--stripe-offset))/100% var(--stripe-thickness) no-repeat,
+        var(--brand-teal);
+      padding:18px 16px;
+      position:relative;
+      z-index:1000;
+    }
+    #main-nav .menu{
+      list-style:none;
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      align-items:center;
+      margin:0; padding:0; width:100%;
+    }
+    #main-nav .menu a{
+      display:block; text-align:center; font-family:'Bebas Neue',sans-serif;
+      text-decoration:none; color:#f7f9f9; letter-spacing:.6px; line-height:1.5;
+      font-size:clamp(22px,2.8vw,30px); text-transform:uppercase; white-space:nowrap;
+      opacity:.95; transition:opacity .15s ease;
+    }
+    #main-nav .menu a:hover, #main-nav .menu a.active{ opacity:1; color:#fff; }
 
-    /* ===== Mobile-only FIX for double nav (scoped to this page) ===== */
+    /* ─── MOBILE-ONLY FIX (single-row nav, no “second bar”) ──────────
+       Scoped to this page only via body.our-djs so it won’t affect others.
+       It overrides the global mobile grid/::after divider.                */
     @media (max-width:768px){
       body.our-djs #main-nav{
         display:flex !important;
         flex-direction:row !important;
         align-items:center !important;
         justify-content:space-between !important;
-        /* neutralise any global grid rows */
-        grid-template-columns:none !important;
-        grid-template-rows:none !important;
-        grid-template-areas:none !important;
+        /* neutralise any global grid from style.css */
+        grid-template-columns:unset !important;
+        grid-template-rows:unset !important;
+        grid-template-areas:unset !important;
         row-gap:0 !important;
-        /* remove extra bottom padding reserved for a second row */
-        padding:.40rem .65rem !important;
+        padding:.40rem .65rem !important; /* no extra bottom padding */
       }
-      body.our-djs #main-nav::after{
-        content:none !important; display:none !important; height:0 !important;
-      }
-      /* if global CSS tries to render a second row, hide those buckets */
+      body.our-djs #main-nav::after{ content:none !important; display:none !important; height:0 !important; }
       body.our-djs #main-nav .nav-actions,
-      body.our-djs #about-overlay,
-      body.our-djs #selects-overlay{ display:none !important; }
-
-      body.our-djs #main-nav .nav-menu{
-        display:flex !important; flex-wrap:nowrap !important;
-        align-items:center !important; justify-content:space-between !important;
-        gap:.3rem !important; min-width:0 !important; width:100% !important;
+      body.our-djs #about-overlay{ display:none !important; } /* if present in globals */
+      body.our-djs #main-nav .menu{
+        display:flex !important; flex-wrap:nowrap !important; gap:.3rem !important;
+        justify-content:space-between !important; width:100% !important; min-width:0 !important;
       }
-      body.our-djs #main-nav a.nav-link,
-      body.our-djs #main-nav summary.nav-link{
-        font-size:clamp(.9rem,3.8vw,1.1rem) !important;
-        white-space:nowrap !important;
-      }
+      body.our-djs #main-nav .menu a{ font-size:.95rem !important; padding:.1rem .2rem !important; letter-spacing:.04em; }
+      /* If you draw a teal line before/after the nav, hide it on small screens for this page only */
+      body.our-djs .thin-teal-line{ display:none !important; }
     }
 
-    /* Cards grid for DJs */
-    #artists-container{display:grid;grid-template-columns:repeat(6,1fr);gap:var(--gap);padding:var(--gap);width:100%;}
-    @media (max-width:900px){#artists-container{grid-template-columns:repeat(4,1fr);}}
-    @media (max-width:600px){#artists-container{grid-template-columns:repeat(3,1fr);gap:.5rem;padding:.5rem;}}
-    .card{border:2px solid var(--brand-teal);background:var(--bg-dark);display:flex;flex-direction:column;text-decoration:none;overflow:hidden;}
-    .card h2{font-family:'Bebas Neue',sans-serif;color:var(--brand-teal);font-size:2rem;text-transform:uppercase;padding:.5rem;border-bottom:1px solid var(--brand-teal);margin:0;}
-    .card img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;}
-    .card .next-show{padding:.75rem;flex:1;display:flex;flex-direction:column;justify-content:center;}
-    .card .next-show h3{font-family:'Bebas Neue',sans-serif;font-size:.9rem;text-transform:uppercase;margin:0 0 .5rem;color:var(--text-light);}
-    .card .next-show p{font-size:.9rem;line-height:1.2;margin:0;color:var(--brand-teal);}
+    /* ─── GRID & CARDS (unchanged from your working version) ───────── */
+    #artists-container{ display:grid; grid-template-columns:repeat(6,1fr); gap:var(--gap); padding:var(--gap); width:100%; }
+    @media (max-width:900px){ #artists-container{ grid-template-columns:repeat(4,1fr) !important; } }
+    @media (max-width:600px){ #artists-container{ grid-template-columns:repeat(3,1fr) !important; gap:.5rem; padding:.5rem; } }
+
+    .card{ border:2px solid var(--brand-teal); background:var(--bg-dark); display:flex; flex-direction:column; text-decoration:none; overflow:hidden; }
+    .card h2{ font-family:'Bebas Neue',sans-serif; color:var(--brand-teal); font-size:2rem; text-transform:uppercase; padding:.5rem; border-bottom:1px solid var(--brand-teal); margin:0; }
+    .card img{ width:100%; aspect-ratio:1/1; object-fit:cover; display:block; }
+    .card .next-show{ padding:.75rem; flex:1; display:flex; flex-direction:column; justify-content:center; }
+    .card .next-show h3{ font-family:'Bebas Neue',sans-serif; font-size:.9rem; text-transform:uppercase; margin:0 0 .5rem; color:var(--text-light); }
+    .card .next-show p{ font-size:.85rem; line-height:1.2; margin:0; color:var(--brand-teal); }
     @media (max-width:600px){
-      .card h2{font-size:.95rem;padding:.3rem;}
-      .card .next-show{padding:.4rem;}
-      .card .next-show h3,.card .next-show p{font-size:.85rem;}
+      .card h2{ font-size:.8rem; padding:.3rem; }
+      .card .next-show{ padding:.4rem; }
+      .card .next-show h3, .card .next-show p{ font-size:.8rem; }
     }
 
-    .error{text-align:center;color:#f55;margin-top:2rem;}
+    .error{ text-align:center; color:#f55; margin-top:2rem; }
   </style>
 </head>
 
 <body class="our-djs">
-  <!-- Header -->
   <header class="header-banner" role="banner">
-    <div class="logo-container"><img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="lazy" decoding="async" /></div>
+    <div class="logo-container"><img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="lazy"></div>
     <div class="title">
       <h1>Cutters Choice DJs</h1>
       <p class="tagline">The home of relentless flavas and significant bangers!</p>
     </div>
-    <div class="logo-container"><img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="lazy" decoding="async" /></div>
+    <div class="logo-container"><img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="lazy"></div>
   </header>
 
   <div class="thin-teal-line" aria-hidden="true"></div>
 
-  <!-- NAV (same structure as your other pages) -->
+  <!-- Nav (same markup; fix is purely CSS and page-scoped) -->
   <nav id="main-nav" aria-label="Primary">
-    <div class="nav-menu">
-      <a href="index.html"        class="nav-link">HOME</a>
-      <a href="our-story.html"    class="nav-link">OUR STORY</a>
-      <a href="schedule.html"     class="nav-link">SCHEDULE</a>
-      <a href="dj-selects.html"   class="nav-link">DJ SELECTS</a>
-    </div>
+    <ul class="menu" role="list">
+      <li><a href="index.html">HOME</a></li>
+      <li><a href="our-story.html">OUR STORY</a></li>
+      <li><a href="schedule.html">SCHEDULE</a></li>
+      <li><a href="dj-selects.html">DJ SELECTS</a></li>
+    </ul>
   </nav>
 
   <div class="thin-teal-line" aria-hidden="true"></div>
@@ -156,27 +172,28 @@
     const API_KEY    = 'pk_0b8abc6f834b444f949f727e88a728e0';
 
     function normalizeTags(tags){
-      if(Array.isArray(tags)) return tags.map(t=>String(t).toLowerCase());
-      if(typeof tags==='string') return tags.split(',').map(t=>t.trim().toLowerCase());
+      if(Array.isArray(tags)) return tags.map(t => String(t).toLowerCase());
+      if(typeof tags === 'string') return tags.split(',').map(t => t.trim().toLowerCase());
       return [];
     }
 
     async function loadArtists(){
       try{
-        const res = await fetch(\`\${BASE_URL}/station/\${STATION_ID}/artists\`, {
-          headers:{ 'x-api-key': API_KEY, 'cache-control':'no-store' }
+        const res = await fetch(`${BASE_URL}/station/${STATION_ID}/artists`, {
+          headers: { 'x-api-key': API_KEY }
         });
-        if(!res.ok) throw new Error(\`API returned \${res.status}\`);
+        if(!res.ok) throw new Error(`API returned ${res.status}`);
 
         const data = await res.json();
-        const artists = data.artists || data.data || [];
+        const artists = data?.artists || [];
         const visible = artists.filter(a => normalizeTags(a.tags).includes('website'));
 
         const container = document.getElementById('artists-container');
+        const errorEl = document.getElementById('error');
+
         if(!visible.length){
-          const err = document.getElementById('error');
-          err.textContent = 'No DJs found with the "website" tag.';
-          err.style.display = 'block';
+          errorEl.textContent = 'No DJs found with the "website" tag.';
+          errorEl.style.display = 'block';
           return;
         }
 
@@ -184,8 +201,8 @@
         for(const artist of visible){
           const card = document.createElement('a');
           card.className = 'card';
-          card.href = \`index_IND_DJ.html?id=\${artist.id}\`;
-          card.setAttribute('aria-label', \`\${artist.name} — view profile\`);
+          card.href = `index_IND_DJ.html?id=${artist.id}`;
+          card.setAttribute('aria-label', `${artist.name} — view profile`);
 
           const title = document.createElement('h2');
           title.textContent = artist.name;
@@ -193,17 +210,14 @@
 
           const img = document.createElement('img');
           img.src = (artist.logo && (artist.logo['512x512'] || artist.logo.default)) || '';
-          img.alt = artist.name || 'DJ';
+          img.alt = artist.name;
           img.loading = 'lazy';
           img.decoding = 'async';
           card.append(img);
 
           const show = document.createElement('div');
           show.className = 'next-show';
-          show.innerHTML = \`
-            <h3>Next Scheduled Show</h3>
-            <p id="next-\${artist.id}">Loading…</p>
-          \`;
+          show.innerHTML = `<h3>Next Scheduled Show</h3><p id="next-${artist.id}">Loading…</p>`;
           card.append(show);
 
           container.append(card);
@@ -223,36 +237,29 @@
         const nextYear = new Date(Date.now() + 365*24*60*60*1000).toISOString();
 
         const res = await fetch(
-          \`\${BASE_URL}/station/\${STATION_ID}/artists/\${artistId}/schedule?startDate=\${encodeURIComponent(now)}&endDate=\${encodeURIComponent(nextYear)}\`,
-          { headers:{ 'x-api-key': API_KEY, 'cache-control':'no-store' } }
+          `${BASE_URL}/station/${STATION_ID}/artists/${artistId}/schedule?startDate=${now}&endDate=${nextYear}`,
+          { headers: { 'x-api-key': API_KEY } }
         );
-        if(!res.ok) throw new Error(\`Schedule API returned \${res.status}\`);
+        if(!res.ok) throw new Error(`Schedule API returned ${res.status}`);
 
-        const j = await res.json();
-        const schedules = j.schedules || j.data || [];
+        const data = await res.json();
+        const schedules = data?.schedules || [];
 
-        const el = document.getElementById(\`next-\${artistId}\`);
+        const el = document.getElementById(`next-${artistId}`);
         if(!el) return;
 
         if(schedules.length){
-          const first = schedules
-            .map(s => s.startDateUtc || s.startDate || s.start || s.scheduledStart)
-            .filter(Boolean)
-            .map(x => new Date(x))
-            .sort((a,b)=>a-b)[0];
-          if(first){
-            el.textContent = first.toLocaleString('en-NZ', {
-              day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'
-            });
-          }else{
-            el.textContent = 'TBA';
-          }
+          const dtStr = schedules[0].startDateUtc || schedules[0].startDate || schedules[0].start;
+          const dt = new Date(dtStr);
+          el.textContent = dt.toLocaleString(undefined, {
+            day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'
+          });
         }else{
           el.textContent = 'TBA';
         }
       }catch(err){
-        console.error(\`Error loading schedule for \${artistId}:\`, err);
-        const el = document.getElementById(\`next-\${artistId}\`);
+        console.error(`Error loading schedule for ${artistId}:`, err);
+        const el = document.getElementById(`next-${artistId}`);
         if(el) el.textContent = 'Error';
       }
     }

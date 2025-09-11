@@ -367,3 +367,17 @@ section h2::after{ content:''; position:absolute; bottom:0; right:0; height:4px;
 .week-grid .day-head, .week-grid .day-head .dow, .week-grid .day-head .date{
   color:#fff !important; opacity:1 !important; filter:none !important; mix-blend-mode:normal !important;
 }
+/* --- Mobile performance: remove header WEBM strips --- */
+@media (max-width: 768px){
+  /* Don’t render the videos at all on phones */
+  .header-wave{ display:none !important; }
+
+  /* Simple stacked header layout when waves are hidden */
+  .header-banner{
+    display:flex !important;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    padding:8px 0 6px !important;
+  }

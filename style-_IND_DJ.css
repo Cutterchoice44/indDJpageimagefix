@@ -198,84 +198,100 @@ section h2::after{ content:''; position:absolute; bottom:0; right:0; height:4px;
 }
 .banner a:hover{ color:var(--text-light); }
 
-/* ─── MOBILE (≤768px) — MATCH IMAGE B ───────────────────────────── */
+/* ─── MOBILE (≤768px) — EXACT LAYOUT FOR IMAGE B ────────────────── */
 @media (max-width:768px){
 
-  /* Banner: one centered logo, WEBM windows either side; title below */
-  :root{ --wave-height-mobile:104px; } /* a touch taller than before */
-  .header-banner{ padding:8px 0 6px; }
-
-  /* Re-order header items into two rows:
-     Row 1: [wave-left] [logo] [wave-right]
-     Row 2: [title + tagline] full width */
-  .header-wave.header-wave-left{ order:1; }
-  .header-banner .logo-container:first-of-type{ order:2; }
-  .header-wave.header-wave-right{ order:3; }
-  header .title{ order:4; width:100%; margin-top:6px; }
-
+  /* HEADER: one centered logo, WEBMs left/right; title+tagline below */
+  :root{ --wave-height-mobile:100px; }
+  .header-banner{
+    display:grid !important;
+    grid-template-columns: 1fr auto 1fr;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+      "waveL logo waveR"
+      "title title title";
+    align-items:center;
+    gap:6px;
+    padding:8px 0 6px !important;
+  }
+  .header-wave-left  { grid-area: waveL; height:var(--wave-height-mobile) !important; }
+  .header-wave-right { grid-area: waveR; height:var(--wave-height-mobile) !important; }
+  .header-banner .logo-container:first-of-type { grid-area: logo; }
   /* Hide the second (right) logo on phones */
   .header-banner .logo-container:last-of-type{ display:none !important; }
 
-  /* Compact logo + scalable title */
   header .logo{
     height:var(--logo-size-mobile) !important;
-    width:var(--logo-size-mobile) !important;
+    width: var(--logo-size-mobile) !important;
     max-width:var(--logo-size-mobile) !important;
-    margin:0 8px; /* center breathing room */
+    margin:0 auto !important;
   }
-  header .title h1{ font-size:9vw; line-height:1; margin:0; }
-  header .title .tagline{ font-size:3.8vw; margin-top:4px; }
+  .header-banner .title{
+    grid-area:title;
+    width:100%; margin-top:2px; text-align:center;
+  }
+  .header-banner .title h1{ font-size:9.2vw; line-height:1; margin:0; }
+  .header-banner .title .tagline{ font-size:3.8vw; margin-top:4px; }
 
-  /* NAV: row 1 = five links; row 2 = ABOUT (left) + social + CAST (right) */
+  /* NAV: Row 1 (five links), Row 2 (ABOUT left + social/CAST right) */
   #main-nav{
-    display:grid !important;
-    grid-template-columns: 1fr auto;
-    grid-template-rows: auto auto;
-    grid-template-areas:
-      "menu menu"
-      "about actions";
-    row-gap:.4rem;
-    padding:.40rem .65rem .55rem !important;
+    position:relative !important;
+    padding:.40rem .65rem 2.65rem !important; /* extra bottom to host row 2 */
+  }
+  /* divider line between rows */
+  #main-nav::after{
+    content:"";
+    position:absolute;
+    left:0; right:0;
+    bottom:2.65rem;             /* aligns with top of row 2 */
+    height:2px;
+    background:#000;
   }
 
-  /* Top row links (no wrap to keep it tidy) */
+  /* Row 1 */
   #main-nav .nav-menu{
-    grid-area:menu;
-    display:flex !important;
-    justify-content:space-between !important;
-    align-items:center !important;
-    gap:.30rem !important;
     flex-wrap:nowrap !important;
+    justify-content:space-between !important;
+    gap:.30rem !important;
     min-width:0 !important;
   }
   #main-nav a.nav-link,
   #main-nav summary.nav-link{
     font-size:.95rem !important;
     letter-spacing:.04em !important;
-    padding:.1rem .2rem;
+    padding:.1rem .2rem !important;
+    white-space:nowrap !important;
   }
 
-  /* ABOUT pill on row 2, left */
-  #about-overlay{ grid-area:about; justify-self:start; }
+  /* Row 2: ABOUT (left) */
+  #about-overlay{
+    position:absolute !important;
+    left:.65rem;
+    bottom:.35rem;               /* inside the bar */
+  }
   .nav-details > summary.nav-link{
     font-size:.9rem !important;
-    padding:.35rem .55rem;
+    padding:.35rem .55rem !important;
     background:rgba(0,0,0,.18);
     border:1px solid rgba(255,255,255,.28);
     border-radius:999px;
   }
-  .nav-details .about-panel{ left:0; right:auto; width:calc(100vw - 22px); }
+  .nav-details .about-panel{
+    left:0; right:auto;
+    width:calc(100vw - 22px);
+  }
 
-  /* Social + CAST on row 2, right */
+  /* Row 2: social + CAST (right) */
   #main-nav .nav-actions{
-    grid-area:actions;
-    justify-self:end;
+    position:absolute !important;
+    right:.65rem;
+    bottom:.20rem;
     gap:.75rem !important;
   }
   #main-nav .social-icon i{ font-size:1.35rem !important; }
   #main-nav .icon-img, #main-nav .nav-onemusic{ display:none !important; }
 
-  /* Content flow below */
+  /* Page sections (unchanged order but stacked) */
   .grid-container{ display:flex; flex-direction:column; padding:0 .5rem; }
   .mixcloud{ display:none !important; }
   .live-player{ order:1; }
@@ -290,6 +306,7 @@ section h2::after{ content:''; position:absolute; bottom:0; right:0; height:4px;
   }
   #schedule-container h3, #schedule-container .day-title{ position:sticky; top:0; z-index:2; }
 
+  /* Footer shrink */
   .banner{ padding:.35rem .55rem !important; gap:.25rem !important; }
   footer.banner > div{ padding:.35rem .55rem !important; }
   .banner a{ font-size:1rem !important; padding:.3rem .5rem !important; }

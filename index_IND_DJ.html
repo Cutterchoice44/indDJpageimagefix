@@ -4,41 +4,40 @@
   <meta charset="UTF-8">
   <!-- Prevent browser caching -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma"       content="no-cache">
-  <meta http-equiv="Expires"      content="0">
-  <meta name="viewport"           content="width=device-width, initial-scale=1.0">
-  <title>Merch – Cutters Choice Radio Apparel & Stickers</title>
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Our Story – Cutters Choice Radio</title>
 
   <!-- Canonical + SEO -->
-  <link rel="canonical" href="https://cutterschoiceradio.com/merch.html">
-  <meta name="description" content="Official Cutters Choice Radio merch. Grab tees, hats, and more to support the station.">
+  <link rel="canonical" href="https://cutterschoiceradio.com/our-story.html">
+  <meta name="description" content="How Cutters Choice Radio started and grew — our history, community roots and a short documentary.">
   <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#5A8785">
 
   <!-- Social preview (Open Graph + Twitter) -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Merch – Cutters Choice Radio">
-  <meta property="og:description" content="Official Cutters Choice Radio merch. Grab tees, hats, and more to support the station.">
-  <meta property="og:url" content="https://cutterschoiceradio.com/merch.html">
+  <meta property="og:title" content="Our Story – Cutters Choice Radio">
+  <meta property="og:description" content="How Cutters Choice Radio started and grew — our history, community roots and a short documentary.">
+  <meta property="og:url" content="https://cutterschoiceradio.com/our-story.html">
   <meta property="og:site_name" content="Cutters Choice Radio">
   <meta property="og:image" content="https://cutterschoiceradio.com/images/logo.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Merch – Cutters Choice Radio">
-  <meta name="twitter:description" content="Official Cutters Choice Radio merch. Grab tees, hats, and more to support the station.">
+  <meta name="twitter:title" content="Our Story – Cutters Choice Radio">
+  <meta name="twitter:description" content="How Cutters Choice Radio started and grew — our history, community roots and a short documentary.">
   <meta name="twitter:image" content="https://cutterschoiceradio.com/images/logo.png">
 
-  <!-- Performance hints -->
+  <!-- Perf hints (safe) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://direct.app" crossorigin>
 
-  <!-- Main stylesheet & fonts/icons -->
-  <link rel="stylesheet" href="style.css?v=1748228619634">
+  <!-- Main CSS (v bump for cache) -->
+  <link rel="stylesheet" href="style.css?v=8">
+  <!-- Bebas Neue -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
-  <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <!-- Organization JSON-LD (static, safe) -->
+  <!-- Organization JSON-LD (static; no visual change) -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -55,21 +54,19 @@
   }
   </script>
 
+  <!-- Page-specific overrides -->
   <style>
-    :root {
-      --teal: #5A8785;
-      --dark: #000;
-      --light: #fafafa;
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      background-color: var(--dark);
-      color: var(--light);
-      font-family: Arial, sans-serif;
-      height: 100%;
-    }
+    :root { --brand-teal:#5A8785; }
 
-    /* ─── NAVIGATION BAR (as on other pages) ───────────────────────── */
+    /* Keep header/nav above content */
+    header.header-banner { position: relative; z-index: 20; }
+    /* Make sure any header overlay layers don't block clicks */
+    .header-gif-right,
+    .header-gif-left { pointer-events: none; }
+
+    /* =========================
+       NAV – unified teal bar + thin black borders (matches other pages)
+       ========================= */
     #main-nav{
       display:flex !important;
       align-items:center !important;
@@ -78,141 +75,176 @@
       padding:.10rem .65rem !important;
       margin:0 !important;
       box-sizing:border-box !important;
-      background-color:var(--brand-teal, var(--teal)) !important;
-      position:relative !important;
-      z-index:1000 !important;
+      background-color:var(--brand-teal) !important;
+      position: relative !important;
+      z-index: 2000 !important;              /* raised above header layers */
       border-top:2px solid #000 !important;
       border-bottom:2px solid #000 !important;
+      pointer-events: auto;                  /* explicit: allow clicks */
     }
-    #main-nav::before, #main-nav::after { content:none !important; }
+    #main-nav::before,#main-nav::after{content:none !important;}
 
+    /* Evenly spaced links across the bar */
     #main-nav .nav-menu{
       display:flex !important;
       align-items:center !important;
-      justify-content:space-evenly !important; /* even spacing for 6 items */
+      justify-content:space-evenly !important;
       gap:clamp(.25rem,2vw,1.5rem) !important;
       flex:1 1 auto !important;
       min-width:0 !important;
     }
-    #main-nav a.nav-link,
-    #main-nav summary.nav-link{
-      display:inline-flex;
-      align-items:center;
-      color:#fff !important;
-      font-family:'Bebas Neue',sans-serif !important;
-      font-size:2rem !important;
-      text-transform:uppercase !important;
-      text-decoration:none !important;
-      white-space:nowrap !important;
-      line-height:1.2;
-      padding:.05rem 0;
-      list-style:none;
-      cursor:pointer;
-    }
-
-    /* ABOUT dropdown inside the nav */
-    .nav-details{ position:relative; }
-    .nav-details .about-panel{
-      position:absolute;
-      top:calc(100% + 8px);   /* opens downward under the nav item */
-      right:0;
-      width:min(520px,86vw);
-      background:#000;
-      color:#fff;
-      border:2px solid var(--brand-teal, var(--teal));
-      border-radius:8px;
-      padding:.75rem .9rem;
-      line-height:1.35;
-      box-shadow:0 8px 18px rgba(0,0,0,.45);
-      display:none;
-      z-index:1100;
-    }
-    .nav-details[open] .about-panel{ display:block; }
-    .nav-details > summary::-webkit-details-marker{ display:none; }
-    .nav-details > summary:focus{ outline:2px solid #fff; outline-offset:2px; }
-
-    /* ─── MOBILE OVERRIDES: match Our DJs page ─────────────────────── */
-    @media (max-width:768px){
-      #main-nav a.nav-link,
-      #main-nav summary.nav-link{
-        font-size:.95rem !important;
-        line-height:1 !important;
-      }
-      .nav-details .about-panel{ width:calc(100vw - 16px); right:-8px; }
-    }
-
-    /* ─── MERCH SECTION & IFRAME (unchanged) ───────────────────────── */
-    .merch-section{
-      padding:2rem 0;
-      margin:0 auto 200px;
-      max-width:100%;
-      text-align:center;
-    }
-    .merch-section iframe{
-      width:100%;
-      height:1300px;
-      border:none;
-      border-radius:16px;
+    #main-nav a.nav-link{
       display:block;
-      margin:0 auto;
+      text-align:center;
+      font-family:'Bebas Neue',sans-serif !important;
+      text-decoration:none !important;
+      color:#fff !important;
+      letter-spacing:.6px;
+      line-height:1.5;
+      font-size:2rem !important;
+      text-transform: uppercase !important;
+      white-space: nowrap !important;
+      position: relative;                    /* ensure its own stacking ctx */
+      z-index: 1;
+    }
+    #main-nav a.nav-link:hover{ opacity:1; color:#fff; }
+
+    /* Story panels wrapper */
+    .story-content{
+      width:90%;
+      margin:4rem auto;
+      background:#000;
+      clear:both;
     }
 
-    /* Header anchor for GIFs/logos only */
-    .header-banner{ position:relative; }
+    /* Panel container */
+    .history-image{ position:relative; margin-bottom:2rem; text-align:center; }
+    .history-image img{
+      display:block; width:70%; height:auto; margin:0 auto; border:none;
+    }
+
+    /* Video below last panel */
+    .history-image.history-last .video-overlay{
+      position:relative; bottom:auto; left:auto; transform:none;
+      width:70%; max-width:500px; margin:2rem auto; z-index:5;
+    }
+    .history-image.history-last .video-overlay .inner{
+      position:relative; width:100%; padding-bottom:56.25%;
+    }
+    .history-image.history-last .video-overlay iframe{
+      position:absolute; top:0; left:0; width:100%; height:100%; border:none;
+    }
+
+    /* Back link */
+    .back-home{
+      display:inline-block; font-size:1.6rem; margin:2rem auto 3rem;
+      color:var(--brand-teal); text-decoration:none;
+    }
+
+    footer.banner{ margin-top:3rem; }
+
+    /* ─── MOBILE OVERRIDES ───────────────────────────────────────────── */
+    @media (max-width:768px){
+      /* Matched to Our DJs page mobile nav: .95rem + tight line height */
+      #main-nav a.nav-link{ font-size:.95rem !important; line-height:1 !important; }
+
+      .history-image img{ width:100% !important; }
+      .history-image.history-last .video-overlay{ width:75% !important; }
+    }
   </style>
 </head>
 
 <body>
-  <!-- HEADER (unchanged; blurb moved to nav) -->
-  <header class="header-banner" role="banner">
-    <div class="header-gif-right" aria-hidden="true"></div>
-    <div class="header-gif-left" aria-hidden="true"></div>
+  <!-- HEADER (animated GIFs) -->
+  <header class="header-banner">
+    <div class="header-gif-right"></div>
+    <div class="header-gif-left"></div>
     <div class="logo-container">
-      <img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="lazy" decoding="async">
+      <img class="logo" src="images/logo.png" alt="Logo" loading="lazy">
     </div>
     <div class="title">
       <h1>Cutters Choice Radio</h1>
       <p class="tagline">The home of relentless flavas and significant bangers!</p>
     </div>
     <div class="logo-container">
-      <img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="lazy" decoding="async">
+      <img class="logo" src="images/logo.png" alt="Logo" loading="lazy">
     </div>
-    <!-- (About Merch toggle removed from header) -->
   </header>
 
-  <!-- NAV (Home • Our Story • Our DJs • DJ Selects • Schedule • About Merch) -->
-  <nav id="main-nav" aria-label="Primary">
-    <div class="nav-menu" role="list">
-      <a class="nav-link" href="index.html">Home</a>
-      <a class="nav-link" href="our-story.html">Our Story</a>
-      <a class="nav-link" href="index-ourDJS.html">Our DJs</a>
-      <a class="nav-link" href="dj-selects.html">DJ Selects</a>
-      <a class="nav-link" href="schedule.html">Schedule</a>
+  <!-- Thin teal line (kept consistent with other pages) -->
+  <div style="height:2px;background-color:var(--brand-teal)"></div>
 
-      <!-- ABOUT MERCH in the nav (white, Bebas, dropdown panel) -->
-      <details class="nav-details" id="merch-overlay">
-        <summary class="nav-link" aria-label="About the merch">ABOUT MERCH</summary>
-        <div class="about-panel" id="merch-blurb">
-          <p>
-            Official Cutters Choice Radio merch helps keep the station ad-free and community-run.
-            Worldwide shipping available; sizes and stock update regularly via our store below.
-          </p>
-        </div>
-      </details>
+  <!-- UPDATED NAV (links only, consistent styling) -->
+  <nav id="main-nav" aria-label="Primary">
+    <div class="nav-menu">
+      <a href="index.html"         class="nav-link">HOME</a>
+      <a href="index-ourDJS.html"  class="nav-link">OUR DJS</a>
+      <a href="schedule.html"      class="nav-link">SCHEDULE</a>
+      <a href="dj-selects.html"    class="nav-link">DJ SELECTS</a>
+      <a href="merch.html"         class="nav-link">MERCH</a>
     </div>
   </nav>
 
-  <!-- MERCH CONTENT (unchanged) -->
-  <main class="merch-section" role="main">
-    <iframe
-      src="https://direct.app/embed/cutterschoiceradio"
-      title="Cutters Choice Radio Store"
-      loading="eager"
-      referrerpolicy="no-referrer-when-downgrade"
-    ></iframe>
+  <!-- Thin teal line (kept consistent with other pages) -->
+  <div style="height:2px;background-color:var(--brand-teal)"></div>
+
+  <!-- STORY PANELS (unchanged) -->
+  <main class="story-content">
+    <div class="history-image">
+      <img src="images/1-history.png" alt="History part 1">
+    </div>
+    <div class="history-image">
+      <img src="images/2-history.png" alt="History part 2">
+    </div>
+    <div class="history-image history-last">
+      <img src="images/3-history.png" alt="History part 3">
+      <div class="video-overlay">
+        <div class="inner">
+          <iframe src="https://www.youtube.com/embed/6lcWDYT681g"
+                  title="Documentary"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+
+    <a href="index.html" class="back-home">← Back to Main Page</a>
   </main>
 
-  <!-- FOOTER (unchanged) -->
-  <footer class="banner" role="contentinfo"></footer>
+  <!-- FOOTER -->
+  <footer class="banner"></footer>
+
+  <!-- GIF-SWAP SCRIPT (unchanged) -->
+  <script>
+    (function(){
+      const right = document.querySelector('.header-gif-right');
+      const left  = document.querySelector('.header-gif-left');
+      let loopCount = 0;
+
+      const set1 = [
+        "url('images/Untitled%20design(4).gif')",
+        "url('images/Untitled%20design(5).gif')"
+      ];
+      const set2 = [
+        "url('images/Untitled%20design(7).gif')",
+        "url('images/Untitled%20design(8).gif')"
+      ];
+
+      let currentSet = set1;
+      if (right) right.style.backgroundImage = currentSet[0];
+      if (left)  left.style.backgroundImage  = currentSet[1];
+
+      if (right) {
+        right.addEventListener('animationiteration', () => {
+          loopCount++;
+          if (loopCount % 2 === 0) {
+            currentSet = (currentSet === set1) ? set2 : set1;
+            right.style.backgroundImage = currentSet[0];
+            if (left) left.style.backgroundImage  = currentSet[1];
+          }
+        });
+      }
+    })();
+  </script>
 </body>
 </html>

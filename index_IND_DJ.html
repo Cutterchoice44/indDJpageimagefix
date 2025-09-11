@@ -35,49 +35,43 @@
 
   <!-- Org JSON-LD -->
   <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "Cutters Choice Radio",
-    "url": "https://cutterschoiceradio.com",
-    "logo": "https://cutterschoiceradio.com/images/logo.png",
-    "sameAs": [
-      "https://www.instagram.com/cutterschoiceradio",
-      "https://www.facebook.com/cutterschoiceradio",
-      "https://www.mixcloud.com/cutterschoiceradio",
-      "https://tunein.com/radio/Cutters-Choice-Radio-s344746/"
-    ]
-  }
+  {"@context":"https://schema.org","@type":"Organization","name":"Cutters Choice Radio","url":"https://cutterschoiceradio.com","logo":"https://cutterschoiceradio.com/images/logo.png","sameAs":["https://www.instagram.com/cutterschoiceradio","https://www.facebook.com/cutterschoiceradio","https://www.mixcloud.com/cutterschoiceradio","https://tunein.com/radio/Cutters-Choice-Radio-s344746/"]}
   </script>
 
   <style>
     :root{
       --brand-teal:#5A8785;
-      --hourH:52px;                  /* grid height per hour */
-      --qH:calc(var(--hourH)/4);     /* 15-min cell height */
-      --now-color:#ff5858;           /* current time marker */
+
+      /* desktop grid scale */
+      --hourH:52px;
+      --qH:calc(var(--hourH)/4);
+
+      /* mobile card height */
+      --mobile-card-h:64px;
+
+      /* current-time marker (desktop) */
+      --now-color:#ff5858;
     }
 
-    /* NAV – match site bar; simple teal band */
+    /* NAV – unified, same as other pages */
     #main-nav{
-      display:flex!important; align-items:center!important; justify-content:center!important;
-      padding:.10rem .65rem!important; margin:0!important; width:100%!important;
-      background-color:var(--brand-teal)!important; border-top:2px solid #000; border-bottom:2px solid #000;
-      position:relative!important; z-index:1000!important;
+      display:flex!important; align-items:center!important; gap:.5rem!important; width:100%!important;
+      padding:.10rem .65rem!important; margin:0!important; box-sizing:border-box!important;
+      background-color:var(--brand-teal)!important; position:relative!important; z-index:1000!important;
+      border-top:2px solid #000; border-bottom:2px solid #000;
     }
     #main-nav::before,#main-nav::after{content:none!important;}
-    #main-nav .nav-menu{display:flex;gap:clamp(.5rem,3vw,1.25rem);flex-wrap:wrap;justify-content:space-evenly;width:100%}
-    #main-nav a.nav-link{
-      color:#fff!important;font-family:'Bebas Neue',sans-serif!important;font-size:2rem!important;
-      text-transform:uppercase!important;text-decoration:none!important;white-space:nowrap!important;
+    #main-nav .nav-menu{ display:flex!important; align-items:center!important; justify-content:space-evenly!important; gap:clamp(.25rem,2vw,1.5rem)!important; flex:1 1 auto!important; min-width:0!important; }
+    #main-nav a.nav-link{ color:#fff!important; font-family:'Bebas Neue',sans-serif!important; font-size:2rem!important; text-transform:uppercase!important; text-decoration:none!important; white-space:nowrap!important; }
+    @media (max-width:768px){
+      #main-nav a.nav-link{ font-size:1.6rem!important; }
+      #main-nav .nav-menu{ justify-content:space-evenly!important; gap:.5rem!important; }
     }
-    @media (max-width:768px){ #main-nav a.nav-link{font-size:1.6rem!important} }
 
-    /* PAGE base */
     html,body{ background:#000; color:#fafafa; }
     *{ box-sizing:border-box; }
 
-    /* Header above schedule */
+    /* Header bar above schedule (desktop only) */
     .page-header{
       display:flex; align-items:center; justify-content:space-between;
       padding:.5rem .75rem; border-bottom:2px solid #000; background:var(--brand-teal);
@@ -86,52 +80,49 @@
       font-family:'Bebas Neue',sans-serif; font-size:2.2rem; letter-spacing:.5px; color:#fff; margin:0;
       text-shadow:0 1px 0 rgba(0,0,0,.35);
     }
+
+    /* Controls (desktop only) */
+    .month-controls{
+      display:flex; gap:.5rem; align-items:center; justify-content:space-between;
+      border-bottom:1px solid var(--brand-teal); padding:.75rem .75rem; position:sticky; top:0; background:#000; z-index:20;
+    }
+    .month-controls .title{ font-family:'Bebas Neue',sans-serif; font-size:2rem; color:#fff; letter-spacing:.5px; text-shadow:0 1px 0 rgba(0,0,0,.35); }
+    .ccr-btn{ background:var(--brand-teal); color:#fff; border:none; border-radius:6px; padding:.5rem .75rem; cursor:pointer; font-weight:600; letter-spacing:.3px; }
+
     .utilities{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
     .legend{display:flex;gap:.5rem;align-items:center}
     .chip{width:.9rem;height:.9rem;border-radius:2px;border:1px solid #1f1f1f;display:inline-block}
 
-    /* Controls (month title, tz) */
-    .month-controls{
-      display:flex; gap:.5rem; align-items:center; justify-content:space-between;
-      border-bottom:1px solid var(--brand-teal); padding:.75rem .75rem;
-      position:sticky; top:0; background:#000; z-index:20;
-    }
-    .month-controls .title{
-      font-family:'Bebas Neue',sans-serif; font-size:2rem; color:#fff; letter-spacing:.5px;
-      text-shadow:0 1px 0 rgba(0,0,0,.35);
-    }
-    .ccr-btn{
-      background:var(--brand-teal); color:#fff; border:none; border-radius:6px;
-      padding:.5rem .75rem; cursor:pointer; font-weight:600; letter-spacing:.3px;
-    }
-
-    /* DESKTOP/WIDE — full 4-week grid */
     .weeks-stack{ display:flex; flex-direction:column; gap:1.25rem; padding:1rem .75rem 2rem; }
+
+    /* === Desktop week grid === */
     .week-grid{
       display:grid; grid-template-columns:64px repeat(7,1fr); grid-template-rows:auto 1fr; gap:6px;
       border:2px solid var(--brand-teal); border-radius:8px; overflow:hidden; background:#0f0f0f; padding:6px;
     }
-    .time-head{ grid-column:1; grid-row:1; } /* spacer */
+    .time-head{ grid-column:1; grid-row:1; }
     .time-col{
       grid-column:1; grid-row:2; position:relative; height:calc(var(--hourH)*24);
       border:1px solid #1c1c1c; border-radius:6px; background:#0b0b0b;
-      background-image:linear-gradient(to bottom,#1e1e1e 1px,transparent 1px);
-      background-size:100% var(--hourH);
+      background-image:linear-gradient(to bottom,#1e1e1e 1px,transparent 1px); background-size:100% var(--hourH);
     }
-    .time-col .hour-label{ position:absolute; left:6px; font-size:1rem; color:#fff; line-height:1; text-shadow:0 1px 0 rgba(0,0,0,.35) }
+    .time-col .hour-label{ position:absolute; left:6px; font-size:1rem; color:#fff; line-height:1; text-shadow:0 1px 0 rgba(0,0,0,.35); pointer-events:none; }
 
-    .day-head{ grid-row:1; background:#0d0d0d; border:1px solid #1e1e1e; padding:.48rem .6rem; border-radius:6px; color:#fff; }
-    .day-head .dow{ font-family:'Bebas Neue',sans-serif; font-size:1.38rem; }
-    .day-head .date{ font-size:1.06rem; }
+    .day-head{
+      grid-row:1; background:#0d0d0d; border:1px solid #1e1e1e; padding:.48rem .6rem; border-radius:6px; color:#fff;
+    }
+    .day-head .dow{ font-family:'Bebas Neue',sans-serif; font-size:1.38rem; color:#fff; text-shadow:0 1px 0 rgba(0,0,0,.35); }
+    .day-head .date{ font-size:1.06rem; color:#fff; text-shadow:0 1px 0 rgba(0,0,0,.35); }
 
     .day-body{
       grid-row:2; display:grid; grid-template-rows:repeat(96,var(--qH)); position:relative;
-      height:calc(var(--hourH)*24); border:1px solid #1c1c1c; border-radius:6px; overflow:hidden;
-      background:#0b0b0b; background-image:linear-gradient(to bottom,#1a1a1a 1px,transparent 1px); background-size:100% var(--hourH);
+      height:calc(var(--hourH)*24); border:1px solid #1c1c1c; border-radius:6px; overflow:hidden; background:#0b0b0b;
+      background-image:linear-gradient(to bottom,#1a1a1a 1px,transparent 1px); background-size:100% var(--hourH);
     }
+
     .show{
       grid-column:1/-1; margin:2px 4px; background:var(--chip,#FBBF24); color:var(--fg,#1b0f00);
-      border-radius:10px; padding:.48rem .6rem; overflow:hidden; box-shadow:inset 0 0 0 2px rgba(0,0,0,.2);
+      border-radius:10px; padding:.48rem .6rem; overflow:hidden; box-shadow: inset 0 0 0 2px rgba(0,0,0,.2);
     }
     .show .time{ font-size:.78rem; opacity:.95; }
     .show .title{ font-weight:800; line-height:1.2; }
@@ -150,88 +141,40 @@
     .now-line{ position:absolute; left:0; right:0; height:2px; background:var(--now-color); pointer-events:none; z-index:6; }
     .now-dot{ position:absolute; width:10px; height:10px; border-radius:50%; background:var(--now-color); left:4px; top:-4px; pointer-events:none; z-index:7; box-shadow:0 0 0 2px rgba(0,0,0,.25); }
 
-    /* ===== MOBILE MODE (≤980px) ===== */
-    /* 1) Hide the heavy grid by default; show a condensed “Today” list */
-    @media (max-width:980px){
-      .weeks-stack{ display:none; }                  /* hidden until user taps */
-      .weeks-stack.show{ display:flex; }            /* revealed by button */
+    /* ABOUT popover (desktop) */
+    #schedule-about{ position:relative; display:inline-block; margin-right:.5rem; }
+    #schedule-about > summary{ list-style:none; display:inline-flex; align-items:center; gap:.35rem; cursor:pointer; padding:.2rem .5rem; font-family:'Bebas Neue',sans-serif; font-size:1.05rem; text-transform:uppercase; color:#fff; border:1px solid rgba(255,255,255,.35); border-radius:4px; background:transparent; }
+    #schedule-about > summary::-webkit-details-marker{ display:none; }
+    #schedule-about > summary::after{ content:"▸"; transform:translateY(-1px); }  #schedule-about[open] > summary::after{ content:"▾"; }
+    #schedule-about .about-panel{ position:absolute; right:0; top:calc(100% + 8px); width:min(520px,86vw); background:#000; color:#fff; border:2px solid var(--brand-teal); border-radius:8px; padding:.75rem .9rem; line-height:1.35; box-shadow:0 8px 18px rgba(0,0,0,.45); z-index:30; }
+
+    /* ===== MOBILE MODE ===== */
+    @media (max-width:768px){
+      /* hide all the busy header/controls on mobile */
+      .page-header, .month-controls{ display:none !important; }
+
+      /* show a compact "Today" badge on the first day */
+      .day-head.today{ border:2px solid var(--brand-teal); }
+
+      /* stack days; remove duration-scaling and grid stripes */
+      .weeks-stack{ gap:.5rem; padding:.5rem .5rem 1.25rem; }
       .week-grid{ display:block; padding:0; border:none; background:transparent; }
-      .time-head,.time-col{ display:none!important; }
-      .day-head{ margin:12px 8px 0; padding:.55rem .7rem; border-radius:12px; }
-      .day-body{ margin:6px 8px 8px; border-radius:14px; height:calc(var(--hourH)*24); }
-    }
-
-    /* 2) Condensed “Today” list (uniform tiles) */
-    .mobile-today{ display:none; }
-    @media (max-width:980px){ .mobile-today{ display:block; padding:.5rem .5rem 0; } }
-
-    .m-head{
-      display:flex; align-items:center; justify-content:space-between; gap:.5rem;
-      padding:.25rem .25rem .5rem .25rem;
-    }
-    .m-head .m-title{
-      font-family:'Bebas Neue',sans-serif; color:#fff; letter-spacing:.5px;
-      font-size:1.8rem;
-    }
-    .m-head .m-sub{ opacity:.9; font-size:.95rem; }
-
-    .m-list{ display:flex; flex-direction:column; gap:.5rem; }
-    .m-item{
-      display:grid; grid-template-columns:auto 1fr; gap:.6rem; align-items:center;
-      min-height:64px; border-radius:10px; padding:.6rem .7rem;
-      border:1px solid #264745; background:var(--chip,#FBBF24); color:var(--fg,#1b0f00);
-      box-shadow:inset 0 0 0 2px rgba(0,0,0,.2);
-    }
-    .m-time{ font-family:'Bebas Neue',sans-serif; font-size:1.02rem; color:#111; opacity:.9; min-width:90px; }
-    .m-text{ min-width:0; }
-    .m-titleline{
-      font-weight:800; font-size:1rem; line-height:1.15;
-      overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
-    }
-    .m-host{
-      font-size:.9rem; opacity:.9; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
-    }
-    .m-item.is-archive .m-time{ color:#0b1f3f; opacity:1; }
-
-    /* LIVE now highlight */
-    .m-item.is-now{ outline:2px solid var(--now-color); box-shadow:0 0 0 2px rgba(0,0,0,.25) inset; }
-
-    /* “Earlier today” collapsible */
-    .m-earlier{ margin-top:.5rem; }
-    .m-earlier > summary{
-      list-style:none; cursor:pointer; color:#fff; border:1px solid #264745; border-radius:8px;
-      padding:.4rem .6rem; background:#0b0b0b;
-    }
-    .m-earlier > summary::-webkit-details-marker{ display:none; }
-
-    /* Show/Hide week button (mobile only) */
-    .toggle-week{ display:none; }
-    @media (max-width:980px){
-      .toggle-week{ display:block; margin:.75rem auto 1rem; }
+      .time-head, .time-col{ display:none !important; }
+      .day-head{ margin:14px 8px 6px; padding:.6rem .75rem; border-radius:12px; }
+      .day-body{
+        display:block; height:auto; margin:0 8px 10px; border-radius:12px; background:#0b0b0b;
+        background-image:none; overflow:visible;
+      }
+      .show{ margin:8px; padding:12px 14px; border-radius:12px; min-height:var(--mobile-card-h); }
+      .show .time{ font-size:.95rem; }
+      .show .title{ font-size:1.02rem; }
+      .show .host{ font-size:.9rem; }
+      /* no now-line on mobile (cards are uniform height) */
+      .now-line,.now-dot{ display:none !important; }
     }
 
     .banner{display:flex;gap:1rem;justify-content:center;padding:1rem;border-top:2px solid #000}
     .banner a{color:#fff;text-decoration:none}
-
-    /* ABOUT drop */
-    #schedule-about{ position:relative; display:inline-block; margin-right:.5rem; }
-    #schedule-about > summary{
-      list-style:none; display:inline-flex; align-items:center; gap:.35rem; cursor:pointer;
-      padding:.2rem .5rem; font-family:'Bebas Neue',sans-serif; font-size:1.05rem; text-transform:uppercase;
-      color:#fff; border:1px solid rgba(255,255,255,.35); border-radius:4px; background:transparent;
-    }
-    #schedule-about > summary::-webkit-details-marker{ display:none; }
-    #schedule-about > summary:focus{ outline:2px solid #fff; outline-offset:2px; }
-    #schedule-about > summary::after{ content:"▸"; transform:translateY(-1px); }
-    #schedule-about[open] > summary::after{ content:"▾"; }
-    #schedule-about .about-panel{
-      position:absolute; right:0; top:calc(100% + 8px); width:min(520px,86vw); background:#000; color:#fff;
-      border:2px solid var(--brand-teal); border-radius:8px; padding:.75rem .9rem; line-height:1.35; box-shadow:0 8px 18px rgba(0,0,0,.45); z-index:30;
-    }
-    @media (max-width:768px){
-      #schedule-about > summary{ font-size:.95rem; padding:.15rem .45rem; }
-      #schedule-about .about-panel{ width:calc(100vw - 16px); right:-8px; }
-    }
   </style>
 </head>
 
@@ -247,6 +190,7 @@
     </div>
   </nav>
 
+  <!-- Desktop heading + legend -->
   <header class="page-header">
     <h1>MONTHLY SCHEDULE</h1>
     <div class="utilities">
@@ -267,6 +211,7 @@
     </div>
   </header>
 
+  <!-- Desktop controls -->
   <section class="month-controls">
     <div>
       <button class="ccr-btn" id="prevMonthBtn" aria-label="Previous 4 weeks">◀</button>
@@ -277,13 +222,9 @@
       <details id="schedule-about">
         <summary aria-label="About the schedule">ABOUT</summary>
         <div class="about-panel">
-          <p>
-            Mobile shows a condensed “Today” view. Tap **Show full week** to open the grid.  
-            Times default to your device timezone; switch to UK or UTC if you prefer.
-          </p>
+          <p>Times are shown in your local timezone by default. Use the selector to switch to UK or UTC. Live shows are followed by an archives block when off-air.</p>
         </div>
       </details>
-
       <label style="display:flex;align-items:center;gap:.35rem;">
         <span style="font-size:.95rem;color:#fff">Times in</span>
         <select id="tzSelect" class="ccr-btn" style="background:#0a0a0a;border:1px solid #1c1c1c;color:#fff">
@@ -295,11 +236,6 @@
     </div>
   </section>
 
-  <!-- MOBILE-ONLY: Today list -->
-  <section id="mobileToday" class="mobile-today" aria-live="polite"></section>
-  <button id="toggleWeekBtn" class="ccr-btn toggle-week" type="button">Show full week</button>
-
-  <!-- Full 4-week grid (hidden by default on mobile) -->
   <main class="weeks-stack" id="weeksStack" aria-live="polite">
     <p style="opacity:.8;color:#fff">Fetching…</p>
   </main>
@@ -326,10 +262,14 @@
     const addDaysUTC = (d, n) => { const x = new Date(d); x.setUTCDate(x.getUTCDate()+n); return x; };
     const startOfWeekUTC = (date) => { const d=new Date(Date.UTC(date.getUTCFullYear(),date.getUTCMonth(),date.getUTCDate())); const day=(d.getUTCDay()+6)%7; d.setUTCDate(d.getUTCDate()-day); d.setUTCHours(0,0,0,0); return d; };
 
+    const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
+
+    // yyyy-mm-dd in chosen tz
     const ymdInTz = (d, tz) => new Intl.DateTimeFormat('en-CA',{
       timeZone: tz==='local'?undefined:tz, year:'numeric',month:'2-digit',day:'2-digit'
     }).format(d);
 
+    // minutes since day start in tz
     const minutesInDay = (d, tz) => {
       const parts = new Intl.DateTimeFormat('en-GB',{
         timeZone: tz==='local'?undefined:tz, hour:'2-digit', minute:'2-digit', hour12:false
@@ -346,10 +286,12 @@
     };
 
     const dowInTz = (d, tz) =>
-      new Intl.DateTimeFormat('en-GB', { timeZone: tz==='local'?undefined:tz, weekday:'short' }).format(d).toUpperCase();
+      new Intl.DateTimeFormat('en-GB', { timeZone: tz === 'local' ? undefined : tz, weekday: 'short' })
+      .format(d).toUpperCase();
 
     const fmtDMtz = (d, tz) =>
-      new Intl.DateTimeFormat(undefined, { timeZone: tz==='local'?undefined:tz, day:'numeric', month:'short' }).format(d);
+      new Intl.DateTimeFormat(undefined, { timeZone: tz === 'local' ? undefined : tz, day: 'numeric', month: 'short' })
+      .format(d);
 
     const rangeLabelInTz = (startUtc, endUtc, tz) => {
       const f = (d,opts)=> new Intl.DateTimeFormat(undefined, { ...(tz==='local'?{}:{timeZone:tz}), ...opts }).format(d);
@@ -451,43 +393,51 @@
       return col;
     }
 
-    /* ===== Desktop/Wide rendering ===== */
     function renderFourWeeks(anchorUtc, shows, tz, ukOrderLookup){
       const mount=document.getElementById('weeksStack'); mount.innerHTML='';
       const endUtc = addDaysUTC(anchorUtc, 27);
       document.getElementById('monthTitle').textContent = rangeLabelInTz(anchorUtc, endUtc, tz);
 
       const buckets = splitShowsIntoDailySegments(shows, tz);
+      const mobile = isMobile();
 
-      for (let w=0; w<4; w++){
+      const weeksToRender = mobile ? 1 : 4;   // mobile: only current week
+      const todayKey = ymdInTz(new Date(), tz);
+
+      for (let w=0; w<weeksToRender; w++){
         const weekEl=document.createElement('section'); weekEl.className='week-grid';
 
-        const spacer=document.createElement('div'); spacer.className='time-head';
-        weekEl.appendChild(spacer);
+        if (!mobile){
+          const spacer=document.createElement('div'); spacer.className='time-head';
+          weekEl.appendChild(spacer);
+          weekEl.appendChild(buildTimeRuler());
+        }
 
-        weekEl.appendChild(buildTimeRuler());
+        // Build day order; on mobile start from "today", then the rest of the week
+        const indices = [...Array(7).keys()];
+        const order = mobile ? (() => {
+          let startIdx = 0;
+          for(let i=0;i<7;i++){
+            const dk = ymdInTz(addDaysUTC(anchorUtc, w*7 + i), tz);
+            if (dk === todayKey){ startIdx = i; break; }
+          }
+          return indices.slice(startIdx).concat(indices.slice(0,startIdx));
+        })() : indices;
 
-        for(let i=0;i<7;i++){
+        order.forEach(i=>{
           const dayUtc = addDaysUTC(anchorUtc, w*7 + i);
-          const head=document.createElement('div'); head.className='day-head';
-          head.style.gridColumn = String(i+2);
-          head.innerHTML = `
-            <div class="dow">${dowInTz(dayUtc, tz)}</div>
-            <div class="date">${fmtDMtz(dayUtc, tz)}</div>
-          `;
+          const dayKey = ymdInTz(dayUtc, tz);
+
+          const head=document.createElement('div'); head.className='day-head' + (dayKey===todayKey?' today':'');
+          head.innerHTML = `<div class="dow">${dowInTz(dayUtc, tz)}</div><div class="date">${fmtDMtz(dayUtc, tz)}</div>`;
+          if (!mobile) head.style.gridColumn = String(i+2);
           weekEl.appendChild(head);
 
-          const body=document.createElement('div'); body.className='day-body';
-          body.style.gridColumn = String(i+2);
+          const body=document.createElement('div'); body.className='day-body'; body.dataset.day = dayKey;
+          if (!mobile) body.style.gridColumn = String(i+2);
 
-          const dayKey = ymdInTz(dayUtc, tz);
-          body.dataset.day = dayKey;
-
-          const segments = buckets.get(dayKey) || [];
-
+          const segments = (buckets.get(dayKey) || []);
           segments.forEach(seg=>{
-            const startQ = Math.floor(seg.segStartMin/15);
-            const spanQ  = Math.max(1, Math.ceil((seg.segEndMin - seg.segStartMin)/15));
             const show=document.createElement('div');
             let classes = 'show ';
             if (seg.archive) {
@@ -498,7 +448,16 @@
               classes += ORDER_CLASSES[ord % ORDER_CLASSES.length];
             }
             show.className = classes;
+
+            // desktop uses duration grid rows; harmless on mobile because .day-body is block
+            const startQ = Math.floor(seg.segStartMin/15);
+            const spanQ  = Math.max(1, Math.ceil((seg.segEndMin - seg.segStartMin)/15));
             show.style.gridRow = `${startQ+1} / span ${spanQ}`;
+
+            // store times for mobile auto-scroll
+            show.dataset.start = seg.segStartMin;
+            show.dataset.end = seg.segEndMin;
+
             show.innerHTML = `
               <div class="time">${fmtHM(seg.segStartMin)}–${fmtHM(seg.segEndMin)}</div>
               <div class="title">${String(seg.title).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
@@ -508,12 +467,16 @@
           });
 
           weekEl.appendChild(body);
-        }
+        });
 
         mount.appendChild(weekEl);
       }
 
-      drawNowMarker(tz);
+      if (!mobile) {
+        drawNowMarker(tz);
+      } else {
+        mobileScrollToCurrent(tz);
+      }
     }
 
     function drawNowMarker(tz){
@@ -526,118 +489,56 @@
       const hourH = parseFloat(raw) || 52;
       const topPx = (minutesInDay(now, tz) / 60) * hourH;
       const line = document.createElement('div'); line.className = 'now-line'; line.style.top = `${topPx}px`; body.appendChild(line);
-      const dot  = document.createElement('div'); dot.className  = 'now-dot';  dot.style.top  = `${topPx}px`; body.appendChild(dot);
+      const dot = document.createElement('div');  dot.className  = 'now-dot';  dot.style.top  = `${topPx}px`; body.appendChild(dot);
     }
 
-    /* ===== Mobile “Today” rendering ===== */
-    function renderMobileToday(shows, tz, ukOrderLookup){
-      const mount = document.getElementById('mobileToday');
-      const today = new Date();
-      const todayKey = ymdInTz(today, tz);
-      const minutesNow = minutesInDay(today, tz);
-
-      // Build segments map in the chosen timezone
-      const buckets = splitShowsIntoDailySegments(shows, tz);
-      const segments = (buckets.get(todayKey) || []).slice();
-
-      if (!segments.length){
-        mount.innerHTML = `<div class="m-head"><div class="m-title">TODAY</div></div><p style="opacity:.9;padding:0 .5rem 1rem">No schedule found for today.</p>`;
-        return;
-      }
-
-      // Partition: upcoming (including now) first, earlier collapsed
-      const upcoming = segments.filter(s => s.segEndMin > minutesNow);
-      const earlier  = segments.filter(s => s.segEndMin <= minutesNow);
-
-      const dayLabel = `${dowInTz(today, tz)} • ${fmtDMtz(today, tz)}`;
-
-      const renderItem = (seg, extraClasses='') => {
-        const key = (seg.start||'') + '|' + (seg.title||'');
-        const ord = seg.archive ? null : (ukOrderLookup.get(key) ?? 0);
-        const tone = seg.archive ? 'is-archive' : ORDER_CLASSES[ord % ORDER_CLASSES.length];
-        const isNow = seg.segStartMin <= minutesNow && minutesNow < seg.segEndMin && !seg.archive;
-        return `
-          <div class="m-item ${tone} ${isNow?'is-now':''} ${extraClasses}">
-            <div class="m-time">${fmtHM(seg.segStartMin)}–${fmtHM(seg.segEndMin)}</div>
-            <div class="m-text">
-              <div class="m-titleline">${escapeHtml(seg.title)}</div>
-              ${seg.host?`<div class="m-host">${escapeHtml(seg.host)}</div>`:''}
-            </div>
-          </div>
-        `;
-      };
-
-      mount.innerHTML = `
-        <div class="m-head">
-          <div>
-            <div class="m-title">TODAY</div>
-            <div class="m-sub">${dayLabel}</div>
-          </div>
-          <div class="m-sub" style="opacity:.85">Times in ${tz==='local'?'your local time':tz}</div>
-        </div>
-
-        <div class="m-list">
-          ${upcoming.map(seg => renderItem(seg)).join('')}
-          ${earlier.length ? `
-            <details class="m-earlier">
-              <summary>Earlier today</summary>
-              <div class="m-list" style="margin-top:.5rem">
-                ${earlier.map(seg => renderItem(seg,'m-early')).join('')}
-              </div>
-            </details>` : ''
-          }
-        </div>
-      `;
+    function mobileScrollToCurrent(tz){
+      // Auto-scroll so the next/current show is at top on mobile
+      const now = new Date();
+      const todayKey = ymdInTz(now, tz);
+      const body = document.querySelector(`.day-body[data-day="${todayKey}"]`);
+      if (!body) return;
+      const nowMin = minutesInDay(now, tz);
+      const shows = [...body.querySelectorAll('.show')];
+      let target = shows.find(el => parseInt(el.dataset.end||'0',10) > nowMin) || shows[0];
+      if (target) target.scrollIntoView({behavior:'auto', block:'start', inline:'nearest'});
     }
 
-    // HTML-safe
-    function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
-
-    /* ===== App boot ===== */
+    /* ===== Boot + events ===== */
     let anchorUtc = startOfWeekUTC(new Date());
     let tzMode = "local";
     let nowTimer = null;
-    let cacheShows = null;   // reuse shows for both renderers
 
     async function loadBlock(){
       const blockStart = anchorUtc;
       const blockEnd   = addDaysUTC(anchorUtc, 28);
       try{
-        const shows = await fetchRange(blockStart, blockEnd);
-        cacheShows = shows;
-
+        const shows=await fetchRange(blockStart, blockEnd);
+        if (!Array.isArray(shows) || !shows.length){
+          document.getElementById('weeksStack').innerHTML = "<p style='color:#fff;opacity:.9'>No schedule available for this period.</p>";
+          return;
+        }
         const ukOrderLookup = buildUkOrderLookup(shows);
-
-        // Desktop/full grid
         renderFourWeeks(blockStart, shows, tzMode, ukOrderLookup);
 
-        // Mobile "Today"
-        renderMobileToday(shows, tzMode, ukOrderLookup);
-
         if (nowTimer) clearInterval(nowTimer);
-        nowTimer = setInterval(()=>{ drawNowMarker(tzMode); if(cacheShows) renderMobileToday(cacheShows, tzMode, ukOrderLookup); }, 60000);
+        if (!isMobile()) nowTimer = setInterval(()=>drawNowMarker(tzMode), 60000);
       }catch(e){
         console.error(e);
         document.getElementById('weeksStack').innerHTML="<p style='color:#fff'>Couldn’t load schedule.</p>";
-        document.getElementById('mobileToday').innerHTML="<p style='color:#fff;padding:.75rem'>Couldn’t load schedule.</p>";
       }
     }
 
-    // Controls
     document.getElementById('prevMonthBtn').addEventListener('click',()=>{ anchorUtc = addDaysUTC(anchorUtc, -28); loadBlock(); window.scrollTo({top:0}); });
     document.getElementById('nextMonthBtn').addEventListener('click',()=>{ anchorUtc = addDaysUTC(anchorUtc, +28); loadBlock(); window.scrollTo({top:0}); });
     document.getElementById('todayBtn').addEventListener('click',()=>{ anchorUtc = startOfWeekUTC(new Date()); loadBlock(); window.scrollTo({top:0,behavior:'smooth'}); });
-    document.getElementById('tzSelect').addEventListener('change',e=>{ tzMode=e.target.value; if(cacheShows){ const lookup=buildUkOrderLookup(cacheShows); renderFourWeeks(anchorUtc, cacheShows, tzMode, lookup); renderMobileToday(cacheShows, tzMode, lookup);} });
+    document.getElementById('tzSelect').addEventListener('change',e=>{ tzMode=e.target.value; loadBlock(); });
 
-    // Mobile: toggle full week grid
-    document.getElementById('toggleWeekBtn').addEventListener('click',()=>{
-      const stack = document.getElementById('weeksStack');
-      stack.classList.toggle('show');
-      document.getElementById('toggleWeekBtn').textContent = stack.classList.contains('show') ? 'Hide full week' : 'Show full week';
-      if (stack.classList.contains('show')) window.scrollTo({top:stack.offsetTop - 20, behavior:'smooth'});
-    });
+    // redraw marker if returning to tab (desktop)
+    document.addEventListener('visibilitychange', ()=>{ if (!document.hidden && !isMobile()) drawNowMarker(tzMode); });
 
-    document.addEventListener('visibilitychange', ()=>{ if (!document.hidden) drawNowMarker(tzMode); });
+    // reload layout if resized across breakpoint
+    window.addEventListener('resize', ()=>{ loadBlock(); }, {passive:true});
 
     loadBlock();
   </script>

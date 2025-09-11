@@ -64,7 +64,7 @@
     /* page separators (teal lines) */
     .nav-sep{height:2px;background-color:var(--brand-teal);}
 
-    /* Keep base nav styles; just ensure ABOUT item matches other links */
+    /* Keep base nav styles; ensure ABOUT item matches other links */
     #main-nav .nav-menu{ justify-content: space-evenly !important; }
     #main-nav summary.nav-link{
       color:#fff !important;
@@ -98,38 +98,43 @@
       .nav-details .about-panel{ width:calc(100vw - 16px); right:-8px; }
     }
 
-    /* ───────────────────  DJ SELECTS MOBILE NAV FIX  ───────────────────
-       Force single-row nav and remove the extra mobile row/divider.
-       Scoped to this page only via body.dj-selects.
-    ------------------------------------------------------------------- */
+    /* ──────────────────  DJ SELECTS — mobile single-row nav fix  ──────────────────
+       Global CSS turns #main-nav into a 2-row grid and draws a divider (::after).
+       On this page we force a single row and remove the divider & any row-2 content.
+       (Extra specificity + !important to beat globals.)
+    --------------------------------------------------------------------------------*/
     @media (max-width:768px){
-      body.dj-selects #main-nav{
+      body.dj-selects nav#main-nav{
         display:flex !important;
         flex-direction:row !important;
         align-items:center !important;
         justify-content:space-between !important;
-        padding:.40rem .65rem !important;   /* no extra bottom padding */
+
+        /* neutralise the grid entirely */
+        grid-template-columns:none !important;
+        grid-template-rows:none !important;
+        grid-template-areas:none !important;
+        row-gap:0 !important;
+
+        /* remove the extra bottom padding used to make space for row 2 */
+        padding:.40rem .65rem !important;
       }
-      body.dj-selects #main-nav::after{
-        content:none !important; display:none !important; height:0 !important; border:0 !important;
+      /* remove the divider line the global CSS injects */
+      body.dj-selects nav#main-nav::after{
+        content:none !important;
+        display:none !important;
+        height:0 !important;
       }
-      /* Make sure only one row exists */
-      body.dj-selects #main-nav .nav-actions,
-      body.dj-selects #about-overlay{ display:none !important; }
-      body.dj-selects #main-nav .nav-menu{
-        order:0 !important; flex-wrap:nowrap !important; width:100% !important;
-        justify-content:space-between !important; gap:.30rem !important; min-width:0 !important;
-      }
-      /* ABOUT item should look like other links (no pill) */
-      body.dj-selects .nav-details > summary.nav-link{
-        background:transparent !important; border:0 !important; border-radius:0 !important;
-        padding:.1rem .2rem !important;
-      }
-      /* Hide the thin teal separators on mobile for this page */
+      /* ensure nothing can appear on a second row */
+      body.dj-selects nav#main-nav .nav-actions{ display:none !important; }
+      body.dj-selects nav#main-nav #about-overlay{ display:none !important; }
+      body.dj-selects nav#main-nav #selects-overlay{ display:none !important; }
+
+      /* optional: hide teal separators on this page (mobile only) */
       body.dj-selects .nav-sep{ display:none !important; }
     }
 
-    /* ====== Rest of the page CSS (unchanged from your version) ====== */
+    /* ====== Rest of the page CSS (unchanged) ====== */
 
     .djselects-hero{
       padding:.45rem .6rem .25rem;
@@ -208,29 +213,6 @@
     #adminPanel .row{ display:flex; gap:8px; margin-top:10px; align-items:center; }
     #adminPanel button{ padding:10px 14px; border-radius:6px; border:1px solid #2a5653; background:#0b2322; color:#eaffff; cursor:pointer; }
     #adminStatus{ opacity:.9; font-size:.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:52ch; }
-    /* DJ Selects — force single-row mobile nav */
-@media (max-width: 768px){
-  body.dj-selects #main-nav{
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    padding: .40rem .65rem !important; /* remove the extra bottom padding */
-  }
-  /* kill the row divider the global CSS adds */
-  body.dj-selects #main-nav::after{
-    content: none !important;
-    display: none !important;
-    height: 0 !important;
-  }
-  /* ensure nothing tries to live on a second row */
-  body.dj-selects #main-nav .nav-actions{ display:none !important; }
-  body.dj-selects #about-overlay,
-  body.dj-selects #selects-overlay{ display:none !important; }
-
-  /* if you have 2px teal separators before/after the nav, hide them on mobile for this page */
-  body.dj-selects .nav-sep{ display:none !important; }
-}
   </style>
 </head>
 
@@ -254,7 +236,7 @@
       <a href="schedule.html"     class="nav-link">SCHEDULE</a>
       <a href="merch.html"        class="nav-link">MERCH</a>
 
-      <!-- ABOUT DJ SELECTS -->
+      <!-- ABOUT DJ SELECTS (kept in markup; hidden on mobile by the fix above) -->
       <details class="nav-details" id="selects-overlay">
         <summary class="nav-link" aria-label="About DJ Selects">ABOUT DJ SELECTS</summary>
         <div class="about-panel" id="dj-selects-blurb">

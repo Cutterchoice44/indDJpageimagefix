@@ -62,10 +62,10 @@
       --preview-max:920px;
     }
 
-    /* thin teal separators (optional) */
+    /* single teal separator ABOVE nav only */
     .nav-sep{height:2px;background-color:var(--brand-teal);}
 
-    /* Make ABOUT item look like other links (desktop & tablet) */
+    /* ABOUT nav item look (desktop/tablet) */
     #main-nav .nav-menu{ justify-content: space-evenly !important; }
     #main-nav summary.nav-link{
       color:#fff !important;
@@ -89,35 +89,37 @@
     .nav-details > summary::-webkit-details-marker{ display:none; }
     .nav-details > summary:focus{ outline:2px solid #fff; outline-offset:2px; }
 
-    /* ================= DJ SELECTS — MOBILE NAV (single-row, no divider) =================
-       This overrides global mobile nav that turns it into a 2-row grid.
-       - Forces one row with horizontal scroll (no wrapping)
-       - Removes any divider pseudo element
-       - Hides secondary row containers if present
-    ================================================================================ */
+    /* ================= DJ SELECTS — MOBILE NAV: single-row, no divider, no clones ================= */
     @media (max-width:768px){
+      /* force single-row layout, no extra bottom padding */
       body.dj-selects nav#main-nav{
         display:flex !important;
         flex-direction:row !important;
         align-items:center !important;
         justify-content:space-between !important;
+        padding:.40rem .65rem !important;
 
-        /* neutralise any grid from globals */
+        /* neutralise any grid set globally */
         grid-template-columns:none !important;
         grid-template-rows:none !important;
         grid-template-areas:none !important;
         row-gap:0 !important;
-
-        /* only single-row padding */
-        padding:.40rem .65rem !important;
       }
-      /* remove any global divider */
-      body.dj-selects nav#main-nav::after{
+      /* kill any divider pseudo-elements some CSS injects */
+      body.dj-selects nav#main-nav::after,
+      body.dj-selects nav#main-nav::before{
         content:none !important;
         display:none !important;
         height:0 !important;
+        border:0 !important;
       }
-      /* single-row, no wrap; allow horizontal scroll if needed */
+      /* kill mobile “row 2” containers if present */
+      body.dj-selects nav#main-nav .nav-actions,
+      body.dj-selects nav#main-nav .nav-row-2,
+      body.dj-selects nav#mobile-nav,
+      body.dj-selects .secondary-nav{ display:none !important; }
+
+      /* single line, no wrap; allow horizontal scroll if it gets tight */
       body.dj-selects nav#main-nav .nav-menu{
         display:flex !important;
         flex:1 1 auto !important;
@@ -131,7 +133,7 @@
       }
       body.dj-selects nav#main-nav .nav-menu::-webkit-scrollbar{ display:none; }
 
-      /* keep items compact to fit most widths without scrolling */
+      /* compact link sizes on small screens */
       body.dj-selects nav#main-nav .nav-link,
       body.dj-selects nav#main-nav summary.nav-link{
         font-size:clamp(.8rem,3.2vw,1rem) !important;
@@ -139,16 +141,12 @@
         letter-spacing:.04em !important;
       }
 
-      /* hide any second-row clusters if a theme injects them */
-      body.dj-selects nav#main-nav .nav-actions{ display:none !important; }
-
-      /* keep ABOUT panel usable on mobile but sized to viewport */
-      body.dj-selects .nav-details .about-panel{
-        left:.5rem; right:.5rem; width:auto;
-      }
+      /* remove the bottom “extra bar” look entirely */
+      body.dj-selects .nav-sep.bottom { display:none !important; }     /* if a classed separator exists */
+      body.dj-selects nav#main-nav{ border-bottom:0 !important; }      /* if global adds a border */
     }
 
-    /* ================= HERO / PAGE LAYOUT (unchanged visuals) ================= */
+    /* ====== Page content (unchanged visuals) ====== */
     .djselects-hero{
       padding:.45rem .6rem .25rem;
       border:2px solid var(--brand-teal); border-left:0;border-right:0;
@@ -159,7 +157,7 @@
     .strap{ font-family:'Bebas Neue',sans-serif; }
     .djselects-hero .strap{ font-size:clamp(1.235rem,2.21vw,1.495rem)!important; line-height:1.05; }
     .djselects-hero .weekline{ font-family:'Bebas Neue',sans-serif; font-size:clamp(4.3rem,6.2vw,4.0rem)!important; line-height:1; margin-top:.15rem; letter-spacing:.2px; }
-    .selector-name{ font-family:'Bebas Neue',sans-serif; color:var(--brand-teal); font-size:clamp(3.2rem,8.2vw,5.6rem); line-height:.95; margin-top:.08rem; letter-spacing:.2px; }
+    .selector-name{ font-family:'Bebas Neue',sans-serif; color:#5A8785; font-size:clamp(3.2rem,8.2vw,5.6rem); line-height:.95; margin-top:.08rem; letter-spacing:.2px; }
     #djNameText{ display:none; }
     .hero-art{ display:flex; align-items:center; justify-content:center; }
     .hero-art img{ width:var(--hero-size); height:var(--hero-size); object-fit:cover; border:2px solid var(--brand-teal); border-radius:6px; background:#000; }
@@ -216,7 +214,7 @@
     }
     @media (max-width:768px){ .strip-list{ grid-template-rows:repeat(5,76px); } :root{ --hero-size:180px; } }
 
-    /* Admin overlay (unchanged) */
+    /* Admin overlay */
     .adminHidden{ display:none!important; }
     #adminOverlay{ position:fixed; inset:0; background:rgba(0,0,0,.82); color:#fff; z-index:9999; display:flex; align-items:center; justify-content:center; }
     #adminPanel{ width:min(840px,92vw); max-height:90vh; overflow:auto; background:#0e1414; border:2px solid var(--brand-teal); border-radius:10px; padding:16px; box-shadow:0 12px 40px rgba(0,0,0,.55); }
@@ -238,7 +236,8 @@
     <div class="logo-container"><img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="lazy" decoding="async"></div>
   </header>
 
-  <div class="nav-sep"></div>
+  <!-- single separator ABOVE nav -->
+  <div class="nav-sep top"></div>
 
   <!-- Nav -->
   <nav id="main-nav" aria-label="Primary">
@@ -262,7 +261,7 @@
     </div>
   </nav>
 
-  <div class="nav-sep"></div>
+  <!-- NOTE: intentionally NO bottom nav-sep here to avoid “two bars” on mobile -->
 
   <!-- HERO -->
   <section class="djselects-hero">
@@ -377,9 +376,7 @@
         if(v.plain_text) return String(v.plain_text);
         if(v.content) return extractTextDeep(v.content);
         if(v.description) return extractTextDeep(v.description);
-        let out=[];
-        for(const k in v){ const sub=extractTextDeep(v[k]); if(sub) out.push(sub);}
-        return out.join('\n');
+        let out=[]; for(const k in v){ const sub=extractTextDeep(v[k]); if(sub) out.push(sub);} return out.join('\n');
       }
       return String(v);
     }
@@ -387,9 +384,7 @@
     function formatBioHTML(raw){
       if(!raw) return '';
       if (/<[a-z][\s\S]*>/i.test(raw)) {
-        const div=document.createElement('div');
-        div.innerHTML=raw;
-        div.querySelectorAll('script,style').forEach(n=>n.remove());
+        const div=document.createElement('div'); div.innerHTML=raw; div.querySelectorAll('script,style').forEach(n=>n.remove());
         div.innerHTML = div.innerHTML.replace(/\bparagraph\b/gi,'');
         return div.innerHTML;
       } else {
@@ -452,7 +447,6 @@
       if(state.selector.image) djProfile.src=state.selector.image;
       djBioBox.innerHTML = formatBioHTML(state.selector.description||'');
 
-      /* Auto-condense bio based on paragraph count */
       (function applyBioDensity(){
         const n = djBioBox.querySelectorAll('p').length;
         djBioBox.classList.remove('bio-tight1','bio-tight2','bio-tight3');

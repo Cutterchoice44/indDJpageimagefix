@@ -208,6 +208,29 @@
     #adminPanel .row{ display:flex; gap:8px; margin-top:10px; align-items:center; }
     #adminPanel button{ padding:10px 14px; border-radius:6px; border:1px solid #2a5653; background:#0b2322; color:#eaffff; cursor:pointer; }
     #adminStatus{ opacity:.9; font-size:.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:52ch; }
+    /* DJ Selects — force single-row mobile nav */
+@media (max-width: 768px){
+  body.dj-selects #main-nav{
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: .40rem .65rem !important; /* remove the extra bottom padding */
+  }
+  /* kill the row divider the global CSS adds */
+  body.dj-selects #main-nav::after{
+    content: none !important;
+    display: none !important;
+    height: 0 !important;
+  }
+  /* ensure nothing tries to live on a second row */
+  body.dj-selects #main-nav .nav-actions{ display:none !important; }
+  body.dj-selects #about-overlay,
+  body.dj-selects #selects-overlay{ display:none !important; }
+
+  /* if you have 2px teal separators before/after the nav, hide them on mobile for this page */
+  body.dj-selects .nav-sep{ display:none !important; }
+}
   </style>
 </head>
 

@@ -33,6 +33,7 @@
   <link rel="preconnect" href="https://www.youtube-nocookie.com" crossorigin>
   <link rel="preconnect" href="https://bandcamp.com" crossorigin>
 
+  <!-- Global site styles (keep) -->
   <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
@@ -61,10 +62,10 @@
       --preview-max:920px;
     }
 
-    /* page separators (teal lines) */
+    /* thin teal separators (optional) */
     .nav-sep{height:2px;background-color:var(--brand-teal);}
 
-    /* Keep base nav styles; ensure ABOUT item matches other links */
+    /* Make ABOUT item look like other links (desktop & tablet) */
     #main-nav .nav-menu{ justify-content: space-evenly !important; }
     #main-nav summary.nav-link{
       color:#fff !important;
@@ -88,21 +89,12 @@
     .nav-details > summary::-webkit-details-marker{ display:none; }
     .nav-details > summary:focus{ outline:2px solid #fff; outline-offset:2px; }
 
-    @media (max-width:520px){
-      #main-nav .nav-menu{ gap:.25rem; flex-wrap:wrap; justify-content:space-between; }
-      #main-nav .nav-link,
-      #main-nav summary.nav-link{
-        font-size:clamp(.78rem,3.6vw,.95rem) !important;
-        padding:.35rem .28rem; letter-spacing:.5px;
-      }
-      .nav-details .about-panel{ width:calc(100vw - 16px); right:-8px; }
-    }
-
-    /* ──────────────────  DJ SELECTS — mobile single-row nav fix  ──────────────────
-       Global CSS turns #main-nav into a 2-row grid and draws a divider (::after).
-       On this page we force a single row and remove the divider & any row-2 content.
-       (Extra specificity + !important to beat globals.)
-    --------------------------------------------------------------------------------*/
+    /* ================= DJ SELECTS — MOBILE NAV (single-row, no divider) =================
+       This overrides global mobile nav that turns it into a 2-row grid.
+       - Forces one row with horizontal scroll (no wrapping)
+       - Removes any divider pseudo element
+       - Hides secondary row containers if present
+    ================================================================================ */
     @media (max-width:768px){
       body.dj-selects nav#main-nav{
         display:flex !important;
@@ -110,32 +102,53 @@
         align-items:center !important;
         justify-content:space-between !important;
 
-        /* neutralise the grid entirely */
+        /* neutralise any grid from globals */
         grid-template-columns:none !important;
         grid-template-rows:none !important;
         grid-template-areas:none !important;
         row-gap:0 !important;
 
-        /* remove the extra bottom padding used to make space for row 2 */
+        /* only single-row padding */
         padding:.40rem .65rem !important;
       }
-      /* remove the divider line the global CSS injects */
+      /* remove any global divider */
       body.dj-selects nav#main-nav::after{
         content:none !important;
         display:none !important;
         height:0 !important;
       }
-      /* ensure nothing can appear on a second row */
-      body.dj-selects nav#main-nav .nav-actions{ display:none !important; }
-      body.dj-selects nav#main-nav #about-overlay{ display:none !important; }
-      body.dj-selects nav#main-nav #selects-overlay{ display:none !important; }
+      /* single-row, no wrap; allow horizontal scroll if needed */
+      body.dj-selects nav#main-nav .nav-menu{
+        display:flex !important;
+        flex:1 1 auto !important;
+        min-width:0 !important;
+        gap:.35rem !important;
+        flex-wrap:nowrap !important;
+        white-space:nowrap !important;
+        overflow-x:auto !important;
+        -webkit-overflow-scrolling:touch;
+        scrollbar-width:none;
+      }
+      body.dj-selects nav#main-nav .nav-menu::-webkit-scrollbar{ display:none; }
 
-      /* optional: hide teal separators on this page (mobile only) */
-      body.dj-selects .nav-sep{ display:none !important; }
+      /* keep items compact to fit most widths without scrolling */
+      body.dj-selects nav#main-nav .nav-link,
+      body.dj-selects nav#main-nav summary.nav-link{
+        font-size:clamp(.8rem,3.2vw,1rem) !important;
+        padding:.2rem .25rem !important;
+        letter-spacing:.04em !important;
+      }
+
+      /* hide any second-row clusters if a theme injects them */
+      body.dj-selects nav#main-nav .nav-actions{ display:none !important; }
+
+      /* keep ABOUT panel usable on mobile but sized to viewport */
+      body.dj-selects .nav-details .about-panel{
+        left:.5rem; right:.5rem; width:auto;
+      }
     }
 
-    /* ====== Rest of the page CSS (unchanged) ====== */
-
+    /* ================= HERO / PAGE LAYOUT (unchanged visuals) ================= */
     .djselects-hero{
       padding:.45rem .6rem .25rem;
       border:2px solid var(--brand-teal); border-left:0;border-right:0;
@@ -236,7 +249,7 @@
       <a href="schedule.html"     class="nav-link">SCHEDULE</a>
       <a href="merch.html"        class="nav-link">MERCH</a>
 
-      <!-- ABOUT DJ SELECTS (kept in markup; hidden on mobile by the fix above) -->
+      <!-- ABOUT DJ SELECTS -->
       <details class="nav-details" id="selects-overlay">
         <summary class="nav-link" aria-label="About DJ Selects">ABOUT DJ SELECTS</summary>
         <div class="about-panel" id="dj-selects-blurb">
@@ -333,12 +346,26 @@
 
     const state = { selector:{ kind:'artist', id:'', slug:'selector', name:'', image:'', description:'', shareUrl:'', socials:{} }, tracks:[], authed:false };
 
+    /* ── utils ─────────────────────────────────────────────────────── */
     const headers = { 'x-api-key': API_KEY };
-    const fetchJSON = async (url, opt={}) => { const r=await fetch(url,{cache:'no-store',...opt,headers:{...(opt.headers||{}),...headers}}); if(!r.ok) throw new Error(String(r.status)); return r.json(); };
+    const fetchJSON = async (url, opt={}) => {
+      const r=await fetch(url,{cache:'no-store',...opt,headers:{...(opt.headers||{}),...headers}});
+      if(!r.ok) throw new Error(String(r.status));
+      return r.json();
+    };
 
-    const nz = iso => { try{ const d=new Date(iso); return d.toLocaleString(undefined,{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:false,timeZoneName:'short'});}catch{return '';} };
+    const nz = iso => {
+      try{
+        const d=new Date(iso);
+        return d.toLocaleString(undefined,{
+          weekday:'short',day:'numeric',month:'short',
+          hour:'2-digit',minute:'2-digit',hour12:false,timeZoneName:'short'
+        });
+      }catch{return '';}
+    };
 
-    const tags = t => Array.isArray(t) ? t.map(x=>String(x).toLowerCase()) : (typeof t==='string' ? t.split(',').map(s=>s.trim().toLowerCase()) : []);
+    const tags = t => Array.isArray(t) ? t.map(x=>String(x).toLowerCase())
+      : (typeof t==='string' ? t.split(',').map(s=>s.trim().toLowerCase()) : []);
 
     function extractTextDeep(v){
       if(!v) return '';
@@ -350,7 +377,9 @@
         if(v.plain_text) return String(v.plain_text);
         if(v.content) return extractTextDeep(v.content);
         if(v.description) return extractTextDeep(v.description);
-        let out=[]; for(const k in v){ const sub=extractTextDeep(v[k]); if(sub) out.push(sub);} return out.join('\n');
+        let out=[];
+        for(const k in v){ const sub=extractTextDeep(v[k]); if(sub) out.push(sub);}
+        return out.join('\n');
       }
       return String(v);
     }
@@ -358,7 +387,9 @@
     function formatBioHTML(raw){
       if(!raw) return '';
       if (/<[a-z][\s\S]*>/i.test(raw)) {
-        const div=document.createElement('div'); div.innerHTML=raw; div.querySelectorAll('script,style').forEach(n=>n.remove());
+        const div=document.createElement('div');
+        div.innerHTML=raw;
+        div.querySelectorAll('script,style').forEach(n=>n.remove());
         div.innerHTML = div.innerHTML.replace(/\bparagraph\b/gi,'');
         return div.innerHTML;
       } else {
@@ -373,8 +404,10 @@
     function extractSocials(obj){
       const buckets=[obj?.socials,obj?.social,obj?.links,obj?.contact,obj?.contacts,obj].filter(Boolean);
       const out={}, set=(k,v)=>{ if(v && !out[k]) out[k]=String(v).trim(); };
-      for(const b of buckets){ set('website',b.website||b.url); set('facebook',b.facebook||b.fb); set('instagram',b.instagram||b.ig);
-        set('twitter',b.twitter||b.x); set('mixcloud',b.mixcloud); set('soundcloud',b.soundcloud||b.sc); set('email',b.email); }
+      for(const b of buckets){
+        set('website',b.website||b.url); set('facebook',b.facebook||b.fb); set('instagram',b.instagram||b.ig);
+        set('twitter',b.twitter||b.x); set('mixcloud',b.mixcloud); set('soundcloud',b.soundcloud||b.sc); set('email',b.email);
+      }
       const norm=s=>s?.startsWith('@')?s.slice(1):s;
       if(out.twitter&&!/^https?:/i.test(out.twitter)) out.twitter=`https://twitter.com/${norm(out.twitter)}`;
       if(out.instagram&&!/^https?:/i.test(out.instagram)) out.instagram=`https://instagram.com/${norm(out.instagram)}`;
@@ -385,6 +418,7 @@
       return out;
     }
 
+    /* ── SELECTOR + detail ─────────────────────────────────────────── */
     async function loadSelector(){
       const findBy = (arr) =>
         arr.find(x=>tags(x.tags).includes('selector')) ||
@@ -394,7 +428,10 @@
       let a=null, kind='artist';
       try{ const j=await fetchJSON(`${BASE_URL}/station/${STATION_ID}/artists`); a=findBy(j?.artists||j?.data||j||[]);}catch{}
       if(!a){ try{ const j=await fetchJSON(`${BASE_URL}/station/${STATION_ID}/presenters`); a=findBy(j?.presenters||j?.data||j||[]); if(a) kind='presenter';}catch{} }
-      if(!a){ djNameText.textContent='—'; if(djNameBig) djNameBig.textContent='—'; djBioBox.innerHTML='<p>No artist/presenter tagged “SELECTOR”.</p>'; return; }
+      if(!a){
+        djNameText.textContent='—'; if(djNameBig) djNameBig.textContent='—';
+        djBioBox.innerHTML='<p>No artist/presenter tagged “SELECTOR”.</p>'; return;
+      }
 
       const kindPath = (kind==='presenter'?'presenters':'artists');
       let detail=null;
@@ -415,6 +452,7 @@
       if(state.selector.image) djProfile.src=state.selector.image;
       djBioBox.innerHTML = formatBioHTML(state.selector.description||'');
 
+      /* Auto-condense bio based on paragraph count */
       (function applyBioDensity(){
         const n = djBioBox.querySelectorAll('p').length;
         djBioBox.classList.remove('bio-tight1','bio-tight2','bio-tight3');
@@ -426,12 +464,24 @@
       if(state.selector.shareUrl){ profileLink.href=state.selector.shareUrl; profileLink.style.display='inline-block'; }
 
       socialsBox.innerHTML='';
-      const S=state.selector.socials||{}; const add=(href,title,icon)=>{ if(!href) return; const a=document.createElement('a'); a.href=href;a.target='_blank';a.rel='noopener';a.title=title;a.innerHTML=`<i class="${icon}"></i>`;socialsBox.appendChild(a); };
-      add(S.twitter,'X / Twitter','fa-brands fa-x-twitter'); add(S.instagram,'Instagram','fa-brands fa-instagram');
-      add(S.facebook,'Facebook','fa-brands fa-facebook-f'); add(S.mixcloud,'Mixcloud','fa-brands fa-mixcloud');
-      add(S.soundcloud,'SoundCloud','fa-brands fa-soundcloud'); add(S.website,'Website','fa-solid fa-globe'); add(S.email,'Email','fa-solid fa-envelope');
+      const S=state.selector.socials||{};
+      const add=(href,title,icon)=>{
+        if(!href) return;
+        const a=document.createElement('a');
+        a.href=href;a.target='_blank';a.rel='noopener';a.title=title;
+        a.innerHTML=`<i class="${icon}"></i>`;
+        socialsBox.appendChild(a);
+      };
+      add(S.twitter,'X / Twitter','fa-brands fa-x-twitter');
+      add(S.instagram,'Instagram','fa-brands fa-instagram');
+      add(S.facebook,'Facebook','fa-brands fa-facebook-f');
+      add(S.mixcloud,'Mixcloud','fa-brands fa-mixcloud');
+      add(S.soundcloud,'SoundCloud','fa-brands fa-soundcloud');
+      add(S.website,'Website','fa-solid fa-globe');
+      add(S.email,'Email','fa-solid fa-envelope');
     }
 
+    /* ── Next scheduled show ───────────────────────────────────────── */
     async function loadNextShow(){
       if(!state.selector.id){ nextWhen.textContent='TBA'; return; }
       const kindPath=(state.selector.kind==='presenter'?'presenters':'artists');
@@ -446,6 +496,7 @@
       }catch{ nextWhen.textContent='Unable to load schedule'; }
     }
 
+    /* ── Config: server → file → localStorage ──────────────────────── */
     async function loadConfig(){
       let ok=false;
       try{
@@ -475,6 +526,7 @@
       }
     }
 
+    /* ── Media render ──────────────────────────────────────────────── */
     const parseTrack=(u)=>{ if(!u) return null; try{
       const x=new URL(u.trim()); const host=x.hostname.toLowerCase();
       if(host.endsWith('bandcamp.com')) return {kind:'bandcamp', url:u.trim()};
@@ -494,7 +546,8 @@
 
     const bcCache=new Map();
     const bcOEmbed=async(url)=>{ if(bcCache.has(url)) return bcCache.get(url);
-      const r=await fetch(`${CFG.PROXY_ENDPOINT}?fn=bandcamp_oembed&url=${encodeURIComponent(url)}`); const text=await r.text(); let j={};
+      const r=await fetch(`${CFG.PROXY_ENDPOINT}?fn=bandcamp_oembed&url=${encodeURIComponent(url)}`);
+      const text=await r.text(); let j={};
       try{ j=JSON.parse(text);}catch{ throw new Error(text||'Proxy error'); }
       const meta={ title:j?.title||'Bandcamp', thumb:j?.thumbnail_url||'', src:(()=>{const html=String(j?.html||''); const m=html.match(/src=["']([^"']+)["']/i); return m?m[1]:'';})() };
       bcCache.set(url,meta); return meta; };

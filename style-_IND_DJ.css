@@ -217,8 +217,10 @@ section h2::after{ content:''; position:absolute; bottom:0; right:0; height:4px;
   .header-wave-left  { grid-area: waveL; height:var(--wave-height-mobile) !important; }
   .header-wave-right { grid-area: waveR; height:var(--wave-height-mobile) !important; }
   .header-banner .logo-container:first-of-type { grid-area: logo; }
-  /* Hide the second (right) logo on phones */
+  /* Hide the duplicate (right) logo on phones */
   .header-banner .logo-container:last-of-type{ display:none !important; }
+  /* Remove the decorative black borders on the waves to avoid a line through the tagline */
+  .header-wave{ border:0 !important; }
 
   header .logo{
     height:var(--logo-size-mobile) !important;
@@ -233,22 +235,25 @@ section h2::after{ content:''; position:absolute; bottom:0; right:0; height:4px;
   .header-banner .title h1{ font-size:9.2vw; line-height:1; margin:0; }
   .header-banner .title .tagline{ font-size:3.8vw; margin-top:4px; }
 
-  /* NAV: Row 1 (five links), Row 2 (ABOUT left + social/CAST right) */
+  /* NAV: real second row under the links */
   #main-nav{
     position:relative !important;
-    padding:.40rem .65rem 2.65rem !important; /* extra bottom to host row 2 */
+    padding:.40rem .65rem .40rem !important;
+    margin-bottom:46px; /* make room for the second strip */
   }
-  /* divider line between rows */
-  #main-nav::after{
+  /* teal strip under the main bar to host row 2 */
+  #main-nav::before{
     content:"";
     position:absolute;
+    top:100%;
     left:0; right:0;
-    bottom:2.65rem;             /* aligns with top of row 2 */
-    height:2px;
-    background:#000;
+    height:46px;                     /* height of second row */
+    background:var(--brand-teal);
+    border-top:2px solid #000;       /* thin divider between rows */
+    border-bottom:2px solid #000;
   }
 
-  /* Row 1 */
+  /* Row 1 links */
   #main-nav .nav-menu{
     flex-wrap:nowrap !important;
     justify-content:space-between !important;
@@ -267,7 +272,8 @@ section h2::after{ content:''; position:absolute; bottom:0; right:0; height:4px;
   #about-overlay{
     position:absolute !important;
     left:.65rem;
-    bottom:.35rem;               /* inside the bar */
+    top:calc(100% + 8px);            /* place on the second strip */
+    z-index:1002;
   }
   .nav-details > summary.nav-link{
     font-size:.9rem !important;
@@ -285,13 +291,14 @@ section h2::after{ content:''; position:absolute; bottom:0; right:0; height:4px;
   #main-nav .nav-actions{
     position:absolute !important;
     right:.65rem;
-    bottom:.20rem;
+    top:calc(100% + 6px);
     gap:.75rem !important;
+    z-index:1002;
   }
   #main-nav .social-icon i{ font-size:1.35rem !important; }
   #main-nav .icon-img, #main-nav .nav-onemusic{ display:none !important; }
 
-  /* Page sections (unchanged order but stacked) */
+  /* Page sections (stacked) */
   .grid-container{ display:flex; flex-direction:column; padding:0 .5rem; }
   .mixcloud{ display:none !important; }
   .live-player{ order:1; }

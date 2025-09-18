@@ -120,20 +120,20 @@
          Row 1: main links
          Row 2: [ABOUT THE STATION] ...... [icons + CAST] */
       #main-nav{
-        flex-direction:row;            /* stay as a row container */
-        flex-wrap:wrap;                /* allow two rows */
+        flex-direction:row;
+        flex-wrap:wrap;
         align-items:center !important;
         gap:.25rem !important;
       }
       #main-nav .nav-menu{
-        order:1; width:100%;           /* full width top row */
+        order:1; width:100%;
         justify-content:space-between !important;
         gap:.2rem !important;
         flex-wrap:wrap;
       }
       /* Condense top-row links slightly */
       #main-nav a.nav-link{
-        font-size:.95rem !important;   /* was 1rem */
+        font-size:.95rem !important;
         padding:.1rem .22rem;
         letter-spacing:.02em;
       }
@@ -144,7 +144,7 @@
         display:flex; align-items:center;
       }
       .nav-details > summary.nav-link{
-        font-size:.95rem !important;   /* same size as top links */
+        font-size:.95rem !important;   /* match top links */
         padding:.28rem .5rem;
         background:rgba(0,0,0,.15);
         border:1px solid rgba(255,255,255,.28);
@@ -164,14 +164,21 @@
       #main-nav .social-icon i{ font-size:1.25rem !important; }
       .icon-img, .nav-onemusic{ display:none !important; }
 
-      /* Make CAST controls match link size */
+      /* CAST controls */
       #manualCastBtn.nav-link{ font-size:.95rem !important; padding:.28rem .5rem; }
-      google-cast-button#castBtn{ transform:scale(0.9); } /* subtle shrink if present */
+      google-cast-button#castBtn{ transform:scale(0.78); transform-origin:right center; }
 
-      /* small spacing below the nav bar */
+      /* ---- HARD OVERRIDE: keep ALL nav-link variants at .95rem on mobile ---- */
+      #main-nav a.nav-link,
+      #main-nav button.nav-link,
+      #main-nav summary.nav-link{
+        font-size:.95rem !important;
+        line-height:1 !important;
+        padding:.28rem .5rem !important;
+      }
+      /* ---------------------------------------------------------------------- */
+
       #main-nav + div[style*="height:2px"]{ margin-top:2px; }
-
-      /* Live player / buttons breathing room on phones */
       .player-container #chatPopupBtn{ position:static; margin-top:.5rem; }
     }
     /* =================================================================== */
@@ -265,7 +272,7 @@
       <a href="schedule.html"     class="nav-link">SCHEDULE</a>
       <a href="merch.html"        class="nav-link">MERCH</a>
 
-      <!-- ABOUT THE STATION (sits on bottom row next to social/cast on mobile) -->
+      <!-- ABOUT THE STATION -->
       <details class="nav-details" id="about-overlay">
         <summary class="nav-link" aria-label="About the station">ABOUT THE STATION</summary>
         <div class="about-panel" id="about-station-content">

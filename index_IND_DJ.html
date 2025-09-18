@@ -1,3 +1,531 @@
-{
-  "entries": []
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cutty Ranks — Cutters Choice Radio</title>
+
+  <!-- SEO -->
+  <meta name="description" content="Cutty Ranks: the best-of archive — YouTube picks from Cutters Choice Radio selectors.">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#5A8785">
+
+  <!-- Social preview -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Cutty Ranks — Cutters Choice Radio">
+  <meta property="og:description" content="A best-of archive of YouTube selections from the CCR crew.">
+  <meta property="og:url" content="https://cutterschoiceradio.com/cutty-ranks.html">
+  <meta property="og:site_name" content="Cutters Choice Radio">
+  <meta property="og:image" content="https://cutterschoiceradio.com/images/logo.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Cutty Ranks — Cutters Choice Radio">
+  <meta name="twitter:description" content="A best-of archive of YouTube selections from the CCR crew.">
+  <meta name="twitter:image" content="https://cutterschoiceradio.com/images/logo.png">
+
+  <!-- Performance -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://www.youtube-nocookie.com" crossorigin>
+
+  <!-- Global site styles (keep) -->
+  <link rel="stylesheet" href="/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <style>
+    :root{
+      --brand-teal:#5A8785;
+      --preview-max:980px;
+      --rails-gap:10px;
+      --tile-gap:8px;
+    }
+
+    /* ======= TOP HEADER: no logos, cutty_a as background ======= */
+    .header-banner{
+      position:relative;
+      display:flex; align-items:center; justify-content:center;
+      padding:clamp(16px,3vw,28px) .6rem;
+      background:#000 center/cover no-repeat;
+      background-image:url('/images/cutty_a.png');
+      border-top:2px solid #000;
+      border-bottom:2px solid #000;
+      isolation:isolate;
+    }
+    .header-banner .title{ text-align:center; }
+    .header-banner .title h1{
+      margin:0; font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(2.3rem,6.2vw,4rem); line-height:1; color:#fff;
+      text-shadow:0 2px 12px rgba(0,0,0,.6);
+    }
+    .header-banner .title .tagline{
+      margin:.2rem 0 0; color:#fff; text-shadow:0 2px 10px rgba(0,0,0,.6);
+    }
+    .header-gif-right,.header-gif-left,.header-wave,.logo-container{ display:none !important; }
+
+    /* single teal separator ABOVE nav only */
+    .nav-sep{height:2px;background-color:var(--brand-teal);}
+
+    /* Desktop/tablet nav look */
+    #main-nav .nav-menu{ justify-content: space-evenly !important; }
+    #main-nav .nav-link, #main-nav summary.nav-link{
+      color:#fff !important;
+      font-family:'Bebas Neue',sans-serif !important;
+      font-size:2rem !important;
+      text-transform:uppercase !important;
+      text-decoration:none !important;
+      white-space:nowrap !important;
+      list-style:none !important;
+      cursor:pointer !important;
+      display:inline-flex; align-items:center;
+    }
+    .nav-details{ position:relative; }
+    .nav-details .about-panel{
+      position:absolute; top:calc(100% + 8px); right:0; width:min(520px,86vw);
+      background:#000; color:#fff; border:2px solid var(--brand-teal);
+      border-radius:8px; padding:.75rem .9rem; line-height:1.35;
+      box-shadow:0 8px 18px rgba(0,0,0,.45); display:none; z-index:1100;
+    }
+    .nav-details[open] .about-panel{ display:block; }
+    .nav-details > summary::-webkit-details-marker{ display:none; }
+    .nav-details > summary:focus{ outline:2px solid #fff; outline-offset:2px; }
+
+    /* Mobile nav tidy */
+    @media (max-width:768px){
+      body.cutty nav#main-nav{
+        display:flex !important;
+        flex-direction:row !important;
+        align-items:center !important;
+        justify-content:space-between !important;
+        padding:.40rem .65rem !important;
+        margin-bottom:0 !important;
+        border-bottom:0 !important;
+      }
+      body.cutty nav#main-nav .nav-menu{
+        display:flex !important; gap:.35rem !important; flex-wrap:nowrap !important;
+        overflow-x:auto !important; white-space:nowrap !important; scrollbar-width:none;
+      }
+      body.cutty nav#main-nav .nav-menu::-webkit-scrollbar{ display:none; }
+      body.cutty nav#main-nav .nav-link, body.cutty nav#main-nav summary.nav-link{
+        font-size:clamp(.8rem,3.2vw,1rem) !important; padding:.2rem .25rem !important;
+      }
+    }
+
+    /* ---------- Page specific ---------- */
+
+    /* Title band: cutty_b on the RIGHT side */
+    .cutty-title{
+      position:relative;
+      border-top:2px solid var(--brand-teal);
+      border-bottom:2px solid var(--brand-teal);
+      min-height:110px;
+      display:flex; align-items:center; justify-content:flex-start;
+      padding:.35rem .6rem;
+      background:
+        url('/images/cutty_b.png') right center / contain no-repeat,
+        #000;
+    }
+    .cutty-title::before{
+      content:""; position:absolute; inset:0;
+      background:linear-gradient(90deg, rgba(0,0,0,.55), rgba(0,0,0,.25) 35%, rgba(0,0,0,0));
+      pointer-events:none;
+    }
+    .cutty-title h2{
+      position:relative; z-index:1;
+      color:#fff;
+      font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(2.6rem,5.2vw,3.6rem);
+      line-height:1; margin:0; letter-spacing:.6px;
+      text-shadow:0 2px 10px rgba(0,0,0,.65);
+    }
+
+    /* 5-column layout */
+    .ranks-grid{
+      display:grid; gap:var(--rails-gap);
+      grid-template-columns: 1fr 1fr minmax(560px, 1.8fr) 1fr 1fr;
+      align-items:start;           /* keep rails snug */
+      padding:.6rem;
+      --usable: 70vh;
+    }
+
+    /* Fill height so the player can truly center */
+    .rail, .preview-shell{ height: var(--usable); overflow-y:auto; }
+    .rail{ display:flex; flex-direction:column; gap:10px; }
+
+    .dj-card{
+      border:1px solid #264745; background:#0a0a0a; border-radius:6px; overflow:hidden;
+    }
+    .dj-card h4{
+      font-family:'Bebas Neue',sans-serif; font-size:clamp(1.3rem,2vw,1.6rem);
+      margin:0; padding:.35rem .5rem; background:#0f0f0f; border-bottom:1px solid #1f3a39; letter-spacing:.4px; color:#fff;
+    }
+
+    /* spaced tiles */
+    .track-list{
+      display:grid;
+      grid-auto-rows:min-content;
+      gap:var(--tile-gap);
+      padding:var(--tile-gap);
+    }
+    .track-tile{
+      position:relative;
+      border:1px solid #1d3533;
+      border-radius:6px;
+      overflow:hidden;
+      background:#0a0a0a;
+    }
+    .track-tile iframe{ width:100%; height:96px; border:0; display:block; }
+    .track-tile .overlayBtn{ position:absolute; inset:0; appearance:none; background:transparent; border:0; cursor:pointer; }
+    .track-tile.selected{ outline:2px solid var(--brand-teal); outline-offset:-2px; }
+
+    .preview-shell{
+      background:#000 center/cover no-repeat; background-image:url('/images/cutty_c.png');
+      border:2px solid var(--brand-teal); border-radius:8px; padding:10px;
+      display:flex; align-items:center; justify-content:center;
+    }
+    #mainPreview{ width:100%; max-width:var(--preview-max); margin:0 auto; }
+    #mainPreview iframe{ width:100%; aspect-ratio:16/9; height:auto; border:0; display:block; }
+    .placeholder{ font-family:'Bebas Neue',sans-serif; color:#6fa39f; font-size:clamp(1rem,2vw,1.25rem); padding:.6rem; text-align:center; }
+
+    /* Responsive collapse */
+    @media (max-width:1200px){
+      .ranks-grid{ grid-template-columns: 1fr minmax(520px,1.6fr) 1fr; }
+      .rail.right-outer{ display:none; }
+    }
+    @media (max-width:980px){
+      .ranks-grid{ grid-template-columns: 1fr; }
+      .rail{ order:2 } .preview-shell{ order:1 }
+      .rail .track-tile iframe{ height:86px; }
+    }
+
+    /* Admin overlay */
+    .adminHidden{ display:none!important; }
+    #adminOverlay{ position:fixed; inset:0; background:rgba(0,0,0,.82); color:#fff; z-index:9999; display:flex; align-items:center; justify-content:center; }
+    #adminPanel{ width:min(980px,95vw); max-height:92vh; overflow:auto; background:#0e1414; border:2px solid var(--brand-teal); border-radius:10px; padding:16px; box-shadow:0 12px 40px rgba(0,0,0,.55); }
+    #adminPanel h3{ font-family:'Bebas Neue',sans-serif; letter-spacing:.5px; margin:0 0 10px; color:#fff; }
+    #adminPanel .entry{ border:1px solid #2a5653; border-radius:8px; padding:10px; margin:10px 0; background:#081111; }
+    #adminPanel .row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:6px 0; }
+    #adminPanel input[type="text"]{ flex:1 1 240px; min-width:200px; background:#050808; color:#eaffff; border:1px solid #2a5653; border-radius:6px; padding:8px; }
+    #adminPanel label{ font-size:.95rem; opacity:.9; color:#fff; }
+    #adminPanel button{ padding:8px 12px; border-radius:6px; border:1px solid #2a5653; background:#0b2322; color:#eaffff; cursor:pointer; }
+    #adminPanel .minor{ opacity:.9; font-size:.9rem; color:#eaffff; }
+    #adminStatus{ opacity:.9; font-size:.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:52ch; }
+  </style>
+</head>
+
+<body class="cutty">
+  <!-- TOP HEADER -->
+  <header class="header-banner" role="banner">
+    <div class="header-gif-right" aria-hidden="true"></div><div class="header-gif-left" aria-hidden="true"></div>
+    <div class="title">
+      <h1>Cutters Choice Radio</h1>
+      <p class="tagline">The home of relentless flavas and significant bangers!</p>
+    </div>
+  </header>
+
+  <!-- single separator ABOVE nav -->
+  <div class="nav-sep top"></div>
+
+  <!-- Primary Nav -->
+  <nav id="main-nav" aria-label="Primary">
+    <div class="nav-menu">
+      <a href="/"                  class="nav-link">HOME</a>
+      <a href="/our-story.html"    class="nav-link">OUR STORY</a>
+      <a href="/index-ourDJS.html" class="nav-link">OUR DJS</a>
+      <a href="/dj-selects.html"   class="nav-link">DJ SELECTS</a>
+      <a href="/cutty-ranks.html"  class="nav-link">CUTTY RANKS</a>
+      <a href="/schedule.html"     class="nav-link">SCHEDULE</a>
+      <a href="/merch.html"        class="nav-link">MERCH</a>
+
+      <details class="nav-details">
+        <summary class="nav-link" aria-label="About Cutty Ranks">ABOUT CUTTY RANKS</summary>
+        <div class="about-panel">
+          <p>Cutty Ranks is a best-of archive built from the DJ Selects page. Pick any selector’s five saved YouTube links; tap a tile to play it in the center preview.</p>
+        </div>
+      </details>
+    </div>
+  </nav>
+
+  <!-- Title band (cutty_b on the right) -->
+  <section class="cutty-title">
+    <h2>CUTTY RANKS: THE SELECTOR ARCHIVES</h2>
+  </section>
+
+  <!-- Rails + Preview -->
+  <main class="ranks-grid" id="ranksGrid" role="main">
+    <aside class="rail left-inner" id="rail-0" aria-label="Selector column 1"></aside>
+    <aside class="rail left-outer" id="rail-1" aria-label="Selector column 2"></aside>
+
+    <section class="preview-shell">
+      <div id="mainPreview"><div class="placeholder">Select any tile to play here</div></div>
+    </section>
+
+    <aside class="rail right-inner" id="rail-2" aria-label="Selector column 3"></aside>
+    <aside class="rail right-outer" id="rail-3" aria-label="Selector column 4"></aside>
+  </main>
+
+  <!-- Admin overlay -->
+  <div id="adminOverlay" class="adminHidden" aria-hidden="true">
+    <div id="adminPanel">
+      <h3>Cutty Ranks — Admin</h3>
+      <p class="minor">Add a DJ name and up to five YouTube links. Drag to reorder within your browser if needed, then <b>Save</b>.</p>
+      <div id="adminEntries"></div>
+      <div class="row">
+        <button id="addEntryBtn"><i class="fa fa-plus"></i>&nbsp; Add DJ</button>
+        <button id="adminSave">Save</button>
+        <button id="adminClose">Close</button>
+        <div id="adminStatus"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.CUTTY_RANKS = {
+      CONFIG_ENDPOINT: '/cutty-ranks-config.php',
+      ADMIN_HASH_HEX: '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e'
+    };
+  </script>
+
+  <script>
+  (() => {
+    const CFG = window.CUTTY_RANKS || {};
+    const $  = (s, r=document) => r.querySelector(s);
+    const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+
+    const rails = [$('#rail-0'), $('#rail-1'), $('#rail-2'), $('#rail-3')];
+    const mainPreview = $('#mainPreview');
+    const grid = $('#ranksGrid');
+
+    const adminOverlay = $('#adminOverlay');
+    const adminEntriesBox = $('#adminEntries');
+    const addEntryBtn = $('#addEntryBtn');
+    const adminSaveBtn = $('#adminSave');
+    const adminCloseBtn = $('#adminClose');
+    const adminStatus = $('#adminStatus');
+
+    const state = { entries: [], authed:false };
+
+    function setHeights(){
+      const rect = grid.getBoundingClientRect();
+      const usable = Math.max(320, window.innerHeight - rect.top - 12);
+      grid.style.setProperty('--usable', usable + 'px');
+    }
+    window.addEventListener('resize', setHeights);
+    window.addEventListener('load', setHeights);
+
+    const ytId = (u) => {
+      try{
+        const x = new URL(u);
+        const h = x.hostname.toLowerCase();
+        if(h === 'youtu.be') return x.pathname.slice(1);
+        if(x.pathname.startsWith('/shorts/')) return x.pathname.split('/')[2] || '';
+        if(x.searchParams.get('v')) return x.searchParams.get('v');
+        if(/^\/embed\//.test(x.pathname)) return x.pathname.split('/').pop();
+        return '';
+      }catch{ return ''; }
+    };
+    const ytEmbed = (id, opts='') => `https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1${opts}`;
+    const iframe = (src, title='YouTube player') => `<iframe src="${src}" title="${title}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
+
+    function play(src){
+      const url = src + (src.includes('?') ? '&' : '?') + 'autoplay=1';
+      mainPreview.innerHTML = iframe(url, 'Selected player');
+    }
+
+    function render(){
+      rails.forEach(r => r.innerHTML = '');
+      if(!state.entries.length){
+        mainPreview.innerHTML = '<div class="placeholder">Select any tile to play here</div>';
+        return;
+      }
+      state.entries.forEach((entry, idx) => {
+        const rail = rails[idx % rails.length];
+        const card = document.createElement('div');
+        card.className = 'dj-card';
+
+        const h = document.createElement('h4');
+        h.textContent = entry.name || 'Untitled';
+        card.appendChild(h);
+
+        const list = document.createElement('div');
+        list.className = 'track-list';
+
+        (entry.links || []).slice(0,5).forEach((u, i) => {
+          const id = ytId(u);
+          if(!id) return;
+          const tile = document.createElement('div');
+          tile.className = 'track-tile';
+          tile.innerHTML = iframe(ytEmbed(id)) + '<button class="overlayBtn" aria-label="Play"></button>';
+          tile.querySelector('.overlayBtn').addEventListener('click', () => {
+            $$('.track-tile').forEach(t => t.classList.remove('selected'));
+            tile.classList.add('selected');
+            play(ytEmbed(id));
+          }, {passive:true});
+          if(idx===0 && i===0) {
+            tile.classList.add('selected');
+            mainPreview.innerHTML = iframe(ytEmbed(id));
+          }
+          list.appendChild(tile);
+        });
+
+        card.appendChild(list);
+        rail.appendChild(card);
+      });
+      setHeights();
+    }
+
+    async function loadConfig(){
+      try{
+        const r = await fetch(`${CFG.CONFIG_ENDPOINT}?action=load`, {cache:'no-store'});
+        if(r.ok){
+          const j = await r.json();
+          if(Array.isArray(j?.entries)){ state.entries = j.entries; render(); return; }
+        }
+      }catch{}
+      try{
+        const r = await fetch('/cutty-ranks-data.json', {cache:'no-store'});
+        if(r.ok){
+          const j = await r.json();
+          if(Array.isArray(j?.entries)){ state.entries = j.entries; render(); return; }
+        }
+      }catch{}
+      try{
+        const s = localStorage.getItem('cutty_ranks_entries');
+        if(s){ const a = JSON.parse(s); if(Array.isArray(a)){ state.entries = a; render(); return; } }
+      }catch{}
+      state.entries = [];
+      render();
+    }
+
+    async function serverSave(entries){
+      const r = await fetch(CFG.CONFIG_ENDPOINT+'?action=save', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({entries, auth: CFG.ADMIN_HASH_HEX})
+      });
+      const txt = await r.text(); let j=null; try{ j=JSON.parse(txt);}catch{}
+      if(!r.ok || !(j&&j.ok)) throw new Error(j?.error ? ('Server error: '+j.error) : ('HTTP '+r.status+' '+txt.slice(0,180)));
+      return j.entries || entries;
+    }
+
+    function entryRow(data={}){
+      const wrap = document.createElement('div'); wrap.className='entry';
+      wrap.innerHTML = `
+        <div class="row"><label>DJ Name</label><input type="text" class="djName" placeholder="e.g. MARIONETTE"></div>
+        <div class="row"><label>Link 1</label><input type="text" class="l l1" placeholder="YouTube URL"></div>
+        <div class="row"><label>Link 2</label><input type="text" class="l l2" placeholder="YouTube URL"></div>
+        <div class="row"><label>Link 3</label><input type="text" class="l l3" placeholder="YouTube URL"></div>
+        <div class="row"><label>Link 4</label><input type="text" class="l l4" placeholder="YouTube URL"></div>
+        <div class="row"><label>Link 5</label><input type="text" class="l l5" placeholder="YouTube URL"></div>
+        <div class="row">
+          <button class="delBtn"><i class="fa fa-trash"></i>&nbsp; Remove DJ</button>
+        </div>
+      `;
+      wrap.querySelector('.djName').value = data.name || '';
+      (data.links||[]).slice(0,5).forEach((u,i)=> wrap.querySelector('.l'+(i+1)).value = u);
+      wrap.querySelector('.delBtn').addEventListener('click', () => { wrap.remove(); }, {passive:true});
+      return wrap;
+    }
+
+    function openAdmin(){
+      adminEntriesBox.innerHTML = '';
+      (state.entries || []).forEach(e => adminEntriesBox.appendChild(entryRow(e)));
+      adminOverlay.classList.remove('adminHidden'); adminOverlay.setAttribute('aria-hidden','false');
+      adminStatus.textContent = '';
+    }
+    function closeAdmin(){
+      adminOverlay.classList.add('adminHidden'); adminOverlay.setAttribute('aria-hidden','true');
+    }
+
+    // --- Robust keyboard access: Shift + A (works in Safari/Firefox/Chrome) ---
+    function isTypingTarget(el){
+      return el && (
+        el.tagName === 'INPUT' ||
+        el.tagName === 'TEXTAREA' ||
+        el.isContentEditable
+      );
+    }
+    document.addEventListener('keydown', async (e)=>{
+      // don't steal the combo while typing
+      if (isTypingTarget(document.activeElement)) return;
+
+      const key = (e.key || '').toLowerCase();
+      const codeOk = e.code === 'KeyA';
+      const keyOk  = key === 'a';
+      if (e.shiftKey && (codeOk || keyOk)){
+        e.preventDefault();
+        if(!state.authed){
+          const pw = prompt('Enter passphrase');
+          if(!pw) return;
+          const hexBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+          const hex = [...new Uint8Array(hexBuf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+          if(hex===CFG.ADMIN_HASH_HEX){ state.authed=true; openAdmin(); }
+          else alert('Incorrect passphrase');
+        } else openAdmin();
+      }
+    });
+
+    // URL triggers: ?admin=1 or #admin
+    function adminWantedFromURL(){
+      const p = new URLSearchParams(location.search);
+      return p.get('admin') === '1' || location.hash === '#admin';
+    }
+
+    adminCloseBtn.addEventListener('click', closeAdmin, {passive:true});
+    addEntryBtn.addEventListener('click', ()=> adminEntriesBox.appendChild(entryRow()), {passive:true});
+
+    adminSaveBtn.addEventListener('click', async ()=>{
+      const entries = $$('.entry', adminEntriesBox).map(box => {
+        const name = box.querySelector('.djName').value.trim();
+        const links = $$('.l', box).map(i=>i.value.trim()).filter(Boolean).slice(0,5);
+        return name || links.length ? {name, links} : null;
+      }).filter(Boolean);
+      if(!entries.length){ adminStatus.textContent='Nothing to save.'; return; }
+
+      const ok = (u)=>/^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//i.test(u);
+      for(const e of entries){
+        if(!e.name){ adminStatus.textContent='Each DJ must have a name.'; return; }
+        if(e.links.some(u=>!ok(u))) { adminStatus.textContent='Only YouTube links are supported here.'; return; }
+      }
+
+      adminStatus.textContent='Saving…';
+      try{
+        const saved = await serverSave(entries);
+        state.entries = saved;
+        localStorage.setItem('cutty_ranks_entries', JSON.stringify(saved));
+        render();
+        adminStatus.textContent='Saved.';
+      }catch(err){
+        console.error(err);
+        state.entries = entries;
+        localStorage.setItem('cutty_ranks_entries', JSON.stringify(entries));
+        render();
+        adminStatus.textContent='Saved locally only (check server perms).';
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', async ()=>{
+      await loadConfig();
+      setHeights();
+      if (adminWantedFromURL()) {
+        // Allow ?admin=1 before auth prompt shows
+        const pw = prompt('Enter passphrase');
+        if (pw) {
+          const hexBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+          const hex = [...new Uint8Array(hexBuf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+          if(hex===CFG.ADMIN_HASH_HEX){ state.authed=true; openAdmin(); }
+          else alert('Incorrect passphrase');
+        }
+      }
+    });
+  })();
+<script>
+  window.CUTTY_RANKS = {
+    CONFIG_ENDPOINT: 'cutty-ranks-config.php',   // ← no leading slash
+    ADMIN_HASH_HEX: '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e'
+  };
+</script>
+</body>
+</html>

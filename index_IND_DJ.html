@@ -8,8 +8,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cutty Ranks — Cutters Choice Radio</title>
 
-  <!-- Canonical + SEO -->
-  <link rel="canonical" href="https://cutterschoiceradio.com/cutty-ranks.html">
+  <!-- SEO -->
+  <!-- (canonical removed to avoid local file -> site jumps during testing) -->
   <meta name="description" content="Cutty Ranks: the best-of archive — YouTube picks from Cutters Choice Radio selectors.">
   <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#5A8785">
@@ -32,7 +32,7 @@
   <link rel="preconnect" href="https://www.youtube-nocookie.com" crossorigin>
 
   <!-- Global site styles (keep) -->
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="/style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
@@ -44,10 +44,8 @@
       --tile-gap:8px;
     }
 
-    /* single teal separator ABOVE nav only */
     .nav-sep{height:2px;background-color:var(--brand-teal);}
 
-    /* Desktop/tablet nav look (match site) */
     #main-nav .nav-menu{ justify-content: space-evenly !important; }
     #main-nav .nav-link, #main-nav summary.nav-link{
       color:#fff !important;
@@ -71,7 +69,6 @@
     .nav-details > summary::-webkit-details-marker{ display:none; }
     .nav-details > summary:focus{ outline:2px solid #fff; outline-offset:2px; }
 
-    /* Mobile nav tidy (single row) */
     @media (max-width:768px){
       body.cutty nav#main-nav{
         display:flex !important;
@@ -93,7 +90,6 @@
     }
 
     /* ---------- Page specific ---------- */
-    /* Narrow strip ABOVE the title band (uses cutty_b) */
     .cutty-top-image{
       height:120px;
       background:#000 center/cover no-repeat;
@@ -101,7 +97,6 @@
       border-bottom:2px solid var(--brand-teal);
     }
 
-    /* Title band with cutty_a behind text (like modelA) */
     .cutty-title{
       position:relative;
       border-top:2px solid var(--brand-teal);
@@ -109,11 +104,9 @@
       min-height:110px;
       display:flex; align-items:center; justify-content:flex-start;
       padding:.35rem .6rem;
-
       background:#000 center/cover no-repeat;
       background-image:url('/images/cutty_a.png');
     }
-    /* subtle dark overlay to keep white text readable on busy art */
     .cutty-title::before{
       content:""; position:absolute; inset:0;
       background:linear-gradient(90deg, rgba(0,0,0,.55), rgba(0,0,0,.25) 35%, rgba(0,0,0,.4));
@@ -121,14 +114,13 @@
     }
     .cutty-title h2{
       position:relative; z-index:1;
-      color:#fff; /* make title all white */
+      color:#fff;
       font-family:'Bebas Neue',sans-serif;
       font-size:clamp(2.6rem,5.2vw,3.6rem);
       line-height:1; margin:0; letter-spacing:.6px;
       text-shadow:0 2px 10px rgba(0,0,0,.65);
     }
 
-    /* 5-column layout: two rails (left), preview center, two rails (right) */
     .ranks-grid{
       display:grid; gap:var(--rails-gap);
       grid-template-columns: 1fr 1fr minmax(560px, 1.8fr) 1fr 1fr;
@@ -136,7 +128,6 @@
       padding:.6rem;
       --usable: 70vh;
     }
-    /* scrollable columns */
     .rail, .preview-shell{ max-height: var(--usable); overflow-y:auto; }
     .rail{ display:flex; flex-direction:column; gap:10px; }
     .dj-card{
@@ -147,7 +138,6 @@
       margin:0; padding:.35rem .5rem; background:#0f0f0f; border-bottom:1px solid #1f3a39; letter-spacing:.4px; color:#fff;
     }
 
-    /* SPACE between YouTube tiles */
     .track-list{
       display:grid;
       grid-auto-rows:min-content;
@@ -174,7 +164,6 @@
     #mainPreview iframe{ width:100%; aspect-ratio:16/9; height:auto; border:0; display:block; }
     .placeholder{ font-family:'Bebas Neue',sans-serif; color:#6fa39f; font-size:clamp(1rem,2vw,1.25rem); padding:.6rem; text-align:center; }
 
-    /* Responsive collapse */
     @media (max-width:1200px){
       .ranks-grid{ grid-template-columns: 1fr minmax(520px,1.6fr) 1fr; }
       .rail.right-outer{ display:none; }
@@ -185,7 +174,6 @@
       .rail .track-tile iframe{ height:86px; }
     }
 
-    /* Admin overlay */
     .adminHidden{ display:none!important; }
     #adminOverlay{ position:fixed; inset:0; background:rgba(0,0,0,.82); color:#fff; z-index:9999; display:flex; align-items:center; justify-content:center; }
     #adminPanel{ width:min(980px,95vw); max-height:92vh; overflow:auto; background:#0e1414; border:2px solid var(--brand-teal); border-radius:10px; padding:16px; box-shadow:0 12px 40px rgba(0,0,0,.55); }
@@ -214,11 +202,13 @@
   <!-- Primary Nav -->
   <nav id="main-nav" aria-label="Primary">
     <div class="nav-menu">
-      <a href="index.html"        class="nav-link">HOME</a>
-      <a href="our-story.html"    class="nav-link">OUR STORY</a>
-      <a href="index-ourDJS.html" class="nav-link">OUR DJS</a>
-      <a href="schedule.html"     class="nav-link">SCHEDULE</a>
-      <a href="merch.html"        class="nav-link">MERCH</a>
+      <a href="/"                 class="nav-link">HOME</a>
+      <a href="/our-story.html"   class="nav-link">OUR STORY</a>
+      <a href="/index-ourDJS.html" class="nav-link">OUR DJS</a>
+      <a href="/dj-selects.html"  class="nav-link">DJ SELECTS</a>
+      <a href="/cutty-ranks.html" class="nav-link">CUTTY RANKS</a>
+      <a href="/schedule.html"    class="nav-link">SCHEDULE</a>
+      <a href="/merch.html"       class="nav-link">MERCH</a>
 
       <details class="nav-details">
         <summary class="nav-link" aria-label="About Cutty Ranks">ABOUT CUTTY RANKS</summary>
@@ -266,10 +256,9 @@
   </div>
 
   <script>
-    // ------- Config / constants -------
     window.CUTTY_RANKS = {
-      CONFIG_ENDPOINT: 'cutty-ranks-config.php',
-      ADMIN_HASH_HEX: '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e' // same pass as DJ Selects (SHA-256 of your phrase)
+      CONFIG_ENDPOINT: '/cutty-ranks-config.php',
+      ADMIN_HASH_HEX: '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e'
     };
   </script>
 
@@ -292,7 +281,6 @@
 
     const state = { entries: [], authed:false };
 
-    // ---------- Utils ----------
     function setHeights(){
       const rect = grid.getBoundingClientRect();
       const usable = Math.max(320, window.innerHeight - rect.top - 12);
@@ -320,7 +308,6 @@
       mainPreview.innerHTML = iframe(url, 'Selected player');
     }
 
-    // ---------- Render ----------
     function render(){
       rails.forEach(r => r.innerHTML = '');
       if(!state.entries.length){
@@ -363,7 +350,6 @@
       setHeights();
     }
 
-    // ---------- Config load/save (server-first so everyone sees updates) ----------
     async function loadConfig(){
       try{
         const r = await fetch(`${CFG.CONFIG_ENDPOINT}?action=load`, {cache:'no-store'});
@@ -373,7 +359,7 @@
         }
       }catch{}
       try{
-        const r = await fetch('cutty-ranks-data.json', {cache:'no-store'});
+        const r = await fetch('/cutty-ranks-data.json', {cache:'no-store'});
         if(r.ok){
           const j = await r.json();
           if(Array.isArray(j?.entries)){ state.entries = j.entries; render(); return; }
@@ -398,7 +384,6 @@
       return j.entries || entries;
     }
 
-    // ---------- Admin UI ----------
     function entryRow(data={}){
       const wrap = document.createElement('div'); wrap.className='entry';
       wrap.innerHTML = `
@@ -459,14 +444,14 @@
 
       adminStatus.textContent='Saving…';
       try{
-        const saved = await serverSave(entries);         // server-first → visible to everyone
+        const saved = await serverSave(entries);
         state.entries = saved;
-        localStorage.setItem('cutty_ranks_entries', JSON.stringify(saved)); // convenience cache
+        localStorage.setItem('cutty_ranks_entries', JSON.stringify(saved));
         render();
         adminStatus.textContent='Saved.';
       }catch(err){
         console.error(err);
-        state.entries = entries;                         // fallback so you don't lose work
+        state.entries = entries;
         localStorage.setItem('cutty_ranks_entries', JSON.stringify(entries));
         render();
         adminStatus.textContent='Saved locally only (check server perms).';

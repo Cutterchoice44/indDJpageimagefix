@@ -30,7 +30,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://www.youtube-nocookie.com" crossorigin>
 
-  <!-- Global site styles (keep) -->
+  <!-- Global site styles -->
   <link rel="stylesheet" href="/style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
@@ -38,29 +38,26 @@
   <style>
     :root{
       --brand-teal:#5A8785;
-      --gap:12px;
+      --grid-gap:12px;
 
-      /* skinny rails + big preview */
-      --rail-min:200px;           /* width of the thin side columns */
-      --preview-min:640px;        /* min width of center preview */
+      /* widths */
+      --rail-min:220px;              /* side columns (skinny) */
+      --preview-min:640px;           /* center preview min width */
       --preview-max:980px;
 
       /* tile density */
-      --tile-gap:6px;
-      --tile-height:clamp(68px, 10vw, 90px); /* small thumbnails */
-      --tile-radius:9px;
+      --tile-gap:8px;
+      --tile-height:clamp(64px, 9vw, 90px);   /* small horizontal tiles */
+      --tile-radius:10px;
     }
 
-    /* ======= TOP HEADER (uses your existing look) ======= */
+    /* ======= Header (kept) ======= */
     .header-banner{
-      position:relative;
-      display:flex; align-items:center; justify-content:center;
+      position:relative; display:flex; align-items:center; justify-content:center;
       padding:clamp(16px,3vw,28px) .6rem;
       background:#000 center/cover no-repeat;
       background-image:url('/images/cutty_a.png');
-      border-top:2px solid #000;
-      border-bottom:2px solid #000;
-      isolation:isolate;
+      border-top:2px solid #000; border-bottom:2px solid #000; isolation:isolate;
     }
     .header-banner .title{ text-align:center; }
     .header-banner .title h1{
@@ -70,10 +67,9 @@
     }
     .header-banner .title .tagline{ margin:.2rem 0 0; color:#fff; text-shadow:0 2px 10px rgba(0,0,0,.6); }
     .header-gif-right,.header-gif-left,.header-wave,.logo-container{ display:none !important; }
-
     .nav-sep{height:2px;background-color:var(--brand-teal);}
 
-    /* Desktop/tablet nav look (kept from earlier) */
+    /* Nav styles (kept) */
     #main-nav .nav-menu{ justify-content: space-evenly !important; }
     #main-nav .nav-link, #main-nav summary.nav-link{
       color:#fff !important; font-family:'Bebas Neue',sans-serif !important;
@@ -90,13 +86,11 @@
     }
     .nav-details[open] .about-panel{ display:block; }
     .nav-details > summary::-webkit-details-marker{ display:none; }
-    .nav-details > summary:focus{ outline:2px solid #fff; outline-offset:2px; }
 
-    /* Mobile nav tidy */
     @media (max-width:768px){
       body.cutty nav#main-nav{
         display:flex !important; flex-direction:row !important; align-items:center !important;
-        justify-content:space-between !important; padding:.40rem .65rem !important; margin-bottom:0 !important; border-bottom:0 !important;
+        justify-content:space-between !important; padding:.40rem .65rem !important;
       }
       body.cutty nav#main-nav .nav-menu{
         display:flex !important; gap:.35rem !important; flex-wrap:nowrap !important;
@@ -113,12 +107,9 @@
       position:relative;
       border-top:2px solid var(--brand-teal);
       border-bottom:2px solid var(--brand-teal);
-      min-height:110px;
-      display:flex; align-items:center; justify-content:flex-start;
+      min-height:110px; display:flex; align-items:center; justify-content:flex-start;
       padding:.35rem .6rem;
-      background:
-        url('/images/cutty_b.png') right center / contain no-repeat,
-        #000;
+      background: url('/images/cutty_b.png') right center / contain no-repeat, #000;
     }
     .cutty-title::before{
       content:""; position:absolute; inset:0;
@@ -126,14 +117,15 @@
       pointer-events:none;
     }
     .cutty-title h2{
-      position:relative; z-index:1; color:#fff; font-family:'Bebas Neue',sans-serif;
-      font-size:clamp(2.6rem,5.2vw,3.6rem); line-height:1; margin:0; letter-spacing:.6px; text-shadow:0 2px 10px rgba(0,0,0,.65);
+      position:relative; z-index:1; color:#fff;
+      font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(2.6rem,5.2vw,3.6rem); line-height:1; margin:0; letter-spacing:.6px;
+      text-shadow:0 2px 10px rgba(0,0,0,.65);
     }
 
-    /* ===== 5-column grid: 2 rails | preview | 2 rails ===== */
+    /* ===== Main grid: 2 rails | preview | 2 rails ===== */
     .ranks-grid{
-      display:grid;
-      gap:var(--gap);
+      display:grid; gap:var(--grid-gap);
       grid-template-columns:
         minmax(var(--rail-min), 0.9fr)
         minmax(var(--rail-min), 0.9fr)
@@ -142,23 +134,24 @@
         minmax(var(--rail-min), 0.9fr);
       align-items:start;
       padding:.6rem;
-      /* We'll set --usable from JS so each column can scroll on its own */
     }
 
-    /* independent scroll per rail */
+    /* independent scrolling rails */
     .rail{
-      display:flex; flex-direction:column; gap:var(--gap);
+      display:flex; flex-direction:column; gap:var(--grid-gap);
       height: var(--usable, 70vh);
-      overflow-y: auto;
-      padding-right:4px;          /* room for scrollbar */
-      scrollbar-gutter: stable;   /* prevents layout shift */
+      overflow-y:auto;
+      padding-right:4px;
+      scrollbar-gutter: stable;
       background:#000;
       border-right:2px solid rgba(90,135,133,.45);
     }
+    .left-inner{ }
     .left-outer{ }
-    .right-outer{ border-right:none; }           /* last column line off */
+    .right-inner{ }
+    .right-outer{ border-right:none; } /* last one no right divider */
 
-    /* Center preview sticks to same usable height but no scroll unless needed */
+    /* center preview (same height) */
     .preview-shell{
       background:#000 center/cover no-repeat; background-image:url('/images/cutty_c.png');
       border:2px solid var(--brand-teal); border-radius:8px; padding:10px;
@@ -170,7 +163,7 @@
     #mainPreview iframe{ width:100%; aspect-ratio:16/9; height:auto; border:0; display:block; }
     .placeholder{ font-family:'Bebas Neue',sans-serif; color:#6fa39f; font-size:clamp(1rem,2vw,1.25rem); padding:.6rem; text-align:center; }
 
-    /* DJ cards (column sections) */
+    /* DJ card per column */
     .dj-card{
       border:1px solid #264745; background:#0a0a0a; border-radius:10px; overflow:hidden;
     }
@@ -178,23 +171,16 @@
       font-family:'Bebas Neue',sans-serif; font-size:clamp(1.05rem,1.6vw,1.25rem);
       margin:0; padding:.4rem .55rem; background:#0f0f0f; border-bottom:1px solid #1f3a39; color:#fff; letter-spacing:.4px;
     }
-
-    /* five small links stacked vertically */
     .track-list{
-      display:grid;
-      grid-template-columns: 1fr;   /* one per row (vertical) */
-      gap:var(--tile-gap);
-      padding:var(--tile-gap);
+      display:grid; grid-template-columns:1fr; gap:var(--tile-gap); padding:var(--tile-gap);
     }
 
-    /* lightweight "thumbnail tile" (no embedded iframe here) */
+    /* small horizontal tiles */
     .track-tile{
       position:relative;
-      height: var(--tile-height);
-      border:1px solid #1d3533;
-      border-radius:var(--tile-radius);
-      overflow:hidden;
-      background:#0a0a0a center/cover no-repeat;
+      height:var(--tile-height);
+      border:1px solid #1d3533; border-radius:var(--tile-radius);
+      overflow:hidden; background:#0a0a0a center/cover no-repeat;
       cursor:pointer;
       transition: transform .08s ease-in-out, box-shadow .12s ease-in-out;
     }
@@ -206,19 +192,19 @@
       border-radius:var(--tile-radius); pointer-events:none;
     }
     .tile-badge{
-      position:absolute; top:.3rem; left:.3rem;
+      position:absolute; top:.28rem; left:.28rem;
       background:rgba(0,0,0,.52); color:#fff; font:600 10px/1.1 system-ui;
-      padding:.18rem .36rem; border-radius:999px;
+      padding:.16rem .34rem; border-radius:999px;
     }
     .tile-play{
-      position:absolute; right:.35rem; bottom:.35rem;
+      position:absolute; right:.32rem; bottom:.32rem;
       width:30px; height:30px; border-radius:999px;
       background:rgba(255,255,255,.16); display:grid; place-items:center;
     }
     .tile-play svg{ width:14px; height:14px; color:#fff; }
     .overlayBtn{ position:absolute; inset:0; appearance:none; background:transparent; border:0; cursor:pointer; }
 
-    /* Responsive: collapse to 3 columns (one rail per side), then stack */
+    /* Responsive collapse */
     @media (max-width:1200px){
       .ranks-grid{
         grid-template-columns:
@@ -229,12 +215,12 @@
       .rail.left-outer, .rail.right-outer{ display:none; }
     }
     @media (max-width:980px){
-      .ranks-grid{ grid-template-columns: 1fr; }
+      .ranks-grid{ grid-template-columns:1fr; }
       .preview-shell{ order:1 }
       .rail{ order:2; border-right:none; }
     }
 
-    /* nice thin scrollbars on supported browsers */
+    /* nicer scrollbars */
     .rail::-webkit-scrollbar{ width:10px; }
     .rail::-webkit-scrollbar-track{ background:#061010; }
     .rail::-webkit-scrollbar-thumb{ background:#274947; border-radius:10px; border:2px solid #061010; }
@@ -266,7 +252,7 @@
       <details class="nav-details">
         <summary class="nav-link" aria-label="About Cutty Ranks">ABOUT CUTTY RANKS</summary>
         <div class="about-panel">
-          <p>Each column is independently scrollable. Tap a tile to play it in the center preview.</p>
+          <p>Four skinny columns flank the preview. Click any tile to play in the center.</p>
         </div>
       </details>
     </div>
@@ -279,44 +265,24 @@
 
   <!-- 4 rails + preview -->
   <main id="ranksGrid" class="ranks-grid" role="main">
-    <!-- Left side (first 4 DJs go here) -->
-    <aside class="rail left-inner"  id="rail-0" aria-label="Left column A"></aside>
-    <aside class="rail left-outer"  id="rail-1" aria-label="Left column B"></aside>
+    <aside class="rail left-inner"  id="rail-0" aria-label="Left column 1"></aside>
+    <aside class="rail left-outer"  id="rail-1" aria-label="Left column 2"></aside>
 
-    <!-- Center preview -->
     <section class="preview-shell">
       <div id="mainPreview"><div class="placeholder">Select any tile to play here</div></div>
     </section>
 
-    <!-- Right side (DJs 5+ continue here) -->
-    <aside class="rail right-inner" id="rail-2" aria-label="Right column A"></aside>
-    <aside class="rail right-outer" id="rail-3" aria-label="Right column B"></aside>
+    <aside class="rail right-inner" id="rail-2" aria-label="Right column 1"></aside>
+    <aside class="rail right-outer" id="rail-3" aria-label="Right column 2"></aside>
   </main>
 
-  <!-- Optional admin overlay (unchanged functionality) -->
-  <div id="adminOverlay" class="adminHidden" aria-hidden="true">
-    <div id="adminPanel">
-      <h3>Cutty Ranks — Admin</h3>
-      <p class="minor">Add a DJ name and up to five YouTube links. Then <b>Save</b>.</p>
-      <div id="adminEntries"></div>
-      <div class="row">
-        <button id="addEntryBtn"><i class="fa fa-plus"></i>&nbsp; Add DJ</button>
-        <button id="adminSave">Save</button>
-        <button id="adminClose">Close</button>
-        <div id="adminStatus"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Config -->
+  <!-- Config (no public admin bits) -->
   <script>
     window.CUTTY_RANKS = {
-      CONFIG_ENDPOINT: 'cutty-ranks-config.php',
-      ADMIN_HASH_HEX: '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e'
+      CONFIG_ENDPOINT: 'cutty-ranks-config.php'
     };
   </script>
 
-  <!-- Page logic -->
   <script>
   (() => {
     const CFG = window.CUTTY_RANKS || {};
@@ -326,17 +292,16 @@
     const grid = $('#ranksGrid');
     const rails = [$('#rail-0'), $('#rail-1'), $('#rail-2'), $('#rail-3')];
     const mainPreview = $('#mainPreview');
+    const state = { entries: [] };
 
-    /* make columns independently scrollable to viewport bottom */
+    /* column heights tied to viewport so rails scroll independently */
     function setHeights(){
       const rect = grid.getBoundingClientRect();
-      const usable = Math.max(320, window.innerHeight - rect.top - 8); /* 8px slack */
+      const usable = Math.max(320, window.innerHeight - rect.top - 8);
       grid.style.setProperty('--usable', usable + 'px');
     }
     window.addEventListener('resize', setHeights, {passive:true});
     window.addEventListener('load', setHeights, {passive:true});
-
-    const state = { entries: [], authed:false };
 
     /* helpers */
     const ytId = (u) => {
@@ -376,7 +341,6 @@
     function djCard(entry){
       const card = document.createElement('div');
       card.className = 'dj-card';
-
       const h = document.createElement('h4');
       h.textContent = entry.name || 'Untitled';
       card.appendChild(h);
@@ -408,7 +372,7 @@
         return;
       }
 
-      /* put first playable in preview (no autoplay) */
+      /* put first playable in the preview (no autoplay) */
       outer:
       for (const entry of state.entries){
         for (const u of (entry.links||[])){
@@ -417,22 +381,16 @@
         }
       }
 
-      /* distribute: first 4 to left rails (0/1 alternating), rest to right (2/3 alternating) */
+      /* DISTRIBUTION: 4 columns across, then wrap and stack below (0,1,2,3, 0,1,2,3, ...) */
       state.entries.forEach((entry, idx) => {
-        let target;
-        if (idx < 4){
-          target = rails[idx % 2];            // 0,1,0,1
-        } else {
-          const k = idx - 4;
-          target = rails[2 + (k % 2)];        // 2,3,2,3
-        }
-        target.appendChild(djCard(entry));
+        const rail = rails[idx % 4];
+        rail.appendChild(djCard(entry));
       });
 
       setHeights();
     }
 
-    /* -------- Config loading (server, file, local) -------- */
+    /* ---- Load config: server -> file -> local ---- */
     async function loadConfig(){
       try{
         const r = await fetch(`${CFG.CONFIG_ENDPOINT}?action=load`, {cache:'no-store'});
@@ -440,14 +398,14 @@
           const j = await r.json();
           if(Array.isArray(j?.entries)){ state.entries = j.entries; render(); return; }
         }
-      }catch(e){ console.warn('load server failed', e); }
+      }catch(e){ console.warn('server load failed', e); }
       try{
         const r = await fetch('cutty-ranks-data.json', {cache:'no-store'});
         if(r.ok){
           const j = await r.json();
           if(Array.isArray(j?.entries)){ state.entries = j.entries; render(); return; }
         }
-      }catch(e){ console.warn('load file failed', e); }
+      }catch(e){ console.warn('file load failed', e); }
       try{
         const s = localStorage.getItem('cutty_ranks_entries');
         if(s){ const a = JSON.parse(s); if(Array.isArray(a)){ state.entries = a; render(); return; } }
@@ -456,104 +414,9 @@
       render();
     }
 
-    /* ---- Optional admin (same as before, omitted here for brevity of UX) ---- */
-    const adminOverlay = $('#adminOverlay');
-    const adminEntriesBox = $('#adminEntries');
-    const addEntryBtn = $('#addEntryBtn');
-    const adminSaveBtn = $('#adminSave');
-    const adminCloseBtn = $('#adminClose');
-    const adminStatus = $('#adminStatus');
-
-    async function serverSave(entries){
-      const r = await fetch(CFG.CONFIG_ENDPOINT+'?action=save', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({entries, auth: CFG.ADMIN_HASH_HEX})
-      });
-      const txt = await r.text(); let j=null; try{ j=JSON.parse(txt);}catch{}
-      if(!r.ok || !(j&&j.ok)) throw new Error(j?.error ? ('Server error: '+j.error) : ('HTTP '+r.status+' '+txt.slice(0,180)));
-      return j.entries || entries;
-    }
-    function entryRow(data={}){
-      const wrap = document.createElement('div'); wrap.className='entry';
-      wrap.innerHTML = `
-        <div class="row"><label>DJ Name</label><input type="text" class="djName" placeholder="e.g. MARIONETTE"></div>
-        <div class="row"><label>Link 1</label><input type="text" class="l l1" placeholder="YouTube URL"></div>
-        <div class="row"><label>Link 2</label><input type="text" class="l l2" placeholder="YouTube URL"></div>
-        <div class="row"><label>Link 3</label><input type="text" class="l l3" placeholder="YouTube URL"></div>
-        <div class="row"><label>Link 4</label><input type="text" class="l l4" placeholder="YouTube URL"></div>
-        <div class="row"><label>Link 5</label><input type="text" class="l l5" placeholder="YouTube URL"></div>
-        <div class="row"><button class="delBtn"><i class="fa fa-trash"></i>&nbsp; Remove DJ</button></div>
-      `;
-      wrap.querySelector('.djName').value = data.name || '';
-      (data.links||[]).slice(0,5).forEach((u,i)=> wrap.querySelector('.l'+(i+1)).value = u);
-      wrap.querySelector('.delBtn').addEventListener('click', () => { wrap.remove(); }, {passive:true});
-      return wrap;
-    }
-    function openAdmin(){
-      adminEntriesBox.innerHTML = '';
-      (state.entries || []).forEach(e => adminEntriesBox.appendChild(entryRow(e)));
-      adminOverlay.classList.remove('adminHidden'); adminOverlay.setAttribute('aria-hidden','false');
-      adminStatus.textContent = '';
-    }
-    function closeAdmin(){
-      adminOverlay.classList.add('adminHidden'); adminOverlay.setAttribute('aria-hidden','true');
-    }
-    document.addEventListener('keydown', async (e)=>{
-      const t = document.activeElement;
-      if (t && (t.tagName==='INPUT' || t.tagName==='TEXTAREA' || t.isContentEditable)) return;
-      if (e.shiftKey && (e.code==='KeyA' || (e.key||'').toLowerCase()==='a')){
-        e.preventDefault();
-        if(!state.authed){
-          const pw = prompt('Enter passphrase'); if(!pw) return;
-          const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
-          const hex = [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
-          if(hex===CFG.ADMIN_HASH_HEX){ state.authed=true; openAdmin(); } else alert('Incorrect passphrase');
-        } else openAdmin();
-      }
-    });
-    $('#adminClose')?.addEventListener('click', closeAdmin, {passive:true});
-    $('#addEntryBtn')?.addEventListener('click', ()=> adminEntriesBox.appendChild(entryRow()), {passive:true});
-    $('#adminSave')?.addEventListener('click', async ()=>{
-      const entries = $$('.entry', adminEntriesBox).map(box => {
-        const name = box.querySelector('.djName').value.trim();
-        const links = $$('.l', box).map(i=>i.value.trim()).filter(Boolean).slice(0,5);
-        return name || links.length ? {name, links} : null;
-      }).filter(Boolean);
-      if(!entries.length){ adminStatus.textContent='Nothing to save.'; return; }
-      const ok = (u)=>/^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//i.test(u);
-      for(const e of entries){
-        if(!e.name){ adminStatus.textContent='Each DJ must have a name.'; return; }
-        if(e.links.some(u=>!ok(u))) { adminStatus.textContent='Only YouTube links are supported here.'; return; }
-      }
-      adminStatus.textContent='Saving…';
-      try{
-        const saved = await serverSave(entries);
-        state.entries = saved;
-        localStorage.setItem('cutty_ranks_entries', JSON.stringify(saved));
-        render();
-        adminStatus.textContent='Saved.';
-      }catch(err){
-        console.error(err);
-        state.entries = entries;
-        localStorage.setItem('cutty_ranks_entries', JSON.stringify(entries));
-        render();
-        adminStatus.textContent='Saved locally only (check server perms).';
-      }
-    });
-
     document.addEventListener('DOMContentLoaded', async ()=>{
       await loadConfig();
       setHeights();
-      const p = new URLSearchParams(location.search);
-      if (p.get('admin')==='1' || location.hash==='#admin'){
-        const pw = prompt('Enter passphrase');
-        if (pw) {
-          const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
-          const hex = [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
-          if(hex===CFG.ADMIN_HASH_HEX){ state.authed=true; openAdmin(); } else alert('Incorrect passphrase');
-        }
-      }
     });
   })();
   </script>

@@ -153,13 +153,12 @@
     #mainPreview iframe{ width:100%; aspect-ratio:16/9; height:auto; border:0; display:block; }
     .placeholder{ font-family:'Bebas Neue',sans-serif; color:#6fa39f; font-size:clamp(1rem,2vw,1.25rem); padding:.6rem; text-align:center; }
 
-    /* ===== Cards grid ===== */
+    /* ===== Cards grid (DJs side-by-side) ===== */
     .cutty-wrap{ padding:.6rem; }
     .cards-grid{
       display:grid;
       gap:var(--gap-lg);
-      /* 4 across on typical desktop; grows/shrinks responsively */
-      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); /* first 4 will sit across on wide view */
       align-items:start;
     }
 
@@ -170,26 +169,14 @@
       font-family:'Bebas Neue',sans-serif; font-size:clamp(1.3rem,2vw,1.6rem);
       margin:0; padding:.45rem .6rem; background:#0f0f0f; border-bottom:1px solid #1f3a39;
       letter-spacing:.4px; color:#fff;
-      display:flex; align-items:center; justify-content:space-between;
     }
 
-    /* === Per-DJ: show 5 tiles in a single row === */
-    .track-row{
-      display:flex; flex-wrap:wrap; gap:var(--tile-gap);
+    /* === Per-DJ: list links vertically (one per row) === */
+    .track-list{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:var(--tile-gap);
       padding:var(--tile-gap);
-    }
-    /* exactly five across; adjusts with container width */
-    .track-row .track-tile{
-      flex: 0 0 calc((100% - (var(--tile-gap) * 4)) / 5);
-    }
-
-    /* Small screens: allow bigger tiles by reducing columns */
-    @media (max-width:600px){
-      .cards-grid{ grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
-      .track-row .track-tile{ flex-basis: calc((100% - (var(--tile-gap) * 2)) / 3); }
-    }
-    @media (max-width:420px){
-      .track-row .track-tile{ flex-basis: calc((100% - var(--tile-gap)) / 2); }
     }
 
     /* ======= Lightweight YouTube tile (no red play) ======= */
@@ -378,8 +365,8 @@
         h.textContent = entry.name || 'Untitled';
         card.appendChild(h);
 
-        const row = document.createElement('div');
-        row.className = 'track-row';
+        const list = document.createElement('div');
+        list.className = 'track-list';
 
         (entry.links || []).slice(0,5).forEach((u) => {
           const id = ytId(u);
@@ -399,10 +386,10 @@
             firstSet = true;
           }
 
-          row.appendChild(tile);
+          list.appendChild(tile);
         });
 
-        card.appendChild(row);
+        card.appendChild(list);
         djGrid.appendChild(card);
       });
     }

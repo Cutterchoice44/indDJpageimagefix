@@ -38,8 +38,10 @@
   <style>
     :root{
       --brand-teal:#5A8785;
-      --preview-max:980px;
-      --rails-gap:10px;
+      --gap:12px;
+      --rail-min:260px;      /* width of the thin rails */
+      --preview-min:560px;   /* min width of center preview column */
+      --preview-max:980px;   /* max width of the iframe wrapper */
       --tile-gap:8px;
     }
 
@@ -65,7 +67,6 @@
     }
     .header-gif-right,.header-gif-left,.header-wave,.logo-container{ display:none !important; }
 
-    /* single teal separator ABOVE nav only */
     .nav-sep{height:2px;background-color:var(--brand-teal);}
 
     /* Desktop/tablet nav look */
@@ -114,8 +115,6 @@
     }
 
     /* ---------- Page specific ---------- */
-
-    /* Title band: cutty_b on the RIGHT side */
     .cutty-title{
       position:relative;
       border-top:2px solid var(--brand-teal);
@@ -141,71 +140,27 @@
       text-shadow:0 2px 10px rgba(0,0,0,.65);
     }
 
-    /* 5-column layout */
+    /* ===== 5-column grid: 2 rails left | preview | 2 rails right ===== */
     .ranks-grid{
-      display:grid; gap:var(--rails-gap);
-      grid-template-columns: 1fr 1fr minmax(560px, 1.8fr) 1fr 1fr;
+      display:grid;
+      gap:var(--gap);
+      grid-template-columns:
+        minmax(var(--rail-min), 1fr)
+        minmax(var(--rail-min), 1fr)
+        minmax(var(--preview-min), 1.8fr)
+        minmax(var(--rail-min), 1fr)
+        minmax(var(--rail-min), 1fr);
       align-items:start;
       padding:.6rem;
-      --usable: 70vh;
-    }
-    .rail, .preview-shell{ height: var(--usable); overflow-y:auto; }
-    .rail{ display:flex; flex-direction:column; gap:10px; }
-
-    .dj-card{
-      border:1px solid #264745; background:#0a0a0a; border-radius:6px; overflow:hidden;
-    }
-    .dj-card h4{
-      font-family:'Bebas Neue',sans-serif; font-size:clamp(1.3rem,2vw,1.6rem);
-      margin:0; padding:.35rem .5rem; background:#0f0f0f; border-bottom:1px solid #1f3a39; letter-spacing:.4px; color:#fff;
     }
 
-    .track-list{
-      display:grid;
-      grid-auto-rows:min-content;
-      gap:var(--tile-gap);
-      padding:var(--tile-gap);
-      /* >>> Make tiles half width (two per row) */
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+    .rail{
+      display:flex;
+      flex-direction:column;
+      gap:var(--gap);
     }
 
-    /* ======= Lightweight YouTube tile (no red play) ======= */
-    .track-tile{
-      position:relative;
-      border:1px solid #1d3533;
-      border-radius:10px;
-      overflow:hidden;
-      background:#0a0a0a center/cover no-repeat;   /* thumbnail as background */
-      aspect-ratio:16/9;                            /* keep 16:9 without fixed height */
-      cursor:pointer;
-      transition: transform .08s ease-in-out, box-shadow .12s ease-in-out;
-    }
-    .track-tile:hover{ transform: translateY(-1px); box-shadow:0 4px 18px rgba(0,0,0,.35); }
-    .track-tile.selected{ outline:2px solid var(--brand-teal); outline-offset:-2px; }
-
-    /* subtle chrome */
-    .track-tile::after{
-      content:""; position:absolute; inset:0;
-      box-shadow: inset 0 0 0 2px rgba(90,135,133,.22);
-      border-radius:10px; pointer-events:none;
-    }
-
-    /* badges/controls */
-    .tile-badge{
-      position:absolute; top:.38rem; left:.38rem;
-      background:rgba(0,0,0,.52); color:#fff; font:600 11px/1.1 system-ui;
-      padding:.24rem .44rem; border-radius:999px;
-    }
-    .tile-play{
-      position:absolute; right:.45rem; bottom:.45rem;
-      width:38px; height:38px; border-radius:999px;
-      background:rgba(255,255,255,.16); display:grid; place-items:center;
-    }
-    .tile-play svg{ width:18px; height:18px; color:#fff; }
-
-    /* button overlay for a11y */
-    .overlayBtn{ position:absolute; inset:0; appearance:none; background:transparent; border:0; cursor:pointer; }
-
+    /* Center preview */
     .preview-shell{
       background:#000 center/cover no-repeat; background-image:url('/images/cutty_c.png');
       border:2px solid var(--brand-teal); border-radius:8px; padding:10px;
@@ -215,16 +170,70 @@
     #mainPreview iframe{ width:100%; aspect-ratio:16/9; height:auto; border:0; display:block; }
     .placeholder{ font-family:'Bebas Neue',sans-serif; color:#6fa39f; font-size:clamp(1rem,2vw,1.25rem); padding:.6rem; text-align:center; }
 
-    /* Responsive collapse */
+    /* DJ cards */
+    .dj-card{
+      border:1px solid #264745; background:#0a0a0a; border-radius:10px; overflow:hidden;
+    }
+    .dj-card h4{
+      font-family:'Bebas Neue',sans-serif; font-size:clamp(1.2rem,1.7vw,1.4rem);
+      margin:0; padding:.45rem .6rem; background:#0f0f0f; border-bottom:1px solid #1f3a39; color:#fff;
+      letter-spacing:.4px;
+    }
+
+    /* Vertical list of up to 5 links (compact) */
+    .track-list{
+      display:grid;
+      grid-template-columns: 1fr;   /* one per row */
+      gap:var(--tile-gap);
+      padding:var(--tile-gap);
+    }
+
+    /* Lightweight YouTube tile */
+    .track-tile{
+      position:relative;
+      border:1px solid #1d3533;
+      border-radius:10px;
+      overflow:hidden;
+      background:#0a0a0a center/cover no-repeat;
+      aspect-ratio:16/9;
+      cursor:pointer;
+      transition: transform .08s ease-in-out, box-shadow .12s ease-in-out;
+    }
+    .track-tile:hover{ transform: translateY(-1px); box-shadow:0 4px 18px rgba(0,0,0,.35); }
+    .track-tile.selected{ outline:2px solid var(--brand-teal); outline-offset:-2px; }
+    .track-tile::after{
+      content:""; position:absolute; inset:0;
+      box-shadow: inset 0 0 0 2px rgba(90,135,133,.22);
+      border-radius:10px; pointer-events:none;
+    }
+    .tile-badge{
+      position:absolute; top:.38rem; left:.38rem;
+      background:rgba(0,0,0,.52); color:#fff; font:600 11px/1.1 system-ui;
+      padding:.24rem .44rem; border-radius:999px;
+    }
+    .tile-play{
+      position:absolute; right:.45rem; bottom:.45rem;
+      width:34px; height:34px; border-radius:999px;
+      background:rgba(255,255,255,.16); display:grid; place-items:center;
+    }
+    .tile-play svg{ width:16px; height:16px; color:#fff; }
+
+    .overlayBtn{ position:absolute; inset:0; appearance:none; background:transparent; border:0; cursor:pointer; }
+
+    /* Responsive: shrink to 3 cols (1 rail per side) then stack */
     @media (max-width:1200px){
-      .ranks-grid{ grid-template-columns: 1fr minmax(520px,1.6fr) 1fr; }
-      .rail.right-outer{ display:none; }
+      .ranks-grid{
+        grid-template-columns:
+          minmax(var(--rail-min), 1fr)
+          minmax(var(--preview-min), 1.8fr)
+          minmax(var(--rail-min), 1fr);
+      }
+      .rail.left-outer, .rail.right-outer{ display:none; }
     }
     @media (max-width:980px){
       .ranks-grid{ grid-template-columns: 1fr; }
-      .rail{ order:2 } .preview-shell{ order:1 }
-      /* On small screens, return to one tile per row for readability */
-      .track-list{ grid-template-columns: 1fr; }
+      .preview-shell{ order:1 }
+      .rail{ order:2 }
     }
 
     /* Admin overlay */
@@ -252,7 +261,6 @@
     </div>
   </header>
 
-  <!-- single separator ABOVE nav -->
   <div class="nav-sep top"></div>
 
   <!-- Primary Nav -->
@@ -268,35 +276,38 @@
       <details class="nav-details">
         <summary class="nav-link" aria-label="About Cutty Ranks">ABOUT CUTTY RANKS</summary>
         <div class="about-panel">
-          <p>Cutty Ranks is a best-of archive built from the DJ Selects page. Pick any selector’s five saved YouTube links; tap a tile to play it in the center preview.</p>
+          <p>Cutty Ranks is a best-of archive built from the DJ Selects page. Each card shows a selector’s five YouTube picks. Tap any tile to play it in the center preview.</p>
         </div>
       </details>
     </div>
   </nav>
 
-  <!-- Title band (cutty_b on the right) -->
+  <!-- Title band -->
   <section class="cutty-title">
     <h2>CUTTY RANKS: THE SELECTOR ARCHIVES</h2>
   </section>
 
-  <!-- Rails + Preview -->
-  <main class="ranks-grid" id="ranksGrid" role="main">
-    <aside class="rail left-inner" id="rail-0" aria-label="Selector column 1"></aside>
-    <aside class="rail left-outer" id="rail-1" aria-label="Selector column 2"></aside>
+  <!-- 4 rails + preview -->
+  <main class="ranks-grid" role="main">
+    <!-- Left side (first 4 DJs go here) -->
+    <aside class="rail left-inner"  id="rail-0" aria-label="Left column A"></aside>
+    <aside class="rail left-outer"  id="rail-1" aria-label="Left column B"></aside>
 
+    <!-- Center preview -->
     <section class="preview-shell">
       <div id="mainPreview"><div class="placeholder">Select any tile to play here</div></div>
     </section>
 
-    <aside class="rail right-inner" id="rail-2" aria-label="Selector column 3"></aside>
-    <aside class="rail right-outer" id="rail-3" aria-label="Selector column 4"></aside>
+    <!-- Right side (DJs 5+ continue here) -->
+    <aside class="rail right-inner" id="rail-2" aria-label="Right column A"></aside>
+    <aside class="rail right-outer" id="rail-3" aria-label="Right column B"></aside>
   </main>
 
-  <!-- Admin overlay -->
+  <!-- Admin overlay (optional power user) -->
   <div id="adminOverlay" class="adminHidden" aria-hidden="true">
     <div id="adminPanel">
       <h3>Cutty Ranks — Admin</h3>
-      <p class="minor">Add a DJ name and up to five YouTube links. Drag to reorder within your browser if needed, then <b>Save</b>.</p>
+      <p class="minor">Add a DJ name and up to five YouTube links. Then <b>Save</b>.</p>
       <div id="adminEntries"></div>
       <div class="row">
         <button id="addEntryBtn"><i class="fa fa-plus"></i>&nbsp; Add DJ</button>
@@ -323,7 +334,6 @@
 
     const rails = [$('#rail-0'), $('#rail-1'), $('#rail-2'), $('#rail-3')];
     const mainPreview = $('#mainPreview');
-    const grid = $('#ranksGrid');
 
     const adminOverlay = $('#adminOverlay');
     const adminEntriesBox = $('#adminEntries');
@@ -333,14 +343,6 @@
     const adminStatus = $('#adminStatus');
 
     const state = { entries: [], authed:false };
-
-    function setHeights(){
-      const rect = grid.getBoundingClientRect();
-      const usable = Math.max(320, window.innerHeight - rect.top - 12);
-      grid.style.setProperty('--usable', usable + 'px');
-    }
-    window.addEventListener('resize', setHeights);
-    window.addEventListener('load', setHeights);
 
     const ytId = (u) => {
       try{
@@ -361,7 +363,6 @@
       mainPreview.innerHTML = iframe(url, 'Selected player');
     }
 
-    /** Build a lightweight tile with a thumbnail (no iframe until click) */
     function makeTile(id){
       const div = document.createElement('div');
       div.className = 'track-tile';
@@ -376,58 +377,72 @@
       return div;
     }
 
+    function djCard(entry){
+      const card = document.createElement('div');
+      card.className = 'dj-card';
+
+      const h = document.createElement('h4');
+      h.textContent = entry.name || 'Untitled';
+      card.appendChild(h);
+
+      const list = document.createElement('div');
+      list.className = 'track-list';
+
+      (entry.links || []).slice(0,5).forEach((u, i) => {
+        const id = ytId(u);
+        if(!id) return;
+        const tile = makeTile(id);
+
+        tile.querySelector('.overlayBtn').addEventListener('click', () => {
+          $$('.track-tile').forEach(t => t.classList.remove('selected'));
+          tile.classList.add('selected');
+          play(ytEmbed(id));
+        }, {passive:true});
+
+        list.appendChild(tile);
+      });
+
+      card.appendChild(list);
+      return card;
+    }
+
     function render(){
       rails.forEach(r => r.innerHTML = '');
+
       if(!state.entries.length){
         mainPreview.innerHTML = '<div class="placeholder">Select any tile to play here</div>';
         return;
       }
 
-      let firstSet = false;
-
-      state.entries.forEach((entry, idx) => {
-        const rail = rails[idx % rails.length];
-        const card = document.createElement('div');
-        card.className = 'dj-card';
-
-        const h = document.createElement('h4');
-        h.textContent = entry.name || 'Untitled';
-        card.appendChild(h);
-
-        const list = document.createElement('div');
-        list.className = 'track-list';
-
-        (entry.links || []).slice(0,5).forEach((u, i) => {
+      // Set the very first playable video in the preview (no autoplay)
+      outer:
+      for (const entry of state.entries){
+        for (const u of (entry.links||[])){
           const id = ytId(u);
-          if(!id) return;
-
-          const tile = makeTile(id);
-
-          tile.querySelector('.overlayBtn').addEventListener('click', () => {
-            $$('.track-tile').forEach(t => t.classList.remove('selected'));
-            tile.classList.add('selected');
-            play(ytEmbed(id));
-          }, {passive:true});
-
-          // Set the very first valid video in center (no autoplay)
-          if(!firstSet){
-            tile.classList.add('selected');
+          if(id){
             mainPreview.innerHTML = iframe(ytEmbed(id));
-            firstSet = true;
+            break outer;
           }
+        }
+      }
 
-          list.appendChild(tile);
-        });
-
-        card.appendChild(list);
-        rail.appendChild(card);
+      // Distribute DJ cards per your rule:
+      // - first 4 cards go to the LEFT rails (rails 0 & 1, alternating for vertical stacking)
+      // - remaining cards go to the RIGHT rails (rails 2 & 3, alternating)
+      state.entries.forEach((entry, idx) => {
+        let target;
+        if (idx < 4){
+          target = rails[idx % 2]; // 0,1,0,1 -> left side stacked
+        } else {
+          const k = idx - 4;
+          target = rails[2 + (k % 2)]; // 2,3,2,3 -> right side stacked
+        }
+        target.appendChild(djCard(entry));
       });
-
-      setHeights();
     }
 
+    /* ---------- Config loading & Admin (optional) ---------- */
     async function loadConfig(){
-      // server first
       try{
         const r = await fetch(`${CFG.CONFIG_ENDPOINT}?action=load`, {cache:'no-store'});
         if(r.ok){
@@ -435,7 +450,6 @@
           if(Array.isArray(j?.entries)){ state.entries = j.entries; render(); return; }
         }
       }catch(e){ console.warn('load server failed', e); }
-      // static json (same folder)
       try{
         const r = await fetch('cutty-ranks-data.json', {cache:'no-store'});
         if(r.ok){
@@ -443,7 +457,6 @@
           if(Array.isArray(j?.entries)){ state.entries = j.entries; render(); return; }
         }
       }catch(e){ console.warn('load file failed', e); }
-      // local cache
       try{
         const s = localStorage.getItem('cutty_ranks_entries');
         if(s){ const a = JSON.parse(s); if(Array.isArray(a)){ state.entries = a; render(); return; } }
@@ -472,9 +485,7 @@
         <div class="row"><label>Link 3</label><input type="text" class="l l3" placeholder="YouTube URL"></div>
         <div class="row"><label>Link 4</label><input type="text" class="l l4" placeholder="YouTube URL"></div>
         <div class="row"><label>Link 5</label><input type="text" class="l l5" placeholder="YouTube URL"></div>
-        <div class="row">
-          <button class="delBtn"><i class="fa fa-trash"></i>&nbsp; Remove DJ</button>
-        </div>
+        <div class="row"><button class="delBtn"><i class="fa fa-trash"></i>&nbsp; Remove DJ</button></div>
       `;
       wrap.querySelector('.djName').value = data.name || '';
       (data.links||[]).slice(0,5).forEach((u,i)=> wrap.querySelector('.l'+(i+1)).value = u);
@@ -492,10 +503,9 @@
       adminOverlay.classList.add('adminHidden'); adminOverlay.setAttribute('aria-hidden','true');
     }
 
-    // Robust Shift+A + ?admin=1
-    function isTypingTarget(el){ return el && (el.tagName==='INPUT' || el.tagName==='TEXTAREA' || el.isContentEditable); }
     document.addEventListener('keydown', async (e)=>{
-      if (isTypingTarget(document.activeElement)) return;
+      const t = document.activeElement;
+      if (t && (t.tagName==='INPUT' || t.tagName==='TEXTAREA' || t.isContentEditable)) return;
       const key = (e.key||'').toLowerCase();
       if (e.shiftKey && (e.code==='KeyA' || key==='a')){
         e.preventDefault();
@@ -507,11 +517,10 @@
         } else openAdmin();
       }
     });
-    function adminWantedFromURL(){ const p=new URLSearchParams(location.search); return p.get('admin')==='1' || location.hash==='#admin'; }
-    adminCloseBtn.addEventListener('click', closeAdmin, {passive:true});
-    addEntryBtn.addEventListener('click', ()=> adminEntriesBox.appendChild(entryRow()), {passive:true});
+    adminCloseBtn?.addEventListener('click', closeAdmin, {passive:true});
+    addEntryBtn?.addEventListener('click', ()=> adminEntriesBox.appendChild(entryRow()), {passive:true});
 
-    adminSaveBtn.addEventListener('click', async ()=>{
+    adminSaveBtn?.addEventListener('click', async ()=>{
       const entries = $$('.entry', adminEntriesBox).map(box => {
         const name = box.querySelector('.djName').value.trim();
         const links = $$('.l', box).map(i=>i.value.trim()).filter(Boolean).slice(0,5);
@@ -543,8 +552,8 @@
 
     document.addEventListener('DOMContentLoaded', async ()=>{
       await loadConfig();
-      setHeights();
-      if (adminWantedFromURL()){
+      const p = new URLSearchParams(location.search);
+      if (p.get('admin')==='1' || location.hash==='#admin'){
         const pw = prompt('Enter passphrase');
         if (pw) {
           const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));

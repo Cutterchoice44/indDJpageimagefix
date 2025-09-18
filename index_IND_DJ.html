@@ -83,7 +83,7 @@
     .icon-img{ width:2.6rem !important; height:auto !important; margin-left:.25rem !important; vertical-align:middle !important; display:inline-block !important; }
     #main-nav .nav-onemusic img{ max-height:2rem; width:auto; height:auto; display:block; }
 
-    /* HEADER layout: [logo] [wave] [title] [wave] [logo] */
+    /* HEADER layout */
     .header-banner{
       position:relative; display:flex; align-items:center; justify-content:space-between;
       gap:0; background:#000; padding:clamp(12px, 3vw, 24px) 0;
@@ -116,9 +116,9 @@
       .header-banner .title h1{ font-size:9.2vw; line-height:1; margin:0; }
       .header-banner .title .tagline{ font-size:4vw; margin-top:4px; }
 
-      /* NAV rearrange: keep one green bar with two rows
+      /* NAV: two rows
          Row 1: main links
-         Row 2: [ABOUT THE STATION] ...... [icons + CAST] */
+         Row 2: [ABOUT THE STATION] ...... [MERCH + icons + CAST] */
       #main-nav{
         flex-direction:row;
         flex-wrap:wrap;
@@ -144,7 +144,7 @@
         display:flex; align-items:center;
       }
       .nav-details > summary.nav-link{
-        font-size:.95rem !important;   /* match top links */
+        font-size:.95rem !important;
         padding:.28rem .5rem;
         background:rgba(0,0,0,.15);
         border:1px solid rgba(255,255,255,.28);
@@ -154,7 +154,7 @@
       }
       .nav-details .about-panel{ width:calc(100vw - 22px); right:-6px; }
 
-      /* Bottom row right: social + cast */
+      /* Bottom row right: MERCH + social + cast */
       #main-nav .nav-actions{
         order:2; flex:1 1 50%;
         justify-content:flex-end !important;
@@ -168,7 +168,7 @@
       #manualCastBtn.nav-link{ font-size:.95rem !important; padding:.28rem .5rem; }
       google-cast-button#castBtn{ transform:scale(0.78); transform-origin:right center; }
 
-      /* ---- HARD OVERRIDE: keep ALL nav-link variants at .95rem on mobile ---- */
+      /* Universal mobile size for all nav-link variants */
       #main-nav a.nav-link,
       #main-nav button.nav-link,
       #main-nav summary.nav-link{
@@ -176,9 +176,10 @@
         line-height:1 !important;
         padding:.28rem .5rem !important;
       }
-      /* ---------------------------------------------------------------------- */
 
+      /* extra breathing room below the nav bar */
       #main-nav + div[style*="height:2px"]{ margin-top:2px; }
+
       .player-container #chatPopupBtn{ position:static; margin-top:.5rem; }
     }
     /* =================================================================== */
@@ -394,6 +395,43 @@
   <!-- YOUR SCRIPTS -->
   <script src="script.js?v=1757106631679" defer></script>
   <script src="slideshow.js?v=1757106631679" defer></script>
+
+  <!-- Move MERCH to bottom nav row on mobile, restore on desktop -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const navMenu    = document.querySelector('#main-nav .nav-menu');
+      const navActions = document.querySelector('#main-nav .nav-actions');
+      const merchLink  = document.querySelector('#main-nav .nav-menu a.nav-link[href="merch.html"]');
+
+      if (!navMenu || !navActions || !merchLink) return;
+
+      const placeholder = document.createComment('MERCH-original-slot');
+      function placeMerch() {
+        const isMobile = window.matchMedia('(max-width: 768px)').matches;
+        if (isMobile) {
+          if (!merchLink.classList.contains('merch-mobile')) {
+            // remember original spot
+            navMenu.replaceChild(placeholder, merchLink);
+            merchLink.classList.add('merch-mobile');
+            // put MERCH at start of right-hand bottom row (before icons)
+            navActions.insertBefore(merchLink, navActions.firstChild);
+          }
+        } else {
+          if (merchLink.classList.contains('merch-mobile')) {
+            merchLink.classList.remove('merch-mobile');
+            try {
+              navMenu.insertBefore(merchLink, placeholder);
+              placeholder.remove();
+            } catch (e) {
+              navMenu.appendChild(merchLink);
+            }
+          }
+        }
+      }
+      placeMerch();
+      window.addEventListener('resize', placeMerch);
+    });
+  </script>
 
   <!-- Chromecast Handler & Manual Fallback -->
   <script>

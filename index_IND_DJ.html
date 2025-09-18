@@ -177,7 +177,7 @@
         padding:.28rem .5rem !important;
       }
 
-      /* extra breathing room below the nav bar */
+      /* tiny spacing below the nav bar */
       #main-nav + div[style*="height:2px"]{ margin-top:2px; }
 
       .player-container #chatPopupBtn{ position:static; margin-top:.5rem; }
@@ -398,39 +398,44 @@
 
   <!-- Move MERCH to bottom nav row on mobile, restore on desktop -->
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    (function(){
+      const mq = window.matchMedia('(max-width: 768px)');
       const navMenu    = document.querySelector('#main-nav .nav-menu');
       const navActions = document.querySelector('#main-nav .nav-actions');
-      const merchLink  = document.querySelector('#main-nav .nav-menu a.nav-link[href="merch.html"]');
+      const merchLink  = document.querySelector('#main-nav .nav-menu a.nav-link[href$="merch.html"]');
 
       if (!navMenu || !navActions || !merchLink) return;
 
-      const placeholder = document.createComment('MERCH-original-slot');
-      function placeMerch() {
-        const isMobile = window.matchMedia('(max-width: 768px)').matches;
+      // Invisible anchor to remember original spot (right AFTER MERCH)
+      const anchor = document.createElement('span');
+      anchor.id = 'merch-return-anchor';
+      anchor.style.display = 'none';
+      merchLink.after(anchor);
+
+      function moveIfNeeded(e){
+        const isMobile = (e && 'matches' in e) ? e.matches : mq.matches;
+
         if (isMobile) {
-          if (!merchLink.classList.contains('merch-mobile')) {
-            // remember original spot
-            navMenu.replaceChild(placeholder, merchLink);
-            merchLink.classList.add('merch-mobile');
-            // put MERCH at start of right-hand bottom row (before icons)
-            navActions.insertBefore(merchLink, navActions.firstChild);
+          // already moved?
+          if (!merchLink.dataset.moved) {
+            navActions.insertBefore(merchLink, navActions.firstChild); // MERCH appears before icons/CAST
+            merchLink.dataset.moved = '1';
           }
         } else {
-          if (merchLink.classList.contains('merch-mobile')) {
-            merchLink.classList.remove('merch-mobile');
-            try {
-              navMenu.insertBefore(merchLink, placeholder);
-              placeholder.remove();
-            } catch (e) {
-              navMenu.appendChild(merchLink);
-            }
+          // restore if moved
+          if (merchLink.dataset.moved) {
+            anchor.before(merchLink);
+            merchLink.dataset.moved = '';
           }
         }
       }
-      placeMerch();
-      window.addEventListener('resize', placeMerch);
-    });
+
+      // initial + on change (resize/orientation)
+      moveIfNeeded();
+      if (mq.addEventListener) mq.addEventListener('change', moveIfNeeded);
+      else mq.addListener && mq.addListener(moveIfNeeded); // Safari fallback
+      window.addEventListener('orientationchange', moveIfNeeded);
+    })();
   </script>
 
   <!-- Chromecast Handler & Manual Fallback -->

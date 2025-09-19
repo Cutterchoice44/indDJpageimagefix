@@ -224,7 +224,27 @@
     #adminPanel label{ font-size:.95rem; opacity:.9; color:#fff; min-width:72px; }
     #adminPanel button{ padding:8px 12px; border-radius:6px; border:1px solid #2a5653; background:#0b2322; color:#eaffff; cursor:pointer; }
     #adminStatus{ opacity:.9; font-size:.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:52ch; margin-left:auto; }
-    #adminActions{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+
+    /* ===== MOBILE-ONLY CLEANUP ===== */
+    @media (max-width:768px){
+      /* remove decorative backgrounds */
+      .header-banner{ background-image:none !important; }
+      .cutty-title{ background:#000 !important; min-height:auto; padding:.55rem .6rem; }
+      .cutty-title::before{ background:none !important; }
+      .preview-shell{ background-image:none !important; padding:6px; border-width:1px; height:auto; }
+
+      /* tighter flow + page scroll (no inner scroll boxes) */
+      .ranks-grid{ grid-template-columns:1fr; gap:8px; padding:.4rem .5rem 1rem; }
+      .rail{ height:auto; max-height:none; overflow:visible; background:transparent; padding-right:0; border:none; }
+      .dj-card{ border-radius:8px; }
+      .dj-card h4{ font-size:1rem; padding:.35rem .5rem; }
+
+      .track-list{ padding:4px; gap:4px; }
+      .track-tile{ height:clamp(56px, 24vw, 78px); border-radius:8px; }
+      .tile-badge{ top:.2rem; left:.2rem; }
+      .tile-play{ right:.24rem; bottom:.24rem; width:26px; height:26px; }
+      #mainPreview{ max-width:100%; }
+    }
   </style>
 
   <!-- YouTube IFrame API for playlist auto-advance -->
@@ -315,7 +335,6 @@
     const rails = [$('#rail-0'), $('#rail-1'), $('#rail-2'), $('#rail-3')];
     const mainPreview = $('#mainPreview');
 
-    /* playlist controls */
     const playAllBtn  = $('#playAllBtn');
     const shuffleBtn  = $('#shuffleBtn');
 
@@ -329,7 +348,6 @@
 
     const state = { entries: [], authed:false };
 
-    /* --- layout heights --- */
     function setHeights(){
       const rect = grid.getBoundingClientRect();
       const usable = Math.max(320, window.innerHeight - rect.top - 8);
@@ -351,10 +369,9 @@
       }catch{ return ''; }
     };
 
-    /* queue + player */
-    let queue = [];          // array of videoIds
+    let queue = [];
     let currentIdx = 0;
-    let autoAdvance = false; // true when Play All / Shuffle pressed
+    let autoAdvance = false;
     let player = null;
     let apiReady = false;
 
@@ -386,19 +403,16 @@
           player = new YT.Player('ytPlayer', {
             host: 'https://www.youtube-nocookie.com',
             videoId,
-            playerVars:{
-              rel:0, modestbranding:1, playsinline:1, enablejsapi:1
-            },
+            playerVars:{ rel:0, modestbranding:1, playsinline:1, enablejsapi:1 },
             events:{
               onReady: (e)=>{ autoplay ? e.target.playVideo() : e.target.cueVideoById(videoId); },
               onStateChange: (e)=>{
-                // 0 = ended
                 if (e.data === YT.PlayerState.ENDED && autoAdvance && queue.length){
                   if (currentIdx < queue.length - 1){
                     currentIdx += 1;
                     player.loadVideoById(queue[currentIdx]);
                   }else{
-                    autoAdvance = false;        // stop at end
+                    autoAdvance = false;
                     playAllBtn.classList.remove('active');
                     shuffleBtn.classList.remove('active');
                   }
@@ -411,14 +425,12 @@
         }
       };
       if (apiReady) doPlay(); else {
-        // API script will call onYouTubeIframeAPIReady later
         const iv = setInterval(()=>{ if(apiReady){ clearInterval(iv); doPlay(); } }, 50);
         setTimeout(()=>clearInterval(iv), 4000);
       }
     }
 
     function playVideoId(id, {autoplay=false, fromClick=false} = {}){
-      // If a playlist is active and user clicked a tile, jump to that index
       if (autoAdvance && fromClick){
         const idx = queue.indexOf(id);
         if (idx !== -1) currentIdx = idx;
@@ -467,7 +479,6 @@
         tile.querySelector('.overlayBtn').addEventListener('click', () => {
           $$('.track-tile').forEach(t => t.classList.remove('selected'));
           tile.classList.add('selected');
-          // If playlist active, continue queue from this id
           playVideoId(id, {autoplay:true, fromClick:true});
         }, {passive:true});
         list.appendChild(tile);
@@ -482,13 +493,11 @@
 
       const id = firstValidId();
       if (id){
-        // cue first video (no autoplay)
         playVideoId(id, {autoplay:false});
       }else{
         mainPreview.innerHTML = '<div class="placeholder">Select any tile to play here</div>';
       }
 
-      // distribute DJs into 4 rails in order
       state.entries.forEach((entry, idx) => {
         const rail = rails[idx % 4];
         rail.appendChild(djCard(entry));
@@ -497,7 +506,6 @@
       setHeights();
     }
 
-    /* ---- data load order ---- */
     async function loadConfig(){
       try{
         const r = await fetch(`${CFG.CONFIG_ENDPOINT}?action=load`, {cache:'no-store'});
@@ -524,7 +532,7 @@
       render();
     }
 
-    /* ---------- Playlist buttons ---------- */
+    /* Playlist controls */
     playAllBtn.addEventListener('click', ()=>{
       queue = buildQueue(false);
       if (!queue.length) return;
@@ -545,7 +553,7 @@
       playVideoId(queue[currentIdx], {autoplay:true});
     }, {passive:true});
 
-    /* ---------- ADMIN (Shift + A) ---------- */
+    /* Admin (Shift+A) */
     function entryRow(data={}){
       const wrap = document.createElement('div'); wrap.className='entry';
       wrap.innerHTML = `
@@ -622,12 +630,10 @@
       return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable;
     }
 
-    // capture phase, robust across focus/iframes
     window.addEventListener('keydown', async (e)=>{
       const key = (e.key || '').toLowerCase();
       const isShiftA = e.shiftKey && (key === 'a' || e.code === 'KeyA');
       if (!isShiftA) return;
-      // don't open while typing in inputs
       if (isTypingTarget(document.activeElement)) return;
 
       e.preventDefault();
@@ -643,7 +649,6 @@
 
     function adminWantedFromURL(){ const p=new URLSearchParams(location.search); return p.get('admin')==='1' || location.hash==='#admin'; }
 
-    /* boot */
     document.addEventListener('DOMContentLoaded', async ()=>{
       await loadConfig();
       setHeights();

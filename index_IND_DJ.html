@@ -98,6 +98,8 @@
       body.cutty nav#main-nav .nav-link, body.cutty nav#main-nav summary.nav-link{
         font-size:clamp(.8rem,3.2vw,1rem) !important; padding:.2rem .25rem !important;
       }
+      /* hide the extra divider bar on mobile */
+      .nav-sep{ display:none !important; }
     }
 
     /* ----- Page specific ----- */
@@ -187,7 +189,8 @@
     }
     .playlist-controls button.active{ background:#0b2322; border-color:#5A8785; }
 
-    @media (max-width:1200px){
+    /* Show 3-column layout (hide outer rails) only between 981–1200px */
+    @media (min-width:981px) and (max-width:1200px){
       .ranks-grid{
         grid-template-columns:
           minmax(var(--rail-min), 0.9fr)
@@ -196,6 +199,7 @@
       }
       .rail.left-outer, .rail.right-outer{ display:none; }
     }
+
     @media (max-width:980px){
       .ranks-grid{ grid-template-columns:1fr; }
       .preview-shell{ order:1 }

@@ -137,16 +137,6 @@
     }
     .right-outer{ border-right:none; }
 
-    .preview-shell{
-      background:#000 center/cover no-repeat; background-image:url('/images/cutty_c.png');
-      border:2px solid var(--brand-teal); border-radius:8px; padding:10px;
-      display:flex; align-items:center; justify-content:center;
-      height: var(--usable, 70vh); overflow:hidden;
-    }
-    #mainPreview{ width:100%; max-width:var(--preview-max); margin:0 auto; }
-    #mainPreview iframe{ width:100%; aspect-ratio:16/9; height:auto; border:0; display:block; }
-    .placeholder{ font-family:'Bebas Neue',sans-serif; color:#6fa39f; font-size:clamp(1rem,2vw,1.25rem); padding:.6rem; text-align:center; }
-
     .dj-card{ border:1px solid #264745; background:#0a0a0a; border-radius:10px; overflow:hidden; }
     .dj-card h4{
       font-family:'Bebas Neue',sans-serif; font-size:clamp(1.05rem,1.6vw,1.25rem);
@@ -176,6 +166,27 @@
     .tile-play svg{ width:14px; height:14px; color:#fff; }
     .overlayBtn{ position:absolute; inset:0; appearance:none; background:transparent; border:0; cursor:pointer; }
 
+    .preview-shell{
+      position:relative;
+      background:#000 center/cover no-repeat; background-image:url('/images/cutty_c.png');
+      border:2px solid var(--brand-teal); border-radius:8px; padding:10px;
+      display:flex; align-items:center; justify-content:center;
+      height: var(--usable, 70vh); overflow:hidden;
+    }
+    #mainPreview{ width:100%; max-width:var(--preview-max); margin:0 auto; }
+    #mainPreview iframe{ width:100%; aspect-ratio:16/9; height:auto; border:0; display:block; }
+    .placeholder{ font-family:'Bebas Neue',sans-serif; color:#6fa39f; font-size:clamp(1rem,2vw,1.25rem); padding:.6rem; text-align:center; }
+
+    /* Playlist controls in preview */
+    .playlist-controls{
+      position:absolute; top:10px; right:12px; display:flex; gap:8px; z-index:5;
+    }
+    .playlist-controls button{
+      font:600 12px/1 system-ui; color:#eaffff; background:rgba(6,16,16,.8);
+      border:1px solid #2a5653; border-radius:999px; padding:.45rem .65rem; cursor:pointer;
+    }
+    .playlist-controls button.active{ background:#0b2322; border-color:#5A8785; }
+
     @media (max-width:1200px){
       .ranks-grid{
         grid-template-columns:
@@ -195,7 +206,7 @@
     .rail::-webkit-scrollbar-track{ background:#061010; }
     .rail::-webkit-scrollbar-thumb{ background:#274947; border-radius:10px; border:2px solid #061010; }
 
-    /* ===== Hidden Admin Overlay (only opens via Shift+A or ?admin=1) ===== */
+    /* ===== Hidden Admin Overlay ===== */
     .adminHidden{ display:none !important; }
     #adminOverlay{
       position:fixed; inset:0; background:rgba(0,0,0,.82); color:#fff; z-index:9999;
@@ -215,12 +226,14 @@
     #adminStatus{ opacity:.9; font-size:.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:52ch; margin-left:auto; }
     #adminActions{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
   </style>
+
+  <!-- YouTube IFrame API for playlist auto-advance -->
+  <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 
 <body class="cutty">
   <!-- HEADER -->
   <header class="header-banner" role="banner">
-    <div class="header-gif-right" aria-hidden="true"></div><div class="header-gif-left" aria-hidden="true"></div>
     <div class="title">
       <h1>Cutters Choice Radio</h1>
       <p class="tagline">The home of relentless flavas and significant bangers!</p>
@@ -259,6 +272,10 @@
     <aside class="rail left-outer"  id="rail-1" aria-label="Left column 2"></aside>
 
     <section class="preview-shell">
+      <div class="playlist-controls" aria-label="Playlist controls">
+        <button id="playAllBtn" title="Play all in order">▶ Play All</button>
+        <button id="shuffleBtn" title="Shuffle play">🔀 Shuffle</button>
+      </div>
       <div id="mainPreview"><div class="placeholder">Select any tile to play here</div></div>
     </section>
 
@@ -266,7 +283,7 @@
     <aside class="rail right-outer" id="rail-3" aria-label="Right column 2"></aside>
   </main>
 
-  <!-- Hidden Admin Overlay (only appears when invoked) -->
+  <!-- Hidden Admin Overlay (Shift+A) -->
   <div id="adminOverlay" class="adminHidden" aria-hidden="true">
     <div id="adminPanel" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
       <h3 id="adminTitle">Cutty Ranks — Admin</h3>
@@ -284,7 +301,7 @@
   <script>
     window.CUTTY_RANKS = {
       CONFIG_ENDPOINT: 'cutty-ranks-config.php',
-      ADMIN_HASH_HEX: '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e' /* same as before */
+      ADMIN_HASH_HEX: '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e'
     };
   </script>
 
@@ -298,6 +315,10 @@
     const rails = [$('#rail-0'), $('#rail-1'), $('#rail-2'), $('#rail-3')];
     const mainPreview = $('#mainPreview');
 
+    /* playlist controls */
+    const playAllBtn  = $('#playAllBtn');
+    const shuffleBtn  = $('#shuffleBtn');
+
     /* admin refs */
     const adminOverlay = $('#adminOverlay');
     const adminEntriesBox = $('#adminEntries');
@@ -308,6 +329,7 @@
 
     const state = { entries: [], authed:false };
 
+    /* --- layout heights --- */
     function setHeights(){
       const rect = grid.getBoundingClientRect();
       const usable = Math.max(320, window.innerHeight - rect.top - 8);
@@ -316,7 +338,7 @@
     window.addEventListener('resize', setHeights, {passive:true});
     window.addEventListener('load', setHeights, {passive:true});
 
-    /* ---------- helpers ---------- */
+    /* ---------- YouTube helpers / playlist engine ---------- */
     const ytId = (u) => {
       try{
         const x = new URL(u);
@@ -328,15 +350,92 @@
         return '';
       }catch{ return ''; }
     };
-    const ytEmbed = (id, opts='') => `https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1${opts}`;
-    const iframe = (src, title='YouTube player') =>
-      `<iframe src="${src}" title="${title}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
 
-    function play(src){
-      const url = src + (src.includes('?') ? '&' : '?') + 'autoplay=1';
-      mainPreview.innerHTML = iframe(url, 'Selected player');
+    /* queue + player */
+    let queue = [];          // array of videoIds
+    let currentIdx = 0;
+    let autoAdvance = false; // true when Play All / Shuffle pressed
+    let player = null;
+    let apiReady = false;
+
+    window.onYouTubeIframeAPIReady = () => { apiReady = true; };
+
+    function buildQueue(inRandom=false){
+      const vids = [];
+      for (const entry of state.entries){
+        for (const link of (entry.links || [])){
+          const id = ytId(link);
+          if (id) vids.push(id);
+        }
+      }
+      if (inRandom){
+        for (let i=vids.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [vids[i],vids[j]]=[vids[j],vids[i]]; }
+      }
+      return vids;
     }
 
+    function ensurePlayer(){
+      if ($('#ytPlayer')) return;
+      mainPreview.innerHTML = `<div id="ytPlayer"></div>`;
+    }
+
+    function createOrLoad(videoId, autoplay){
+      ensurePlayer();
+      const doPlay = () => {
+        if (!player){
+          player = new YT.Player('ytPlayer', {
+            host: 'https://www.youtube-nocookie.com',
+            videoId,
+            playerVars:{
+              rel:0, modestbranding:1, playsinline:1, enablejsapi:1
+            },
+            events:{
+              onReady: (e)=>{ autoplay ? e.target.playVideo() : e.target.cueVideoById(videoId); },
+              onStateChange: (e)=>{
+                // 0 = ended
+                if (e.data === YT.PlayerState.ENDED && autoAdvance && queue.length){
+                  if (currentIdx < queue.length - 1){
+                    currentIdx += 1;
+                    player.loadVideoById(queue[currentIdx]);
+                  }else{
+                    autoAdvance = false;        // stop at end
+                    playAllBtn.classList.remove('active');
+                    shuffleBtn.classList.remove('active');
+                  }
+                }
+              }
+            }
+          });
+        } else {
+          autoplay ? player.loadVideoById(videoId) : player.cueVideoById(videoId);
+        }
+      };
+      if (apiReady) doPlay(); else {
+        // API script will call onYouTubeIframeAPIReady later
+        const iv = setInterval(()=>{ if(apiReady){ clearInterval(iv); doPlay(); } }, 50);
+        setTimeout(()=>clearInterval(iv), 4000);
+      }
+    }
+
+    function playVideoId(id, {autoplay=false, fromClick=false} = {}){
+      // If a playlist is active and user clicked a tile, jump to that index
+      if (autoAdvance && fromClick){
+        const idx = queue.indexOf(id);
+        if (idx !== -1) currentIdx = idx;
+      }
+      createOrLoad(id, autoplay);
+    }
+
+    function firstValidId(){
+      for (const entry of state.entries){
+        for (const link of (entry.links || [])){
+          const id = ytId(link); if (id) return id;
+        }
+      }
+      return null;
+    }
+
+    /* ---------- UI build ---------- */
     function makeTile(id){
       const div = document.createElement('div');
       div.className = 'track-tile';
@@ -368,7 +467,8 @@
         tile.querySelector('.overlayBtn').addEventListener('click', () => {
           $$('.track-tile').forEach(t => t.classList.remove('selected'));
           tile.classList.add('selected');
-          play(ytEmbed(id));
+          // If playlist active, continue queue from this id
+          playVideoId(id, {autoplay:true, fromClick:true});
         }, {passive:true});
         list.appendChild(tile);
       });
@@ -380,20 +480,15 @@
     function render(){
       rails.forEach(r => r.innerHTML = '');
 
-      if(!state.entries.length){
+      const id = firstValidId();
+      if (id){
+        // cue first video (no autoplay)
+        playVideoId(id, {autoplay:false});
+      }else{
         mainPreview.innerHTML = '<div class="placeholder">Select any tile to play here</div>';
-      } else {
-        /* first playable to preview */
-        outer:
-        for (const entry of state.entries){
-          for (const u of (entry.links||[])){
-            const id = ytId(u);
-            if(id){ mainPreview.innerHTML = iframe(ytEmbed(id)); break outer; }
-          }
-        }
       }
 
-      /* distribute across 4 columns and stack */
+      // distribute DJs into 4 rails in order
       state.entries.forEach((entry, idx) => {
         const rail = rails[idx % 4];
         rail.appendChild(djCard(entry));
@@ -429,7 +524,28 @@
       render();
     }
 
-    /* ---------- ADMIN: hidden overlay, Shift+A to open ---------- */
+    /* ---------- Playlist buttons ---------- */
+    playAllBtn.addEventListener('click', ()=>{
+      queue = buildQueue(false);
+      if (!queue.length) return;
+      autoAdvance = true;
+      currentIdx = 0;
+      playAllBtn.classList.add('active');
+      shuffleBtn.classList.remove('active');
+      playVideoId(queue[currentIdx], {autoplay:true});
+    }, {passive:true});
+
+    shuffleBtn.addEventListener('click', ()=>{
+      queue = buildQueue(true);
+      if (!queue.length) return;
+      autoAdvance = true;
+      currentIdx = 0;
+      shuffleBtn.classList.add('active');
+      playAllBtn.classList.remove('active');
+      playVideoId(queue[currentIdx], {autoplay:true});
+    }, {passive:true});
+
+    /* ---------- ADMIN (Shift + A) ---------- */
     function entryRow(data={}){
       const wrap = document.createElement('div'); wrap.className='entry';
       wrap.innerHTML = `
@@ -500,20 +616,31 @@
       }
     });
 
-    function isTypingTarget(el){ return el && (el.tagName==='INPUT' || el.tagName==='TEXTAREA' || el.isContentEditable); }
-    document.addEventListener('keydown', async (e)=>{
+    function isTypingTarget(el){
+      if (!el) return false;
+      const tag = el.tagName;
+      return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable;
+    }
+
+    // capture phase, robust across focus/iframes
+    window.addEventListener('keydown', async (e)=>{
+      const key = (e.key || '').toLowerCase();
+      const isShiftA = e.shiftKey && (key === 'a' || e.code === 'KeyA');
+      if (!isShiftA) return;
+      // don't open while typing in inputs
       if (isTypingTarget(document.activeElement)) return;
-      const key = (e.key||'').toLowerCase();
-      if (e.shiftKey && (e.code==='KeyA' || key==='a')){
-        e.preventDefault();
-        if(!state.authed){
-          const pw = prompt('Enter passphrase'); if(!pw) return;
+
+      e.preventDefault();
+      if(!state.authed){
+        const pw = prompt('Enter passphrase'); if(!pw) return;
+        try{
           const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
           const hex = [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
           if(hex===CFG.ADMIN_HASH_HEX){ state.authed=true; openAdmin(); } else alert('Incorrect passphrase');
-        } else openAdmin();
-      }
-    });
+        }catch(err){ console.warn('digest error', err); }
+      } else openAdmin();
+    }, true);
+
     function adminWantedFromURL(){ const p=new URLSearchParams(location.search); return p.get('admin')==='1' || location.hash==='#admin'; }
 
     /* boot */

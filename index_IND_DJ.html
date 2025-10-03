@@ -90,18 +90,21 @@
       body.cutty nav#main-nav .nav-menu{
         display:flex !important; gap:.35rem !important; flex-wrap:nowrap !important;
         overflow-x:auto !important; white-space:nowrap !important; scrollbar-width:none;
+        margin-bottom:0 !important; /* kill any global spacing that looks like a second bar */
       }
       body.cutty nav#main-nav .nav-menu::-webkit-scrollbar{ display:none; }
       body.cutty nav#main-nav .nav-link, body.cutty nav#main-nav summary.nav-link{
         font-size:clamp(.8rem,3.2vw,1rem) !important; padding:.2rem .25rem !important;
       }
 
-      /* HIDE the extra teal bar (second empty bar) */
-      .nav-sep{ display:none !important; }
-
-      /* HIDE the "ABOUT CUTTY RANKS" dropdown on mobile */
-      .nav-details{ display:none !important; }
-
+      /* HIDE the extra teal/empty bar (global overrides) */
+      .nav-sep,
+      .thin-teal-line,
+      .thin-teal-line.top-sep,
+      .thin-teal-line.bottom-sep{ display:none !important; }
+      #main-nav{ border-bottom:0 !important; box-shadow:none !important; }
+      #main-nav::after, #main-nav::before{ content:none !important; display:none !important; }
+      .nav-details{ display:none !important; } /* ABOUT dropdown */
       /* Remove artwork behind the title band on mobile -> solid black */
       .cutty-title{ background:#000 !important; }
       .cutty-title::before{ background:none !important; }
@@ -156,6 +159,7 @@
       font:600 12px/1 system-ui; color:var(--ink); background:#0b2322; border:1px solid var(--brand-teal);
       border-radius:999px; padding:.5rem .7rem; cursor:pointer; margin-left:6px;
     }
+    .controls-desktop{ display:flex; align-items:center; gap:6px; } /* NEW: wrapper to hide on mobile */
     .cards{ display:flex; flex-direction:column; gap:12px; overflow:auto; }
     .card{
       display:grid; grid-template-columns:180px 1fr auto; gap:12px; align-items:center;
@@ -214,7 +218,7 @@
     #adminPanel button{ padding:8px 12px; border-radius:6px; border:1px solid #2a5653; background:#0b2322; color:#eaffff; cursor:pointer; }
     #adminStatus{ opacity:.9; font-size:.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:52ch; margin-left:auto; }
 
-    /* ===== MOBILE-ONLY layout (compact DJ list, controls below, etc.) ===== */
+    /* ===== MOBILE-ONLY layout (compact DJ list + single controls set) ===== */
     .dj-list-mobile{ display:none; background:#000; border:2px solid var(--line); border-radius:10px; padding:10px; }
     .dj-list-mobile h3{ font-family:'Bebas Neue',sans-serif; color:#fff; margin:.1rem 0 .5rem; letter-spacing:.6px; }
     .dj-names{ display:flex; flex-wrap:wrap; gap:8px; }
@@ -234,6 +238,7 @@
       .controls-mobile{ display:flex; order:2; }
       .nowp{ order:3; height:auto; }
       .stack{ order:4; height:auto; }
+      .controls-desktop{ display:none !important; } /* NEW: hide duplicate controls beside “PICKS” */
     }
   </style>
 
@@ -264,7 +269,7 @@
       <details class="nav-details">
         <summary class="nav-link" aria-label="About Cutty Ranks">ABOUT CUTTY RANKS</summary>
         <div class="about-panel">
-          <p>Concept-4 layout on desktop. On mobile: DJ names list → controls → Now Playing.</p>
+          <p>Concept-4 layout on desktop. On mobile: DJ names list → single control row → Now Playing.</p>
         </div>
       </details>
     </div>
@@ -283,7 +288,7 @@
       <div id="djNames" class="dj-names"></div>
     </section>
 
-    <!-- MOBILE-ONLY: controls under names -->
+    <!-- MOBILE-ONLY: single control set under names -->
     <section class="controls-mobile" id="controlsMobile" aria-label="Playback controls (mobile)">
       <button id="mPlayDJ" class="btn">▶ Play DJ</button>
       <button id="mShuffleDJ" class="btn">🔀 Shuffle DJ</button>
@@ -300,7 +305,7 @@
     <section class="stack" aria-label="Picks">
       <div class="stack-header">
         <h3 style="font-family:'Bebas Neue',sans-serif;color:#fff;letter-spacing:.6px;margin:.2rem .2rem;">PICKS</h3>
-        <div>
+        <div class="controls-desktop">
           <button id="playDJ" class="btn" title="Play all from selected DJ">▶ Play DJ</button>
           <button id="shuffleDJ" class="btn" title="Shuffle selected DJ">🔀 Shuffle DJ</button>
           <button id="playAll" class="btn" title="Play all DJs in order">▶ Play All</button>
@@ -698,7 +703,7 @@
 
     async function bootRender(){
       setHeights();
-      loadTitleCache();
+      try{ loadTitleCache(); }catch{}
       await loadStationArtists();
 
       state.entries = await loadEntries();

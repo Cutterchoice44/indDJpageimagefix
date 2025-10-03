@@ -44,7 +44,7 @@
       --usable:70vh;
     }
 
-    /* ===== Header & Nav (KEEPING your artwork/titles) ===== */
+    /* ===== Header & Nav (unchanged visuals) ===== */
     .header-banner{
       position:relative; display:flex; align-items:center; justify-content:center;
       padding:clamp(16px,3vw,28px) .6rem;
@@ -62,7 +62,6 @@
     .header-gif-right,.header-gif-left,.header-wave,.logo-container{ display:none !important; }
     .nav-sep{height:2px;background-color:var(--brand-teal);}
 
-    /* Site nav (unchanged visuals) */
     #main-nav .nav-menu{ justify-content: space-evenly !important; }
     #main-nav .nav-link, #main-nav summary.nav-link{
       color:#fff !important; font-family:'Bebas Neue',sans-serif !important;
@@ -96,7 +95,7 @@
       .nav-sep{ display:none !important; }
     }
 
-    /* ----- Title band (KEEPING your image) ----- */
+    /* ----- Title band (keep your image) ----- */
     .cutty-title{
       position:relative; border-top:2px solid var(--brand-teal); border-bottom:2px solid var(--brand-teal);
       min-height:110px; display:flex; align-items:center; justify-content:flex-start;
@@ -116,22 +115,21 @@
     /* ===== Concept 4 layout ===== */
     .c4-grid{
       display:grid; gap:var(--gap);
-      /* viewer column made WIDER; stack also widened */
       grid-template-columns:
-        minmax(380px, 1.1fr)   /* Left — DJ tiles (big squares) */
+        minmax(380px, 1.1fr)   /* Left — DJ tiles */
         minmax(640px, 1.2fr)   /* Center — wider cards */
         minmax(880px, 1.6fr);  /* Right — larger viewer */
       align-items:start; padding:.6rem;
     }
 
-    /* LEFT: DJ big squares, scrollable as list grows */
+    /* LEFT: DJ big squares */
     .dj-gallery{ background:#000; border:2px solid var(--line); border-radius:10px; padding:12px; height:var(--usable); overflow:auto; }
     .dj-grid{ display:grid; grid-template-columns:repeat(2, minmax(160px,1fr)); gap:12px; }
     @media (min-width:1600px){ .dj-grid{ grid-template-columns:repeat(3, minmax(160px,1fr)); } }
     .dj-tile{
       position:relative; border:1px solid #1d3533; border-radius:14px; overflow:hidden;
       background:#0a0a0a center/cover no-repeat; aspect-ratio:1/1; cursor:pointer;
-      transition:transform .08s ease-in-out, box-shadow .12s ease-in-out, outline .08s;
+      transition:transform .08s, box-shadow .12s, outline .08s;
     }
     .dj-tile:hover{ transform:translateY(-1px); box-shadow:0 12px 26px rgba(0,0,0,.35); }
     .dj-tile.active{ outline:2px solid var(--brand-teal); outline-offset:-2px; }
@@ -156,14 +154,22 @@
     .meta .sub{ color:#86b8b5; font:12px/1.2 system-ui; }
     .card .play{ width:42px; height:42px; border-radius:999px; display:grid; place-items:center; background:rgba(255,255,255,.12); color:#fff; border:0; cursor:pointer; }
 
-    /* RIGHT: Now Playing + full queue under it */
+    /* RIGHT: Now Playing + queue */
     .nowp{ background:#000; border:2px solid var(--line); border-radius:10px; padding:12px; height:var(--usable); display:flex; flex-direction:column; gap:12px; }
     .nowp h3{ font-family:'Bebas Neue',sans-serif; color:#fff; letter-spacing:.6px; margin:.2rem .2rem; }
-    .player-shell{
-      position:relative; background:#000 center/cover no-repeat; background-image:url('/images/cutty_c.png');
-      border:1px solid var(--brand-teal); border-radius:8px; padding:6px; overflow:hidden;
+
+    /* >>> FULL-BLEED RESPONSIVE 16:9 VIEWER <<< */
+    .player-shell{ position:relative; background:#000; border:1px solid var(--brand-teal); border-radius:8px; padding:0; overflow:hidden; }
+    #mainPreview{ max-width:100% !important; }
+    .embed-16x9{ position:relative; width:100%; height:auto; }
+    .embed-16x9::before{ content:""; display:block; padding-top:56.25%; } /* 16:9 */
+    .embed-16x9 > #ytPlayer,
+    .embed-16x9 iframe{
+      position:absolute; inset:0;
+      width:100% !important;
+      height:100% !important;   /* overrides any inline height from YouTube */
+      display:block; border:0;
     }
-    #mainPreview iframe{ width:100%; aspect-ratio:16/9; height:auto; border:0; display:block; }
 
     .queue{ background:#060b0b; border:1px solid #1a2f2e; border-radius:8px; padding:8px; overflow:auto; height:100%; }
     .q-item{ display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; cursor:pointer; color:#d7f9f6; }
@@ -304,7 +310,6 @@
       CONFIG_ENDPOINT: 'cutty-ranks-config.php',
       ADMIN_HASH_HEX: '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e'
     };
-    // EXACTLY like OUR DJS
     window.RC = {
       BASE_URL:   'https://api.radiocult.fm/api',
       STATION_ID: 'cutters-choice-radio',
@@ -319,7 +324,6 @@
     const $   = (s, r=document) => r.querySelector(s);
     const $$  = (s, r=document) => [...r.querySelectorAll(s)];
 
-    /* Elements */
     const gridEl  = $('#grid');
     const djGrid  = $('#djGrid');
     const cardsBox= $('#cards');
@@ -334,18 +338,16 @@
     const mpBar   = $('#miniPlayer'), mpThumb = $('#mpThumb'), mpTitle = $('#mpTitle'), mpSub = $('#mpSub');
     const mpPrev  = $('#mpPrev'), mpPP = $('#mpPlayPause'), mpNext = $('#mpNext');
 
-    /* State */
     const state = {
-      entries: [],           // [{name, links[], image?}]
+      entries: [],
       selected: 0,
-      queue: [],             // [{id,djIndex,clipIndex,title?}]
+      queue: [],
       qidx: 0,
       player:null, apiReady:false, lastVideoTitle:'',
-      artistsMap:{},         // normalizedName -> artist
-      titleCache:{}          // videoId -> title
+      artistsMap:{},
+      titleCache:{}
     };
 
-    /* Helpers */
     const norm = s => (s||'').toLowerCase().replace(/\s+/g,' ').trim();
     const slug = s => (s||'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
     const ytId = (u) => { try{
@@ -357,7 +359,6 @@
       return '';
     }catch{ return ''; } };
 
-    /* Height calc so columns fit viewport and viewer never looks squashed */
     function setHeights(){
       const rect = gridEl.getBoundingClientRect();
       const usable = Math.max(360, window.innerHeight - rect.top - 12);
@@ -365,11 +366,13 @@
     }
     window.addEventListener('resize', setHeights, {passive:true});
 
-    /* YouTube API */
     window.onYouTubeIframeAPIReady = () => { state.apiReady = true; };
+
+    /* >>> use a 16:9 wrapper so the iframe always fills the column <<< */
     function ensurePlayer(){
-      if ($('#ytPlayer')) return;
-      mainPrev.innerHTML = `<div id="ytPlayer"></div>`;
+      if (!$('#ytPlayer')){
+        mainPrev.innerHTML = `<div class="embed-16x9"><div id="ytPlayer"></div></div>`;
+      }
     }
     function createOrLoad(videoId, autoplay){
       ensurePlayer();
@@ -406,7 +409,6 @@
       highlightQueue(); updateMini();
     }
 
-    /* Mini player (mobile) */
     function updateMini(){
       const item = state.queue[state.qidx] || {};
       const vid  = item.id;
@@ -422,7 +424,6 @@
       try{ const s = state.player?.getPlayerState?.(); (s===YT.PlayerState.PLAYING)?state.player.pauseVideo():state.player.playVideo(); }catch{}
     }, {passive:true});
 
-    /* ===== Radio Cult (match OUR DJS exactly) ===== */
     async function loadStationArtists(){
       try{
         const res = await fetch(`${RC.BASE_URL}/station/${RC.STATION_ID}/artists`, {
@@ -431,9 +432,7 @@
         if(!res.ok) throw new Error(`RC ${res.status}`);
         const { artists = [] } = await res.json();
         const map = {};
-        for(const a of artists){
-          map[norm(a.name)] = a;
-        }
+        for(const a of artists){ map[norm(a.name)] = a; }
         state.artistsMap = map;
       }catch(err){
         console.warn('Radio Cult artists fetch failed:', err);
@@ -448,7 +447,6 @@
       return '/images/djs/' + slug(name) + '.jpg';
     }
 
-    /* ===== Titles (oEmbed) + cache ===== */
     function loadTitleCache(){ try{ state.titleCache = JSON.parse(localStorage.getItem('yt_title_cache')||'{}'); }catch{ state.titleCache={}; } }
     function saveTitleCache(){ localStorage.setItem('yt_title_cache', JSON.stringify(state.titleCache)); }
     async function getTitleFor(id){
@@ -464,7 +462,6 @@
       return '';
     }
 
-    /* Queues */
     function buildQueueDJ(djIdx, shuffle=false){
       const entry = state.entries[djIdx] || {};
       let vids = (entry.links||[]).map(ytId).map((id, i)=> id?({id, djIndex:djIdx, clipIndex:i}):null).filter(Boolean);
@@ -480,7 +477,6 @@
       state.queue = all; state.qidx = 0;
     }
 
-    /* Renderers */
     async function renderDJGrid(){
       djGrid.innerHTML = '';
       const promises = state.entries.map(async (e, idx)=>{
@@ -519,8 +515,6 @@
         }, {passive:true});
         card.append(t, meta, play);
         cardsBox.appendChild(card);
-
-        // set real title once fetched
         getTitleFor(id).then(tt => { if (tt) titleEl.textContent = tt; });
       }
       highlightQueue();
@@ -528,7 +522,6 @@
 
     async function renderQueue(){
       queueBox.innerHTML = '';
-      // fetch titles lazily & fill
       const titlePromises = state.queue.map(async (q, i) => {
         const who = state.entries[q.djIndex]?.name || '';
         const item = document.createElement('div'); item.className='q-item';
@@ -545,7 +538,6 @@
       $$('.q-item', queueBox).forEach((el,i)=> el.classList.toggle('active', i===state.qidx));
     }
 
-    /* Load / Save (same JSON/PHP as before) */
     async function loadEntries(){
       try{
         const r = await fetch(`${CFG.CONFIG_ENDPOINT}?action=load`, {cache:'no-store'});
@@ -570,7 +562,6 @@
       return j.entries || entries;
     }
 
-    /* Admin */
     const adminOverlay = $('#adminOverlay');
     const adminEntriesBox = $('#adminEntries');
     const addEntryBtn = $('#addEntryBtn');
@@ -652,16 +643,14 @@
       }catch(err){ console.warn('digest error', err); }
     }, true);
 
-    /* Controls */
     btnPlayDJ.addEventListener('click', ()=>{ buildQueueDJ(state.selected,false); renderQueue(); playAt(0,true); }, {passive:true});
     btnShuffleDJ.addEventListener('click', ()=>{ buildQueueDJ(state.selected,true);  renderQueue(); playAt(0,true); }, {passive:true});
     btnPlayAll.addEventListener('click', ()=>{ buildQueueAll(false); renderQueue(); playAt(0,true); }, {passive:true});
     btnShuffleAll.addEventListener('click', ()=>{ buildQueueAll(true);  renderQueue(); playAt(0,true); }, {passive:true});
 
-    /* Boot */
     async function bootRender(){
       setHeights();
-      await loadStationArtists();   // pull DJ images exactly like OUR DJS
+      await loadStationArtists();
       await renderDJGrid();
       await renderCards();
       buildQueueDJ(Math.max(0, state.selected), false);
@@ -671,7 +660,7 @@
 
     document.addEventListener('DOMContentLoaded', async ()=>{
       if (window.matchMedia('(max-width: 1180px)').matches) mpBar.style.display='grid';
-      loadTitleCache();
+      try{ state.titleCache = JSON.parse(localStorage.getItem('yt_title_cache')||'{}'); }catch{ state.titleCache={}; }
       state.entries = await loadEntries();
       await bootRender();
     });

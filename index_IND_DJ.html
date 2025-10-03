@@ -123,7 +123,7 @@
       align-items:start; padding:.6rem;
     }
 
-    /* LEFT: DJ big squares (Radio Cult images) */
+    /* LEFT: DJ big squares (desktop) */
     .dj-gallery{ background:#000; border:2px solid var(--line); border-radius:10px; padding:12px; height:var(--usable); overflow:auto; }
     .dj-grid{ display:grid; grid-template-columns:repeat(2, minmax(160px,1fr)); gap:12px; }
     @media (min-width:1600px){ .dj-grid{ grid-template-columns:repeat(3, minmax(160px,1fr)); } }
@@ -172,7 +172,7 @@
     #mainPreview .yt-wrap{
       position:relative;
       width:100%;
-      aspect-ratio:16 / 9;       /* exact 16:9 */
+      aspect-ratio:16 / 9;
     }
     #mainPreview .yt-wrap iframe,
     #mainPreview .yt-wrap #ytPlayer,
@@ -191,11 +191,6 @@
     .q-title{ flex:1 1 auto; }
     .q-who{ color:#86b8b5; font:12px/1.1 system-ui; margin-left:12px; white-space:nowrap; }
 
-    /* Scrollbars */
-    .dj-gallery::-webkit-scrollbar, .cards::-webkit-scrollbar, .queue::-webkit-scrollbar { width:10px; }
-    .dj-gallery::-webkit-scrollbar-track, .cards::-webkit-scrollbar-track, .queue::-webkit-scrollbar-track { background:#061010; }
-    .dj-gallery::-webkit-scrollbar-thumb, .cards::-webkit-scrollbar-thumb, .queue::-webkit-scrollbar-thumb { background:#274947; border-radius:10px; border:2px solid #061010; }
-
     /* ===== Admin overlay ===== */
     .adminHidden{ display:none !important; }
     #adminOverlay{ position:fixed; inset:0; background:rgba(0,0,0,.82); color:#fff; z-index:9999; display:flex; align-items:center; justify-content:center; }
@@ -207,22 +202,44 @@
     #adminPanel label{ font-size:.95rem; opacity:.9; color:#fff; min-width:92px; }
     #adminPanel button{ padding:8px 12px; border-radius:6px; border:1px solid #2a5653; background:#0b2322; color:#eaffff; cursor:pointer; }
     #adminStatus{ opacity:.9; font-size:.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:52ch; margin-left:auto; }
-    #clearImgCache{ margin-left:8px; }
 
-    /* ===== Mobile: sticky mini player ===== */
+    /* ===== MOBILE-ONLY CHANGES ===== */
+    /* new compact DJ list (names only) */
+    .dj-list-mobile{ display:none; background:#000; border:2px solid var(--line); border-radius:10px; padding:10px; }
+    .dj-list-mobile h3{ font-family:'Bebas Neue',sans-serif; color:#fff; margin:.1rem 0 .5rem; letter-spacing:.6px; }
+    .dj-names{ display:flex; flex-wrap:wrap; gap:8px; }
+    .dj-name-chip{
+      border:1px solid #2a5653; background:#0b2322; color:#eaffff; padding:.45rem .65rem; border-radius:999px;
+      font:600 12px/1 system-ui; cursor:pointer; white-space:nowrap;
+    }
+    .dj-name-chip.active{ background:#123; outline:1px solid var(--brand-teal); }
+
+    /* a second copy of controls for mobile, below the list */
+    .controls-mobile{ display:none; gap:8px; flex-wrap:wrap; align-items:center; background:#000; border:2px solid var(--line); border-radius:10px; padding:10px; }
+    .controls-mobile .btn{ font:600 12px/1 system-ui; color:var(--ink); background:#0b2322; border:1px solid var(--brand-teal); border-radius:999px; padding:.5rem .7rem; }
+
     @media (max-width:1180px){
-      .c4-grid{ grid-template-columns:1fr; gap:10px; padding:.5rem .6rem 4.7rem; }
-      .dj-gallery,.stack,.nowp{ height:auto; }
+      /* switch grid to vertical flow so we can order blocks */
+      .c4-grid{ display:flex; flex-direction:column; gap:10px; padding:.5rem .6rem; }
+      .dj-gallery{ display:none; }               /* hide big image grid */
+      .dj-list-mobile{ display:block; order:1; } /* show compact names list */
+      .controls-mobile{ display:flex; order:2; } /* show controls under names */
+      .nowp{ order:3; height:auto; }            /* viewer under controls */
+      .stack{ order:4; height:auto; }           /* track cards after viewer */
+      .queue{ order:5; }                         /* queue below (inside .nowp) */
+
+      /* remove artwork: hide thumbs; make cards simple text rows */
+      .card{ grid-template-columns:1fr auto; }
+      .thumb{ display:none; }
+
+      /* sticky mini-player: appear only when playing; no extra bottom padding */
+      #miniPlayer{ display:none; position:fixed; left:0; right:0; bottom:0; z-index:1200; background:#0b1515; border-top:2px solid var(--brand-teal);
+        grid-template-columns:1fr auto auto; gap:10px; align-items:center; padding:10px 12px; }
+      #miniPlayer .mp-title{ color:#eaffff; font:600 13px/1.2 system-ui; }
+      #miniPlayer .mp-sub{ color:#86b8b5; font:12px/1.1 system-ui; }
+      #miniPlayer .mp-btn{ width:36px; height:36px; border-radius:999px; border:1px solid #2a5653; background:#0b2322; color:#eaffff; display:grid; place-items:center; }
+      #miniPlayer .mp-thumb{ display:none; } /* remove artwork in background of titles */
     }
-    #miniPlayer{
-      position:fixed; left:0; right:0; bottom:0; z-index:1200; background:#0b1515; border-top:2px solid var(--brand-teal);
-      display:none; grid-template-columns:auto 1fr auto auto; gap:10px; align-items:center; padding:10px 12px;
-    }
-    #miniPlayer .mp-thumb{ width:64px; aspect-ratio:16/9; border-radius:6px; background:#111 center/cover no-repeat; border:1px solid #122; }
-    #miniPlayer .mp-title{ color:#eaffff; font:600 13px/1.2 system-ui; }
-    #miniPlayer .mp-sub{ color:#86b8b5; font:12px/1.1 system-ui; }
-    #miniPlayer .mp-btn{ width:36px; height:36px; border-radius:999px; border:1px solid #2a5653; background:#0b2322; color:#eaffff; display:grid; place-items:center; }
-    @media (max-width:1180px){ #miniPlayer{ display:grid; } }
   </style>
 
   <!-- YouTube IFrame API -->
@@ -252,7 +269,7 @@
       <details class="nav-details">
         <summary class="nav-link" aria-label="About Cutty Ranks">ABOUT CUTTY RANKS</summary>
         <div class="about-panel">
-          <p>Concept-4 layout. Pick a DJ left, their stack in the middle, and watch on the right. Shift+A for Admin.</p>
+          <p>Concept-4 layout on desktop. On mobile: DJ names list → controls → Now Playing.</p>
         </div>
       </details>
     </div>
@@ -265,7 +282,21 @@
 
   <!-- Concept 4 grid -->
   <main id="grid" class="c4-grid" role="main">
-    <!-- LEFT: DJ Gallery -->
+    <!-- MOBILE-ONLY: compact DJ names list -->
+    <section id="djListMobile" class="dj-list-mobile" aria-label="Selectors (mobile)">
+      <h3>Selectors</h3>
+      <div id="djNames" class="dj-names"></div>
+    </section>
+
+    <!-- MOBILE-ONLY: duplicated controls under DJ names -->
+    <section class="controls-mobile" id="controlsMobile" aria-label="Playback controls (mobile)">
+      <button id="mPlayDJ" class="btn">▶ Play DJ</button>
+      <button id="mShuffleDJ" class="btn">🔀 Shuffle DJ</button>
+      <button id="mPlayAll" class="btn">▶ Play All</button>
+      <button id="mShuffleAll" class="btn">🔀 Shuffle All</button>
+    </section>
+
+    <!-- LEFT (desktop): DJ Gallery -->
     <section class="dj-gallery" aria-label="Selectors">
       <div id="djGrid" class="dj-grid" role="list"></div>
     </section>
@@ -278,13 +309,13 @@
           <button id="playDJ" class="btn" title="Play all from selected DJ">▶ Play DJ</button>
           <button id="shuffleDJ" class="btn" title="Shuffle selected DJ">🔀 Shuffle DJ</button>
           <button id="playAll" class="btn" title="Play all DJs in order">▶ Play All</button>
-          <button id="shuffleAll" class="btn" title="Shuffle all DJs">🔀 Shuffle All</button>
+          <button id="shuffleAll" class="btn" title="Shuffle All DJs">🔀 Shuffle All</button>
         </div>
       </div>
       <div id="cards" class="cards"></div>
     </section>
 
-    <!-- RIGHT: Now Playing + full queue -->
+    <!-- RIGHT: Now Playing + queue -->
     <aside class="nowp" aria-label="Now Playing">
       <h3>Now Playing</h3>
       <div class="player-shell"><div id="mainPreview"></div></div>
@@ -292,10 +323,13 @@
     </aside>
   </main>
 
-  <!-- Sticky Mini Player (mobile) -->
+  <!-- Sticky Mini Player (mobile only, appears only when playing) -->
   <div id="miniPlayer" aria-live="polite">
     <div class="mp-thumb" id="mpThumb"></div>
-    <div><div class="mp-title" id="mpTitle">Nothing playing</div><div class="mp-sub" id="mpSub">Select a clip</div></div>
+    <div>
+      <div class="mp-title" id="mpTitle">Nothing playing</div>
+      <div class="mp-sub" id="mpSub">Select a clip</div>
+    </div>
     <button id="mpPrev" class="mp-btn" title="Previous">⏮</button>
     <button id="mpPlayPause" class="mp-btn" title="Play/Pause">⏯</button>
     <button id="mpNext" class="mp-btn" title="Next">⏭</button>
@@ -337,16 +371,24 @@
     const $$  = (s, r=document) => [...r.querySelectorAll(s)];
 
     const gridEl  = $('#grid');
-    const djGrid  = $('#djGrid');
+    const djGrid  = $('#djGrid');            // desktop tiles
+    const djNames = $('#djNames');           // mobile names list
     const cardsBox= $('#cards');
     const queueBox= $('#queueBox');
     const mainPrev= $('#mainPreview');
 
+    // desktop controls
     const btnPlayDJ     = $('#playDJ');
     const btnShuffleDJ  = $('#shuffleDJ');
     const btnPlayAll    = $('#playAll');
     const btnShuffleAll = $('#shuffleAll');
+    // mobile controls
+    const mPlayDJ       = $('#mPlayDJ');
+    const mShuffleDJ    = $('#mShuffleDJ');
+    const mPlayAll      = $('#mPlayAll');
+    const mShuffleAll   = $('#mShuffleAll');
 
+    // mini player
     const mpBar   = $('#miniPlayer'), mpThumb = $('#mpThumb'), mpTitle = $('#mpTitle'), mpSub = $('#mpSub');
     const mpPrev  = $('#mpPrev'), mpPP = $('#mpPlayPause'), mpNext = $('#mpNext');
 
@@ -362,6 +404,8 @@
 
     const norm = s => (s||'').toLowerCase().replace(/\s+/g,' ').trim();
     const slug = s => (s||'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+    const isMobile = () => window.matchMedia('(max-width: 1180px)').matches;
+
     const ytId = (u) => { try{
       const x=new URL(u); const h=x.hostname.toLowerCase();
       if(h==='youtu.be') return x.pathname.slice(1);
@@ -428,7 +472,12 @@
       const title= item.title || state.lastVideoTitle || `Clip ${ (item.clipIndex??0)+1 }`;
       mpTitle.textContent = title;
       mpSub.textContent   = who;
-      if (vid) mpThumb.style.backgroundImage = `url('https://i.ytimg.com/vi/${vid}/hqdefault.jpg')`;
+      if (vid) {
+        mpThumb.style.backgroundImage = ''; /* keep empty: no artwork in titles */
+        if (isMobile()) mpBar.style.display = 'grid';
+      } else {
+        mpBar.style.display = 'none';       /* hide empty bar */
+      }
     }
     mpPrev.addEventListener('click', ()=>{ if (state.qidx>0){ state.qidx--; playAt(state.qidx,true);} }, {passive:true});
     mpNext.addEventListener('click', ()=>{ if (state.qidx<state.queue.length-1){ state.qidx++; playAt(state.qidx,true);} }, {passive:true});
@@ -488,23 +537,37 @@
     }
 
     async function renderDJGrid(){
+      // desktop tiles
       djGrid.innerHTML = '';
-      const promises = state.entries.map(async (e, idx)=>{
+      state.entries.forEach((e, idx)=>{
         const url = djImageFor(e.name, e.image);
         const tile = document.createElement('div'); tile.className='dj-tile'; tile.style.backgroundImage = `url('${(url||'').replace(/'/g,"%27")}')`;
         tile.setAttribute('role','listitem');
         const label = document.createElement('div'); label.className='dj-name'; label.textContent = e.name || 'Untitled';
         tile.appendChild(label);
-        tile.addEventListener('click', ()=>{
-          state.selected = idx;
-          $$('.dj-tile', djGrid).forEach(el=>el.classList.remove('active'));
-          tile.classList.add('active');
-          buildQueueDJ(idx,false); renderCards(); renderQueue(); playAt(0,false);
-        }, {passive:true});
+        tile.addEventListener('click', ()=> selectDJ(idx, false), {passive:true});
         if (idx===state.selected) tile.classList.add('active');
         djGrid.appendChild(tile);
       });
-      await Promise.allSettled(promises);
+
+      // mobile names list
+      djNames.innerHTML = '';
+      state.entries.forEach((e, idx)=>{
+        const chip = document.createElement('button');
+        chip.className = 'dj-name-chip';
+        chip.textContent = e.name || 'Untitled';
+        chip.addEventListener('click', ()=> selectDJ(idx, true), {passive:true});
+        if (idx===state.selected) chip.classList.add('active');
+        djNames.appendChild(chip);
+      });
+    }
+
+    function selectDJ(idx, isMobileTap=false){
+      state.selected = idx;
+      // highlight desktop & mobile
+      $$('.dj-tile', djGrid).forEach(el=>el.classList.toggle('active', [...djGrid.children].indexOf(el)===idx));
+      $$('.dj-name-chip', djNames).forEach((el,i)=> el.classList.toggle('active', i===idx));
+      buildQueueDJ(idx,false); renderCards(); renderQueue(); playAt(0, !isMobileTap ? false : true);
     }
 
     async function renderCards(){
@@ -653,16 +716,25 @@
       }catch(err){ console.warn('digest error', err); }
     }, true);
 
-    btnPlayDJ.addEventListener('click', ()=>{ buildQueueDJ(state.selected,false); renderQueue(); playAt(0,true); }, {passive:true});
-    btnShuffleDJ.addEventListener('click', ()=>{ buildQueueDJ(state.selected,true);  renderQueue(); playAt(0,true); }, {passive:true});
-    btnPlayAll.addEventListener('click', ()=>{ buildQueueAll(false); renderQueue(); playAt(0,true); }, {passive:true});
-    btnShuffleAll.addEventListener('click', ()=>{ buildQueueAll(true);  renderQueue(); playAt(0,true); }, {passive:true});
+    // bind both desktop + mobile control buttons
+    function bindControls(btns){
+      const {playDJ, shuffleDJ, playAll, shuffleAll} = btns;
+      playDJ.addEventListener('click', ()=>{ buildQueueDJ(state.selected,false); renderQueue(); playAt(0,true); }, {passive:true});
+      shuffleDJ.addEventListener('click', ()=>{ buildQueueDJ(state.selected,true);  renderQueue(); playAt(0,true); }, {passive:true});
+      playAll.addEventListener('click', ()=>{ buildQueueAll(false); renderQueue(); playAt(0,true); }, {passive:true});
+      shuffleAll.addEventListener('click', ()=>{ buildQueueAll(true);  renderQueue(); playAt(0,true); }, {passive:true});
+    }
+    bindControls({ playDJ:btnPlayDJ, shuffleDJ:btnShuffleDJ, playAll:btnPlayAll, shuffleAll:btnShuffleAll });
+    bindControls({ playDJ:mPlayDJ,  shuffleDJ:mShuffleDJ,  playAll:mPlayAll,  shuffleAll:mShuffleAll  });
 
     async function bootRender(){
       setHeights();
-      if (window.matchMedia('(max-width: 1180px)').matches) mpBar.style.display='grid';
+      // mini player hidden until something is playing
+      mpBar.style.display = 'none';
       try{ state.titleCache = JSON.parse(localStorage.getItem('yt_title_cache')||'{}'); }catch{ state.titleCache={}; }
       await loadStationArtists();
+
+      state.entries = await loadEntries();
       await renderDJGrid();
       await renderCards();
       buildQueueDJ(Math.max(0, state.selected), false);
@@ -670,10 +742,7 @@
       playAt(0,false);
     }
 
-    document.addEventListener('DOMContentLoaded', async ()=>{
-      state.entries = await loadEntries();
-      await bootRender();
-    });
+    document.addEventListener('DOMContentLoaded', bootRender);
   })();
   </script>
 </body>

@@ -44,7 +44,7 @@
       --usable:70vh;
     }
 
-    /* ===== Header & Nav (unchanged visuals) ===== */
+    /* ===== Header (keep your art) ===== */
     .header-banner{
       position:relative; display:flex; align-items:center; justify-content:center;
       padding:clamp(16px,3vw,28px) .6rem;
@@ -62,6 +62,7 @@
     .header-gif-right,.header-gif-left,.header-wave,.logo-container{ display:none !important; }
     .nav-sep{height:2px;background-color:var(--brand-teal);}
 
+    /* Nav */
     #main-nav .nav-menu{ justify-content: space-evenly !important; }
     #main-nav .nav-link, #main-nav summary.nav-link{
       color:#fff !important; font-family:'Bebas Neue',sans-serif !important;
@@ -95,7 +96,7 @@
       .nav-sep{ display:none !important; }
     }
 
-    /* ----- Title band (keep your image) ----- */
+    /* ----- Title band (keep) ----- */
     .cutty-title{
       position:relative; border-top:2px solid var(--brand-teal); border-bottom:2px solid var(--brand-teal);
       min-height:110px; display:flex; align-items:center; justify-content:flex-start;
@@ -122,7 +123,7 @@
       align-items:start; padding:.6rem;
     }
 
-    /* LEFT: DJ big squares */
+    /* LEFT: DJ big squares (Radio Cult images) */
     .dj-gallery{ background:#000; border:2px solid var(--line); border-radius:10px; padding:12px; height:var(--usable); overflow:auto; }
     .dj-grid{ display:grid; grid-template-columns:repeat(2, minmax(160px,1fr)); gap:12px; }
     @media (min-width:1600px){ .dj-grid{ grid-template-columns:repeat(3, minmax(160px,1fr)); } }
@@ -158,20 +159,31 @@
     .nowp{ background:#000; border:2px solid var(--line); border-radius:10px; padding:12px; height:var(--usable); display:flex; flex-direction:column; gap:12px; }
     .nowp h3{ font-family:'Bebas Neue',sans-serif; color:#fff; letter-spacing:.6px; margin:.2rem .2rem; }
 
-    /* >>> FULL-BLEED RESPONSIVE 16:9 VIEWER <<< */
-    .player-shell{ position:relative; background:#000; border:1px solid var(--brand-teal); border-radius:8px; padding:0; overflow:hidden; }
-    #mainPreview{ max-width:100% !important; }
-    .embed-16x9{ position:relative; width:100%; height:auto; }
-    .embed-16x9::before{ content:""; display:block; padding-top:56.25%; } /* 16:9 */
-    .embed-16x9 > #ytPlayer,
-    .embed-16x9 iframe{
+    /* >>> FULL-BLEED 16:9 VIEWER (no crop, no padding) <<< */
+    .player-shell{
+      flex:0 0 auto;
+      background:#000;
+      border:1px solid var(--brand-teal);
+      border-radius:8px;
+      padding:0;
+      overflow:hidden;
+    }
+    #mainPreview{ max-width:100% !important; margin:0; padding:0; }
+    #mainPreview .yt-wrap{
+      position:relative;
+      width:100%;
+      aspect-ratio:16 / 9;       /* exact 16:9 */
+    }
+    #mainPreview .yt-wrap iframe,
+    #mainPreview .yt-wrap #ytPlayer,
+    #mainPreview .yt-wrap .html5-video-player{
       position:absolute; inset:0;
       width:100% !important;
-      height:100% !important;   /* overrides any inline height from YouTube */
+      height:100% !important;
       display:block; border:0;
     }
 
-    .queue{ background:#060b0b; border:1px solid #1a2f2e; border-radius:8px; padding:8px; overflow:auto; height:100%; }
+    .queue{ background:#060b0b; border:1px solid #1a2f2e; border-radius:8px; padding:8px; overflow:auto; flex:1 1 auto; min-height:0; }
     .q-item{ display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; cursor:pointer; color:#d7f9f6; }
     .q-item:hover{ background:#0c1716; }
     .q-item.active{ outline:1px dashed var(--brand-teal); outline-offset:-2px; }
@@ -218,7 +230,7 @@
 </head>
 
 <body class="cutty">
-  <!-- HEADER (unchanged artwork) -->
+  <!-- HEADER -->
   <header class="header-banner" role="banner">
     <div class="title">
       <h1>Cutters Choice Radio</h1>
@@ -298,13 +310,13 @@
         <button id="addEntryBtn"><i class="fa fa-plus"></i>&nbsp; Add DJ</button>
         <button id="adminSave">Save</button>
         <button id="adminClose">Close</button>
-        <button id="clearImgCache" title="Clear cached Radio Cult images">Clear Image Cache</button>
+        <button id="clearImgCache" title="Clear cached YouTube titles">Clear Title Cache</button>
         <div id="adminStatus"></div>
       </div>
     </div>
   </div>
 
-  <!-- Config -->
+  <!-- Endpoints / keys -->
   <script>
     window.CUTTY_RANKS = {
       CONFIG_ENDPOINT: 'cutty-ranks-config.php',
@@ -368,10 +380,10 @@
 
     window.onYouTubeIframeAPIReady = () => { state.apiReady = true; };
 
-    /* >>> use a 16:9 wrapper so the iframe always fills the column <<< */
+    /* create 16:9 wrapper so iframe fills perfectly */
     function ensurePlayer(){
-      if (!$('#ytPlayer')){
-        mainPrev.innerHTML = `<div class="embed-16x9"><div id="ytPlayer"></div></div>`;
+      if (!document.getElementById('ytPlayer')){
+        mainPrev.innerHTML = `<div class="yt-wrap"><div id="ytPlayer"></div></div>`;
       }
     }
     function createOrLoad(videoId, autoplay){
@@ -426,9 +438,7 @@
 
     async function loadStationArtists(){
       try{
-        const res = await fetch(`${RC.BASE_URL}/station/${RC.STATION_ID}/artists`, {
-          headers: { 'x-api-key': RC.API_KEY }
-        });
+        const res = await fetch(`${RC.BASE_URL}/station/${RC.STATION_ID}/artists`, { headers: { 'x-api-key': RC.API_KEY } });
         if(!res.ok) throw new Error(`RC ${res.status}`);
         const { artists = [] } = await res.json();
         const map = {};
@@ -650,6 +660,8 @@
 
     async function bootRender(){
       setHeights();
+      if (window.matchMedia('(max-width: 1180px)').matches) mpBar.style.display='grid';
+      try{ state.titleCache = JSON.parse(localStorage.getItem('yt_title_cache')||'{}'); }catch{ state.titleCache={}; }
       await loadStationArtists();
       await renderDJGrid();
       await renderCards();
@@ -659,8 +671,6 @@
     }
 
     document.addEventListener('DOMContentLoaded', async ()=>{
-      if (window.matchMedia('(max-width: 1180px)').matches) mpBar.style.display='grid';
-      try{ state.titleCache = JSON.parse(localStorage.getItem('yt_title_cache')||'{}'); }catch{ state.titleCache={}; }
       state.entries = await loadEntries();
       await bootRender();
     });

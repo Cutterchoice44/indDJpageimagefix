@@ -38,58 +38,41 @@
   <style>
     :root{
       --brand-teal:#5A8785;
-      --ink:#eaffff; --ink-dim:#bfe7e4;
-      --panel:#0b0f0f; --panel-2:#0e1414; --line:#264745;
-      --tile:#0a0f0f; --tile-line:#1d3533;
+      --ink:#eaffff; --ink-d:#bfe7e4;
+      --line:#264745;
       --gap:12px;
       --usable:70vh;
     }
 
-    /* ===== Header (unchanged) ===== */
-    .header-banner{
-      position:relative; display:flex; align-items:center; justify-content:center;
-      padding:clamp(16px,3vw,28px) .6rem;
-      background:#000 center/cover no-repeat;
-      background-image:url('/images/cutty_a.png');
-      border-top:2px solid #000; border-bottom:2px solid #000; isolation:isolate;
+    /* ===== Header & Nav (UNCHANGED from your site) ===== */
+    .header-banner{ position:relative; display:flex; align-items:center; justify-content:center;
+      padding:clamp(16px,3vw,28px) .6rem; background:#000 center/cover no-repeat;
+      background-image:url('/images/cutty_a.png'); border-top:2px solid #000; border-bottom:2px solid #000; isolation:isolate;
     }
     .header-banner .title{ text-align:center; }
-    .header-banner .title h1{
-      margin:0; font-family:'Bebas Neue',sans-serif;
-      font-size:clamp(2.3rem,6.2vw,4rem); line-height:1; color:#fff;
-      text-shadow:0 2px 12px rgba(0,0,0,.6);
-    }
+    .header-banner .title h1{ margin:0; font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(2.3rem,6.2vw,4rem); line-height:1; color:#fff; text-shadow:0 2px 12px rgba(0,0,0,.6); }
     .header-banner .title .tagline{ margin:.2rem 0 0; color:#fff; text-shadow:0 2px 10px rgba(0,0,0,.6); }
     .header-gif-right,.header-gif-left,.header-wave,.logo-container{ display:none !important; }
     .nav-sep{height:2px;background-color:var(--brand-teal);}
-
-    /* Nav (unchanged) */
     #main-nav .nav-menu{ justify-content: space-evenly !important; }
     #main-nav .nav-link, #main-nav summary.nav-link{
-      color:#fff !important; font-family:'Bebas Neue',sans-serif !important;
-      font-size:2rem !important; text-transform:uppercase !important;
-      text-decoration:none !important; white-space:nowrap !important;
+      color:#fff !important; font-family:'Bebas Neue',sans-serif !important; font-size:2rem !important;
+      text-transform:uppercase !important; text-decoration:none !important; white-space:nowrap !important;
       list-style:none !important; cursor:pointer !important; display:inline-flex; align-items:center;
     }
     .nav-details{ position:relative; }
-    .nav-details .about-panel{
-      position:absolute; top:calc(100% + 8px); right:0; width:min(520px,86vw);
-      background:#000; color:#fff; border:2px solid var(--brand-teal);
-      border-radius:8px; padding:.75rem .9rem; line-height:1.35;
-      box-shadow:0 8px 18px rgba(0,0,0,.45); display:none; z-index:1100;
-    }
+    .nav-details .about-panel{ position:absolute; top:calc(100% + 8px); right:0; width:min(520px,86vw);
+      background:#000; color:#fff; border:2px solid var(--brand-teal); border-radius:8px; padding:.75rem .9rem; line-height:1.35;
+      box-shadow:0 8px 18px rgba(0,0,0,.45); display:none; z-index:1100; }
     .nav-details[open] .about-panel{ display:block; }
     .nav-details > summary::-webkit-details-marker{ display:none; }
 
     @media (max-width:768px){
-      body.cutty nav#main-nav{
-        display:flex !important; flex-direction:row !important; align-items:center !important;
-        justify-content:space-between !important; padding:.40rem .65rem !important;
-      }
-      body.cutty nav#main-nav .nav-menu{
-        display:flex !important; gap:.35rem !important; flex-wrap:nowrap !important;
-        overflow-x:auto !important; white-space:nowrap !important; scrollbar-width:none;
-      }
+      body.cutty nav#main-nav{ display:flex !important; flex-direction:row !important; align-items:center !important;
+        justify-content:space-between !important; padding:.40rem .65rem !important; }
+      body.cutty nav#main-nav .nav-menu{ display:flex !important; gap:.35rem !important; flex-wrap:nowrap !important;
+        overflow-x:auto !important; white-space:nowrap !important; scrollbar-width:none; }
       body.cutty nav#main-nav .nav-menu::-webkit-scrollbar{ display:none; }
       body.cutty nav#main-nav .nav-link, body.cutty nav#main-nav summary.nav-link{
         font-size:clamp(.8rem,3.2vw,1rem) !important; padding:.2rem .25rem !important;
@@ -97,128 +80,75 @@
       .nav-sep{ display:none !important; }
     }
 
-    /* ----- Title band (unchanged artwork) ----- */
-    .cutty-title{
-      position:relative; border-top:2px solid var(--brand-teal); border-bottom:2px solid var(--brand-teal);
+    /* ----- Title band (UNCHANGED artwork) ----- */
+    .cutty-title{ position:relative; border-top:2px solid var(--brand-teal); border-bottom:2px solid var(--brand-teal);
       min-height:110px; display:flex; align-items:center; justify-content:flex-start;
-      padding:.35rem .6rem; background: url('/images/cutty_b.png') right center / contain no-repeat, #000;
-    }
-    .cutty-title::before{
-      content:""; position:absolute; inset:0;
-      background:linear-gradient(90deg, rgba(0,0,0,.55), rgba(0,0,0,.25) 35%, rgba(0,0,0,0));
-      pointer-events:none;
-    }
-    .cutty-title h2{
-      position:relative; z-index:1; color:#fff; font-family:'Bebas Neue',sans-serif;
-      font-size:clamp(2.6rem,5.2vw,3.6rem); line-height:1; margin:0; letter-spacing:.6px;
-      text-shadow:0 2px 10px rgba(0,0,0,.65);
-    }
+      padding:.35rem .6rem; background: url('/images/cutty_b.png') right center / contain no-repeat, #000; }
+    .cutty-title::before{ content:""; position:absolute; inset:0; background:linear-gradient(90deg, rgba(0,0,0,.55), rgba(0,0,0,.25) 35%, rgba(0,0,0,0)); pointer-events:none; }
+    .cutty-title h2{ position:relative; z-index:1; color:#fff; font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(2.6rem,5.2vw,3.6rem); line-height:1; margin:0; letter-spacing:.6px; text-shadow:0 2px 10px rgba(0,0,0,.65); }
 
-    /* ===== Concept 4 layout ===== */
+    /* ===== Concept 4 main grid ===== */
     .c4-grid{
       display:grid; gap:var(--gap);
-      grid-template-columns: minmax(280px, 1.1fr) minmax(420px,1.1fr) minmax(480px,1.2fr);
+      grid-template-columns: minmax(360px,1.2fr) minmax(520px,1.2fr) minmax(560px,1.3fr);
       align-items:start; padding:.6rem;
     }
 
-    /* Left: DJ gallery */
-    .dj-gallery{
-      background:#000; border:2px solid var(--line); border-radius:10px;
-      padding:10px; height:var(--usable); overflow:auto;
-    }
-    .dj-grid{
-      display:grid; grid-template-columns:repeat(2, minmax(120px,1fr)); gap:10px;
-    }
+    /* LEFT: Big square DJ tiles */
+    .dj-gallery{ background:#000; border:2px solid var(--line); border-radius:10px; padding:12px; height:var(--usable); overflow:auto; }
+    .dj-grid{ display:grid; grid-template-columns:repeat(2, minmax(160px,1fr)); gap:12px; }
+    @media (min-width:1500px){ .dj-grid{ grid-template-columns:repeat(3, minmax(160px,1fr)); } }
     .dj-tile{
-      position:relative; border:1px solid var(--tile-line); border-radius:12px; overflow:hidden;
-      background:#0a0a0a center/cover no-repeat; min-height:140px; cursor:pointer;
+      position:relative; border:1px solid #1d3533; border-radius:14px; overflow:hidden;
+      background:#0a0a0a center/cover no-repeat; aspect-ratio:1/1; cursor:pointer;
       transition:transform .08s ease-in-out, box-shadow .12s ease-in-out, outline .08s;
     }
-    .dj-tile:hover{ transform:translateY(-1px); box-shadow:0 8px 24px rgba(0,0,0,.35); }
+    .dj-tile:hover{ transform:translateY(-1px); box-shadow:0 12px 26px rgba(0,0,0,.35); }
     .dj-tile.active{ outline:2px solid var(--brand-teal); outline-offset:-2px; }
-    .dj-name{
-      position:absolute; left:0; right:0; bottom:0; padding:.45rem .55rem;
-      background:linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.75) 60%);
-      color:#fff; font-family:'Bebas Neue',sans-serif; font-size:1.25rem; letter-spacing:.5px;
-    }
+    .dj-name{ position:absolute; left:0; right:0; bottom:0; padding:.5rem .6rem;
+      background:linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.78) 60%);
+      color:#fff; font-family:'Bebas Neue',sans-serif; font-size:1.35rem; letter-spacing:.5px; }
 
-    /* Center: Card stack for selected DJ */
-    .stack{
-      background:#000; border:2px solid var(--line); border-radius:10px; padding:10px;
-      height:var(--usable); display:flex; flex-direction:column; gap:10px;
+    /* CENTER: Wider card stack for a DJ */
+    .stack{ background:#000; border:2px solid var(--line); border-radius:10px; padding:12px; height:var(--usable); display:flex; flex-direction:column; gap:12px; }
+    .stack .stack-header{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .stack .btn{
+      font:600 12px/1 system-ui; color:var(--ink); background:#0b2322; border:1px solid var(--brand-teal);
+      border-radius:999px; padding:.5rem .7rem; cursor:pointer; margin-left:6px;
     }
-    .stack .stack-header{
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-    }
-    .stack .playall{
-      font:600 12px/1 system-ui; color:var(--ink); background:#0b2322;
-      border:1px solid var(--brand-teal); border-radius:999px; padding:.5rem .7rem; cursor:pointer;
-    }
-    .cards{
-      display:flex; flex-direction:column; gap:10px; overflow:auto;
-    }
+    .cards{ display:flex; flex-direction:column; gap:12px; overflow:auto; }
     .card{
-      display:grid; grid-template-columns:100px 1fr auto; gap:10px; align-items:center;
-      padding:8px; border:1px solid var(--tile-line); border-radius:10px; background:#0a0a0a;
+      display:grid; grid-template-columns:160px 1fr auto; gap:12px; align-items:center;
+      padding:10px; border:1px solid #1d3533; border-radius:12px; background:#0a0a0a;
     }
-    .thumb{
-      width:100px; aspect-ratio:16/9; border-radius:6px; background:#111 center/cover no-repeat;
-      border:1px solid #122; overflow:hidden;
-    }
-    .meta .title{
-      color:#e7fbf9; font:600 14px/1.2 system-ui; margin:0 0 2px;
-    }
+    .thumb{ width:160px; aspect-ratio:16/9; border-radius:8px; background:#111 center/cover no-repeat; border:1px solid #122; overflow:hidden; }
+    .meta .title{ color:#e7fbf9; font:600 15px/1.2 system-ui; margin:0 0 2px; }
     .meta .sub{ color:#86b8b5; font:12px/1.2 system-ui; }
-    .card .btn{
-      width:36px; height:36px; border-radius:999px; display:grid; place-items:center;
-      background:rgba(255,255,255,.12); color:#fff; border:0; cursor:pointer;
-    }
-    .idx-dot{
-      width:28px; height:28px; border-radius:999px; display:grid; place-items:center;
-      background:#123; border:1px solid #2a5653; color:#bfe7e4; font:600 12px/1 system-ui;
-      margin-right:6px;
-    }
+    .card .play{ width:40px; height:40px; border-radius:999px; display:grid; place-items:center; background:rgba(255,255,255,.12); color:#fff; border:0; cursor:pointer; }
 
-    /* Right: Now playing */
-    .nowp{
-      background:#000; border:2px solid var(--line); border-radius:10px; padding:10px;
-      height:var(--usable); display:flex; flex-direction:column; gap:10px;
-    }
-    .nowp h3{
-      font-family:'Bebas Neue',sans-serif; color:#fff; letter-spacing:.6px; margin:.2rem .2rem;
-      display:flex; align-items:center; gap:10px;
-    }
-    .player-shell{
-      position:relative; background:#000 center/cover no-repeat; background-image:url('/images/cutty_c.png');
-      border:1px solid var(--brand-teal); border-radius:8px; padding:6px; overflow:hidden;
-    }
+    /* RIGHT: Now Playing + queue UNDER the player (scrolls) */
+    .nowp{ background:#000; border:2px solid var(--line); border-radius:10px; padding:12px; height:var(--usable); display:flex; flex-direction:column; gap:12px; }
+    .nowp h3{ font-family:'Bebas Neue',sans-serif; color:#fff; letter-spacing:.6px; margin:.2rem .2rem; }
+    .player-shell{ position:relative; background:#000 center/cover no-repeat; background-image:url('/images/cutty_c.png'); border:1px solid var(--brand-teal); border-radius:8px; padding:6px; overflow:hidden; }
     #mainPreview iframe{ width:100%; aspect-ratio:16/9; height:auto; border:0; display:block; }
-    .queue{
-      margin-top:auto; background:#060b0b; border:1px solid #1a2f2e; border-radius:8px; padding:8px; overflow:auto;
-    }
-    .q-item{
-      display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:8px; cursor:pointer;
-      color:#d7f9f6;
-    }
+
+    .queue{ background:#060b0b; border:1px solid #1a2f2e; border-radius:8px; padding:8px; overflow:auto; height:100%; }
+    .q-item{ display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:8px; cursor:pointer; color:#d7f9f6; }
     .q-item:hover{ background:#0c1716; }
     .q-item.active{ outline:1px dashed var(--brand-teal); outline-offset:-2px; }
+    .q-num{ width:28px; height:28px; border-radius:999px; display:grid; place-items:center; background:#123; border:1px solid #2a5653; color:#bfe7e4; font:600 12px/1 system-ui; }
+    .q-who{ color:#86b8b5; font:12px/1.1 system-ui; margin-left:auto; }
 
-    /* Scrollbar aesthetic */
+    /* Scrollbars */
     .dj-gallery::-webkit-scrollbar, .cards::-webkit-scrollbar, .queue::-webkit-scrollbar { width:10px; }
     .dj-gallery::-webkit-scrollbar-track, .cards::-webkit-scrollbar-track, .queue::-webkit-scrollbar-track { background:#061010; }
     .dj-gallery::-webkit-scrollbar-thumb, .cards::-webkit-scrollbar-thumb, .queue::-webkit-scrollbar-thumb { background:#274947; border-radius:10px; border:2px solid #061010; }
 
-    /* ===== Admin overlay (unchanged + extra fields) ===== */
+    /* ===== Admin overlay ===== */
     .adminHidden{ display:none !important; }
-    #adminOverlay{
-      position:fixed; inset:0; background:rgba(0,0,0,.82); color:#fff; z-index:9999;
-      display:flex; align-items:center; justify-content:center;
-    }
-    #adminPanel{
-      width:min(980px,95vw); max-height:92vh; overflow:auto;
-      background:#0e1414; border:2px solid var(--brand-teal); border-radius:10px; padding:16px;
-      box-shadow:0 12px 40px rgba(0,0,0,.55);
-    }
+    #adminOverlay{ position:fixed; inset:0; background:rgba(0,0,0,.82); color:#fff; z-index:9999; display:flex; align-items:center; justify-content:center; }
+    #adminPanel{ width:min(980px,95vw); max-height:92vh; overflow:auto; background:#0e1414; border:2px solid var(--brand-teal); border-radius:10px; padding:16px; box-shadow:0 12px 40px rgba(0,0,0,.55); }
     #adminPanel h3{ font-family:'Bebas Neue',sans-serif; letter-spacing:.5px; margin:0 0 10px; color:#fff; }
     #adminPanel .entry{ border:1px solid #2a5653; border-radius:8px; padding:10px; margin:10px 0; background:#081111; }
     #adminPanel .row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:6px 0; }
@@ -228,32 +158,14 @@
     #adminStatus{ opacity:.9; font-size:.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:52ch; margin-left:auto; }
     #clearImgCache{ margin-left:8px; }
 
-    /* ===== Mobile (Concept 5) ===== */
+    /* ===== Mobile (keeps your mini-player concept) ===== */
     @media (max-width:980px){
-      .c4-grid{ grid-template-columns: 1fr; gap:8px; padding:.4rem .5rem 4.5rem; } /* bottom padding for mini player */
-      .dj-gallery{ height:auto; }
-      .stack{ height:auto; }
-      .nowp{ height:auto; }
-      .player-shell{ order:1; }
-      .dj-accordion { display:block; background:#000; border:2px solid var(--line); border-radius:10px; overflow:hidden; }
-      .dj-accordion details{ border-top:1px solid #1a2f2e; }
-      .dj-accordion summary{
-        list-style:none; cursor:pointer; padding:12px 14px; color:#fff; font-family:'Bebas Neue',sans-serif; font-size:1.4rem;
-        display:flex; align-items:center; gap:10px; background:#0b1111;
-      }
-      .dj-accordion summary::-webkit-details-marker{ display:none; }
-      .dj-accordion .acc-inner{ padding:8px 12px 12px; background:#050808; }
-      .acc-card{ display:flex; gap:10px; align-items:center; padding:8px 0; border-bottom:1px solid #101a1a; }
-      .acc-thumb{ width:100px; aspect-ratio:16/9; border-radius:6px; background:#111 center/cover no-repeat; border:1px solid #122; }
-      .acc-title{ color:#d7f9f6; font:600 14px/1.2 system-ui; }
+      .c4-grid{ grid-template-columns: 1fr; gap:8px; padding:.4rem .5rem 4.5rem; }
+      .dj-gallery, .stack, .nowp{ height:auto; }
     }
-
-    /* Sticky mini player (mobile only) */
     #miniPlayer{
-      position:fixed; left:0; right:0; bottom:0; z-index:1200;
-      background:#0b1515; border-top:2px solid var(--brand-teal);
-      display:none; grid-template-columns: auto 1fr auto auto; gap:10px; align-items:center;
-      padding:10px 12px;
+      position:fixed; left:0; right:0; bottom:0; z-index:1200; background:#0b1515; border-top:2px solid var(--brand-teal);
+      display:none; grid-template-columns:auto 1fr auto auto; gap:10px; align-items:center; padding:10px 12px;
     }
     #miniPlayer .mp-thumb{ width:64px; aspect-ratio:16/9; border-radius:6px; background:#111 center/cover no-repeat; border:1px solid #122; }
     #miniPlayer .mp-title{ color:#eaffff; font:600 13px/1.2 system-ui; }
@@ -280,17 +192,16 @@
   <!-- Primary Nav (unchanged) -->
   <nav id="main-nav" aria-label="Primary">
     <div class="nav-menu">
-      <a href="/"                  class="nav-link">HOME</a>
-      <a href="/our-story.html"    class="nav-link">OUR STORY</a>
+      <a href="/" class="nav-link">HOME</a>
+      <a href="/our-story.html" class="nav-link">OUR STORY</a>
       <a href="/index-ourDJS.html" class="nav-link">OUR DJS</a>
-      <a href="/dj-selects.html"   class="nav-link">DJ SELECTS</a>
-      <a href="/schedule.html"     class="nav-link">SCHEDULE</a>
-      <a href="/merch.html"        class="nav-link">MERCH</a>
-
+      <a href="/dj-selects.html" class="nav-link">DJ SELECTS</a>
+      <a href="/schedule.html" class="nav-link">SCHEDULE</a>
+      <a href="/merch.html" class="nav-link">MERCH</a>
       <details class="nav-details">
         <summary class="nav-link" aria-label="About Cutty Ranks">ABOUT CUTTY RANKS</summary>
         <div class="about-panel">
-          <p>Pick a DJ on the left, cue their 5 clips in the center, and watch on the right. Shift+A to admin.</p>
+          <p>Concept-4 layout. Pick a DJ left, their stack in the middle, and watch on the right. Shift+A for Admin.</p>
         </div>
       </details>
     </div>
@@ -311,35 +222,29 @@
     <!-- CENTER: Stack -->
     <section class="stack" aria-label="Picks">
       <div class="stack-header">
-        <h3 class="h title" style="font-family:'Bebas Neue',sans-serif;color:#fff;letter-spacing:.6px;margin:.2rem .2rem;">PICKS</h3>
+        <h3 style="font-family:'Bebas Neue',sans-serif;color:#fff;letter-spacing:.6px;margin:.2rem .2rem;">PICKS</h3>
         <div>
-          <button id="playAllBtn" class="playall" title="Play all (selected DJ)">▶ Play All</button>
-          <button id="shuffleBtn" class="playall" title="Shuffle (selected DJ)">🔀 Shuffle</button>
+          <button id="playDJ" class="btn" title="Play all from selected DJ">▶ Play DJ</button>
+          <button id="shuffleDJ" class="btn" title="Shuffle selected DJ">🔀 Shuffle DJ</button>
+          <button id="playAll" class="btn" title="Play all DJs in order">▶ Play All</button>
+          <button id="shuffleAll" class="btn" title="Shuffle all DJs">🔀 Shuffle All</button>
         </div>
       </div>
       <div id="cards" class="cards"></div>
     </section>
 
-    <!-- RIGHT: Now Playing -->
+    <!-- RIGHT: Now Playing + full queue below -->
     <aside class="nowp" aria-label="Now Playing">
       <h3>Now Playing</h3>
-      <div class="player-shell">
-        <div id="mainPreview"><!-- player injected --></div>
-      </div>
-      <div class="queue" id="queueBox" aria-label="Queue"></div>
+      <div class="player-shell"><div id="mainPreview"></div></div>
+      <div class="queue" id="queueBox" aria-label="Playback order"></div>
     </aside>
-
-    <!-- MOBILE: Accordion list (only visible on mobile via CSS) -->
-    <section class="dj-accordion" id="djAccordion" aria-label="Mobile Selectors" style="display:none;"></section>
   </main>
 
   <!-- Sticky Mini Player (mobile) -->
   <div id="miniPlayer" aria-live="polite">
     <div class="mp-thumb" id="mpThumb"></div>
-    <div>
-      <div class="mp-title" id="mpTitle">Nothing playing</div>
-      <div class="mp-sub" id="mpSub">Select a clip</div>
-    </div>
+    <div><div class="mp-title" id="mpTitle">Nothing playing</div><div class="mp-sub" id="mpSub">Select a clip</div></div>
     <button id="mpPrev" class="mp-btn" title="Previous">⏮</button>
     <button id="mpPlayPause" class="mp-btn" title="Play/Pause">⏯</button>
     <button id="mpNext" class="mp-btn" title="Next">⏭</button>
@@ -368,15 +273,12 @@
     };
     window.RC = {
       API_KEY: 'pk_0b8abc6f834b444f949f727e88a728e0',
-      // Try these common search endpoints (first one that returns an image wins)
       ENDPOINTS: [
         'https://api.radiocult.fm/v1/search/artists?q=',
         'https://api.radiocult.app/v1/search/artists?q=',
-        'https://api.radiocult.io/v1/search/artists?q=',
-        'https://radiocult.fm/api/search?type=artist&q='
+        'https://api.radiocult.io/v1/search/artists?q='
       ],
-      // Optional CDN pattern fallback if you know your slugs: /images/djs/{slug}.jpg on your site.
-      LOCAL_DJ_IMAGE_PREFIX: '/images/djs/' // e.g. /images/djs/benny-forz.jpg
+      LOCAL_DJ_IMAGE_PREFIX: '/images/djs/'
     };
   </script>
 
@@ -387,54 +289,34 @@
     const $   = (s, r=document) => r.querySelector(s);
     const $$  = (s, r=document) => [...r.querySelectorAll(s)];
 
-    /* ====== Elements ====== */
-    const rootMain   = document.querySelector('main.c4-grid');
-    const djGrid     = $('#djGrid');
-    const cardsBox   = $('#cards');
-    const queueBox   = $('#queueBox');
-    const mainPreview= $('#mainPreview');
+    /* Elements */
+    const djGrid   = $('#djGrid');
+    const cardsBox = $('#cards');
+    const queueBox = $('#queueBox');
+    const mainPreview = $('#mainPreview');
 
-    const playAllBtn = $('#playAllBtn');
-    const shuffleBtn = $('#shuffleBtn');
+    const btnPlayDJ     = $('#playDJ');
+    const btnShuffleDJ  = $('#shuffleDJ');
+    const btnPlayAll    = $('#playAll');
+    const btnShuffleAll = $('#shuffleAll');
 
-    const mpBar      = $('#miniPlayer');
-    const mpThumb    = $('#mpThumb');
-    const mpTitle    = $('#mpTitle');
-    const mpSub      = $('#mpSub');
-    const mpPrev     = $('#mpPrev');
-    const mpPP       = $('#mpPlayPause');
-    const mpNext     = $('#mpNext');
+    const mpBar   = $('#miniPlayer'), mpThumb = $('#mpThumb'), mpTitle = $('#mpTitle'), mpSub = $('#mpSub');
+    const mpPrev  = $('#mpPrev'), mpPP = $('#mpPlayPause'), mpNext = $('#mpNext');
 
-    const adminOverlay   = $('#adminOverlay');
-    const adminEntriesBox= $('#adminEntries');
-    const addEntryBtn    = $('#addEntryBtn');
-    const adminSaveBtn   = $('#adminSave');
-    const adminCloseBtn  = $('#adminClose');
-    const adminStatus    = $('#adminStatus');
-    const clearImgCache  = $('#clearImgCache');
-
+    /* State */
     const state = {
-      entries: [],            // [{name, links[], rcSlug?, image?}]
-      authed:false,
-      selected: 0,            // selected DJ index
-      queue: [],              // current queue of YT ids for selected DJ
-      qidx: 0,                // index within queue
-      apiReady:false,
-      player:null,
-      rcImgCache:{},          // name/slug -> image URL
-      lastVideoData:{title:'', video_id:''}
+      entries: [],           // [{name, links[], rcSlug?, image?}]
+      selected: 0,           // index of selected DJ
+      queue: [],             // array of {id, djIndex, clipIndex}
+      qidx: 0,               // pointer in queue
+      scope: 'dj',           // 'dj' or 'all'
+      player:null, apiReady:false, lastVideoTitle:'',
+      rcImgCache:{}
     };
 
-    /* ====== Layout sizing ====== */
-    function setHeights(){
-      const rect = rootMain.getBoundingClientRect();
-      const usable = Math.max(360, window.innerHeight - rect.top - 12);
-      document.documentElement.style.setProperty('--usable', usable+'px');
-    }
-    window.addEventListener('resize', setHeights, {passive:true});
-    window.addEventListener('load', setHeights, {passive:true});
-
-    /* ====== YouTube helpers ====== */
+    /* Utilities */
+    const norm = s => (s||'').toLowerCase().replace(/\s+/g,' ').replace(/[–—]/g,'-').trim();
+    const slugify = s => (s||'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
     const ytId = (u) => {
       try{
         const x = new URL(u);
@@ -446,8 +328,9 @@
         return '';
       }catch{ return ''; }
     };
-    window.onYouTubeIframeAPIReady = () => { state.apiReady = true; };
 
+    /* YouTube */
+    window.onYouTubeIframeAPIReady = () => { state.apiReady = true; };
     function ensurePlayer(){
       if ($('#ytPlayer')) return;
       mainPreview.innerHTML = `<div id="ytPlayer"></div>`;
@@ -461,20 +344,13 @@
             videoId,
             playerVars:{ rel:0, modestbranding:1, playsinline:1, enablejsapi:1 },
             events:{
-              onReady: (e)=>{ autoplay ? e.target.playVideo() : e.target.cueVideoById(videoId); updateMiniMeta(); },
-              onStateChange: (e)=>{
-                // Update Now Playing text from YT when available
-                try {
-                  const d = state.player?.getVideoData?.() || {};
-                  if (d?.title) { state.lastVideoData.title = d.title; }
-                }catch{}
-                if (e.data === YT.PlayerState.ENDED && state.queue.length){
-                  if (state.qidx < state.queue.length - 1){
-                    state.qidx += 1; playAtIndex(state.qidx, true);
-                  }
+              onReady: e => { autoplay ? e.target.playVideo() : e.target.cueVideoById(videoId); updateMini(); },
+              onStateChange: e => {
+                try{ state.lastVideoTitle = state.player?.getVideoData?.().title || state.lastVideoTitle; }catch{}
+                if (e.data === YT.PlayerState.ENDED){
+                  if (state.qidx < state.queue.length-1){ state.qidx++; playAt(state.qidx,true); }
                 }
-                highlightQueue();
-                updateMiniMeta();
+                highlightQueue(); updateMini();
               }
             }
           });
@@ -487,187 +363,135 @@
         setTimeout(()=>clearInterval(iv), 4000);
       }
     }
-
-    function playAtIndex(idx, autoplay=true){
-      const id = state.queue[idx];
-      if (!id) return;
-      state.qidx = idx;
-      createOrLoad(id, autoplay);
-      highlightQueue();
-      updateMiniMeta();
+    function playAt(i, autoplay=true){
+      const item = state.queue[i]; if (!item) return;
+      state.qidx = i;
+      createOrLoad(item.id, autoplay);
+      highlightQueue(); updateMini();
     }
 
-    function updateMiniMeta(){
-      // Try to populate title from YT player if possible
-      let title = state.lastVideoData.title || '';
-      try { title = state.player?.getVideoData?.().title || title; }catch{}
-      const dj = state.entries[state.selected]?.name || '—';
-      mpTitle.textContent = title || 'Playing…';
-      mpSub.textContent = dj;
-      const vid = state.queue[state.qidx];
+    /* Mini player (mobile) */
+    function updateMini(){
+      const item = state.queue[state.qidx] || {};
+      const vid  = item.id;
+      const dj   = state.entries[item.djIndex]?.name || '—';
+      try{ state.lastVideoTitle = state.player?.getVideoData?.().title || state.lastVideoTitle; }catch{}
+      mpTitle.textContent = state.lastVideoTitle || `Clip ${ (item.clipIndex??0)+1 }`;
+      mpSub.textContent   = dj;
       if (vid) mpThumb.style.backgroundImage = `url('https://i.ytimg.com/vi/${vid}/hqdefault.jpg')`;
     }
+    mpPrev.addEventListener('click', ()=>{ if (state.qidx>0){ state.qidx--; playAt(state.qidx,true);} }, {passive:true});
+    mpNext.addEventListener('click', ()=>{ if (state.qidx<state.queue.length-1){ state.qidx++; playAt(state.qidx,true);} }, {passive:true});
+    mpPP.addEventListener('click', ()=>{
+      try{ const s = state.player?.getPlayerState?.(); (s===YT.PlayerState.PLAYING)?state.player.pauseVideo():state.player.playVideo(); }catch{}
+    }, {passive:true});
 
-    /* ====== Radio Cult images ====== */
-    function slugify(s){ return (s||'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''); }
-    function loadImgCache(){
-      try{ state.rcImgCache = JSON.parse(localStorage.getItem('rc_img_cache')||'{}'); }catch{ state.rcImgCache={}; }
-    }
+    /* Radio Cult images (EXACT match first) */
+    function loadImgCache(){ try{ state.rcImgCache = JSON.parse(localStorage.getItem('rc_img_cache')||'{}'); }catch{ state.rcImgCache={}; } }
     function saveImgCache(){ localStorage.setItem('rc_img_cache', JSON.stringify(state.rcImgCache)); }
-    async function fetchRcImage(name, rcSlug, imageOverride){
-      // Priority: explicit image URL > cached > try endpoints > local pattern fallback
-      if (imageOverride) return imageOverride;
-      const keyName = rcSlug || name;
-      if (state.rcImgCache[keyName]) return state.rcImgCache[keyName];
+    async function rcImageFor(name, rcSlug, overrideUrl){
+      if (overrideUrl) return overrideUrl;
+      const key = rcSlug || name;
+      if (state.rcImgCache[key]) return state.rcImgCache[key];
 
       const headers = RC.API_KEY ? { 'Authorization': 'Bearer '+RC.API_KEY } : {};
-      const tryEndpoints = (RC.ENDPOINTS||[]).slice(0,4);
+      const query = encodeURIComponent(rcSlug || name);
 
-      for (const base of tryEndpoints){
+      for (const base of RC.ENDPOINTS){
         try{
-          const q = encodeURIComponent(rcSlug || name);
-          const r = await fetch(base+q, {headers, mode:'cors'});
+          const r = await fetch(base+query, {headers, mode:'cors'});
           if (!r.ok) continue;
           const j = await r.json();
-          // Attempt a few common shapes
-          const cand =
-            j?.items?.[0]?.image_url ||
-            j?.items?.[0]?.image ||
-            j?.results?.[0]?.image_url ||
-            j?.results?.[0]?.image ||
-            j?.[0]?.image_url ||
-            j?.[0]?.image ||
-            null;
-          if (cand && /^https?:\/\//i.test(cand)){
-            state.rcImgCache[keyName] = cand; saveImgCache(); return cand;
+          const items = j?.items || j?.results || j || [];
+          // exact/normalized match preference
+          let best = null;
+          for (const it of items){
+            const nm = it?.name || it?.title || it?.display_name || it?.artist || '';
+            if (norm(nm) === norm(name)) { best = it; break; }
+            if (rcSlug && slugify(nm) === slugify(rcSlug)) { best = it; break; }
+            if (!best) best = it; // keep first as soft fallback
           }
-        }catch(_){} // keep trying
+          const img = best?.image_url || best?.image || best?.avatar || null;
+          if (img && /^https?:\/\//i.test(img)){ state.rcImgCache[key] = img; saveImgCache(); return img; }
+        }catch(_){}
       }
-      // Local convention fallback: /images/djs/{slug}.jpg
-      return RC.LOCAL_DJ_IMAGE_PREFIX ? (RC.LOCAL_DJ_IMAGE_PREFIX + (rcSlug||slugify(name)) + '.jpg') : '';
+      return RC.LOCAL_DJ_IMAGE_PREFIX + (rcSlug || slugify(name)) + '.jpg';
     }
 
-    /* ====== Build UI ====== */
-    function buildQueueForSelected(shuffle=false){
-      const entry = state.entries[state.selected] || {};
-      let vids = (entry.links||[]).map(ytId).filter(Boolean);
-      if (shuffle){
-        for (let i=vids.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [vids[i],vids[j]]=[vids[j],vids[i]]; }
-      }
-      state.queue = vids; state.qidx = 0;
+    /* Build queues */
+    function buildQueueDJ(djIdx, shuffle=false){
+      const entry = state.entries[djIdx] || {};
+      let vids = (entry.links||[]).map(ytId).map((id, i)=> id?({id, djIndex:djIdx, clipIndex:i}):null).filter(Boolean);
+      if (shuffle){ for(let i=vids.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [vids[i],vids[j]]=[vids[j],vids[i]]; } }
+      state.queue = vids; state.qidx = 0; state.scope='dj';
     }
-
-    function highlightQueue(){
-      $$('.q-item', queueBox).forEach((el,i)=>{
-        el.classList.toggle('active', i===state.qidx);
+    function buildQueueAll(shuffle=false){
+      const all = [];
+      state.entries.forEach((e, djIdx)=>{
+        (e.links||[]).forEach((u, i)=>{ const id=ytId(u); if(id) all.push({id, djIndex:djIdx, clipIndex:i}); });
       });
-      // highlight card stack too
-      $$('.card', cardsBox).forEach((el,i)=> el.style.outline = (i===state.qidx?'2px solid var(--brand-teal)':'0'));
+      if (shuffle){ for(let i=all.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [all[i],all[j]]=[all[j],all[i]]; } }
+      state.queue = all; state.qidx = 0; state.scope='all';
     }
 
-    function renderQueue(){
-      queueBox.innerHTML = '';
-      const entry = state.entries[state.selected] || {name:'—'};
-      state.queue.forEach((vid,i)=>{
-        const qi = document.createElement('div');
-        qi.className = 'q-item';
-        qi.innerHTML = `<div class="idx-dot">${i+1}</div><div>${entry.name}</div>`;
-        qi.addEventListener('click', ()=> playAtIndex(i,true), {passive:true});
-        queueBox.appendChild(qi);
-      });
-      highlightQueue();
-    }
-
-    async function renderCards(){
-      cardsBox.innerHTML = '';
-      const entry = state.entries[state.selected] || {};
-      const name = entry.name || 'Untitled';
-
-      // Fetch DJ image for small overlay thumb when needed (not critical)
-      for (let i=0;i<Math.min(5,(entry.links||[]).length);i++){
-        const u = entry.links[i]; const id = ytId(u); if (!id) continue;
-        const card = document.createElement('div'); card.className='card';
-        const t = document.createElement('div'); t.className='thumb'; t.style.backgroundImage=`url('https://i.ytimg.com/vi/${id}/hqdefault.jpg')`;
-        const meta = document.createElement('div'); meta.className='meta';
-        meta.innerHTML = `<div class="title">Clip ${i+1}</div><div class="sub">${name}</div>`;
-        const play = document.createElement('button'); play.className='btn'; play.innerHTML='▶';
-        play.addEventListener('click', ()=> { state.qidx = i; playAtIndex(i,true); }, {passive:true});
-        card.appendChild(t); card.appendChild(meta); card.appendChild(play);
-        cardsBox.appendChild(card);
-      }
-      highlightQueue();
-    }
-
-    async function renderDjGallery(){
+    /* Renderers */
+    async function renderDJGrid(){
       djGrid.innerHTML = '';
-      const promises = [];
-      state.entries.forEach((e, idx)=>{
-        const tile = document.createElement('div');
-        tile.className = 'dj-tile'; tile.setAttribute('role','listitem');
+      const promises = state.entries.map(async (e, idx)=>{
+        const url = await rcImageFor(e.name, e.rcSlug, e.image);
+        const tile = document.createElement('div'); tile.className='dj-tile'; tile.style.backgroundImage = `url('${(url||'').replace(/'/g,"%27")}')`;
+        tile.setAttribute('role','listitem');
         const label = document.createElement('div'); label.className='dj-name'; label.textContent = e.name || 'Untitled';
         tile.appendChild(label);
         tile.addEventListener('click', ()=>{
           state.selected = idx;
           $$('.dj-tile', djGrid).forEach(el=>el.classList.remove('active'));
           tile.classList.add('active');
-          buildQueueForSelected(false);
-          renderCards(); renderQueue(); playAtIndex(0,false);
+          buildQueueDJ(idx,false); renderCards(); renderQueue(); playAt(0,false);
         }, {passive:true});
-        promises.push(
-          fetchRcImage(e.name, e.rcSlug, e.image).then(url=>{
-            if (url) tile.style.backgroundImage = `url('${url.replace(/'/g,"%27")}')`;
-          })
-        );
-        djGrid.appendChild(tile);
         if (idx===state.selected) tile.classList.add('active');
+        djGrid.appendChild(tile);
       });
       await Promise.allSettled(promises);
     }
 
-    function renderMobileAccordion(){
-      const acc = $('#djAccordion');
-      if (!acc) return;
-      // show block on mobile (CSS adds padding to main already)
-      if (window.matchMedia('(max-width: 980px)').matches) acc.style.display='block';
-      else acc.style.display='none';
-
-      acc.innerHTML = '';
-      state.entries.forEach((e,idx)=>{
-        const d = document.createElement('details');
-        const sum = document.createElement('summary'); sum.textContent = e.name || 'Untitled';
-        d.appendChild(sum);
-
-        const inner = document.createElement('div'); inner.className='acc-inner';
-        (e.links||[]).slice(0,5).forEach((u,i)=>{
-          const id = ytId(u); if (!id) return;
-          const row = document.createElement('div'); row.className='acc-card';
-          const th = document.createElement('div'); th.className='acc-thumb'; th.style.backgroundImage = `url('https://i.ytimg.com/vi/${id}/hqdefault.jpg')`;
-          const ttl = document.createElement('div'); ttl.className='acc-title'; ttl.textContent = `Clip ${i+1}`;
-          row.appendChild(th); row.appendChild(ttl);
-          row.addEventListener('click', ()=>{
-            state.selected = idx; buildQueueForSelected(false); renderQueue();
-            // play and open mini player cue
-            playAtIndex(i,true);
-            // ensure the mini shows correct text
-            updateMiniMeta();
-          }, {passive:true});
-          inner.appendChild(row);
-        });
-        d.appendChild(inner);
-        acc.appendChild(d);
+    async function renderCards(){
+      cardsBox.innerHTML = '';
+      const e = state.entries[state.selected] || {};
+      (e.links||[]).slice(0,5).forEach((u,i)=>{
+        const id = ytId(u); if (!id) return;
+        const card = document.createElement('div'); card.className='card';
+        const t = document.createElement('div'); t.className='thumb'; t.style.backgroundImage=`url('https://i.ytimg.com/vi/${id}/hqdefault.jpg')`;
+        const meta = document.createElement('div'); meta.className='meta';
+        meta.innerHTML = `<div class="title">Clip ${i+1}</div><div class="sub">${e.name||''}</div>`;
+        const play = document.createElement('button'); play.className='play'; play.innerHTML='▶';
+        play.addEventListener('click', ()=>{ buildQueueDJ(state.selected,false); state.qidx=i; playAt(i,true); renderQueue(); }, {passive:true});
+        card.appendChild(t); card.appendChild(meta); card.appendChild(play);
+        cardsBox.appendChild(card);
       });
+      highlightQueue();
     }
 
-    function firstPlayable(){
-      for (let i=0;i<state.entries.length;i++){
-        const links = state.entries[i]?.links||[];
-        if (links.some(u=>ytId(u))) return i;
-      }
-      return 0;
+    function renderQueue(){
+      queueBox.innerHTML = '';
+      state.queue.forEach((item, i)=>{
+        const who = state.entries[item.djIndex]?.name || '';
+        const qi = document.createElement('div'); qi.className='q-item';
+        qi.innerHTML = `<div class="q-num">${i+1}</div><div>Clip ${ (item.clipIndex??0)+1 }</div><div class="q-who">${who}</div>`;
+        qi.addEventListener('click', ()=> playAt(i,true), {passive:true});
+        queueBox.appendChild(qi);
+      });
+      highlightQueue();
+    }
+    function highlightQueue(){
+      $$('.q-item', queueBox).forEach((el,i)=> el.classList.toggle('active', i===state.qidx));
+      $$('.card', cardsBox).forEach((el,i)=> el.style.outline = (state.scope==='dj' && i===state.qidx ? '2px solid var(--brand-teal)' : '0'));
     }
 
-    /* ===== Load / Save config (server & local) ===== */
-    async function serverLoad(){
+    function firstPlayable(){ return Math.max(0, state.entries.findIndex(e => (e.links||[]).some(u=>ytId(u)))); }
+
+    /* Load / Save */
+    async function loadEntries(){
       try{
         const r = await fetch(`${CFG.CONFIG_ENDPOINT}?action=load`, {cache:'no-store'});
         if (r.ok){ const j = await r.json(); if (Array.isArray(j?.entries)) return j.entries; }
@@ -677,11 +501,11 @@
         if (r.ok){ const j = await r.json(); if (Array.isArray(j?.entries)) return j.entries; }
       }catch(_){}
       try{
-        const s = localStorage.getItem('cutty_ranks_entries'); if (s){ const a = JSON.parse(s); if (Array.isArray(a)) return a; }
+        const s = localStorage.getItem('cutty_ranks_entries'); if (s){ const a=JSON.parse(s); if (Array.isArray(a)) return a; }
       }catch(_){}
       return [];
     }
-    async function serverSave(entries){
+    async function saveEntries(entries){
       const r = await fetch(CFG.CONFIG_ENDPOINT+'?action=save', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({entries, auth: CFG.ADMIN_HASH_HEX})
@@ -691,7 +515,15 @@
       return j.entries || entries;
     }
 
-    /* ===== Admin (Shift+A) ===== */
+    /* Admin */
+    const adminOverlay = $('#adminOverlay');
+    const adminEntriesBox = $('#adminEntries');
+    const addEntryBtn = $('#addEntryBtn');
+    const adminSaveBtn = $('#adminSave');
+    const adminCloseBtn = $('#adminClose');
+    const clearImgCache = $('#clearImgCache');
+    const adminStatus = $('#adminStatus');
+
     function entryRow(data={}){
       const wrap = document.createElement('div'); wrap.className='entry';
       wrap.innerHTML = `
@@ -718,9 +550,7 @@
       adminOverlay.classList.remove('adminHidden'); adminOverlay.setAttribute('aria-hidden','false');
       adminStatus.textContent = '';
     }
-    function closeAdmin(){
-      adminOverlay.classList.add('adminHidden'); adminOverlay.setAttribute('aria-hidden','true');
-    }
+    function closeAdmin(){ adminOverlay.classList.add('adminHidden'); adminOverlay.setAttribute('aria-hidden','true'); }
     adminCloseBtn.addEventListener('click', closeAdmin, {passive:true});
     addEntryBtn.addEventListener('click', ()=> adminEntriesBox.appendChild(entryRow()), {passive:true});
     clearImgCache.addEventListener('click', ()=>{ localStorage.removeItem('rc_img_cache'); loadImgCache(); adminStatus.textContent='Image cache cleared.'; });
@@ -735,7 +565,7 @@
       }).filter(Boolean);
       if(!entries.length){ adminStatus.textContent='Nothing to save.'; return; }
 
-      const ok = (u)=>/^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//i.test(u);
+      const ok = u=>/^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//i.test(u);
       for(const e of entries){
         if(!e.name){ adminStatus.textContent='Each DJ needs a name.'; return; }
         if(e.links.some(u=>!ok(u))) { adminStatus.textContent='Only YouTube links supported.'; return; }
@@ -743,86 +573,56 @@
 
       adminStatus.textContent='Saving…';
       try{
-        const saved = await serverSave(entries);
+        const saved = await saveEntries(entries);
         state.entries = saved;
         localStorage.setItem('cutty_ranks_entries', JSON.stringify(saved));
-        await postLoadRender();
+        await fullRender();
         adminStatus.textContent='Saved.';
       }catch(err){
         console.error(err);
         state.entries = entries;
         localStorage.setItem('cutty_ranks_entries', JSON.stringify(entries));
-        await postLoadRender();
+        await fullRender();
         adminStatus.textContent='Saved locally (check server).';
       }
     });
 
-    function isTypingTarget(el){
-      if (!el) return false;
-      const tag = el.tagName;
-      return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable;
-    }
+    function isTypingTarget(el){ if (!el) return false; const t=el.tagName; return t==='INPUT'||t==='TEXTAREA'||t==='SELECT'||el.isContentEditable; }
     window.addEventListener('keydown', async (e)=>{
-      const key = (e.key || '').toLowerCase();
-      const isShiftA = e.shiftKey && (key === 'a' || e.code === 'KeyA');
-      if (!isShiftA) return;
-      if (isTypingTarget(document.activeElement)) return;
-
+      const key=(e.key||'').toLowerCase(); const isShiftA=e.shiftKey && (key==='a'||e.code==='KeyA');
+      if (!isShiftA) return; if (isTypingTarget(document.activeElement)) return;
       e.preventDefault();
-      if(!state.authed){
-        const pw = prompt('Enter passphrase'); if(!pw) return;
-        try{
-          const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
-          const hex = [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
-          if(hex===CFG.ADMIN_HASH_HEX){ state.authed=true; openAdmin(); } else alert('Incorrect passphrase');
-        }catch(err){ console.warn('digest error', err); }
-      } else openAdmin();
+      // simple auth check
+      const pw = prompt('Enter passphrase'); if(!pw) return;
+      try{
+        const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+        const hex = [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+        if(hex===CFG.ADMIN_HASH_HEX) openAdmin(); else alert('Incorrect passphrase');
+      }catch(err){ console.warn('digest error', err); }
     }, true);
 
-    function adminWantedFromURL(){ const p=new URLSearchParams(location.search); return p.get('admin')==='1' || location.hash==='#admin'; }
+    /* Controls */
+    btnPlayDJ.addEventListener('click', ()=>{ buildQueueDJ(state.selected,false); renderQueue(); playAt(0,true); }, {passive:true});
+    btnShuffleDJ.addEventListener('click', ()=>{ buildQueueDJ(state.selected,true);  renderQueue(); playAt(0,true); }, {passive:true});
+    btnPlayAll.addEventListener('click', ()=>{ buildQueueAll(false); renderQueue(); playAt(0,true); }, {passive:true});
+    btnShuffleAll.addEventListener('click', ()=>{ buildQueueAll(true);  renderQueue(); playAt(0,true); }, {passive:true});
 
-    /* ===== Playlist control buttons ===== */
-    playAllBtn.addEventListener('click', ()=>{ buildQueueForSelected(false); renderQueue(); playAtIndex(0,true); }, {passive:true});
-    shuffleBtn.addEventListener('click', ()=>{ buildQueueForSelected(true); renderQueue(); playAtIndex(0,true); }, {passive:true});
-
-    /* ===== Mini player controls ===== */
-    mpPrev.addEventListener('click', ()=>{ if (state.qidx>0){ state.qidx--; playAtIndex(state.qidx,true);} }, {passive:true});
-    mpNext.addEventListener('click', ()=>{ if (state.qidx<state.queue.length-1){ state.qidx++; playAtIndex(state.qidx,true);} }, {passive:true});
-    mpPP.addEventListener('click', ()=>{
-      try{
-        const s = state.player?.getPlayerState?.();
-        if (s===YT.PlayerState.PLAYING) state.player.pauseVideo();
-        else state.player.playVideo();
-      }catch{}
-    }, {passive:true});
-
-    /* ===== Boot ===== */
-    async function postLoadRender(){
+    /* Boot */
+    async function fullRender(){
       loadImgCache();
       if (!state.entries.length) state.entries = [];
-      state.selected = firstPlayable();
-      await renderDjGallery();
-      buildQueueForSelected(false);
+      state.selected = Math.max(0, firstPlayable());
+      await renderDJGrid();
       await renderCards();
+      buildQueueDJ(state.selected,false);
       renderQueue();
-      playAtIndex(0,false);
-      renderMobileAccordion();
-      setHeights();
-      if (adminWantedFromURL()){
-        const pw = prompt('Enter passphrase');
-        if (pw) {
-          const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
-          const hex = [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
-          if(hex===CFG.ADMIN_HASH_HEX){ state.authed=true; openAdmin(); } else alert('Incorrect passphrase');
-        }
-      }
+      playAt(0,false);
     }
 
     document.addEventListener('DOMContentLoaded', async ()=>{
-      // Show mini bar on mobile always (it will show placeholder until play)
       if (window.matchMedia('(max-width: 980px)').matches) mpBar.style.display='grid';
-      state.entries = await serverLoad();
-      await postLoadRender();
+      state.entries = await loadEntries();
+      await fullRender();
     });
   })();
   </script>

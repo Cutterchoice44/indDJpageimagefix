@@ -191,16 +191,16 @@
     #mainPreview{ padding:16px; background:rgba(0,0,0,.35); box-shadow:inset 0 0 0 2px rgba(90,135,133,.45); border-radius:8px; }
 
     .hero-right{ background:#0b0b0b; border:2px solid var(--brand-teal); border-radius:6px; padding:.6rem .75rem; }
-    /* bump bio size overall */
-    .hero-bio{ font-size:clamp(1.8rem,2.6vw,2.0rem); }
 
-    /* keep the density behavior but bigger too */
-    .hero-bio.bio-tight1{ font-size:2.4em; }
-    .hero-bio.bio-tight2{ font-size:2.6em; }
-    .hero-bio.bio-tight3{ font-size:1.6em; } /* was 0.84em */
+    /* ===== DESKTOP/TABLET BIO SIZE (25% bump) ===== */
+    .hero-bio{ font-size:clamp(1.25rem,2.25vw,1.625rem); line-height:1.38; } /* was clamp(1rem,1.8vw,1.3rem) */
+    .hero-bio p{ margin:.25rem 0 .45rem; }
+    .hero-bio.bio-tight1{ font-size:2.0625em; line-height:1.32; } /* was 1.65em */
+    .hero-bio.bio-tight2{ font-size:2.5em;   line-height:1.28; }  /* was 2.00em */
+    .hero-bio.bio-tight3{ font-size:1.05em;  line-height:1.22; letter-spacing:.1px; } /* was 0.84em */
     .hero-bio.bio-tight3 p{ margin:.12rem 0 .22rem; }
 
-    /* *** MOBILE: reduce bio size ~20% (ONLY this block changed earlier) *** */
+    /* *** MOBILE: keep your original sizes exactly as-is *** */
     @media (max-width:768px){
       .hero-bio{ font-size:clamp(0.8rem,1.5vw,1.04rem); line-height:1.36; }
       .hero-bio.bio-tight1{ font-size:1.32em; }
@@ -218,7 +218,7 @@
     .nextbar{ margin:.25rem .6rem .55rem; }
     .nextbar-inner{ display:flex; align-items:center; gap:.8rem; background:#0b0b0b; border:2px solid var(--brand-teal); padding:.45rem .6rem; border-radius:6px; }
     .nextbar .label{ font-family:'Bebas Neue',sans-serif; font-size:clamp(1rem,2vw,1.35rem); }
-    .nextbar .when{ font-family:'Bebas Neue',sans-serif; font-size:clamp(1.05rem,2.2vw,1.45rem); color:var(--brand-teal); }
+    .nextbar .when{ font-family:'Bebas Neue',sans-serif; font-size:clamp(1.05rem,2.2vw,1.45rem); color:#5A8785; }
 
     .compact-grid{ display:grid; grid-template-columns:240px minmax(0,1fr); gap:.6rem; padding:0 .6rem 1rem; }
     .strip-list{ display:grid; grid-template-rows:repeat(5,1fr); gap:.35rem; }
@@ -584,7 +584,7 @@
       if(t.kind==='bandcamp'){ setPreviewBC(t.url); }
       else {
         let src=t.src;
-        if (play && t.kind==='youtube') src += (src.includes('?') ? '&' : '?') + 'autoplay=1';
+        if (play && t.kind==='youtube') src += (src includes('?') ? '&' : '?') + 'autoplay=1';
         mainPreview.innerHTML=iframe(src, t.kind==='youtube'?'YouTube player':'Media player');
       }
     }

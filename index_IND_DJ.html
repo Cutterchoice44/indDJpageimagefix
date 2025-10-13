@@ -91,6 +91,7 @@
 
     /* ================= DJ SELECTS — MOBILE NAV & gap fix ================= */
     @media (max-width:768px){
+      /* force single-row layout, remove any injected bottom border/dividers */
       body.dj-selects nav#main-nav{
         display:flex !important;
         flex-direction:row !important;
@@ -108,12 +109,16 @@
       body.dj-selects nav#main-nav::before{
         content:none !important;
         display:none !important;
+        height:0 !important;
+        border:0 !important;
       }
+      /* kill any secondary rows/dup navs if present */
       body.dj-selects nav#main-nav .nav-actions,
       body.dj-selects nav#main-nav .nav-row-2,
       body.dj-selects nav#mobile-nav,
       body.dj-selects .secondary-nav{ display:none !important; }
 
+      /* single line, allow horizontal scroll if tight */
       body.dj-selects nav#main-nav .nav-menu{
         display:flex !important;
         flex:1 1 auto !important;
@@ -127,6 +132,7 @@
       }
       body.dj-selects nav#main-nav .nav-menu::-webkit-scrollbar{ display:none; }
 
+      /* compact link sizes */
       body.dj-selects nav#main-nav .nav-link,
       body.dj-selects nav#main-nav summary.nav-link{
         font-size:clamp(.8rem,3.2vw,1rem) !important;
@@ -134,6 +140,7 @@
         letter-spacing:.04em !important;
       }
 
+      /* *** remove the black empty space under nav on mobile *** */
       body.dj-selects #main-nav + .djselects-hero{ margin-top:0 !important; }
       body.dj-selects .nav-sep.bottom { display:none !important; }
     }
@@ -146,22 +153,30 @@
       display:grid; grid-template-columns:1.2fr auto 1.2fr;
       gap:.55rem; align-items:center; row-gap:.35rem;
 
-      position:relative;
-      isolation:isolate;
+      /* ▼▼ background image layer for the blank area ▼▼ */
+      position:relative;            /* create stacking context */
+      isolation:isolate;            /* keep ::before beneath children only */
     }
+    /* The image will scale to cover this hero band.
+       Upload djselectimage.png next to this HTML file. */
     .djselects-hero::before{
       content:"";
-      position:absolute; inset:0;
-      background-image:url('djselectimage.png'); /* ensure this file exists next to this HTML */
+      position:absolute;
+      inset:0;
+      background-image:url('djselectimage.png');
       background-repeat:no-repeat;
       background-size:cover;
       background-position:center;
-      z-index:0; /* stays behind content */
+      z-index:0;                    /* sit behind content */
     }
-    .djselects-hero > *{ position:relative; z-index:1; }
+    .djselects-hero > *{ position:relative; z-index:1; } /* ensure content sits above image */
 
+    /* --- MOBILE-ONLY: remove hero background image (djselectimage.png) --- */
     @media (max-width:768px){
-      body.dj-selects .djselects-hero::before{ content:none !important; background:none !important; }
+      body.dj-selects .djselects-hero::before{
+        content:none !important;
+        background:none !important;
+      }
     }
 
     .strap{ font-family:'Bebas Neue',sans-serif; }
@@ -176,16 +191,22 @@
     #mainPreview{ padding:16px; background:rgba(0,0,0,.35); box-shadow:inset 0 0 0 2px rgba(90,135,133,.45); border-radius:8px; }
 
     .hero-right{ background:#0b0b0b; border:2px solid var(--brand-teal); border-radius:6px; padding:.6rem .75rem; }
-
-    /* ===== DESKTOP/TABLET BIO SIZE (25% bump) ===== */
-    .hero-bio{ font-size:clamp(1.25rem,2.25vw,1.625rem); line-height:1.38; } /* was clamp(1rem,1.8vw,1.3rem) */
+    .hero-bio{ font-size:clamp(1rem,1.8vw,1.3rem); line-height:1.38; }
     .hero-bio p{ margin:.25rem 0 .45rem; }
-    .hero-bio.bio-tight1{ font-size:2.0625em; line-height:1.32; } /* was 1.65em */
-    .hero-bio.bio-tight2{ font-size:2.5em;   line-height:1.28; }  /* was 2.00em */
-    .hero-bio.bio-tight3{ font-size:1.05em;  line-height:1.22; letter-spacing:.1px; } /* was 0.84em */
+    .hero-bio.bio-tight1{ font-size:1.65em; line-height:1.32; }
+    .hero-bio.bio-tight2{ font-size:2.00em; line-height:1.28; }
+    .hero-bio.bio-tight3{ font-size:0.84em; line-height:1.22; letter-spacing:.1px; }
     .hero-bio.bio-tight3 p{ margin:.12rem 0 .22rem; }
 
-    /* *** MOBILE: unchanged *** */
+    /* ==== DESKTOP/TABLET ONLY: +25% bio size ==== */
+    @media (min-width:769px){
+      .hero-bio{ font-size:clamp(1.25rem,2.25vw,1.625rem); }       /* +25% */
+      .hero-bio.bio-tight1{ font-size:2.0625em; }                 /* 1.65em -> 2.0625em */
+      .hero-bio.bio-tight2{ font-size:2.5em; }                    /* 2.00em -> 2.5em */
+      .hero-bio.bio-tight3{ font-size:1.05em; }                   /* 0.84em -> 1.05em */
+    }
+
+    /* *** MOBILE: reduce bio size ~20% (unchanged) *** */
     @media (max-width:768px){
       .hero-bio{ font-size:clamp(0.8rem,1.5vw,1.04rem); line-height:1.36; }
       .hero-bio.bio-tight1{ font-size:1.32em; }
@@ -203,7 +224,7 @@
     .nextbar{ margin:.25rem .6rem .55rem; }
     .nextbar-inner{ display:flex; align-items:center; gap:.8rem; background:#0b0b0b; border:2px solid var(--brand-teal); padding:.45rem .6rem; border-radius:6px; }
     .nextbar .label{ font-family:'Bebas Neue',sans-serif; font-size:clamp(1rem,2vw,1.35rem); }
-    .nextbar .when{ font-family:'Bebas Neue',sans-serif; font-size:clamp(1.05rem,2.2vw,1.45rem); color:#5A8785; }
+    .nextbar .when{ font-family:'Bebas Neue',sans-serif; font-size:clamp(1.05rem,2.2vw,1.45rem); color:var(--brand-teal); }
 
     .compact-grid{ display:grid; grid-template-columns:240px minmax(0,1fr); gap:.6rem; padding:0 .6rem 1rem; }
     .strip-list{ display:grid; grid-template-rows:repeat(5,1fr); gap:.35rem; }
@@ -504,10 +525,7 @@
         const list=j?.schedules||j?.data||j?.items||[];
         if(!Array.isArray(list)||!list.length){ nextWhen.textContent='TBA'; return; }
         const iso=s=>s.startDateUtc||s.startDate||s.start||s.scheduledStart||s.start_time||s.start_at;
-        const future=list
-          .map(s=>({s,t:new Date(iso(s)||0)}))
-          .filter(x=>x.t>new Date())
-          .sort((a,b)=>a.t-b.t)[0];
+        const future=list.map(s=>({s,t:new Date(iso(s)||0)})).filter(x=>x.t>new Date()).sort((a,b)=>a.t-b.t)[0];
         nextWhen.textContent=future?nz(iso(future.s)):nz(iso(list[0]));
       }catch{ nextWhen.textContent='Unable to load schedule'; }
     }
@@ -555,7 +573,7 @@
         id=(id||'').split('?')[0].split('&')[0]; if(!id) return null;
         return {kind:'youtube', src:`https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`};
       }
-      return {kind:'iframe', src=u.trim()};
+      return {kind:'iframe', src:u.trim()};
     }catch{return null;} };
 
     const iframe=(src,title='Media player')=>`<iframe src="${src}" title="${title}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
@@ -572,7 +590,7 @@
       if(t.kind==='bandcamp'){ setPreviewBC(t.url); }
       else {
         let src=t.src;
-        if (play && t.kind==='youtube') src += (src.includes('?') ? '&' : '?') + 'autoplay=1'; /* fixed dot */
+        if (play && t.kind==='youtube') src += (src.includes('?') ? '&' : '?') + 'autoplay=1';
         mainPreview.innerHTML=iframe(src, t.kind==='youtube'?'YouTube player':'Media player');
       }
     }

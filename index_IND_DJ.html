@@ -91,7 +91,6 @@
 
     /* ================= DJ SELECTS — MOBILE NAV & gap fix ================= */
     @media (max-width:768px){
-      /* force single-row layout, remove any injected bottom border/dividers */
       body.dj-selects nav#main-nav{
         display:flex !important;
         flex-direction:row !important;
@@ -106,19 +105,12 @@
         row-gap:0 !important;
       }
       body.dj-selects nav#main-nav::after,
-      body.dj-selects nav#main-nav::before{
-        content:none !important;
-        display:none !important;
-        height:0 !important;
-        border:0 !important;
-      }
-      /* kill any secondary rows/dup navs if present */
+      body.dj-selects nav#main-nav::before{ content:none !important; display:none !important; }
       body.dj-selects nav#main-nav .nav-actions,
       body.dj-selects nav#main-nav .nav-row-2,
       body.dj-selects nav#mobile-nav,
       body.dj-selects .secondary-nav{ display:none !important; }
 
-      /* single line, allow horizontal scroll if tight */
       body.dj-selects nav#main-nav .nav-menu{
         display:flex !important;
         flex:1 1 auto !important;
@@ -132,7 +124,6 @@
       }
       body.dj-selects nav#main-nav .nav-menu::-webkit-scrollbar{ display:none; }
 
-      /* compact link sizes */
       body.dj-selects nav#main-nav .nav-link,
       body.dj-selects nav#main-nav summary.nav-link{
         font-size:clamp(.8rem,3.2vw,1rem) !important;
@@ -140,7 +131,6 @@
         letter-spacing:.04em !important;
       }
 
-      /* *** remove the black empty space under nav on mobile *** */
       body.dj-selects #main-nav + .djselects-hero{ margin-top:0 !important; }
       body.dj-selects .nav-sep.bottom { display:none !important; }
     }
@@ -153,30 +143,22 @@
       display:grid; grid-template-columns:1.2fr auto 1.2fr;
       gap:.55rem; align-items:center; row-gap:.35rem;
 
-      /* ▼▼ background image layer for the blank area ▼▼ */
-      position:relative;            /* create stacking context */
-      isolation:isolate;            /* keep ::before beneath children only */
+      position:relative;
+      isolation:isolate;
     }
-    /* The image will scale to cover this hero band.
-       Upload djselectimage.png next to this HTML file. */
     .djselects-hero::before{
       content:"";
-      position:absolute;
-      inset:0;
+      position:absolute; inset:0;
       background-image:url('djselectimage.png');
       background-repeat:no-repeat;
       background-size:cover;
       background-position:center;
-      z-index:0;                    /* sit behind content */
+      z-index:0;
     }
-    .djselects-hero > *{ position:relative; z-index:1; } /* ensure content sits above image */
+    .djselects-hero > *{ position:relative; z-index:1; }
 
-    /* --- MOBILE-ONLY: remove hero background image (djselectimage.png) --- */
     @media (max-width:768px){
-      body.dj-selects .djselects-hero::before{
-        content:none !important;
-        background:none !important;
-      }
+      body.dj-selects .djselects-hero::before{ content:none !important; background:none !important; }
     }
 
     .strap{ font-family:'Bebas Neue',sans-serif; }
@@ -198,15 +180,16 @@
     .hero-bio.bio-tight3{ font-size:0.84em; line-height:1.22; letter-spacing:.1px; }
     .hero-bio.bio-tight3 p{ margin:.12rem 0 .22rem; }
 
-    /* ==== DESKTOP/TABLET ONLY: +25% bio size ==== */
+    /* ==== DESKTOP/TABLET ONLY: +25% bio size & force inheritance ==== */
     @media (min-width:769px){
-      .hero-bio{ font-size:clamp(1.25rem,2.25vw,1.625rem); }       /* +25% */
-      .hero-bio.bio-tight1{ font-size:2.0625em; }                 /* 1.65em -> 2.0625em */
-      .hero-bio.bio-tight2{ font-size:2.5em; }                    /* 2.00em -> 2.5em */
-      .hero-bio.bio-tight3{ font-size:1.05em; }                   /* 0.84em -> 1.05em */
+      .hero-bio{ font-size:clamp(1.25rem,2.25vw,1.625rem) !important; line-height:1.38; }
+      .hero-bio *{ font-size:inherit !important; }           /* stop inline/child sizes from shrinking it */
+      .hero-bio.bio-tight1{ font-size:2.0625em !important; }
+      .hero-bio.bio-tight2{ font-size:2.5em !important; }
+      .hero-bio.bio-tight3{ font-size:1.05em !important; }
     }
 
-    /* *** MOBILE: reduce bio size ~20% (unchanged) *** */
+    /* *** MOBILE: unchanged *** */
     @media (max-width:768px){
       .hero-bio{ font-size:clamp(0.8rem,1.5vw,1.04rem); line-height:1.36; }
       .hero-bio.bio-tight1{ font-size:1.32em; }
@@ -420,11 +403,28 @@
       }
       return String(v);
     }
+
     const escapeHtml = s => s.replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
     function formatBioHTML(raw){
       if(!raw) return '';
       if (/<[a-z][\s\S]*>/i.test(raw)) {
-        const div=document.createElement('div'); div.innerHTML=raw; div.querySelectorAll('script,style').forEach(n=>n.remove());
+        const div=document.createElement('div');
+        div.innerHTML=raw;
+
+        /* remove scripts/styles and inline font overrides from API */
+        div.querySelectorAll('script,style').forEach(n=>n.remove());
+        div.querySelectorAll('[style]').forEach(el=>{
+          // strip inline styles entirely to avoid font-size overrides
+          el.removeAttribute('style');
+        });
+        // unwrap deprecated <font> tags
+        div.querySelectorAll('font').forEach(el=>{
+          while(el.firstChild) el.parentNode.insertBefore(el.firstChild, el);
+          el.remove();
+        });
+
+        // clean stray "paragraph" tokens
         div.innerHTML = div.innerHTML.replace(/\bparagraph\b/gi,'');
         return div.innerHTML;
       } else {
@@ -432,10 +432,12 @@
         return text.split(/\r?\n/).filter(Boolean).map(t=>`<p>${escapeHtml(t.trim())}</p>`).join('');
       }
     }
+
     function pickDescription(a){
       const c = a?.description ?? a?.bio ?? a?.about ?? a?.profile ?? a?.details?.description ?? '';
       return extractTextDeep(c);
     }
+
     function extractSocials(obj){
       const buckets=[obj?.socials,obj?.social,obj?.links,obj?.contact,obj?.contacts,obj].filter(Boolean);
       const out={}, set=(k,v)=>{ if(v && !out[k]) out[k]=String(v).trim(); };
@@ -573,7 +575,7 @@
         id=(id||'').split('?')[0].split('&')[0]; if(!id) return null;
         return {kind:'youtube', src:`https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`};
       }
-      return {kind:'iframe', src:u.trim()};
+      return {kind:'iframe', src=u.trim()};
     }catch{return null;} };
 
     const iframe=(src,title='Media player')=>`<iframe src="${src}" title="${title}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;

@@ -8,13 +8,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cutters Choice Radio — DJ Selects</title>
 
-  <!-- Canonical + SEO (non-invasive) -->
+  <!-- Canonical + SEO -->
   <link rel="canonical" href="https://cutterschoiceradio.com/dj-selects.html">
   <meta name="description" content="Each week a different Cutters Choice Radio DJ selects five tracks. Browse the picks, read the bio, and preview YouTube/Bandcamp.">
   <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#5A8785">
 
-  <!-- Social preview (Open Graph + Twitter) -->
+  <!-- Social preview -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="DJ Selects — Cutters Choice Radio">
   <meta property="og:description" content="Weekly DJ picks: five tracks selected by a Cutters Choice Radio selector.">
@@ -26,18 +26,19 @@
   <meta name="twitter:description" content="Weekly DJ picks: five tracks selected by a Cutters Choice Radio selector.">
   <meta name="twitter:image" content="https://cutterschoiceradio.com/images/logo.png">
 
-  <!-- Performance hints (safe) -->
+  <!-- Performance -->
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://api.radiocult.fm" crossorigin>
   <link rel="preconnect" href="https://www.youtube-nocookie.com" crossorigin>
   <link rel="preconnect" href="https://bandcamp.com" crossorigin>
 
+  <!-- Global site styles (keep) -->
   <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
-  <!-- Organization JSON-LD (static; no visual changes) -->
+  <!-- Organization JSON-LD -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -57,14 +58,14 @@
   <style>
     :root{
       --brand-teal:#5A8785;
-
-      /* tuning knobs */
-      --hero-size:360px;   /* locked hero art (desktop) */
-      --preview-max:920px; /* cap preview width so it isn’t overly wide */
+      --hero-size:360px;
+      --preview-max:920px;
     }
 
-    /* ── NAV: add ABOUT item in-bar (white, Bebas, even spacing) ───── */
-    /* Keep base nav styles from style.css; only extend where needed */
+    /* single teal separator ABOVE nav only */
+    .nav-sep{height:2px;background-color:var(--brand-teal);}
+
+    /* ABOUT nav item look (desktop/tablet) */
     #main-nav .nav-menu{ justify-content: space-evenly !important; }
     #main-nav summary.nav-link{
       color:#fff !important;
@@ -79,131 +80,146 @@
     }
     .nav-details{ position:relative; }
     .nav-details .about-panel{
-      position:absolute;
-      top:calc(100% + 8px);
-      right:0;
-      width:min(520px, 86vw);
-      background:#000; color:#fff;
-      border:2px solid var(--brand-teal);
-      border-radius:8px;
-      padding:.75rem .9rem;
-      line-height:1.35;
-      box-shadow:0 8px 18px rgba(0,0,0,.45);
-      display:none; z-index:1100;
+      position:absolute; top:calc(100% + 8px); right:0; width:min(520px,86vw);
+      background:#000; color:#fff; border:2px solid var(--brand-teal);
+      border-radius:8px; padding:.75rem .9rem; line-height:1.35;
+      box-shadow:0 8px 18px rgba(0,0,0,.45); display:none; z-index:1100;
     }
     .nav-details[open] .about-panel{ display:block; }
     .nav-details > summary::-webkit-details-marker{ display:none; }
     .nav-details > summary:focus{ outline:2px solid #fff; outline-offset:2px; }
 
-    /* Smaller nav on very small phones (kept from your file) */
-    @media (max-width:520px){
-      #main-nav .nav-menu{ gap:.25rem; flex-wrap:wrap; justify-content:space-between; }
-      #main-nav .nav-link,
-      #main-nav summary.nav-link{
-        font-size:clamp(.78rem,3.6vw,.95rem) !important;
-        padding:.35rem .28rem;
-        letter-spacing:.5px;
+    /* ================= DJ SELECTS — MOBILE NAV & gap fix ================= */
+    @media (max-width:768px){
+      /* force single-row layout, remove any injected bottom border/dividers */
+      body.dj-selects nav#main-nav{
+        display:flex !important;
+        flex-direction:row !important;
+        align-items:center !important;
+        justify-content:space-between !important;
+        padding:.40rem .65rem !important;
+        margin-bottom:0 !important;
+        border-bottom:0 !important;
+        grid-template-columns:none !important;
+        grid-template-rows:none !important;
+        grid-template-areas:none !important;
+        row-gap:0 !important;
       }
-      .nav-details .about-panel{ width:calc(100vw - 16px); right:-8px; }
+      body.dj-selects nav#main-nav::after,
+      body.dj-selects nav#main-nav::before{
+        content:none !important;
+        display:none !important;
+        height:0 !important;
+        border:0 !important;
+      }
+      /* kill any secondary rows/dup navs if present */
+      body.dj-selects nav#main-nav .nav-actions,
+      body.dj-selects nav#main-nav .nav-row-2,
+      body.dj-selects nav#mobile-nav,
+      body.dj-selects .secondary-nav{ display:none !important; }
+
+      /* single line, allow horizontal scroll if tight */
+      body.dj-selects nav#main-nav .nav-menu{
+        display:flex !important;
+        flex:1 1 auto !important;
+        min-width:0 !important;
+        gap:.35rem !important;
+        flex-wrap:nowrap !important;
+        white-space:nowrap !important;
+        overflow-x:auto !important;
+        -webkit-overflow-scrolling:touch;
+        scrollbar-width:none;
+      }
+      body.dj-selects nav#main-nav .nav-menu::-webkit-scrollbar{ display:none; }
+
+      /* compact link sizes */
+      body.dj-selects nav#main-nav .nav-link,
+      body.dj-selects nav#main-nav summary.nav-link{
+        font-size:clamp(.8rem,3.2vw,1rem) !important;
+        padding:.2rem .25rem !important;
+        letter-spacing:.04em !important;
+      }
+
+      /* *** remove the black empty space under nav on mobile *** */
+      body.dj-selects #main-nav + .djselects-hero{ margin-top:0 !important; }
+      body.dj-selects .nav-sep.bottom { display:none !important; }
     }
 
-    /* ── HERO (desktop) ─────────────────────────────────────────────── */
+    /* ====== Page content ====== */
     .djselects-hero{
       padding:.45rem .6rem .25rem;
       border:2px solid var(--brand-teal); border-left:0;border-right:0;
       margin-bottom:.35rem;
-      display:grid;
-      grid-template-columns:1.2fr auto 1.2fr;
+      display:grid; grid-template-columns:1.2fr auto 1.2fr;
       gap:.55rem; align-items:center; row-gap:.35rem;
+
+      /* ▼▼ background image layer for the blank area ▼▼ */
+      position:relative;            /* create stacking context */
+      isolation:isolate;            /* keep ::before beneath children only */
+    }
+    /* The image will scale to cover this hero band.
+       Upload djselectimage.png next to this HTML file. */
+    .djselects-hero::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background-image:url('djselectimage.png');
+      background-repeat:no-repeat;
+      background-size:cover;
+      background-position:center;
+      z-index:0;                    /* sit behind content */
+    }
+    .djselects-hero > *{ position:relative; z-index:1; } /* ensure content sits above image */
+
+    /* --- MOBILE-ONLY: remove hero background image (djselectimage.png) --- */
+    @media (max-width:768px){
+      body.dj-selects .djselects-hero::before{
+        content:none !important;
+        background:none !important;
+      }
     }
 
     .strap{ font-family:'Bebas Neue',sans-serif; }
-    .djselects-hero .strap{
-      font-size:clamp(1.235rem,2.21vw,1.495rem) !important;
-      line-height:1.05;
-    }
-    .djselects-hero .weekline{
-      font-family:'Bebas Neue',sans-serif;
-      font-size:clamp(4.3rem,6.2vw,4.0rem) !important;
-      line-height:1; margin-top:.15rem; letter-spacing:.2px;
-    }
-
-    /* Big teal name on its own line */
-    .selector-name{
-      font-family:'Bebas Neue',sans-serif;
-      color:var(--brand-teal);
-      font-size:clamp(3.2rem,8.2vw,5.6rem);
-      line-height:.95;
-      margin-top:.08rem;
-      letter-spacing:.2px;
-    }
-
-    /* Keep original span for compatibility but hide it visually */
+    .djselects-hero .strap{ font-size:clamp(1.235rem,2.21vw,1.495rem)!important; line-height:1.05; }
+    .djselects-hero .weekline{ font-family:'Bebas Neue',sans-serif; font-size:clamp(4.3rem,6.2vw,4.0rem)!important; line-height:1; margin-top:.15rem; letter-spacing:.2px; }
+    .selector-name{ font-family:'Bebas Neue',sans-serif; color:#5A8785; font-size:clamp(3.2rem,8.2vw,5.6rem); line-height:.95; margin-top:.08rem; letter-spacing:.2px; }
     #djNameText{ display:none; }
-
     .hero-art{ display:flex; align-items:center; justify-content:center; }
-    .hero-art img{
-      width:var(--hero-size);
-      height:var(--hero-size);
-      object-fit:cover;
-      border:2px solid var(--brand-teal); border-radius:6px; background:#000;
-    }
+    .hero-art img{ width:var(--hero-size); height:var(--hero-size); object-fit:cover; border:2px solid var(--brand-teal); border-radius:6px; background:#000; }
 
-    /* Bricks behind the tracks + preview row only */
-    main.compact-grid{
-      background-image:url('/images/bricks2.png');
-      background-repeat:repeat;
-      background-size:3000px auto;
-      background-position:center top;
-    }
+    main.compact-grid{ background-image:url('/images/bricks2.png'); background-repeat:repeat; background-size:3000px auto; background-position:center top; }
+    #mainPreview{ padding:16px; background:rgba(0,0,0,.35); box-shadow:inset 0 0 0 2px rgba(90,135,133,.45); border-radius:8px; }
 
-    /* Subtle frame around the big player */
-    #mainPreview{
-      padding:16px;
-      background:rgba(0,0,0,.35);
-      box-shadow:inset 0 0 0 2px rgba(90,135,133,.45);
-      border-radius:8px;
-    }
-
-    .hero-right{
-      background:#0b0b0b; border:2px solid var(--brand-teal); border-radius:6px;
-      padding:.6rem .75rem;
-    }
-
+    .hero-right{ background:#0b0b0b; border:2px solid var(--brand-teal); border-radius:6px; padding:.6rem .75rem; }
+    /* bump bio size overall */
     .hero-bio{ font-size:clamp(1.2rem,2.2vw,1.6rem); }
-    .hero-bio p{ margin:.25rem 0 .45rem; }
-    .hero-bio.bio-tight1{ font-size:1.9em; line-height:1.32; }
-    .hero-bio.bio-tight1 p{ margin:.18rem 0 .36rem; }
-    .hero-bio.bio-tight2{ font-size:2.3em; line-height:1.28; }
-    .hero-bio.bio-tight2 p{ margin:.14rem 0 .28rem; }
-    .hero-bio.bio-tight3{ font-size:1.00em; line-height:1.22; letter-spacing:.1px; }
+
+    /* keep the density behavior but bigger too */
+    .hero-bio.bio-tight1{ font-size:1.9em; }
+    .hero-bio.bio-tight2{ font-size:2.3em; }
+    .hero-bio.bio-tight3{ font-size:1.0em; } /* was 0.84em */
     .hero-bio.bio-tight3 p{ margin:.12rem 0 .22rem; }
 
-    .profile-topline{ display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; margin-bottom:.2rem; }
-    .profile-link{
-      display:inline-block; font-size:.88rem; border:1px solid #335d5b; padding:.16rem .4rem;
-      border-radius:4px; background:#0b0b0b; color:#dff; text-decoration:none;
+    /* *** MOBILE: reduce bio size ~20% (ONLY this block changed earlier) *** */
+    @media (max-width:768px){
+      .hero-bio{ font-size:clamp(0.8rem,1.5vw,1.04rem); line-height:1.36; }
+      .hero-bio.bio-tight1{ font-size:1.32em; }
+      .hero-bio.bio-tight2{ font-size:1.60em; }
+      .hero-bio.bio-tight3{ font-size:0.68em; line-height:1.22; }
+      .hero-bio.bio-tight3 p{ margin:.10rem 0 .18rem; }
     }
 
+    .profile-topline{ display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; margin-bottom:.2rem; }
+    .profile-link{ display:inline-block; font-size:.88rem; border:1px solid #335d5b; padding:.16rem .4rem; border-radius:4px; background:#0b0b0b; color:#dff; text-decoration:none; }
     .socials{ display:flex; align-items:center; gap:.45rem; flex-wrap:wrap; margin-top:.15rem; }
-    .socials a{
-      display:inline-flex; align-items:center; justify-content:center;
-      width:32px; height:32px; border-radius:999px;
-      border:1px solid #335d5b; background:#0f0f0f; color:#e9ffff; text-decoration:none;
-    }
+    .socials a{ display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:999px; border:1px solid #335d5b; background:#0f0f0f; color:#e9ffff; text-decoration:none; }
     .socials a:hover{ box-shadow:inset 0 0 0 2px var(--brand-teal); }
 
-    /* ── NEXT BAR ───────────────────────────────────────────────────── */
     .nextbar{ margin:.25rem .6rem .55rem; }
-    .nextbar-inner{
-      display:flex; align-items:center; gap:.8rem;
-      background:#0b0b0b; border:2px solid var(--brand-teal);
-      padding:.45rem .6rem; border-radius:6px;
-    }
+    .nextbar-inner{ display:flex; align-items:center; gap:.8rem; background:#0b0b0b; border:2px solid var(--brand-teal); padding:.45rem .6rem; border-radius:6px; }
     .nextbar .label{ font-family:'Bebas Neue',sans-serif; font-size:clamp(1rem,2vw,1.35rem); }
-    .nextbar .when { font-family:'Bebas Neue',sans-serif; font-size:clamp(1.05rem,2.2vw,1.45rem); color:var(--brand-teal); }
+    .nextbar .when{ font-family:'Bebas Neue',sans-serif; font-size:clamp(1.05rem,2.2vw,1.45rem); color:var(--brand-teal); }
 
-    /* ── TRACKS + PREVIEW ───────────────────────────────────────────── */
     .compact-grid{ display:grid; grid-template-columns:240px minmax(0,1fr); gap:.6rem; padding:0 .6rem 1rem; }
     .strip-list{ display:grid; grid-template-rows:repeat(5,1fr); gap:.35rem; }
     .strip{ border:1px solid #264745; background:#0a0a0a; border-radius:6px; overflow:hidden; position:relative; }
@@ -211,26 +227,10 @@
     .strip iframe{ width:100%; height:100%; border:0; display:block; position:relative; z-index:1; }
     .strip .overlayBtn{ position:absolute; inset:0; appearance:none; background:transparent; border:0; cursor:pointer; z-index:3; }
 
-    .preview{
-      display:flex; align-items:center; justify-content:center;
-      max-width:var(--preview-max);
-      margin:0 auto;
-      width:100%;
-    }
-    .preview iframe{
-      width:100%;
-      aspect-ratio:16/9;
-      height:auto;
-      max-height:56vh;
-      border:0;
-      display:block;
-    }
-    .big-placeholder{
-      font-family:'Bebas Neue',sans-serif; color:#6fa39f; font-size:clamp(1rem,1.8vw,1.25rem); padding:.6rem;
-      width:100%; max-width:var(--preview-max);
-    }
+    .preview{ display:flex; align-items:center; justify-content:center; max-width:var(--preview-max); margin:0 auto; width:100%; }
+    .preview iframe{ width:100%; aspect-ratio:16/9; height:auto; max-height:56vh; border:0; display:block; }
+    .big-placeholder{ font-family:'Bebas Neue',sans-serif; color:#6fa39f; font-size:clamp(1rem,1.8vw,1.25rem); padding:.6rem; width:100%; max-width:var(--preview-max); }
 
-    /* ── Bandcamp tile ──────────────────────────────────────────────── */
     .strip.bandcamp{ min-height:76px; }
     .strip .bc-tile{ position:relative; width:100%; background:#0f0f0f center/cover no-repeat; min-height:76px; }
     .strip .bc-tile::before{ content:""; position:absolute; left:0; right:0; bottom:0; height:42%; background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.65) 100%); pointer-events:none; }
@@ -238,29 +238,19 @@
     .strip .bc-title{ position:absolute; left:8px; right:44px; bottom:8px; font-family:'Bebas Neue',sans-serif; color:#fff; text-shadow:0 2px 4px rgba(0,0,0,.6); font-size:clamp(1rem,2vw,1.1rem); line-height:1.1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .strip .bc-play{ position:absolute; inset:auto 8px 8px auto; background:rgba(90,135,133,.95); color:#000; font-weight:700; border-radius:999px; width:28px; height:28px; display:flex; align-items:center; justify-content:center; }
 
-    /* ── Tablet+mobile ─────────────────────────────────────────────── */
-    @media (max-width:1200px){
-      :root{ --hero-size:300px; --preview-max:860px; }
-    }
-    @media (max-width:1050px){
-      .djselects-hero{ grid-template-columns: 1fr auto 1fr; }
-      :root{ --hero-size:260px; --preview-max:820px; }
-    }
+    @media (max-width:1200px){ :root{ --hero-size:300px; --preview-max:860px; } }
+    @media (max-width:1050px){ .djselects-hero{ grid-template-columns:1fr auto 1fr; } :root{ --hero-size:260px; --preview-max:820px; } }
     @media (max-width:900px){
-      .djselects-hero{ grid-template-columns: 1fr; }
-      .hero-right{ order:3 }
-      .hero-art  { order:2; justify-content:flex-start }
-      .compact-grid{ grid-template-columns: 1fr; }
+      .djselects-hero{ grid-template-columns:1fr; }
+      .hero-right{ order:3 } .hero-art{ order:2; justify-content:flex-start }
+      .compact-grid{ grid-template-columns:1fr; }
       .preview iframe{ max-height:66vh; min-height:220px; }
       .strip iframe{ pointer-events:none; }
       :root{ --hero-size:200px; --preview-max:92vw; }
     }
-    @media (max-width:768px){
-      .strip-list{ grid-template-rows:repeat(5,76px); }
-      :root{ --hero-size:180px; }
-    }
+    @media (max-width:768px){ .strip-list{ grid-template-rows:repeat(5,76px); } :root{ --hero-size:180px; } }
 
-    /* ── Admin overlay (unchanged) ─────────────────────────────────── */
+    /* Admin overlay */
     .adminHidden{ display:none!important; }
     #adminOverlay{ position:fixed; inset:0; background:rgba(0,0,0,.82); color:#fff; z-index:9999; display:flex; align-items:center; justify-content:center; }
     #adminPanel{ width:min(840px,92vw); max-height:90vh; overflow:auto; background:#0e1414; border:2px solid var(--brand-teal); border-radius:10px; padding:16px; box-shadow:0 12px 40px rgba(0,0,0,.55); }
@@ -272,17 +262,18 @@
     #adminStatus{ opacity:.9; font-size:.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:52ch; }
   </style>
 </head>
-<body>
+
+<body class="dj-selects">
   <!-- Header -->
   <header class="header-banner" role="banner">
     <div class="header-gif-right" aria-hidden="true"></div><div class="header-gif-left" aria-hidden="true"></div>
     <div class="logo-container"><img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="lazy" decoding="async"></div>
     <div class="title"><h1>Cutters Choice Radio</h1><p class="tagline">The home of relentless flavas and significant bangers!</p></div>
     <div class="logo-container"><img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="lazy" decoding="async"></div>
-    <!-- (About DJ Selects toggle moved into the nav) -->
   </header>
 
-  <div style="height:2px;background-color:var(--brand-teal)"></div>
+  <!-- single separator ABOVE nav -->
+  <div class="nav-sep top"></div>
 
   <!-- Nav -->
   <nav id="main-nav" aria-label="Primary">
@@ -293,7 +284,7 @@
       <a href="schedule.html"     class="nav-link">SCHEDULE</a>
       <a href="merch.html"        class="nav-link">MERCH</a>
 
-      <!-- NEW: ABOUT DJ SELECTS as the 6th nav item (white, Bebas) -->
+      <!-- ABOUT DJ SELECTS -->
       <details class="nav-details" id="selects-overlay">
         <summary class="nav-link" aria-label="About DJ Selects">ABOUT DJ SELECTS</summary>
         <div class="about-panel" id="dj-selects-blurb">
@@ -306,15 +297,12 @@
     </div>
   </nav>
 
-  <div style="height:2px;background-color:var(--brand-teal)"></div>
-
   <!-- HERO -->
   <section class="djselects-hero">
     <div class="hero-left">
       <div class="strap">EACH WEEK IN A NON SPECIFIC ORDER A DIFFERENT CUTTERS DJ SELECTS THEIR 5 TRACKS OF THE WEEK</div>
       <div class="weekline">THIS WEEKS CUTTERS DJ SELECTOR</div>
       <div id="djNameBig" class="selector-name">—</div>
-      <!-- keep for compatibility with existing code paths -->
       <span id="djNameText" aria-hidden="true">—</span>
     </div>
     <div class="hero-art"><img id="djProfileThumb" src="/images/default-dj.png" alt="DJ profile" /></div>
@@ -325,7 +313,7 @@
     </div>
   </section>
 
-  <!-- SELECTOR'S NEXT SHOW -->
+  <!-- NEXT SHOW -->
   <section class="nextbar">
     <div class="nextbar-inner">
       <span class="label">SELECTORS NEXT SCHEDULED SHOW</span>
@@ -358,9 +346,8 @@
   <script>
     /* Page config */
     window.DJ_SELECTS = {
-      CONFIG_ENDPOINT: 'dj-selects-config.php', // server JSON gateway
+      CONFIG_ENDPOINT: 'dj-selects-config.php',
       PROXY_ENDPOINT:  'rc-proxy.php',
-      // passphrase = ccr2025!
       ADMIN_HASH_HEX: '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e'
     };
   </script>
@@ -394,12 +381,24 @@
 
     /* ── utils ─────────────────────────────────────────────────────── */
     const headers = { 'x-api-key': API_KEY };
-    const fetchJSON = async (url, opt={}) => { const r=await fetch(url,{cache:'no-store',...opt,headers:{...(opt.headers||{}),...headers}}); if(!r.ok) throw new Error(String(r.status)); return r.json(); };
+    const fetchJSON = async (url, opt={}) => {
+      const r=await fetch(url,{cache:'no-store',...opt,headers:{...(opt.headers||{}),...headers}});
+      if(!r.ok) throw new Error(String(r.status));
+      return r.json();
+    };
 
-    /* LOCAL TZ fix: format in the viewer's local timezone (no explicit timeZone set) */
-    const nz = iso => { try{ const d=new Date(iso); return d.toLocaleString(undefined,{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:false,timeZoneName:'short'});}catch{return '';} };
+    const nz = iso => {
+      try{
+        const d=new Date(iso);
+        return d.toLocaleString(undefined,{
+          weekday:'short',day:'numeric',month:'short',
+          hour:'2-digit',minute:'2-digit',hour12:false,timeZoneName:'short'
+        });
+      }catch{return '';}
+    };
 
-    const tags = t => Array.isArray(t) ? t.map(x=>String(x).toLowerCase()) : (typeof t==='string' ? t.split(',').map(s=>s.trim().toLowerCase()) : []);
+    const tags = t => Array.isArray(t) ? t.map(x=>String(x).toLowerCase())
+      : (typeof t==='string' ? t.split(',').map(s=>s.trim().toLowerCase()) : []);
 
     function extractTextDeep(v){
       if(!v) return '';
@@ -434,8 +433,10 @@
     function extractSocials(obj){
       const buckets=[obj?.socials,obj?.social,obj?.links,obj?.contact,obj?.contacts,obj].filter(Boolean);
       const out={}, set=(k,v)=>{ if(v && !out[k]) out[k]=String(v).trim(); };
-      for(const b of buckets){ set('website',b.website||b.url); set('facebook',b.facebook||b.fb); set('instagram',b.instagram||b.ig);
-        set('twitter',b.twitter||b.x); set('mixcloud',b.mixcloud); set('soundcloud',b.soundcloud||b.sc); set('email',b.email); }
+      for(const b of buckets){
+        set('website',b.website||b.url); set('facebook',b.facebook||b.fb); set('instagram',b.instagram||b.ig);
+        set('twitter',b.twitter||b.x); set('mixcloud',b.mixcloud); set('soundcloud',b.soundcloud||b.sc); set('email',b.email);
+      }
       const norm=s=>s?.startsWith('@')?s.slice(1):s;
       if(out.twitter&&!/^https?:/i.test(out.twitter)) out.twitter=`https://twitter.com/${norm(out.twitter)}`;
       if(out.instagram&&!/^https?:/i.test(out.instagram)) out.instagram=`https://instagram.com/${norm(out.instagram)}`;
@@ -456,7 +457,10 @@
       let a=null, kind='artist';
       try{ const j=await fetchJSON(`${BASE_URL}/station/${STATION_ID}/artists`); a=findBy(j?.artists||j?.data||j||[]);}catch{}
       if(!a){ try{ const j=await fetchJSON(`${BASE_URL}/station/${STATION_ID}/presenters`); a=findBy(j?.presenters||j?.data||j||[]); if(a) kind='presenter';}catch{} }
-      if(!a){ djNameText.textContent='—'; if(djNameBig) djNameBig.textContent='—'; djBioBox.innerHTML='<p>No artist/presenter tagged “SELECTOR”.</p>'; return; }
+      if(!a){
+        djNameText.textContent='—'; if(djNameBig) djNameBig.textContent='—';
+        djBioBox.innerHTML='<p>No artist/presenter tagged “SELECTOR”.</p>'; return;
+      }
 
       const kindPath = (kind==='presenter'?'presenters':'artists');
       let detail=null;
@@ -477,7 +481,6 @@
       if(state.selector.image) djProfile.src=state.selector.image;
       djBioBox.innerHTML = formatBioHTML(state.selector.description||'');
 
-      /* Auto-condense bio based on paragraph count */
       (function applyBioDensity(){
         const n = djBioBox.querySelectorAll('p').length;
         djBioBox.classList.remove('bio-tight1','bio-tight2','bio-tight3');
@@ -489,10 +492,21 @@
       if(state.selector.shareUrl){ profileLink.href=state.selector.shareUrl; profileLink.style.display='inline-block'; }
 
       socialsBox.innerHTML='';
-      const S=state.selector.socials||{}; const add=(href,title,icon)=>{ if(!href) return; const a=document.createElement('a'); a.href=href;a.target='_blank';a.rel='noopener';a.title=title;a.innerHTML=`<i class="${icon}"></i>`;socialsBox.appendChild(a); };
-      add(S.twitter,'X / Twitter','fa-brands fa-x-twitter'); add(S.instagram,'Instagram','fa-brands fa-instagram');
-      add(S.facebook,'Facebook','fa-brands fa-facebook-f'); add(S.mixcloud,'Mixcloud','fa-brands fa-mixcloud');
-      add(S.soundcloud,'SoundCloud','fa-brands fa-soundcloud'); add(S.website,'Website','fa-solid fa-globe'); add(S.email,'Email','fa-solid fa-envelope');
+      const S=state.selector.socials||{};
+      const add=(href,title,icon)=>{
+        if(!href) return;
+        const a=document.createElement('a');
+        a.href=href;a.target='_blank';a.rel='noopener';a.title=title;
+        a.innerHTML=`<i class="${icon}"></i>`;
+        socialsBox.appendChild(a);
+      };
+      add(S.twitter,'X / Twitter','fa-brands fa-x-twitter');
+      add(S.instagram,'Instagram','fa-brands fa-instagram');
+      add(S.facebook,'Facebook','fa-brands fa-facebook-f');
+      add(S.mixcloud,'Mixcloud','fa-brands fa-mixcloud');
+      add(S.soundcloud,'SoundCloud','fa-brands fa-soundcloud');
+      add(S.website,'Website','fa-solid fa-globe');
+      add(S.email,'Email','fa-solid fa-envelope');
     }
 
     /* ── Next scheduled show ───────────────────────────────────────── */
@@ -510,7 +524,7 @@
       }catch{ nextWhen.textContent='Unable to load schedule'; }
     }
 
-    /* ── Load track config (server → file → localStorage) ──────────── */
+    /* ── Config: server → file → localStorage ──────────────────────── */
     async function loadConfig(){
       let ok=false;
       try{
@@ -538,7 +552,7 @@
           }
         }catch{}
       }
-    } /* ← FIX: properly close loadConfig() */
+    }
 
     /* ── Media render ──────────────────────────────────────────────── */
     const parseTrack=(u)=>{ if(!u) return null; try{
@@ -560,7 +574,8 @@
 
     const bcCache=new Map();
     const bcOEmbed=async(url)=>{ if(bcCache.has(url)) return bcCache.get(url);
-      const r=await fetch(`${CFG.PROXY_ENDPOINT}?fn=bandcamp_oembed&url=${encodeURIComponent(url)}`); const text=await r.text(); let j={};
+      const r=await fetch(`${CFG.PROXY_ENDPOINT}?fn=bandcamp_oembed&url=${encodeURIComponent(url)}`);
+      const text=await r.text(); let j={};
       try{ j=JSON.parse(text);}catch{ throw new Error(text||'Proxy error'); }
       const meta={ title:j?.title||'Bandcamp', thumb:j?.thumbnail_url||'', src:(()=>{const html=String(j?.html||''); const m=html.match(/src=["']([^"']+)["']/i); return m?m[1]:'';})() };
       bcCache.set(url,meta); return meta; };
@@ -605,7 +620,10 @@
       if(items.length) setPreview(items[0]); else mainPreview.innerHTML='<div class="big-placeholder">Select a track</div>';
     }
 
-    /* ── Admin (SHIFT + A) ─────────────────────────────────────────── */
+    async function boot(){ await loadConfig(); await loadSelector(); await loadNextShow(); renderTracks(); }
+    document.addEventListener('DOMContentLoaded', boot);
+
+    /* Admin (SHIFT + A) */
     async function sha256hex(str){ const enc=new TextEncoder().encode(str); const h=await crypto.subtle.digest('SHA-256',enc); return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join(''); }
     function openAdmin(){ adminOverlay.classList.remove('adminHidden'); adminOverlay.setAttribute('aria-hidden','false'); adminTextarea.value=(state.tracks||[]).join('\n'); adminStatus.textContent=''; }
     function closeAdmin(){ adminOverlay.classList.add('adminHidden'); adminOverlay.setAttribute('aria-hidden','true'); }
@@ -639,9 +657,6 @@
         adminStatus.textContent=String(err.message||err) || 'Saved locally only (check server perms).';
       }
     });
-
-    async function boot(){ await loadConfig(); await loadSelector(); await loadNextShow(); renderTracks(); }
-    document.addEventListener('DOMContentLoaded', boot);
   })();
   </script>
 </body>

@@ -193,20 +193,12 @@
     .hero-right{ background:#0b0b0b; border:2px solid var(--brand-teal); border-radius:6px; padding:.6rem .75rem; }
     .hero-bio{ font-size:clamp(1.2rem,2vw,1.5rem); line-height:1.38; }
     .hero-bio p{ margin:.25rem 0 .45rem; }
-    .hero-bio.bio-tight1{ font-size:1.65em; line-height:1.32; }
-    .hero-bio.bio-tight2{ font-size:2.00em; line-height:1.28; }
-    .hero-bio.bio-tight3{ font-size:0.84em; line-height:1.22; letter-spacing:.1px; }
+    .hero-bio.bio-tight1{ font-size:1.85em; line-height:1.32; }
+    .hero-bio.bio-tight2{ font-size:2.20em; line-height:1.28; }
+    .hero-bio.bio-tight3{ font-size:1.04em; line-height:1.22; letter-spacing:.1px; }
     .hero-bio.bio-tight3 p{ margin:.12rem 0 .22rem; }
 
-    /* ==== DESKTOP/TABLET ONLY: +25% bio size ==== */
-    @media (min-width:769px){
-      .hero-bio{ font-size:clamp(1.5rem,2.5vw,1.8rem); }       /* +25% */
-      .hero-bio.bio-tight1{ font-size:2.25em; }                 /* 1.65em -> 2.0625em */
-      .hero-bio.bio-tight2{ font-size:2.7em; }                    /* 2.00em -> 2.5em */
-      .hero-bio.bio-tight3{ font-size:1.2em; }                   /* 0.84em -> 1.05em */
-    }
-
-    /* *** MOBILE: reduce bio size ~20% (unchanged) *** */
+    /* *** MOBILE: reduce bio size ~20% (ONLY this block changed earlier) *** */
     @media (max-width:768px){
       .hero-bio{ font-size:clamp(0.8rem,1.5vw,1.04rem); line-height:1.36; }
       .hero-bio.bio-tight1{ font-size:1.32em; }
@@ -287,6 +279,8 @@
       <a href="index.html"        class="nav-link">HOME</a>
       <a href="our-story.html"    class="nav-link">OUR STORY</a>
       <a href="index-ourDJS.html" class="nav-link">OUR DJS</a>
+      <!-- NEW: link to Cutty Ranks -->
+      <a href="cutty-ranks.html"  class="nav-link">CUTTY RANKS</a>
       <a href="schedule.html"     class="nav-link">SCHEDULE</a>
       <a href="merch.html"        class="nav-link">MERCH</a>
 

@@ -91,7 +91,6 @@
 
     /* ================= DJ SELECTS — MOBILE NAV & gap fix ================= */
     @media (max-width:768px){
-      /* force single-row layout, remove any injected bottom border/dividers */
       body.dj-selects nav#main-nav{
         display:flex !important;
         flex-direction:row !important;
@@ -109,16 +108,12 @@
       body.dj-selects nav#main-nav::before{
         content:none !important;
         display:none !important;
-        height:0 !important;
-        border:0 !important;
       }
-      /* kill any secondary rows/dup navs if present */
       body.dj-selects nav#main-nav .nav-actions,
       body.dj-selects nav#main-nav .nav-row-2,
       body.dj-selects nav#mobile-nav,
       body.dj-selects .secondary-nav{ display:none !important; }
 
-      /* single line, allow horizontal scroll if tight */
       body.dj-selects nav#main-nav .nav-menu{
         display:flex !important;
         flex:1 1 auto !important;
@@ -132,7 +127,6 @@
       }
       body.dj-selects nav#main-nav .nav-menu::-webkit-scrollbar{ display:none; }
 
-      /* compact link sizes */
       body.dj-selects nav#main-nav .nav-link,
       body.dj-selects nav#main-nav summary.nav-link{
         font-size:clamp(.8rem,3.2vw,1rem) !important;
@@ -140,7 +134,6 @@
         letter-spacing:.04em !important;
       }
 
-      /* *** remove the black empty space under nav on mobile *** */
       body.dj-selects #main-nav + .djselects-hero{ margin-top:0 !important; }
       body.dj-selects .nav-sep.bottom { display:none !important; }
     }
@@ -153,30 +146,22 @@
       display:grid; grid-template-columns:1.2fr auto 1.2fr;
       gap:.55rem; align-items:center; row-gap:.35rem;
 
-      /* ▼▼ background image layer for the blank area ▼▼ */
-      position:relative;            /* create stacking context */
-      isolation:isolate;            /* keep ::before beneath children only */
+      position:relative;
+      isolation:isolate;
     }
-    /* The image will scale to cover this hero band.
-       Upload djselectimage.png next to this HTML file. */
     .djselects-hero::before{
       content:"";
-      position:absolute;
-      inset:0;
+      position:absolute; inset:0;
       background-image:url('djselectimage.png');
       background-repeat:no-repeat;
       background-size:cover;
       background-position:center;
-      z-index:0;                    /* sit behind content */
+      z-index:0;
     }
-    .djselects-hero > *{ position:relative; z-index:1; } /* ensure content sits above image */
+    .djselects-hero > *{ position:relative; z-index:1; }
 
-    /* --- MOBILE-ONLY: remove hero background image (djselectimage.png) --- */
     @media (max-width:768px){
-      body.dj-selects .djselects-hero::before{
-        content:none !important;
-        background:none !important;
-      }
+      body.dj-selects .djselects-hero::before{ content:none !important; background:none !important; }
     }
 
     .strap{ font-family:'Bebas Neue',sans-serif; }
@@ -200,7 +185,7 @@
     .hero-bio.bio-tight3{ font-size:1.05em;  line-height:1.22; letter-spacing:.1px; } /* was 0.84em */
     .hero-bio.bio-tight3 p{ margin:.12rem 0 .22rem; }
 
-    /* *** MOBILE: keep your original sizes exactly as-is *** */
+    /* *** MOBILE: unchanged *** */
     @media (max-width:768px){
       .hero-bio{ font-size:clamp(0.8rem,1.5vw,1.04rem); line-height:1.36; }
       .hero-bio.bio-tight1{ font-size:1.32em; }
@@ -519,6 +504,7 @@
         const list=j?.schedules||j?.data||j?.items||[];
         if(!Array.isArray(list)||!list.length){ nextWhen.textContent='TBA'; return; }
         const iso=s=>s.startDateUtc||s.startDate||s.start||s.scheduledStart||s.start_time||s.start_at;
+        const future=list.map(s=>({s,t:new Date(iso(s)||0)})).filter(x=>x.t>new Date()).sort((a,b)=>a.t
         const future=list.map(s=>({s,t:new Date(iso(s)||0)})).filter(x=>x.t>new Date()).sort((a,b)=>a.t-b.t)[0];
         nextWhen.textContent=future?nz(iso(future.s)):nz(iso(list[0]));
       }catch{ nextWhen.textContent='Unable to load schedule'; }

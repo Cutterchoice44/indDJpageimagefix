@@ -37,7 +37,7 @@
   <link rel="preconnect" href="https://app.radiocult.fm" crossorigin>
   <link rel="preconnect" href="https://cdn.socket.io" crossorigin>
 
-  <!-- Preload likely-LCP (logo) to speed first paint -->
+  <!-- Preload likely-LCP (logo) -->
   <link rel="preload" href="/images/logo.png" as="image" imagesrcset="/images/logo.png 1x">
 
   <!-- Main stylesheet -->
@@ -338,20 +338,18 @@
         <button id="popOutBtn" class="popout-btn">Pop Out Player</button>
         <button id="chatPopupBtn" class="popout-btn chat-btn-mobile" onclick="openChatPopup()">Chat</button>
 
-        <!-- CCR TV AUTO VIDEO FEED (HLS from your Ubuntu box over HTTPS) -->
+        <!-- CCR TV AUTO VIDEO FEED (HLS over HTTPS from 46.62.210.122 box via ccr-tv.*) -->
         <div class="tv-wrapper">
           <video
             id="ccrTv"
             playsinline
             muted
-            autoplay
             controls
             poster="/images/archives-logo.jpeg"
             crossorigin="anonymous">
           </video>
         </div>
       </div>
-      <!-- NOTE: We removed "This Week’s Shows" + artwork block here -->
     </section>
 
     <!-- SCHEDULE SECTION -->
@@ -415,7 +413,7 @@
 
       if (!navMenu || !navActions || !merchLink) return;
 
-      // Invisible anchor to remember original spot (right AFTER MERCH)
+      // Invisible anchor to remember original spot
       const anchor = document.createElement('span');
       anchor.id = 'merch-return-anchor';
       anchor.style.display = 'none';
@@ -571,60 +569,63 @@
   <!-- HLS.js loader + init for CCR TV -->
   <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
   <script>
-  (function(){
+  (function() {
     const videoEl   = document.getElementById('ccrTv');
     const streamURL = 'https://ccr-tv.cutterschoiceradio.com/ccr-tv/ccr.m3u8';
 
     if (!videoEl) return;
 
-    // Push hints for autoplay. Firefox cares.
-    videoEl.muted      = true;
-    videoEl.playsInline = true;
-    videoEl.autoplay   = true;
+    // policy hints
+    videoEl.muted = true;
+    videoEl.playsInline = true; // Safari/iOS-style attr in JS
 
-    function attemptPlay() {
+    function tryPlay() {
       const p = videoEl.play();
       if (p && typeof p.then === 'function') {
         p.catch(err => {
-          console.warn('[CCR-TV] autoplay blocked:', err);
-          // User can just click play at that point.
+          console.warn('[CCR-TV] autoplay/play blocked until user gesture:', err);
+          // worst case: user taps play icon in controls
         });
       }
     }
 
-    // Safari / iOS can do HLS natively
+    // Safari / iOS natively understands HLS
     if (videoEl.canPlayType('application/vnd.apple.mpegURL')) {
       videoEl.src = streamURL;
-      videoEl.addEventListener('loadedmetadata', attemptPlay);
+      videoEl.addEventListener('loadedmetadata', tryPlay);
 
     } else if (window.Hls) {
-      // Chrome / Firefox / Edge -> use hls.js
+      // Other browsers (Chrome, Firefox, Edge)
       const hls = new Hls({
         maxBufferLength: 10,
-        liveSyncDurationCount: 3,
+        liveSyncDuration: 3,
+        liveMaxLatencyDuration: 10,
         enableWorker: true,
         autoStartLoad: true
       });
 
-      // must attach first, then load source, then play
+      // load first so we immediately fetch manifest, then attach
+      hls.loadSource(streamURL);
       hls.attachMedia(videoEl);
 
-      hls.on(Hls.Events.MEDIA_ATTACHED, () => {
-        hls.loadSource(streamURL);
-      });
-
+      // once HLS manifest is parsed, ask it to play
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        attemptPlay();
+        tryPlay();
       });
 
-      hls.on(Hls.Events.ERROR, (evt, data) => {
-        console.warn('[CCR-TV] HLS.js error', evt, data);
+      // also poke play when first level loads (helps Firefox sometimes)
+      hls.on(Hls.Events.LEVEL_LOADED, () => {
+        tryPlay();
+      });
+
+      hls.on(Hls.Events.ERROR, (event, data) => {
+        console.warn('[CCR-TV] HLS.js error', event, data);
       });
 
     } else {
-      // Old browsers fallback
+      // absolute fallback
       videoEl.src = streamURL;
-      videoEl.addEventListener('loadedmetadata', attemptPlay);
+      videoEl.addEventListener('loadedmetadata', tryPlay);
     }
   })();
   </script>

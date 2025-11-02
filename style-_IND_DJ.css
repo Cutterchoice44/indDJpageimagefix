@@ -162,15 +162,59 @@ section h2::after{ content:''; position:absolute; bottom:0; right:0; height:4px;
 .popout-btn{ display:inline-block; margin:.5rem auto; padding:.5rem 2rem; font-size:1rem; background:var(--brand-teal); color:#fff; border:none; border-radius:4px; cursor:pointer; }
 
 /* ─── LIVE PLAYER ─────────────────────────────────────────────────── */
-.live-player{ background:#000; border:2px solid var(--brand-teal); border-radius:6px; padding:.5rem; text-align:center; }
-.live-player iframe,.live-player audio{
-  width:100%; height:300px; max-height:55vh; border:none; border-radius:4px; margin:0 auto 1rem; display:block;
+.live-player{
+  background:#000;
+  border:2px solid var(--brand-teal);
+  border-radius:6px;
+  padding:.5rem;
+  text-align:center;
 }
-.player-container{ max-width:1000px; margin:0 auto; }
-#now-archive{ font-weight:bold; color:var(--brand-teal); font-size:1.5rem; margin:.3rem 0 1rem; }
 
-/* ─── CURRENT DJ ARTWORK ─────────────────────────────────────────── */
-#now-art{ width:100%; max-width:450px; height:auto; border-radius:8px; object-fit:contain; display:block; margin:1rem auto; }
+.live-player iframe,
+.live-player audio,
+.live-player video{
+  width:100%;
+  height:300px;
+  max-height:55vh;
+  border:none;
+  border-radius:4px;
+  margin:0 auto 1rem;
+  display:block;
+}
+
+/* wrapper that holds CCR TV video feed */
+#ccr-tv-wrapper{
+  width:100%;
+  max-width:1000px;
+  margin:0 auto 1rem;
+  background:#000;
+}
+.ccr-tv-video{
+  aspect-ratio:16 / 9;
+  background:#000;
+  object-fit:cover;
+}
+
+/* text under radio player ("Loading archive show…") */
+.player-container{ max-width:1000px; margin:0 auto; }
+#now-archive{
+  font-weight:bold;
+  color:var(--brand-teal);
+  font-size:1.5rem;
+  margin:.3rem 0 1rem;
+}
+
+/* ─── CURRENT DJ ARTWORK (NOW REMOVED VISUALLY) ───────────────────── */
+/* kept for reference but not used anymore */
+#now-art{
+  width:100%;
+  max-width:450px;
+  height:auto;
+  border-radius:8px;
+  object-fit:contain;
+  display:block;
+  margin:1rem auto;
+}
 
 /* ─── MIXCLOUD ARCHIVE ─────────────────────────────────────────── */
 .mixcloud{ display:flex; flex-direction:column; overflow:hidden; padding:.5rem; }
@@ -182,19 +226,56 @@ section h2::after{ content:''; position:absolute; bottom:0; right:0; height:4px;
 .add-mixcloud button{ margin-top:.5rem; padding:.5rem 2rem; background:var(--brand-teal); color:#fff; border:none; border-radius:6px; cursor:pointer; }
 
 /* ─── WEEKLY SCHEDULE ───────────────────────────────────────────── */
-.schedule{ background:#111; border-radius:6px; padding:0 1rem 1rem; overflow-y:auto; font-size:1.4rem; line-height:1.4; }
-.schedule-heading{ position:sticky; top:0; background:#111; z-index:10; padding:.4rem 0; font-size:1.5rem; border-bottom:.4px solid var(--brand-teal); }
-#schedule-container h3, #schedule-container .day-title{
-  background:var(--brand-teal); color:#fff; padding:.4rem .6rem; border-radius:4px; margin:.6rem 0 .2rem;
-  font-family:'Bebas Neue',sans-serif; letter-spacing:.5px;
+.schedule{
+  background:#111;
+  border-radius:6px;
+  padding:0 1rem 1rem;
+  overflow-y:auto;
+  font-size:1.4rem;
+  line-height:1.4;
 }
-#schedule-container h3 ~ *, #schedule-container .day-title ~ *{ border-top:2px solid var(--brand-teal); padding:.35rem .6rem; }
+.schedule-heading{
+  position:sticky;
+  top:0;
+  background:#111;
+  z-index:10;
+  padding:.4rem 0;
+  font-size:1.5rem;
+  border-bottom:.4px solid var(--brand-teal);
+}
+#schedule-container h3, #schedule-container .day-title{
+  background:var(--brand-teal);
+  color:#fff;
+  padding:.4rem .6rem;
+  border-radius:4px;
+  margin:.6rem 0 .2rem;
+  font-family:'Bebas Neue',sans-serif;
+  letter-spacing:.5px;
+}
+#schedule-container h3 ~ *, #schedule-container .day-title ~ *{
+  border-top:2px solid var(--brand-teal);
+  padding:.35rem .6rem;
+}
 
 /* ─── FOOTER BANNER ────────────────────────────────────────────── */
-.banner{ display:flex; flex-direction:column; align-items:center; gap:.5rem; background:var(--brand-teal); padding:1rem; }
+.banner{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:.5rem;
+  background:var(--brand-teal);
+  padding:1rem;
+}
 .banner a{
-  flex:1; text-align:center; text-decoration:none; color:#000; font-weight:700; font-size:1.4rem;
-  letter-spacing:.5px; text-transform:uppercase; padding:.5rem 1rem;
+  flex:1;
+  text-align:center;
+  text-decoration:none;
+  color:#000;
+  font-weight:700;
+  font-size:1.4rem;
+  letter-spacing:.5px;
+  text-transform:uppercase;
+  padding:.5rem 1rem;
 }
 .banner a:hover{ color:var(--text-light); }
 
@@ -328,9 +409,23 @@ section h2::after{ content:''; position:absolute; bottom:0; right:0; height:4px;
   .banner{ flex-direction:row; justify-content:space-between; }
 }
 @media (min-width:769px){
-  .live-player iframe,.live-player audio{ height:600px; max-height:150vh; }
-  #slideshow{ grid-column:1 / -1; width:100%; height:500px; transform:none; max-width:none; max-height:100vh; }
+  .live-player iframe,
+  .live-player audio,
+  .live-player video{
+    height:600px;
+    max-height:150vh;
+  }
+
+  #slideshow{
+    grid-column:1 / -1;
+    width:100%;
+    height:500px;
+    transform:none;
+    max-width:none;
+    max-height:100vh;
+  }
   #slideshow > *{ height:100%; }
+
   .grid-container{ grid-template-columns:1fr 1.5fr 1fr 1fr; }
   .chat iframe{ height:1200px; }
 }
@@ -367,6 +462,7 @@ section h2::after{ content:''; position:absolute; bottom:0; right:0; height:4px;
 .week-grid .day-head, .week-grid .day-head .dow, .week-grid .day-head .date{
   color:#fff !important; opacity:1 !important; filter:none !important; mix-blend-mode:normal !important;
 }
+
 /* --- Mobile performance: remove header WEBM strips --- */
 @media (max-width: 768px){
   /* Don’t render the videos at all on phones */
@@ -381,3 +477,4 @@ section h2::after{ content:''; position:absolute; bottom:0; right:0; height:4px;
     gap:6px;
     padding:8px 0 6px !important;
   }
+}

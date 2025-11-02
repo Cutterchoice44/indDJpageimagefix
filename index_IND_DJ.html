@@ -116,9 +116,6 @@
       .header-banner .title h1{ font-size:9.2vw; line-height:1; margin:0; }
       .header-banner .title .tagline{ font-size:4vw; margin-top:4px; }
 
-      /* NAV: two rows
-         Row 1: main links
-         Row 2: [ABOUT THE STATION] ...... [MERCH + icons + CAST] */
       #main-nav{
         flex-direction:row;
         flex-wrap:wrap;
@@ -131,14 +128,12 @@
         gap:.2rem !important;
         flex-wrap:wrap;
       }
-      /* Condense top-row links slightly */
       #main-nav a.nav-link{
         font-size:.95rem !important;
         padding:.1rem .22rem;
         letter-spacing:.02em;
       }
 
-      /* Bottom row left: ABOUT THE STATION */
       .nav-details{
         order:2; flex:1 1 50%;
         display:flex; align-items:center;
@@ -154,7 +149,6 @@
       }
       .nav-details .about-panel{ width:calc(100vw - 22px); right:-6px; }
 
-      /* Bottom row right: MERCH + social + cast */
       #main-nav .nav-actions{
         order:2; flex:1 1 50%;
         justify-content:flex-end !important;
@@ -164,11 +158,9 @@
       #main-nav .social-icon i{ font-size:1.25rem !important; }
       .icon-img, .nav-onemusic{ display:none !important; }
 
-      /* CAST controls */
       #manualCastBtn.nav-link{ font-size:.95rem !important; padding:.28rem .5rem; }
       google-cast-button#castBtn{ transform:scale(0.78); transform-origin:right center; }
 
-      /* Universal mobile size for all nav-link variants */
       #main-nav a.nav-link,
       #main-nav button.nav-link,
       #main-nav summary.nav-link{
@@ -177,7 +169,6 @@
         padding:.28rem .5rem !important;
       }
 
-      /* tiny spacing below the nav bar */
       #main-nav + div[style*="height:2px"]{ margin-top:2px; }
 
       .player-container #chatPopupBtn{ position:static; margin-top:.5rem; }
@@ -332,7 +323,7 @@
 
     <!-- LIVE PLAYER SECTION -->
     <section class="live-player" aria-labelledby="now-dj">
-      <h2 id="now-dj">Live Now</h2>
+      <h2 id="now-dj">Now Playing: Live</h2>
 
       <div class="player-container">
         <!-- RadioCult audio / now playing widget -->
@@ -340,20 +331,19 @@
                 src="https://app.radiocult.fm/embed/square-player/cutters-choice-radio?theme=midnight&primaryColor=%235A8785&corners=sharp"
                 allow="autoplay; encrypted-media" loading="lazy"></iframe>
 
-        <!-- dynamic current show text -->
+        <!-- text under radio player -->
         <div id="now-archive" role="status" aria-live="polite">Loading archive show…</div>
 
         <!-- popouts -->
         <button id="popOutBtn" class="popout-btn">Pop Out Player</button>
         <button id="chatPopupBtn" class="popout-btn chat-btn-mobile" onclick="openChatPopup()">Chat</button>
 
-        <!-- CCR TV AUTO VIDEO FEED GOES HERE -->
+        <!-- CCR TV AUTO VIDEO FEED -->
         <div id="ccr-tv-wrapper">
-          <!--
-            NOTE: The source is served over http://46.62.210.122/ccr-tv/ccr.m3u8.
-            If your main site is https you’ll get mixed-content blocking in browsers.
-            Until we front this with HTTPS on that box, Chrome on https://cutterschoiceradio.com
-            will refuse to load it. Safari over plain http will work.
+          <!-- NOTE about HTTPS:
+               If the page is served over https://cutterschoiceradio.com,
+               some browsers will refuse to load http://46.62.210.122/... because it's mixed active content.
+               For local/dev http it will work fine. When we put TLS on the CCR TV box this will go away.
           -->
           <video
             id="ccr-tv-video"
@@ -362,7 +352,8 @@
             muted
             autoplay
             controls
-            poster="/images/archives-logo.jpeg">
+            poster="/images/archives-logo.jpeg"
+            crossorigin="anonymous">
           </video>
         </div>
       </div>
@@ -440,13 +431,11 @@
         const isMobile = (e && 'matches' in e) ? e.matches : mq.matches;
 
         if (isMobile) {
-          // already moved?
           if (!merchLink.dataset.moved) {
-            navActions.insertBefore(merchLink, navActions.firstChild); // MERCH appears before icons/CAST
+            navActions.insertBefore(merchLink, navActions.firstChild);
             merchLink.dataset.moved = '1';
           }
         } else {
-          // restore if moved
           if (merchLink.dataset.moved) {
             anchor.before(merchLink);
             merchLink.dataset.moved = '';
@@ -454,10 +443,9 @@
         }
       }
 
-      // initial + on change (resize/orientation)
       moveIfNeeded();
       if (mq.addEventListener) mq.addEventListener('change', moveIfNeeded);
-      else mq.addListener && mq.addListener(moveIfNeeded); // Safari fallback
+      else mq.addListener && mq.addListener(moveIfNeeded);
       window.addEventListener('orientationchange', moveIfNeeded);
     })();
   </script>
@@ -595,19 +583,49 @@
 
       if (!videoEl) return;
 
-      // Safari (and some mobile browsers) can natively play HLS
+      // Always make sure it's muted & inline so browsers allow autoplay
+      videoEl.muted = true;
+      videoEl.playsInline = true;
+
+      function tryPlay() {
+        const p = videoEl.play();
+        if (p && typeof p.then === 'function') {
+          p.catch(err => {
+            console.warn('[CCR-TV] autoplay blocked:', err);
+          });
+        }
+      }
+
+      // Native HLS path (Safari / iOS)
       if (videoEl.canPlayType('application/vnd.apple.mpegurl')) {
         videoEl.src = hlsSrc;
+        // when metadata is ready, ask it to play
+        videoEl.addEventListener('loadedmetadata', () => {
+          tryPlay();
+        });
       } else if (window.Hls) {
+        // hls.js for Chrome/Firefox/etc
         const hls = new Hls({
           liveSyncDuration: 3,
           liveMaxLatencyDuration: 10
         });
-        hls.loadSource(hlsSrc);
         hls.attachMedia(videoEl);
+        hls.on(Hls.Events.MEDIA_ATTACHED, () => {
+          hls.loadSource(hlsSrc);
+        });
+        // once we have the manifest, kick playback
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          tryPlay();
+        });
+        hls.on(Hls.Events.ERROR, (event, data) => {
+          console.warn('[CCR-TV] HLS.js error', event, data);
+        });
       } else {
-        // fallback: just set src, some browsers might still try
+        // Absolute last-resort fallback
         videoEl.src = hlsSrc;
+        videoEl.addEventListener('loadedmetadata', () => {
+          tryPlay();
+        });
       }
     })();
   </script>

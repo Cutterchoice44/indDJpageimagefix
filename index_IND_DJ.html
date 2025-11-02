@@ -24,6 +24,7 @@
   <meta property="og:url" content="https://cutterschoiceradio.com/">
   <meta property="og:site_name" content="Cutters Choice Radio">
   <meta property="og:image" content="https://cutterschoiceradio.com/images/logo.png">
+
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Cutters Choice Radio">
   <meta name="twitter:description" content="Underground, community-driven electronic music: breakbeat, bass, rave and more. Listen live 24/7.">
@@ -40,81 +41,193 @@
   <!-- Preload likely-LCP (logo) -->
   <link rel="preload" href="/images/logo.png" as="image" imagesrcset="/images/logo.png 1x">
 
-  <!-- Main stylesheet -->
-  <link rel="stylesheet" href="style.css?v=1757106631679">
+  <!-- Main stylesheet (cache-busted) -->
+  <link rel="stylesheet" href="style.css?v=2">
 
-  <!-- Bebas Neue & FontAwesome -->
+  <!-- Fonts + Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <!-- INLINE NAV + HEADER + MOBILE TUNING -->
   <style>
-    :root { --brand-teal: #5A8785; --wave-height-desktop: 120px; --wave-height-mobile: 80px; }
+    :root {
+      --brand-teal:#5A8785;
+      --wave-height-desktop:120px;
+      --wave-height-mobile:80px;
+    }
 
     /* NAV BAR */
     #main-nav{
-      display:flex !important; align-items:center !important; gap:.5rem !important;
-      width:100% !important; padding:.10rem .65rem !important; margin:0 !important;
-      box-sizing:border-box !important; background-color:var(--brand-teal) !important;
-      position:relative !important; z-index:1000 !important; border-top:2px solid #000; border-bottom:2px solid #000;
+      display:flex !important;
+      align-items:center !important;
+      gap:.5rem !important;
+      width:100% !important;
+      padding:.10rem .65rem !important;
+      margin:0 !important;
+      box-sizing:border-box !important;
+      background-color:var(--brand-teal) !important;
+      position:relative !important;
+      z-index:1000 !important;
+      border-top:2px solid #000;
+      border-bottom:2px solid #000;
       flex-wrap:nowrap;
     }
     #main-nav .nav-menu{
-      display:flex !important; align-items:center !important; justify-content:space-evenly !important;
-      gap:clamp(.25rem,2vw,1.5rem) !important; flex:1 1 auto !important; min-width:0 !important;
+      display:flex !important;
+      align-items:center !important;
+      justify-content:space-evenly !important;
+      gap:clamp(.25rem,2vw,1.5rem) !important;
+      flex:1 1 auto !important;
+      min-width:0 !important;
     }
-    #main-nav a.nav-link, #main-nav button.nav-link, #main-nav summary.nav-link{
-      color:#fff !important; font-family:'Bebas Neue',sans-serif !important; font-size:2rem !important;
-      text-transform:uppercase !important; text-decoration:none !important; white-space:nowrap !important;
-      list-style:none !important; cursor:pointer !important; display:inline-flex; align-items:center;
+    #main-nav a.nav-link,
+    #main-nav button.nav-link,
+    #main-nav summary.nav-link{
+      color:#fff !important;
+      font-family:'Bebas Neue',sans-serif !important;
+      font-size:2rem !important;
+      text-transform:uppercase !important;
+      text-decoration:none !important;
+      white-space:nowrap !important;
+      list-style:none !important;
+      cursor:pointer !important;
+      display:inline-flex;
+      align-items:center;
     }
+
     .nav-details{ position:relative; }
     .nav-details .about-panel{
-      position:absolute; top:calc(100% + 8px); right:0; width:min(520px, 86vw);
-      background:#000; color:#fff; border:2px solid var(--brand-teal); border-radius:8px;
-      padding:.75rem .9rem; line-height:1.35; box-shadow:0 8px 18px rgba(0,0,0,.45); display:none; z-index:1100;
+      position:absolute;
+      top:calc(100% + 8px);
+      right:0;
+      width:min(520px,86vw);
+      background:#000;
+      color:#fff;
+      border:2px solid var(--brand-teal);
+      border-radius:8px;
+      padding:.75rem .9rem;
+      line-height:1.35;
+      box-shadow:0 8px 18px rgba(0,0,0,.45);
+      display:none;
+      z-index:1100;
     }
     .nav-details[open] .about-panel{ display:block; }
     .nav-details > summary::-webkit-details-marker{ display:none; }
     .nav-details > summary:focus{ outline:2px solid #fff; outline-offset:2px; }
-    #main-nav .nav-actions{ display:flex !important; align-items:center !important; justify-content:flex-end !important; gap:.6rem !important; flex:0 0 auto !important; }
-    #main-nav .social-icon{ display:inline-flex !important; align-items:center !important; justify-content:center !important; line-height:1 !important; text-decoration:none !important; color:#fff !important; }
-    #main-nav .social-icon i{ font-size:2.1rem !important; }
-    .icon-img{ width:2.6rem !important; height:auto !important; margin-left:.25rem !important; vertical-align:middle !important; display:inline-block !important; }
-    #main-nav .nav-onemusic img{ max-height:2rem; width:auto; height:auto; display:block; }
+
+    #main-nav .nav-actions{
+      display:flex !important;
+      align-items:center !important;
+      justify-content:flex-end !important;
+      gap:.6rem !important;
+      flex:0 0 auto !important;
+    }
+    #main-nav .social-icon{
+      display:inline-flex !important;
+      align-items:center !important;
+      justify-content:center !important;
+      line-height:1 !important;
+      text-decoration:none !important;
+      color:#fff !important;
+    }
+    #main-nav .social-icon i{
+      font-size:2.1rem !important;
+    }
+    .icon-img{
+      width:2.6rem !important;
+      height:auto !important;
+      margin-left:.25rem !important;
+      vertical-align:middle !important;
+      display:inline-block !important;
+    }
+    #main-nav .nav-onemusic img{
+      max-height:2rem;
+      width:auto;
+      height:auto;
+      display:block;
+    }
 
     /* HEADER layout */
     .header-banner{
-      position:relative; display:flex; align-items:center; justify-content:space-between;
-      gap:0; background:#000; padding:clamp(12px, 3vw, 24px) 0;
-      overflow:hidden; isolation:isolate; flex-wrap:nowrap;
+      position:relative;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:0;
+      background:#000;
+      padding:clamp(12px, 3vw, 24px) 0;
+      overflow:hidden;
+      isolation:isolate;
+      flex-wrap:nowrap;
     }
-    @media (max-width:768px){ .header-banner{ flex-wrap:wrap; gap:4px; } }
+    @media (max-width:768px){
+      .header-banner{
+        flex-wrap:wrap;
+        gap:4px;
+      }
+    }
 
-    .header-gif-right, .header-gif-left{ display:none !important; }
+    .header-gif-right,
+    .header-gif-left{
+      display:none !important;
+    }
 
     .header-wave{
-      flex:1 1 0; width:auto; min-width:60px;
+      flex:1 1 0;
+      width:auto;
+      min-width:60px;
       height:var(--wave-height-desktop);
-      display:block; object-fit:cover;
-      border-top:2px solid #000; border-bottom:2px solid #000; background:#000;
+      display:block;
+      object-fit:cover;
+      border-top:2px solid #000;
+      border-bottom:2px solid #000;
+      background:#000;
     }
-    @media (max-width:768px){ .header-wave{ height:var(--wave-height-mobile); min-width:40px; } }
+    @media (max-width:768px){
+      .header-wave{
+        height:var(--wave-height-mobile);
+        min-width:40px;
+      }
+    }
 
-    .header-banner .title{ flex:0 1 auto; text-align:center; padding:0 .25rem; min-width:260px; }
-    @media (max-width:768px){ .header-banner .title{ min-width:180px; } }
+    .header-banner .title{
+      flex:0 1 auto;
+      text-align:center;
+      padding:0 .25rem;
+      min-width:260px;
+    }
+    @media (max-width:768px){
+      .header-banner .title{ min-width:180px; }
+    }
 
-    .logo{ width:160px; height:160px; aspect-ratio:1/1; margin:0; }
+    .logo{
+      width:160px;
+      height:160px;
+      aspect-ratio:1/1;
+      margin:0;
+    }
 
-    .schedule, .mixcloud{ content-visibility:auto; contain-intrinsic-size: 800px 600px; }
+    .schedule,
+    .mixcloud{
+      content-visibility:auto;
+      contain-intrinsic-size:800px 600px;
+    }
 
-    /* ===== MOBILE ONLY ================================================= */
-    @media (max-width: 768px){
-      :root{ --wave-height-mobile: 110px; }
+    /* ===== MOBILE ONLY ===== */
+    @media (max-width:768px){
+      :root{ --wave-height-mobile:110px; }
+
       .header-banner{ padding:10px 0 6px; }
       .logo{ width:120px; height:120px; }
-      .header-banner .title h1{ font-size:9.2vw; line-height:1; margin:0; }
-      .header-banner .title .tagline{ font-size:4vw; margin-top:4px; }
+      .header-banner .title h1{
+        font-size:9.2vw;
+        line-height:1;
+        margin:0;
+      }
+      .header-banner .title .tagline{
+        font-size:4vw;
+        margin-top:4px;
+      }
 
       #main-nav{
         flex-direction:row;
@@ -123,7 +236,8 @@
         gap:.25rem !important;
       }
       #main-nav .nav-menu{
-        order:1; width:100%;
+        order:1;
+        width:100%;
         justify-content:space-between !important;
         gap:.2rem !important;
         flex-wrap:wrap;
@@ -135,8 +249,10 @@
       }
 
       .nav-details{
-        order:2; flex:1 1 50%;
-        display:flex; align-items:center;
+        order:2;
+        flex:1 1 50%;
+        display:flex;
+        align-items:center;
       }
       .nav-details > summary.nav-link{
         font-size:.95rem !important;
@@ -147,19 +263,30 @@
         margin:0;
         width:max-content;
       }
-      .nav-details .about-panel{ width:calc(100vw - 22px); right:-6px; }
+      .nav-details .about-panel{
+        width:calc(100vw - 22px);
+        right:-6px;
+      }
 
       #main-nav .nav-actions{
-        order:2; flex:1 1 50%;
+        order:2;
+        flex:1 1 50%;
         justify-content:flex-end !important;
         align-items:center !important;
         gap:.45rem !important;
       }
       #main-nav .social-icon i{ font-size:1.25rem !important; }
-      .icon-img, .nav-onemusic{ display:none !important; }
+      .icon-img,
+      .nav-onemusic{ display:none !important; }
 
-      #manualCastBtn.nav-link{ font-size:.95rem !important; padding:.28rem .5rem; }
-      google-cast-button#castBtn{ transform:scale(0.78); transform-origin:right center; }
+      #manualCastBtn.nav-link{
+        font-size:.95rem !important;
+        padding:.28rem .5rem;
+      }
+      google-cast-button#castBtn{
+        transform:scale(0.78);
+        transform-origin:right center;
+      }
 
       #main-nav a.nav-link,
       #main-nav button.nav-link,
@@ -171,13 +298,45 @@
 
       #main-nav + div[style*="height:2px"]{ margin-top:2px; }
 
-      .player-container #chatPopupBtn{ position:static; margin-top:.5rem; }
+      .player-container #chatPopupBtn{
+        position:static;
+        margin-top:.5rem;
+      }
     }
-    /* =================================================================== */
 
-    @media (prefers-reduced-motion: reduce){
+    @media (prefers-reduced-motion:reduce){
       .header-wave{ display:none !important; }
       .header-banner{ justify-content:center; }
+    }
+
+    /* --- safety fallback for CCR TV block layout --- */
+    .tv-wrapper{
+      width:100%;
+      max-width:1000px;
+      margin:0 auto 1rem;
+      background:#000;
+      border:2px solid var(--brand-teal);
+      border-radius:6px;
+      padding:.5rem;
+    }
+    /* this class MUST match the <video> element */
+    .ccr-tv-video{
+      width:100%;
+      max-width:100%;
+      background:#000;
+      object-fit:cover;
+      aspect-ratio:16/9;
+      max-height:600px;
+      border-radius:4px;
+      display:block;
+    }
+
+    /* fallback if aspect-ratio not supported (ancient Safari) */
+    @supports not (aspect-ratio: 16/9){
+      .ccr-tv-video{
+        height:auto;
+        width:100%;
+      }
     }
   </style>
 
@@ -199,7 +358,7 @@
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-3MSGZZ5QL6"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}  
+    function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
     gtag('config', 'G-3MSGZZ5QL6');
   </script>
@@ -232,7 +391,6 @@
       <img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="eager" decoding="async" width="160" height="160" fetchpriority="high">
     </div>
 
-    <!-- WEBM wave between left logo and titles -->
     <video class="header-wave header-wave-left" aria-hidden="true" muted loop autoplay playsinline preload="metadata">
       <source src="/images/audiowave.webm" type="video/webm">
     </video>
@@ -242,7 +400,6 @@
       <p class="tagline">The home of relentless flavas and significant bangers!</p>
     </div>
 
-    <!-- WEBM wave between titles and right logo -->
     <video class="header-wave header-wave-right" aria-hidden="true" muted loop autoplay playsinline preload="metadata">
       <source src="/images/audiowave.webm" type="video/webm">
     </video>
@@ -264,7 +421,6 @@
       <a href="schedule.html"     class="nav-link">SCHEDULE</a>
       <a href="merch.html"        class="nav-link">MERCH</a>
 
-      <!-- ABOUT THE STATION -->
       <details class="nav-details" id="about-overlay">
         <summary class="nav-link" aria-label="About the station">ABOUT THE STATION</summary>
         <div class="about-panel" id="about-station-content">
@@ -283,22 +439,18 @@
         <i class="fab fa-instagram"></i>
       </a>
 
-      <!-- Alexa logo -->
       <img src="/images/alexa-logo.webp" alt="Alexa" class="icon-img" loading="lazy" decoding="async" width="42" height="42">
 
-      <!-- TuneIn logo -->
       <a href="https://tunein.com/radio/Cutters-Choice-Radio-s344746/" target="_blank" rel="noopener noreferrer" aria-label="TuneIn">
         <img src="/images/tunein-logo.png" alt="TuneIn" class="icon-img" loading="lazy" decoding="async" width="42" height="42">
       </a>
 
-      <!-- OneMusic badge -->
       <div class="nav-onemusic">
         <a href="https://onemusicnz.com" target="_blank" rel="noopener noreferrer">
           <img src="/images/ONEMUSICLOGO.png" alt="We’re licensed to play OneMusic NZ" loading="lazy" decoding="async" width="120" height="40">
         </a>
       </div>
 
-      <!-- Cast controls -->
       <google-cast-button id="castBtn" title="Cast"></google-cast-button>
       <button id="manualCastBtn" class="nav-link" type="button" title="Cast this stream" aria-label="Cast this stream">CAST</button>
     </div>
@@ -311,14 +463,22 @@
     <!-- CHAT SECTION -->
     <section class="chat" aria-labelledby="chat-heading">
       <h2 id="chat-heading">Cutters Chat</h2>
-      <iframe title="Cutters Choice Radio Chat"
-              src="https://app.radiocult.fm/embed/chat/cutters-choice-radio?theme=midnight&primaryColor=%235A8785&corners=sharp"
-              width="100%" height="700" frameborder="0"
-              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-              loading="lazy" seamless>
+
+      <iframe
+        title="Cutters Choice Radio Chat"
+        src="https://app.radiocult.fm/embed/chat/cutters-choice-radio?theme=midnight&primaryColor=%235A8785&corners=sharp"
+        width="100%" height="700" frameborder="0"
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+        loading="lazy" seamless>
       </iframe>
-      <div class="chat-actions"><button class="popout-btn" onclick="openChatPopup()">Pop Out Chat</button></div>
-      <div class="rc-user-list-container"><div class="rc-user-list"></div></div>
+
+      <div class="chat-actions">
+        <button class="popout-btn" onclick="openChatPopup()">Pop Out Chat</button>
+      </div>
+
+      <div class="rc-user-list-container">
+        <div class="rc-user-list"></div>
+      </div>
     </section>
 
     <!-- LIVE PLAYER SECTION -->
@@ -327,9 +487,12 @@
 
       <div class="player-container">
         <!-- RadioCult audio / now playing widget -->
-        <iframe id="inlinePlayer" title="Cutters Choice Radio player"
-                src="https://app.radiocult.fm/embed/square-player/cutters-choice-radio?theme=midnight&primaryColor=%235A8785&corners=sharp"
-                allow="autoplay; encrypted-media" loading="lazy"></iframe>
+        <iframe
+          id="inlinePlayer"
+          title="Cutters Choice Radio player"
+          src="https://app.radiocult.fm/embed/square-player/cutters-choice-radio?theme=midnight&primaryColor=%235A8785&corners=sharp"
+          allow="autoplay; encrypted-media"
+          loading="lazy"></iframe>
 
         <!-- text under radio player -->
         <div id="now-archive" role="status" aria-live="polite">Loading archive show…</div>
@@ -338,16 +501,36 @@
         <button id="popOutBtn" class="popout-btn">Pop Out Player</button>
         <button id="chatPopupBtn" class="popout-btn chat-btn-mobile" onclick="openChatPopup()">Chat</button>
 
-        <!-- CCR TV AUTO VIDEO FEED (HLS over HTTPS from 46.62.210.122 box via ccr-tv.*) -->
+        <!-- CCR TV block -->
         <div class="tv-wrapper">
           <video
             id="ccrTv"
+            class="ccr-tv-video"
             playsinline
             muted
             controls
             poster="/images/archives-logo.jpeg"
             crossorigin="anonymous">
           </video>
+
+          <!-- manual "Play" fallback for browsers that block autoplay -->
+          <button id="ccrTvPlayBtn"
+            style="
+              display:none;
+              margin:.75rem auto 0;
+              padding:.5rem 1rem;
+              font-family:'Bebas Neue',sans-serif;
+              font-size:1.2rem;
+              background:var(--brand-teal);
+              color:#fff;
+              border:none;
+              border-radius:4px;
+              cursor:pointer;
+              text-transform:uppercase;
+              letter-spacing:.05em;
+            ">
+            ▶ Play CCR TV
+          </button>
         </div>
       </div>
     </section>
@@ -388,6 +571,7 @@
            text-transform: uppercase;
            text-decoration: none;
          ">PRIVACY POLICY</a>
+
       <span style="
         color: #fff;
         font-family: 'Bebas Neue', sans-serif;
@@ -477,16 +661,23 @@
         officialBtn?.addEventListener('click', async () => {
           const session = context.getCurrentSession();
           if (!session) return console.warn('No Chromecast session');
+
           const mediaInfo = new chrome.cast.media.MediaInfo(
             'https://cutters-choice-radio.radiocult.fm/stream',
             'application/x-mpegurl'
           );
+
           mediaInfo.streamType = chrome.cast.media.StreamType.LIVE;
           mediaInfo.metadata = new chrome.cast.media.MusicTrackMediaMetadata();
           mediaInfo.metadata.title = document.getElementById('now-dj').textContent;
           mediaInfo.metadata.albumName = 'Cutters Choice Radio';
+
           const request = new chrome.cast.media.LoadRequest(mediaInfo);
-          try { await session.loadMedia(request); } catch (err) { console.error('Chromecast error:', err); }
+          try {
+            await session.loadMedia(request);
+          } catch (err) {
+            console.error('Chromecast error:', err);
+          }
         });
       };
 
@@ -551,7 +742,12 @@
             eventStatus: 'https://schema.org/EventScheduled',
             eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
             location: { '@type': 'VirtualLocation', url: LISTEN_URL },
-            organizer: { '@type': 'Organization', name: ORG.name, url: ORG.url, logo: ORG.logo }
+            organizer: {
+              '@type': 'Organization',
+              name: ORG.name,
+              url: ORG.url,
+              logo: ORG.logo
+            }
           };
           if (performers.length) obj.performer = performers;
           return obj;
@@ -559,7 +755,10 @@
 
         const script = document.createElement('script');
         script.type = 'application/ld+json';
-        script.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': items });
+        script.textContent = JSON.stringify({
+          '@context': 'https://schema.org',
+          '@graph': items
+        });
         document.head.appendChild(script);
       })
       .catch(err => console.warn('[CCR JSON-LD injector]', err));
@@ -569,65 +768,69 @@
   <!-- HLS.js loader + init for CCR TV -->
   <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
   <script>
-  (function() {
-    const videoEl   = document.getElementById('ccrTv');
-    const streamURL = 'https://ccr-tv.cutterschoiceradio.com/ccr-tv/ccr.m3u8';
+    (function(){
+      const videoEl = document.getElementById('ccrTv');
+      const playBtn = document.getElementById('ccrTvPlayBtn');
 
-    if (!videoEl) return;
+      // public HTTPS HLS playlist on the CCR TV box
+      const streamURL = 'https://ccr-tv.cutterschoiceradio.com/ccr-tv/ccr.m3u8';
 
-    // policy hints
-    videoEl.muted = true;
-    videoEl.playsInline = true; // Safari/iOS-style attr in JS
+      if (!videoEl) return;
 
-    function tryPlay() {
-      const p = videoEl.play();
-      if (p && typeof p.then === 'function') {
-        p.catch(err => {
-          console.warn('[CCR-TV] autoplay/play blocked until user gesture:', err);
-          // worst case: user taps play icon in controls
+      // ensure autoplay rules
+      videoEl.muted = true;
+      videoEl.playsInline = true;
+
+      function tryPlay() {
+        const p = videoEl.play();
+        if (p && typeof p.then === 'function') {
+          p.catch(err => {
+            console.warn('[CCR-TV] autoplay blocked:', err);
+            // show manual play button
+            if (playBtn) playBtn.style.display = 'block';
+          });
+        }
+      }
+
+      // user-triggered play fallback
+      if (playBtn) {
+        playBtn.addEventListener('click', () => {
+          playBtn.style.display = 'none';
+          videoEl.play().catch(err => {
+            console.warn('[CCR-TV] manual play failed:', err);
+            playBtn.style.display = 'block';
+          });
         });
       }
-    }
 
-    // Safari / iOS natively understands HLS
-    if (videoEl.canPlayType('application/vnd.apple.mpegURL')) {
-      videoEl.src = streamURL;
-      videoEl.addEventListener('loadedmetadata', tryPlay);
+      // Safari / iOS (native HLS)
+      if (videoEl.canPlayType('application/vnd.apple.mpegURL')) {
+        videoEl.src = streamURL;
+        videoEl.addEventListener('loadedmetadata', tryPlay);
+      } else if (window.Hls) {
+        // Chrome / Firefox / Edge
+        const hls = new Hls({
+          maxBufferLength: 10,
+          liveSyncDurationCount: 3,
+          enableWorker: true
+        });
 
-    } else if (window.Hls) {
-      // Other browsers (Chrome, Firefox, Edge)
-      const hls = new Hls({
-        maxBufferLength: 10,
-        liveSyncDuration: 3,
-        liveMaxLatencyDuration: 10,
-        enableWorker: true,
-        autoStartLoad: true
-      });
+        hls.loadSource(streamURL);
+        hls.attachMedia(videoEl);
 
-      // load first so we immediately fetch manifest, then attach
-      hls.loadSource(streamURL);
-      hls.attachMedia(videoEl);
+        hls.on(Hls.Events.MANIFEST_PARSED, tryPlay);
 
-      // once HLS manifest is parsed, ask it to play
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        tryPlay();
-      });
-
-      // also poke play when first level loads (helps Firefox sometimes)
-      hls.on(Hls.Events.LEVEL_LOADED, () => {
-        tryPlay();
-      });
-
-      hls.on(Hls.Events.ERROR, (event, data) => {
-        console.warn('[CCR-TV] HLS.js error', event, data);
-      });
-
-    } else {
-      // absolute fallback
-      videoEl.src = streamURL;
-      videoEl.addEventListener('loadedmetadata', tryPlay);
-    }
-  })();
+        hls.on(Hls.Events.ERROR, (evt, data) => {
+          console.warn('[CCR-TV] HLS.js error', evt, data);
+          // if manifest or network fails, show play button anyway so user knows it's interactive
+          if (playBtn) playBtn.style.display = 'block';
+        });
+      } else {
+        // really old browsers
+        videoEl.src = streamURL;
+        videoEl.addEventListener('loadedmetadata', tryPlay);
+      }
+    })();
   </script>
 </body>
 </html>

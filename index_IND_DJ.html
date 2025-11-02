@@ -338,26 +338,19 @@
         <button id="popOutBtn" class="popout-btn">Pop Out Player</button>
         <button id="chatPopupBtn" class="popout-btn chat-btn-mobile" onclick="openChatPopup()">Chat</button>
 
-        <!-- CCR TV AUTO VIDEO FEED -->
-        <div id="ccr-tv-wrapper">
-          <!-- NOTE about HTTPS:
-               If the page is served over https://cutterschoiceradio.com,
-               some browsers will refuse to load http://46.62.210.122/... because it's mixed active content.
-               For local/dev http it will work fine. When we put TLS on the CCR TV box this will go away.
-          -->
+        <!-- CCR TV AUTO VIDEO FEED (HLS from your Ubuntu box over HTTPS) -->
+        <div class="tv-wrapper">
           <video
-            id="ccr-tv-video"
-            class="ccr-tv-video"
+            id="ccrTv"
             playsinline
             muted
-            autoplay
             controls
             poster="/images/archives-logo.jpeg"
             crossorigin="anonymous">
           </video>
         </div>
       </div>
-      <!-- removed This Week’s Shows + artwork -->
+      <!-- NOTE: We removed "This Week’s Shows" + artwork block here -->
     </section>
 
     <!-- SCHEDULE SECTION -->
@@ -575,19 +568,22 @@
   </script>
 
   <!-- HLS.js loader + init for CCR TV -->
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
   <script>
     (function(){
-      const videoEl = document.getElementById('ccr-tv-video');
-      const hlsSrc  = 'http://46.62.210.122/ccr-tv/ccr.m3u8';
+      // the <video> element we added above
+      const videoEl = document.getElementById('ccrTv');
+
+      // your public HTTPS HLS playlist on the CCR TV box
+      const streamURL = 'https://ccr-tv.cutterschoiceradio.com/ccr-tv/ccr.m3u8';
 
       if (!videoEl) return;
 
-      // Always make sure it's muted & inline so browsers allow autoplay
+      // make sure browser is happy to autoplay
       videoEl.muted = true;
       videoEl.playsInline = true;
 
-      function tryPlay() {
+      function attemptPlay() {
         const p = videoEl.play();
         if (p && typeof p.then === 'function') {
           p.catch(err => {
@@ -596,36 +592,27 @@
         }
       }
 
-      // Native HLS path (Safari / iOS)
-      if (videoEl.canPlayType('application/vnd.apple.mpegurl')) {
-        videoEl.src = hlsSrc;
-        // when metadata is ready, ask it to play
-        videoEl.addEventListener('loadedmetadata', () => {
-          tryPlay();
-        });
+      // Safari / iOS: native HLS support
+      if (videoEl.canPlayType('application/vnd.apple.mpegURL')) {
+        videoEl.src = streamURL;
+        videoEl.addEventListener('loadedmetadata', attemptPlay);
       } else if (window.Hls) {
-        // hls.js for Chrome/Firefox/etc
+        // Chrome / Firefox / Edge: use hls.js
         const hls = new Hls({
-          liveSyncDuration: 3,
-          liveMaxLatencyDuration: 10
+          maxBufferLength: 10,
+          liveSyncDurationCount: 3,
+          enableWorker: true
         });
+        hls.loadSource(streamURL);
         hls.attachMedia(videoEl);
-        hls.on(Hls.Events.MEDIA_ATTACHED, () => {
-          hls.loadSource(hlsSrc);
-        });
-        // once we have the manifest, kick playback
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          tryPlay();
-        });
-        hls.on(Hls.Events.ERROR, (event, data) => {
-          console.warn('[CCR-TV] HLS.js error', event, data);
+        hls.on(Hls.Events.MANIFEST_PARSED, attemptPlay);
+        hls.on(Hls.Events.ERROR, (evt, data) => {
+          console.warn('[CCR-TV] HLS.js error', evt, data);
         });
       } else {
-        // Absolute last-resort fallback
-        videoEl.src = hlsSrc;
-        videoEl.addEventListener('loadedmetadata', () => {
-          tryPlay();
-        });
+        // Fallback (very old browsers)
+        videoEl.src = streamURL;
+        videoEl.addEventListener('loadedmetadata', attemptPlay);
       }
     })();
   </script>

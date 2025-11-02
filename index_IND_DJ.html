@@ -1,758 +1,615 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cutty Ranks — Cutters Choice Radio</title>
+  <meta charset="UTF-8">
+  <!-- Prevent browser caching -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- SEO -->
-  <meta name="description" content="Cutty Ranks: the best-of archive — YouTube picks from Cutters Choice Radio selectors.">
+  <!-- Enable Cast -->
+  <meta name="google-cast-enabled" content="true">
+
+  <title>Cutters Choice Radio</title>
+  <link rel="canonical" href="https://cutterschoiceradio.com/">
+  <meta name="description" content="Cutters Choice Radio — underground, community-driven electronic music: breakbeat, bass, rave and more. Listen live 24/7.">
   <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#5A8785">
 
-  <!-- Social preview -->
+  <!-- Social preview (Open Graph + Twitter) -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Cutty Ranks — Cutters Choice Radio">
-  <meta property="og:description" content="A best-of archive of YouTube selections from the CCR crew.">
-  <meta property="og:url" content="https://cutterschoiceradio.com/cutty-ranks.html">
+  <meta property="og:title" content="Cutters Choice Radio">
+  <meta property="og:description" content="Underground, community-driven electronic music: breakbeat, bass, rave and more. Listen live 24/7.">
+  <meta property="og:url" content="https://cutterschoiceradio.com/">
   <meta property="og:site_name" content="Cutters Choice Radio">
   <meta property="og:image" content="https://cutterschoiceradio.com/images/logo.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Cutty Ranks — Cutters Choice Radio">
-  <meta name="twitter:description" content="A best-of archive of YouTube selections from the CCR crew.">
+  <meta name="twitter:title" content="Cutters Choice Radio">
+  <meta name="twitter:description" content="Underground, community-driven electronic music: breakbeat, bass, rave and more. Listen live 24/7.">
   <meta name="twitter:image" content="https://cutterschoiceradio.com/images/logo.png">
 
-  <!-- Performance -->
+  <!-- Performance hints -->
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://www.youtube-nocookie.com" crossorigin>
-  <link rel="preconnect" href="https://api.radiocult.fm" crossorigin>
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+  <link rel="preconnect" href="https://app.radiocult.fm" crossorigin>
+  <link rel="preconnect" href="https://cdn.socket.io" crossorigin>
 
-  <!-- Global site styles -->
-  <link rel="stylesheet" href="/style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <!-- Preload likely-LCP (logo) to speed first paint -->
+  <link rel="preload" href="/images/logo.png" as="image" imagesrcset="/images/logo.png 1x">
 
+  <!-- Main stylesheet -->
+  <link rel="stylesheet" href="style.css?v=1757106631679">
+
+  <!-- Bebas Neue & FontAwesome -->
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- INLINE NAV + HEADER + MOBILE TUNING -->
   <style>
-    :root{
-      --brand-teal:#5A8785;
-      --ink:#eaffff; --ink-d:#bfe7e4;
-      --line:#264745;
-      --gap:14px;
-      --usable:70vh;
-    }
+    :root { --brand-teal: #5A8785; --wave-height-desktop: 120px; --wave-height-mobile: 80px; }
 
-    /* ===== Header (unchanged) ===== */
-    .header-banner{
-      position:relative; display:flex; align-items:center; justify-content:center;
-      padding:clamp(16px,3vw,28px) .6rem;
-      background:#000 center/cover no-repeat;
-      background-image:url('/images/cutty_a.png');
-      border-top:2px solid #000; border-bottom:2px solid #000; isolation:isolate;
+    /* NAV BAR */
+    #main-nav{
+      display:flex !important; align-items:center !important; gap:.5rem !important;
+      width:100% !important; padding:.10rem .65rem !important; margin:0 !important;
+      box-sizing:border-box !important; background-color:var(--brand-teal) !important;
+      position:relative !important; z-index:1000 !important; border-top:2px solid #000; border-bottom:2px solid #000;
+      flex-wrap:nowrap;
     }
-    .header-banner .title{ text-align:center; }
-    .header-banner .title h1{
-      margin:0; font-family:'Bebas Neue',sans-serif;
-      font-size:clamp(2.3rem,6.2vw,4rem); line-height:1; color:#fff;
-      text-shadow:0 2px 12px rgba(0,0,0,.6);
+    #main-nav .nav-menu{
+      display:flex !important; align-items:center !important; justify-content:space-evenly !important;
+      gap:clamp(.25rem,2vw,1.5rem) !important; flex:1 1 auto !important; min-width:0 !important;
     }
-    .header-banner .title .tagline{ margin:.2rem 0 0; color:#fff; text-shadow:0 2px 10px rgba(0,0,0,.6); }
-    .header-gif-right,.header-gif-left,.header-wave,.logo-container{ display:none !important; }
-    .nav-sep{height:2px;background-color:var(--brand-teal);}
-
-    /* Nav */
-    #main-nav .nav-menu{ justify-content: space-evenly !important; }
-    #main-nav .nav-link, #main-nav summary.nav-link{
-      color:#fff !important; font-family:'Bebas Neue',sans-serif !important;
-      font-size:2rem !important; text-transform:uppercase !important;
-      text-decoration:none !important; white-space:nowrap !important;
+    #main-nav a.nav-link, #main-nav button.nav-link, #main-nav summary.nav-link{
+      color:#fff !important; font-family:'Bebas Neue',sans-serif !important; font-size:2rem !important;
+      text-transform:uppercase !important; text-decoration:none !important; white-space:nowrap !important;
       list-style:none !important; cursor:pointer !important; display:inline-flex; align-items:center;
     }
     .nav-details{ position:relative; }
     .nav-details .about-panel{
-      position:absolute; top:calc(100% + 8px); right:0; width:min(520px,86vw);
-      background:#000; color:#fff; border:2px solid var(--brand-teal);
-      border-radius:8px; padding:.75rem .9rem; line-height:1.35;
-      box-shadow:0 8px 18px rgba(0,0,0,.45); display:none; z-index:1100;
+      position:absolute; top:calc(100% + 8px); right:0; width:min(520px, 86vw);
+      background:#000; color:#fff; border:2px solid var(--brand-teal); border-radius:8px;
+      padding:.75rem .9rem; line-height:1.35; box-shadow:0 8px 18px rgba(0,0,0,.45); display:none; z-index:1100;
     }
     .nav-details[open] .about-panel{ display:block; }
     .nav-details > summary::-webkit-details-marker{ display:none; }
+    .nav-details > summary:focus{ outline:2px solid #fff; outline-offset:2px; }
+    #main-nav .nav-actions{ display:flex !important; align-items:center !important; justify-content:flex-end !important; gap:.6rem !important; flex:0 0 auto !important; }
+    #main-nav .social-icon{ display:inline-flex !important; align-items:center !important; justify-content:center !important; line-height:1 !important; text-decoration:none !important; color:#fff !important; }
+    #main-nav .social-icon i{ font-size:2.1rem !important; }
+    .icon-img{ width:2.6rem !important; height:auto !important; margin-left:.25rem !important; vertical-align:middle !important; display:inline-block !important; }
+    #main-nav .nav-onemusic img{ max-height:2rem; width:auto; height:auto; display:block; }
 
-    /* ---------- MOBILE FIXES (apply up to 1180px) ---------- */
-    @media (max-width:1180px){
-      body.cutty nav#main-nav{
-        display:flex !important; flex-direction:row !important; align-items:center !important;
-        justify-content:space-between !important; padding:.40rem .65rem !important;
+    /* HEADER layout */
+    .header-banner{
+      position:relative; display:flex; align-items:center; justify-content:space-between;
+      gap:0; background:#000; padding:clamp(12px, 3vw, 24px) 0;
+      overflow:hidden; isolation:isolate; flex-wrap:nowrap;
+    }
+    @media (max-width:768px){ .header-banner{ flex-wrap:wrap; gap:4px; } }
+
+    .header-gif-right, .header-gif-left{ display:none !important; }
+
+    .header-wave{
+      flex:1 1 0; width:auto; min-width:60px;
+      height:var(--wave-height-desktop);
+      display:block; object-fit:cover;
+      border-top:2px solid #000; border-bottom:2px solid #000; background:#000;
+    }
+    @media (max-width:768px){ .header-wave{ height:var(--wave-height-mobile); min-width:40px; } }
+
+    .header-banner .title{ flex:0 1 auto; text-align:center; padding:0 .25rem; min-width:260px; }
+    @media (max-width:768px){ .header-banner .title{ min-width:180px; } }
+
+    .logo{ width:160px; height:160px; aspect-ratio:1/1; margin:0; }
+
+    .schedule, .mixcloud{ content-visibility:auto; contain-intrinsic-size: 800px 600px; }
+
+    /* ===== MOBILE ONLY ================================================= */
+    @media (max-width: 768px){
+      :root{ --wave-height-mobile: 110px; }
+      .header-banner{ padding:10px 0 6px; }
+      .logo{ width:120px; height:120px; }
+      .header-banner .title h1{ font-size:9.2vw; line-height:1; margin:0; }
+      .header-banner .title .tagline{ font-size:4vw; margin-top:4px; }
+
+      /* NAV: two rows
+         Row 1: main links
+         Row 2: [ABOUT THE STATION] ...... [MERCH + icons + CAST] */
+      #main-nav{
+        flex-direction:row;
+        flex-wrap:wrap;
+        align-items:center !important;
+        gap:.25rem !important;
       }
-      body.cutty nav#main-nav .nav-menu{
-        display:flex !important; gap:.35rem !important; flex-wrap:nowrap !important;
-        overflow-x:auto !important; white-space:nowrap !important; scrollbar-width:none;
-        margin-bottom:0 !important;
+      #main-nav .nav-menu{
+        order:1; width:100%;
+        justify-content:space-between !important;
+        gap:.2rem !important;
+        flex-wrap:wrap;
       }
-      body.cutty nav#main-nav .nav-menu::-webkit-scrollbar{ display:none; }
-      body.cutty nav#main-nav .nav-link, body.cutty nav#main-nav summary.nav-link{
-        font-size:clamp(.8rem,3.2vw,1rem) !important; padding:.2rem .25rem !important;
+      /* Condense top-row links slightly */
+      #main-nav a.nav-link{
+        font-size:.95rem !important;
+        padding:.1rem .22rem;
+        letter-spacing:.02em;
       }
 
-      .nav-sep,
-      .thin-teal-line,
-      .thin-teal-line.top-sep,
-      .thin-teal-line.bottom-sep{ display:none !important; }
-      #main-nav{ border-bottom:0 !important; box-shadow:none !important; }
-      #main-nav::after, #main-nav::before{ content:none !important; display:none !important; }
-      .nav-details{ display:none !重要; } /* ABOUT dropdown */
-      .cutty-title{ background:#000 !important; }
-      .cutty-title::before{ background:none !important; }
-    }
+      /* Bottom row left: ABOUT THE STATION */
+      .nav-details{
+        order:2; flex:1 1 50%;
+        display:flex; align-items:center;
+      }
+      .nav-details > summary.nav-link{
+        font-size:.95rem !important;
+        padding:.28rem .5rem;
+        background:rgba(0,0,0,.15);
+        border:1px solid rgba(255,255,255,.28);
+        border-radius:999px;
+        margin:0;
+        width:max-content;
+      }
+      .nav-details .about-panel{ width:calc(100vw - 22px); right:-6px; }
 
-    /* ----- Title band (desktop keeps art) ----- */
-    .cutty-title{
-      position:relative; border-top:2px solid var(--brand-teal); border-bottom:2px solid var(--brand-teal);
-      min-height:110px; display:flex; align-items:center; justify-content:flex-start;
-      padding:.35rem .6rem; background: url('/images/cutty_b.png') right center / contain no-repeat, #000;
-    }
-    .cutty-title::before{
-      content:""; position:absolute; inset:0;
-      background:linear-gradient(90deg, rgba(0,0,0,.55), rgba(0,0,0,.25) 35%, rgba(0,0,0,0));
-      pointer-events:none;
-    }
-    .cutty-title h2{
-      position:relative; z-index:1; color:#fff; font-family:'Bebas Neue',sans-serif;
-      font-size:clamp(2.6rem,5.2vw,3.6rem); line-height:1; margin:0; letter-spacing:.6px;
-      text-shadow:0 2px 10px rgba(0,0,0,.65);
-    }
+      /* Bottom row right: MERCH + social + cast */
+      #main-nav .nav-actions{
+        order:2; flex:1 1 50%;
+        justify-content:flex-end !important;
+        align-items:center !important;
+        gap:.45rem !important;
+      }
+      #main-nav .social-icon i{ font-size:1.25rem !important; }
+      .icon-img, .nav-onemusic{ display:none !important; }
 
-    /* ===== Concept 4 layout ===== */
-    .c4-grid{
-      display:grid; gap:var(--gap);
-      grid-template-columns:
-        minmax(380px, 1.1fr)
-        minmax(640px, 1.2fr)
-        minmax(880px, 1.6fr);
-      align-items:start; padding:.6rem;
+      /* CAST controls */
+      #manualCastBtn.nav-link{ font-size:.95rem !important; padding:.28rem .5rem; }
+      google-cast-button#castBtn{ transform:scale(0.78); transform-origin:right center; }
+
+      /* Universal mobile size for all nav-link variants */
+      #main-nav a.nav-link,
+      #main-nav button.nav-link,
+      #main-nav summary.nav-link{
+        font-size:.95rem !important;
+        line-height:1 !important;
+        padding:.28rem .5rem !important;
+      }
+
+      /* tiny spacing below the nav bar */
+      #main-nav + div[style*="height:2px"]{ margin-top:2px; }
+
+      .player-container #chatPopupBtn{ position:static; margin-top:.5rem; }
     }
+    /* =================================================================== */
 
-    .dj-gallery{ background:#000; border:2px solid var(--line); border-radius:10px; padding:12px; height:var(--usable); overflow:auto; }
-    .dj-grid{ display:grid; grid-template-columns:repeat(2, minmax(160px,1fr)); gap:12px; }
-    @media (min-width:1600px){ .dj-grid{ grid-template-columns:repeat(3, minmax(160px,1fr)); } }
-    .dj-tile{
-      position:relative; border:1px solid #1d3533; border-radius:14px; overflow:hidden;
-      background:#0a0a0a center/cover no-repeat; aspect-ratio:1/1; cursor:pointer;
-      transition:transform .08s, box-shadow .12s, outline .08s;
-    }
-    .dj-tile:hover{ transform:translateY(-1px); box-shadow:0 12px 26px rgba(0,0,0,.35); }
-    .dj-tile.active{ outline:2px solid var(--brand-teal); outline-offset:-2px; }
-    .dj-name{ position:absolute; left:0; right:0; bottom:0; padding:.5rem .6rem;
-      background:linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.78) 60%);
-      color:#fff; font-family:'Bebas Neue',sans-serif; font-size:1.35rem; letter-spacing:.5px; }
-
-    .stack{ background:#000; border:2px solid var(--line); border-radius:10px; padding:12px; height:var(--usable); display:flex; flex-direction:column; gap:12px; }
-    .stack .stack-header{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
-    .stack .btn{
-      font:600 12px/1 system-ui; color:var(--ink); background:#0b2322; border:1px solid var(--brand-teal);
-      border-radius:999px; padding:.5rem .7rem; cursor:pointer; margin-left:6px;
-    }
-    .controls-desktop{ display:flex; align-items:center; gap:6px; }
-    .cards{ display:flex; flex-direction:column; gap:12px; overflow:auto; }
-    .card{
-      display:grid; grid-template-columns:180px 1fr auto; gap:12px; align-items:center;
-      padding:12px; border:1px solid #1d3533; border-radius:12px; background:#0a0a0a;
-    }
-    .thumb{ width:180px; aspect-ratio:16/9; border-radius:8px; background:#111 center/cover no-repeat; border:1px solid #122; overflow:hidden; }
-    .meta .title{ color:#e7fbf9; font:600 15px/1.2 system-ui; margin:0 0 2px; }
-    .meta .sub{ color:#86b8b5; font:12px/1.2 system-ui; }
-    .card .play{ width:42px; height:42px; border-radius:999px; display:grid; place-items:center; background:rgba(255,255,255,.12); color:#fff; border:0; cursor:pointer; }
-
-    .nowp{ background:#000; border:2px solid var(--line); border-radius:10px; padding:12px; height:var(--usable); display:flex; flex-direction:column; gap:12px; }
-    .nowp h3{ font-family:'Bebas Neue',sans-serif; color:#fff; letter-spacing:.6px; margin:.2rem .2rem; }
-
-    .player-shell{
-      flex:0 0 auto;
-      background:#000;
-      border:1px solid var(--brand-teal);
-      border-radius:8px;
-      padding:0;
-      overflow:hidden;
-    }
-    #mainPreview{ max-width:100% !important; margin:0; padding:0; }
-    #mainPreview .yt-wrap{
-      position:relative;
-      width:100%;
-      aspect-ratio:16 / 9;
-    }
-    #mainPreview .yt-wrap iframe,
-    #mainPreview .yt-wrap #ytPlayer,
-    #mainPreview .yt-wrap .html5-video-player{
-      position:absolute; inset:0;
-      width:100% !important;
-      height:100% !important;
-      display:block; border:0;
-    }
-
-    .queue{ background:#060b0b; border:1px solid #1a2f2e; border-radius:8px; padding:8px; overflow:auto; flex:1 1 auto; min-height:0; }
-    .q-item{ display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; cursor:pointer; color:#d7f9f6; }
-    .q-item:hover{ background:#0c1716; }
-    .q-item.active{ outline:1px dashed var(--brand-teal); outline-offset:-2px; }
-    .q-num{ width:28px; height:28px; border-radius:999px; display:grid; place-items:center; background:#123; border:1px solid #2a5653; color:#bfe7e4; font:600 12px/1 system-ui; }
-    .q-title{ flex:1 1 auto; }
-    .q-who{ color:#86b8b5; font:12px/1.1 system-ui; margin-left:12px; white-space:nowrap; }
-
-    .adminHidden{ display:none !important; }
-    #adminOverlay{ position:fixed; inset:0; background:rgba(0,0,0,.82); color:#fff; z-index:9999; display:flex; align-items:center; justify-content:center; }
-    #adminPanel{ width:min(980px,95vw); max-height:92vh; overflow:auto; background:#0e1414; border:2px solid var(--brand-teal); border-radius:10px; padding:16px; box-shadow:0 12px 40px rgba(0,0,0,.55); }
-    #adminPanel h3{ font-family:'Bebas Neue',sans-serif; letter-spacing:.5px; margin:0 0 10px; color:#fff; }
-    #adminPanel .entry{ border:1px solid #2a5653; border-radius:8px; padding:10px; margin:10px 0; background:#081111; }
-    #adminPanel .row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:6px 0; }
-    #adminPanel input[type="text"]{ flex:1 1 240px; min-width:200px; background:#050808; color:#eaffff; border:1px solid #2a5653; border-radius:6px; padding:8px; }
-    #adminPanel label{ font-size:.95rem; opacity:.9; color:#fff; min-width:92px; }
-    #adminPanel button{ padding:8px 12px; border-radius:6px; border:1px solid #2a5653; background:#0b2322; color:#eaffff; cursor:pointer; }
-    #adminStatus{ opacity:.9; font-size:.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:52ch; margin-left:auto; }
-
-    .dj-list-mobile{ display:none; background:#000; border:2px solid var(--line); border-radius:10px; padding:10px; }
-    .dj-list-mobile h3{ font-family:'Bebas Neue',sans-serif; color:#fff; margin:.1rem 0 .5rem; letter-spacing:.6px; }
-    .dj-names{ display:flex; flex-wrap:wrap; gap:8px; }
-    .dj-name-chip{
-      border:1px solid #2a5653; background:#0b2322; color:#eaffff; padding:.45rem .65rem; border-radius:999px;
-      font:600 12px/1 system-ui; cursor:pointer; white-space:nowrap;
-    }
-    .dj-name-chip.active{ background:#123; outline:1px solid var(--brand-teal); }
-
-    .controls-mobile{ display:none; gap:8px; flex-wrap:wrap; align-items:center; background:#000; border:2px solid var(--line); border-radius:10px; padding:10px; }
-    .controls-mobile .btn{ font:600 12px/1 system-ui; color:var(--ink); background:#0b2322; border:1px solid var(--brand-teal); border-radius:999px; padding:.5rem .7rem; }
-
-    @media (max-width:1180px){
-      .c4-grid{ display:flex; flex-direction:column; gap:10px; padding:.5rem .6rem; }
-      .dj-gallery{ display:none; }
-      .dj-list-mobile{ display:block; order:1; }
-      .controls-mobile{ display:flex; order:2; }
-      .nowp{ order:3; height:auto; }
-      .stack{ order:4; height:auto; }
-      .controls-desktop{ display:none !important; }
+    @media (prefers-reduced-motion: reduce){
+      .header-wave{ display:none !important; }
+      .header-banner{ justify-content:center; }
     }
   </style>
 
-  <!-- YouTube IFrame API -->
-  <script src="https://www.youtube.com/iframe_api"></script>
+  <!-- Chromecast Init & SDK -->
+  <script>
+    window.__onGCastApiAvailable = isAvailable => {
+      if (isAvailable) {
+        cast.framework.CastContext.getInstance().setOptions({
+          receiverApplicationId: '77E0F81B',
+          autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+        });
+      }
+    };
+  </script>
+  <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
+
+  <!-- Other head scripts -->
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" defer></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-3MSGZZ5QL6"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}  
+    gtag('js', new Date());
+    gtag('config', 'G-3MSGZZ5QL6');
+  </script>
+
+  <!-- Site-wide Organization JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Cutters Choice Radio",
+    "url": "https://cutterschoiceradio.com",
+    "logo": "https://cutterschoiceradio.com/images/logo.png",
+    "sameAs": [
+      "https://www.instagram.com/cutterschoiceradio",
+      "https://www.facebook.com/cutterschoiceradio",
+      "https://www.mixcloud.com/cutterschoiceradio",
+      "https://tunein.com/radio/Cutters-Choice-Radio-s344746/"
+    ]
+  }
+  </script>
 </head>
 
-<body class="cutty">
+<body>
   <!-- HEADER -->
   <header class="header-banner" role="banner">
+    <div class="header-gif-right"></div>
+    <div class="header-gif-left"></div>
+
+    <div class="logo-container">
+      <img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="eager" decoding="async" width="160" height="160" fetchpriority="high">
+    </div>
+
+    <!-- WEBM wave between left logo and titles -->
+    <video class="header-wave header-wave-left" aria-hidden="true" muted loop autoplay playsinline preload="metadata">
+      <source src="/images/audiowave.webm" type="video/webm">
+    </video>
+
     <div class="title">
       <h1>Cutters Choice Radio</h1>
       <p class="tagline">The home of relentless flavas and significant bangers!</p>
     </div>
+
+    <!-- WEBM wave between titles and right logo -->
+    <video class="header-wave header-wave-right" aria-hidden="true" muted loop autoplay playsinline preload="metadata">
+      <source src="/images/audiowave.webm" type="video/webm">
+    </video>
+
+    <div class="logo-container">
+      <img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="eager" decoding="async" width="160" height="160">
+    </div>
   </header>
 
-  <div class="nav-sep top"></div>
+  <div style="height:2px;background-color:var(--brand-teal);"></div>
 
-  <!-- Primary Nav -->
+  <!-- NAVIGATION -->
   <nav id="main-nav" aria-label="Primary">
     <div class="nav-menu">
-      <a href="/" class="nav-link">HOME</a>
-      <a href="/our-story.html" class="nav-link">OUR STORY</a>
-      <a href="/index-ourDJS.html" class="nav-link">OUR DJS</a>
-      <a href="/dj-selects.html" class="nav-link">DJ SELECTS</a>
-      <a href="/schedule.html" class="nav-link">SCHEDULE</a>
-      <a href="/merch.html" class="nav-link">MERCH</a>
-      <details class="nav-details">
-        <summary class="nav-link" aria-label="About Cutty Ranks">ABOUT CUTTY RANKS</summary>
-        <div class="about-panel">
-          <p>A best-of archive of YouTube selections from the CCR crew.</p>
+      <a href="our-story.html"    class="nav-link">OUR STORY</a>
+      <a href="index-ourDJS.html" class="nav-link">OUR DJS</a>
+      <a href="dj-selects.html"   class="nav-link">DJ SELECTS</a>
+      <a href="cutty-ranks.html"  class="nav-link">CUTTY RANKS</a>
+      <a href="schedule.html"     class="nav-link">SCHEDULE</a>
+      <a href="merch.html"        class="nav-link">MERCH</a>
+
+      <!-- ABOUT THE STATION -->
+      <details class="nav-details" id="about-overlay">
+        <summary class="nav-link" aria-label="About the station">ABOUT THE STATION</summary>
+        <div class="about-panel" id="about-station-content">
+          <p>
+            Cutters Choice Radio is a community of resident DJs and selectors broadcasting across underground music of all genres, representing bass and rave culture. Explore each profile for bios, mixes and show times, and discover new artists on our weekly schedule.
+          </p>
         </div>
       </details>
     </div>
+
+    <div class="nav-actions">
+      <a href="https://facebook.com/cutterschoiceradio"  target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="Facebook">
+        <i class="fab fa-facebook-f"></i>
+      </a>
+      <a href="https://instagram.com/cutterschoiceradio" target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="Instagram">
+        <i class="fab fa-instagram"></i>
+      </a>
+
+      <!-- Alexa logo -->
+      <img src="/images/alexa-logo.webp" alt="Alexa" class="icon-img" loading="lazy" decoding="async" width="42" height="42">
+
+      <!-- TuneIn logo -->
+      <a href="https://tunein.com/radio/Cutters-Choice-Radio-s344746/" target="_blank" rel="noopener noreferrer" aria-label="TuneIn">
+        <img src="/images/tunein-logo.png" alt="TuneIn" class="icon-img" loading="lazy" decoding="async" width="42" height="42">
+      </a>
+
+      <!-- OneMusic badge -->
+      <div class="nav-onemusic">
+        <a href="https://onemusicnz.com" target="_blank" rel="noopener noreferrer">
+          <img src="/images/ONEMUSICLOGO.png" alt="We’re licensed to play OneMusic NZ" loading="lazy" decoding="async" width="120" height="40">
+        </a>
+      </div>
+
+      <!-- Cast controls -->
+      <google-cast-button id="castBtn" title="Cast"></google-cast-button>
+      <button id="manualCastBtn" class="nav-link" type="button" title="Cast this stream" aria-label="Cast this stream">CAST</button>
+    </div>
   </nav>
 
-  <!-- Title band -->
-  <section class="cutty-title">
-    <h2>CUTTY RANKS: THE SELECTOR ARCHIVES</h2>
-  </section>
+  <div style="height:2px;background-color:var(--brand-teal);"></div>
 
-  <!-- Concept 4 grid -->
-  <main id="grid" class="c4-grid" role="main">
-    <!-- MOBILE-ONLY: compact DJ names list -->
-    <section id="djListMobile" class="dj-list-mobile" aria-label="Selectors (mobile)">
-      <h3>Selectors</h3>
-      <div id="djNames" class="dj-names"></div>
+  <!-- MAIN GRID CONTENT -->
+  <div class="grid-container">
+    <!-- CHAT SECTION -->
+    <section class="chat" aria-labelledby="chat-heading">
+      <h2 id="chat-heading">Cutters Chat</h2>
+      <iframe title="Cutters Choice Radio Chat"
+              src="https://app.radiocult.fm/embed/chat/cutters-choice-radio?theme=midnight&primaryColor=%235A8785&corners=sharp"
+              width="100%" height="700" frameborder="0"
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              loading="lazy" seamless>
+      </iframe>
+      <div class="chat-actions"><button class="popout-btn" onclick="openChatPopup()">Pop Out Chat</button></div>
+      <div class="rc-user-list-container"><div class="rc-user-list"></div></div>
     </section>
 
-    <!-- MOBILE-ONLY: single control set under names -->
-    <section class="controls-mobile" id="controlsMobile" aria-label="Playback controls (mobile)">
-      <button id="mPlayDJ" class="btn">▶ Play DJ</button>
-      <button id="mShuffleDJ" class="btn">🔀 Shuffle DJ</button>
-      <button id="mPlayAll" class="btn">▶ Play All</button>
-      <button id="mShuffleAll" class="btn">🔀 Shuffle All</button>
-    </section>
+    <!-- LIVE PLAYER SECTION -->
+    <section class="live-player" aria-labelledby="now-dj">
+      <h2 id="now-dj">Live Now</h2>
 
-    <!-- LEFT (desktop): DJ Gallery -->
-    <section class="dj-gallery" aria-label="Selectors">
-      <div id="djGrid" class="dj-grid" role="list"></div>
-    </section>
+      <div class="player-container">
+        <!-- RadioCult audio / now playing widget -->
+        <iframe id="inlinePlayer" title="Cutters Choice Radio player"
+                src="https://app.radiocult.fm/embed/square-player/cutters-choice-radio?theme=midnight&primaryColor=%235A8785&corners=sharp"
+                allow="autoplay; encrypted-media" loading="lazy"></iframe>
 
-    <!-- CENTER: Stack -->
-    <section class="stack" aria-label="Picks">
-      <div class="stack-header">
-        <h3 style="font-family:'Bebas Neue',sans-serif;color:#fff;letter-spacing:.6px;margin:.2rem .2rem;">PICKS</h3>
-        <div class="controls-desktop">
-          <button id="playDJ" class="btn" title="Play all from selected DJ">▶ Play DJ</button>
-          <button id="shuffleDJ" class="btn" title="Shuffle selected DJ">🔀 Shuffle DJ</button>
-          <button id="playAll" class="btn" title="Play all DJs in order">▶ Play All</button>
-          <button id="shuffleAll" class="btn" title="Shuffle All DJs">🔀 Shuffle All</button>
+        <!-- dynamic current show text -->
+        <div id="now-archive" role="status" aria-live="polite">Loading archive show…</div>
+
+        <!-- popouts -->
+        <button id="popOutBtn" class="popout-btn">Pop Out Player</button>
+        <button id="chatPopupBtn" class="popout-btn chat-btn-mobile" onclick="openChatPopup()">Chat</button>
+
+        <!-- CCR TV AUTO VIDEO FEED GOES HERE -->
+        <div id="ccr-tv-wrapper">
+          <!--
+            NOTE: The source is served over http://46.62.210.122/ccr-tv/ccr.m3u8.
+            If your main site is https you’ll get mixed-content blocking in browsers.
+            Until we front this with HTTPS on that box, Chrome on https://cutterschoiceradio.com
+            will refuse to load it. Safari over plain http will work.
+          -->
+          <video
+            id="ccr-tv-video"
+            class="ccr-tv-video"
+            playsinline
+            muted
+            autoplay
+            controls
+            poster="/images/archives-logo.jpeg">
+          </video>
         </div>
       </div>
-      <div id="cards" class="cards"></div>
+      <!-- removed This Week’s Shows + artwork -->
     </section>
 
-    <!-- RIGHT: Now Playing + queue -->
-    <aside class="nowp" aria-label="Now Playing">
-      <h3>Now Playing</h3>
-      <div class="player-shell"><div id="mainPreview"></div></div>
-      <div class="queue" id="queueBox" aria-label="Playback order"></div>
-    </aside>
-  </main>
-
-  <!-- Hidden Admin Overlay (Shift+A) -->
-  <div id="adminOverlay" class="adminHidden" aria-hidden="true">
-    <div id="adminPanel" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
-      <h3 id="adminTitle">Cutty Ranks — Admin</h3>
-      <div id="adminEntries"></div>
-      <div id="adminActions" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <button id="addEntryBtn"><i class="fa fa-plus"></i>&nbsp; Add DJ</button>
-        <button id="adminSave">Save</button>
-        <button id="adminClose">Close</button>
-        <button id="clearImgCache" title="Clear cached YouTube titles">Clear Title Cache</button>
-        <div id="adminStatus"></div>
+    <!-- SCHEDULE SECTION -->
+    <section class="schedule" aria-labelledby="schedule-heading">
+      <h2 class="schedule-heading" id="schedule-heading">This Week’s Lineup</h2>
+      <div class="schedule-scroll" id="schedule-container">
+        <p>Loading this week’s schedule…</p>
       </div>
-    </div>
+    </section>
+
+    <!-- MIXCLOUD ARCHIVE SECTION -->
+    <section class="mixcloud" aria-labelledby="mixcloud-heading">
+      <h2 id="mixcloud-heading">Latest Archived Shows</h2>
+      <div id="mixcloud-list"></div>
+      <div class="add-mixcloud">
+        <input id="mixcloud-url" type="text" placeholder="Paste Mixcloud URL here…">
+        <button onclick="addMixcloud()">Add Show</button>
+      </div>
+    </section>
   </div>
 
-  <!-- Config / keys -->
+  <!-- FOOTER -->
+  <footer class="banner">
+    <div style="
+      background-color: var(--brand-teal);
+      padding: 0.10rem 0.65rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    ">
+      <a href="privacy-policy.html"
+         style="
+           color: #fff;
+           font-family: 'Bebas Neue', sans-serif;
+           font-size: 2rem;
+           text-transform: uppercase;
+           text-decoration: none;
+         ">PRIVACY POLICY</a>
+      <span style="
+        color: #fff;
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+      ">
+        Amazon, Alexa and all related logos are trademarks of Amazon.com, Inc. or its affiliates.
+      </span>
+    </div>
+  </footer>
+
+  <!-- YOUR SCRIPTS -->
+  <script src="script.js?v=1757106631679" defer></script>
+  <script src="slideshow.js?v=1757106631679" defer></script>
+
+  <!-- Move MERCH to bottom nav row on mobile, restore on desktop -->
   <script>
-    window.CUTTY_RANKS = {
-      CONFIG_ENDPOINT: 'cutty-ranks-config.php',
-      ADMIN_HASH_HEX: '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e'
-    };
-    window.RC = {
-      BASE_URL:   'https://api.radiocult.fm/api',
-      STATION_ID: 'cutters-choice-radio',
-      API_KEY:    'pk_0b8abc6f834b444f949f727e88a728e0'
-    };
+    (function(){
+      const mq = window.matchMedia('(max-width: 768px)');
+      const navMenu    = document.querySelector('#main-nav .nav-menu');
+      const navActions = document.querySelector('#main-nav .nav-actions');
+      const merchLink  = document.querySelector('#main-nav .nav-menu a.nav-link[href$="merch.html"]');
+
+      if (!navMenu || !navActions || !merchLink) return;
+
+      // Invisible anchor to remember original spot (right AFTER MERCH)
+      const anchor = document.createElement('span');
+      anchor.id = 'merch-return-anchor';
+      anchor.style.display = 'none';
+      merchLink.after(anchor);
+
+      function moveIfNeeded(e){
+        const isMobile = (e && 'matches' in e) ? e.matches : mq.matches;
+
+        if (isMobile) {
+          // already moved?
+          if (!merchLink.dataset.moved) {
+            navActions.insertBefore(merchLink, navActions.firstChild); // MERCH appears before icons/CAST
+            merchLink.dataset.moved = '1';
+          }
+        } else {
+          // restore if moved
+          if (merchLink.dataset.moved) {
+            anchor.before(merchLink);
+            merchLink.dataset.moved = '';
+          }
+        }
+      }
+
+      // initial + on change (resize/orientation)
+      moveIfNeeded();
+      if (mq.addEventListener) mq.addEventListener('change', moveIfNeeded);
+      else mq.addListener && mq.addListener(moveIfNeeded); // Safari fallback
+      window.addEventListener('orientationchange', moveIfNeeded);
+    })();
   </script>
 
+  <!-- Chromecast Handler & Manual Fallback -->
   <script>
-  (() => {
-    const CFG = window.CUTTY_RANKS || {};
-    const RC  = window.RC || {};
-    const $   = (s, r=document) => r.querySelector(s);
-    const $$  = (s, r=document) => [...r.querySelectorAll(s)];
+    document.addEventListener('DOMContentLoaded', () => {
+      const manualBtn   = document.getElementById('manualCastBtn');
+      const officialBtn = document.querySelector('google-cast-button');
 
-    const gridEl   = $('#grid');
-    const djGrid   = $('#djGrid');            // desktop tiles
-    const djNames  = $('#djNames');           // mobile names list
-    const cardsBox = $('#cards');
-    const queueBox = $('#queueBox');
-    const mainPrev = $('#mainPreview');
+      function setButtonsByState(state) {
+        const noDevices =
+          !state ||
+          state === cast.framework.CastState.NO_DEVICES_AVAILABLE ||
+          state === cast.framework.CastState.NOT_CONNECTED;
 
-    // desktop controls
-    const btnPlayDJ     = $('#playDJ');
-    const btnShuffleDJ  = $('#shuffleDJ');
-    const btnPlayAll    = $('#playAll');
-    const btnShuffleAll = $('#shuffleAll');
-    // mobile controls
-    const mPlayDJ       = $('#mPlayDJ');
-    const mShuffleDJ    = $('#mShuffleDJ');
-    const mPlayAll      = $('#mPlayAll');
-    const mShuffleAll   = $('#mShuffleAll');
+        if (officialBtn) officialBtn.style.display = noDevices ? 'none' : 'inline-block';
+        if (manualBtn)   manualBtn.style.display   = noDevices ? 'inline-flex' : 'none';
+      }
 
-    const state = {
-      entries: [],
-      selected: 0,            // index into entries (chronological array)
-      displayOrder: [],       // array of indices into entries, shuffled daily
-      queue: [],
-      qidx: 0,
-      player:null, apiReady:false, lastVideoTitle:'',
-      artistsMap:{},
-      titleCache:{}
-    };
+      let sdkSeen = false;
+      window.__onGCastApiAvailable = isAvailable => {
+        if (!isAvailable) return;
+        sdkSeen = true;
+        const context = cast.framework.CastContext.getInstance();
+        context.setOptions({
+          receiverApplicationId: '77E0F81B',
+          autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+        });
 
-    const norm = s => (s||'').toLowerCase().replace(/\s+/g,' ').trim();
-    const slug = s => (s||'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
-    const isMobile = () => window.matchMedia('(max-width: 1180px)').matches;
+        try { setButtonsByState(context.getCastState()); } catch {}
+        context.addEventListener(
+          cast.framework.CastContextEventType.CAST_STATE_CHANGED,
+          e => setButtonsByState(e.castState)
+        );
 
-    /* ---------- Deterministic DAILY shuffle (UTC) ---------- */
-    function hashString(str){
-      let h = 2166136261 >>> 0; // FNV-ish start
-      for(let i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
-      return h >>> 0;
-    }
-    function mulberry32(a){
-      return function(){
-        let t = a += 0x6D2B79F5;
-        t = Math.imul(t ^ (t >>> 15), t | 1);
-        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        officialBtn?.addEventListener('click', async () => {
+          const session = context.getCurrentSession();
+          if (!session) return console.warn('No Chromecast session');
+          const mediaInfo = new chrome.cast.media.MediaInfo(
+            'https://cutters-choice-radio.radiocult.fm/stream',
+            'application/x-mpegurl'
+          );
+          mediaInfo.streamType = chrome.cast.media.StreamType.LIVE;
+          mediaInfo.metadata = new chrome.cast.media.MusicTrackMediaMetadata();
+          mediaInfo.metadata.title = document.getElementById('now-dj').textContent;
+          mediaInfo.metadata.albumName = 'Cutters Choice Radio';
+          const request = new chrome.cast.media.LoadRequest(mediaInfo);
+          try { await session.loadMedia(request); } catch (err) { console.error('Chromecast error:', err); }
+        });
       };
-    }
-    function computeDailyDisplayOrder(){
-      const n = state.entries.length;
-      const idxs = Array.from({length:n}, (_,i)=>i);
-      const dayKey = new Date().toISOString().slice(0,10); // YYYY-MM-DD UTC
-      const rng = mulberry32(hashString(dayKey));
-      for(let i=idxs.length-1;i>0;i--){
-        const j = Math.floor(rng()*(i+1));
-        [idxs[i], idxs[j]] = [idxs[j], idxs[i]];
-      }
-      state.displayOrder = idxs;
-    }
-    function selectedDisplayIndex(){
-      return (state.displayOrder||[]).indexOf(state.selected);
-    }
 
-    /* ---------- YouTube helpers ---------- */
-    const ytId = (u) => { try{
-      const x=new URL(u); const h=x.hostname.toLowerCase();
-      if(h==='youtu.be') return x.pathname.slice(1);
-      if(x.pathname.startsWith('/shorts/')) return x.pathname.split('/')[2]||'';
-      if(x.searchParams.get('v')) return x.searchParams.get('v');
-      if(/^\/embed\//.test(x.pathname)) return x.pathname.split('/').pop();
-      return '';
-    }catch{ return ''; } };
+      setTimeout(() => {
+        if (!sdkSeen && manualBtn) manualBtn.style.display = 'inline-flex';
+        if (!sdkSeen && officialBtn) officialBtn.style.display = 'none';
+      }, 2500);
 
-    window.onYouTubeIframeAPIReady = () => { state.apiReady = true; };
-
-    function ensurePlayer(){
-      if (!document.getElementById('ytPlayer')){
-        mainPrev.innerHTML = `<div class="yt-wrap"><div id="ytPlayer"></div></div>`;
-      }
-    }
-    function createOrLoad(videoId, autoplay){
-      ensurePlayer();
-      const doPlay = () => {
-        if (!state.player){
-          state.player = new YT.Player('ytPlayer', {
-            host:'https://www.youtube-nocookie.com',
-            videoId,
-            playerVars:{ rel:0, modestbranding:1, playsinline:1, enablejsapi:1 },
-            events:{
-              onReady: e => { autoplay ? e.target.playVideo() : e.target.cueVideoById(videoId); },
-              onStateChange: e => {
-                try{ state.lastVideoTitle = state.player?.getVideoData?.().title || state.lastVideoTitle; }catch{}
-                if (e.data === YT.PlayerState.ENDED){
-                  if (state.qidx < state.queue.length-1){ state.qidx++; playAt(state.qidx,true); }
-                }
-                highlightQueue();
-              }
-            }
-          });
-        } else {
-          autoplay ? state.player.loadVideoById(videoId) : state.player.cueVideoById(videoId);
+      manualBtn?.addEventListener('click', async () => {
+        try {
+          const context = cast.framework.CastContext.getInstance();
+          await context.requestSession();
+        } catch (err) {
+          console.warn('Fallback session error', err);
         }
-      };
-      if (state.apiReady) doPlay(); else {
-        const iv = setInterval(()=>{ if(state.apiReady){ clearInterval(iv); doPlay(); } }, 60);
-        setTimeout(()=>clearInterval(iv), 5000);
-      }
-    }
-    function playAt(i, autoplay=true){
-      const item = state.queue[i]; if (!item) return;
-      state.qidx = i;
-      createOrLoad(item.id, autoplay);
-      highlightQueue();
-    }
-
-    /* ---------- Radio Cult artists (exact name match) ---------- */
-    async function loadStationArtists(){
-      try{
-        const res = await fetch(`${RC.BASE_URL}/station/${RC.STATION_ID}/artists`, { headers: { 'x-api-key': RC.API_KEY } });
-        if(!res.ok) throw new Error(`RC ${res.status}`);
-        const { artists = [] } = await res.json();
-        const map = {};
-        for(const a of artists){ map[norm(a.name)] = a; }
-        state.artistsMap = map;
-      }catch(err){
-        console.warn('Radio Cult artists fetch failed:', err);
-        state.artistsMap = {};
-      }
-    }
-    function djImageFor(name, override){
-      if (override) return override;
-      const a = state.artistsMap[norm(name)];
-      const rc = a?.logo?.['512x512'] || a?.logo?.default || '';
-      if (rc) return rc;
-      return '/images/djs/' + slug(name) + '.jpg';
-    }
-
-    /* ---------- Titles cache (oEmbed) ---------- */
-    function loadTitleCache(){ try{ state.titleCache = JSON.parse(localStorage.getItem('yt_title_cache')||'{}'); }catch{ state.titleCache={}; } }
-    function saveTitleCache(){ localStorage.setItem('yt_title_cache', JSON.stringify(state.titleCache)); }
-    async function getTitleFor(id){
-      if (!id) return '';
-      if (state.titleCache[id]) return state.titleCache[id];
-      try{
-        const r = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${id}&format=json`);
-        if (!r.ok) throw new Error('oembed '+r.status);
-        const j = await r.json();
-        const title = String(j?.title || '').trim();
-        if (title){ state.titleCache[id] = title; saveTitleCache(); return title; }
-      }catch(_){}
-      return '';
-    }
-
-    /* ---------- Queues ---------- */
-    function buildQueueDJ(djIdx, shuffle=false){
-      const entry = state.entries[djIdx] || {};
-      let vids = (entry.links||[]).map(ytId).map((id, i)=> id?({id, djIndex:djIdx, clipIndex:i}):null).filter(Boolean);
-      if (shuffle){ for(let i=vids.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [vids[i],vids[j]]=[vids[j],vids[i]]; } }
-      state.queue = vids; state.qidx = 0;
-    }
-    function buildQueueAll(shuffle=false){
-      const all = [];
-      state.entries.forEach((e, djIdx)=>{
-        (e.links||[]).forEach((u, i)=>{ const id=ytId(u); if(id) all.push({id, djIndex:djIdx, clipIndex:i}); });
       });
-      if (shuffle){ for(let i=all.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [all[i],all[j]]=[all[j],all[i]]; } }
-      state.queue = all; state.qidx = 0;
-    }
-
-    /* ---------- Renderers (respect daily displayOrder) ---------- */
-    async function renderDJGrid(){
-      djGrid.innerHTML = '';
-      const sdi = selectedDisplayIndex();
-
-      // desktop tiles in daily order
-      state.displayOrder.forEach((origIdx, displayIdx)=>{
-        const e = state.entries[origIdx] || {};
-        const url = djImageFor(e.name, e.image);
-        const tile = document.createElement('div'); tile.className='dj-tile'; tile.style.backgroundImage = `url('${(url||'').replace(/'/g,"%27")}')`;
-        tile.setAttribute('role','listitem');
-        const label = document.createElement('div'); label.className='dj-name'; label.textContent = e.name || 'Untitled';
-        tile.appendChild(label);
-        tile.addEventListener('click', ()=> selectDJ(displayIdx, false), {passive:true});
-        if (displayIdx===sdi) tile.classList.add('active');
-        djGrid.appendChild(tile);
-      });
-
-      // mobile names list (same daily order)
-      djNames.innerHTML = '';
-      state.displayOrder.forEach((origIdx, displayIdx)=>{
-        const e = state.entries[origIdx] || {};
-        const chip = document.createElement('button');
-        chip.className = 'dj-name-chip';
-        chip.textContent = e.name || 'Untitled';
-        chip.addEventListener('click', ()=> selectDJ(displayIdx, true), {passive:true});
-        if (displayIdx===sdi) chip.classList.add('active');
-        djNames.appendChild(chip);
-      });
-    }
-
-    function selectDJ(displayIdx, autoplay=false){
-      const origIdx = state.displayOrder?.[displayIdx] ?? displayIdx;
-      state.selected = origIdx;
-
-      const sdi = selectedDisplayIndex();
-      $$('.dj-tile', djGrid).forEach((el,i)=> el.classList.toggle('active', i===sdi));
-      $$('.dj-name-chip', djNames).forEach((el,i)=> el.classList.toggle('active', i===sdi));
-
-      buildQueueDJ(state.selected,false);
-      renderCards();
-      renderQueue();
-      if (autoplay) playAt(0,true); else playAt(0,false);
-    }
-
-    async function renderCards(){
-      cardsBox.innerHTML = '';
-      const e = state.entries[state.selected] || {};
-      const linkList = (e.links||[]).slice(0,5);
-      for (let i=0;i<linkList.length;i++){
-        const id = ytId(linkList[i]); if (!id) continue;
-        const card = document.createElement('div'); card.className='card';
-        const t = document.createElement('div'); t.className='thumb'; t.style.backgroundImage=`url('https://i.ytimg.com/vi/${id}/hqdefault.jpg')`;
-        const meta = document.createElement('div'); meta.className='meta';
-        const titleEl = document.createElement('div'); titleEl.className='title'; titleEl.textContent = `Clip ${i+1}`;
-        const subEl = document.createElement('div'); subEl.className='sub'; subEl.textContent = e.name || '';
-        meta.append(titleEl, subEl);
-        const play = document.createElement('button'); play.className='play'; play.innerHTML='▶';
-        play.addEventListener('click', ()=>{
-          buildQueueDJ(state.selected,false); state.qidx=i; playAt(i,true); renderQueue();
-        }, {passive:true});
-        card.append(t, meta, play);
-        cardsBox.appendChild(card);
-        getTitleFor(id).then(tt => { if (tt) titleEl.textContent = tt; });
-      }
-      highlightQueue();
-    }
-
-    async function renderQueue(){
-      queueBox.innerHTML = '';
-      const titlePromises = state.queue.map(async (q, i) => {
-        const who = state.entries[q.djIndex]?.name || '';
-        const item = document.createElement('div'); item.className='q-item';
-        item.innerHTML = `<div class="q-num">${i+1}</div><div class="q-title" id="qt-${q.id}-${i}">Clip ${(q.clipIndex??0)+1}</div><div class="q-who">${who}</div>`;
-        item.addEventListener('click', ()=> playAt(i,true), {passive:true});
-        queueBox.appendChild(item);
-        const tt = await getTitleFor(q.id);
-        if (tt){ const el = document.getElementById(`qt-${q.id}-${i}`); if (el) el.textContent = tt; q.title = tt; }
-      });
-      await Promise.allSettled(titlePromises);
-      highlightQueue();
-    }
-    function highlightQueue(){
-      $$('.q-item', queueBox).forEach((el,i)=> el.classList.toggle('active', i===state.qidx));
-    }
-
-    /* ---------- Admin (Shift+A) ---------- */
-    const adminOverlay = $('#adminOverlay');
-    const adminEntriesBox = $('#adminEntries');
-    const addEntryBtn = $('#addEntryBtn');
-    const adminSaveBtn = $('#adminSave');
-    const adminCloseBtn = $('#adminClose');
-    const clearImgCache = $('#clearImgCache');
-    const adminStatus = $('#adminStatus');
-
-    function entryRow(data={}){
-      const wrap = document.createElement('div'); wrap.className='entry';
-      wrap.innerHTML = `
-        <div class="row"><label>DJ</label><input type="text" class="djName" placeholder="Name"></div>
-        <div class="row"><label>Image URL</label><input type="text" class="imgUrl" placeholder="override image URL (optional)"></div>
-        <div class="row"><label>Link 1</label><input type="text" class="l l1" placeholder="YouTube URL"></div>
-        <div class="row"><label>Link 2</label><input type="text" class="l l2" placeholder="YouTube URL"></div>
-        <div class="row"><label>Link 3</label><input type="text" class="l l3" placeholder="YouTube URL"></div>
-        <div class="row"><label>Link 4</label><input type="text" class="l l4" placeholder="YouTube URL"></div>
-        <div class="row"><label>Link 5</label><input type="text" class="l l5" placeholder="YouTube URL"></div>
-        <div class="row"><button class="delBtn"><i class="fa fa-trash"></i>&nbsp; Remove DJ</button></div>
-      `;
-      wrap.querySelector('.djName').value = data.name || '';
-      wrap.querySelector('.imgUrl').value = data.image || '';
-      (data.links||[]).slice(0,5).forEach((u,i)=> wrap.querySelector('.l'+(i+1)).value = u);
-      wrap.querySelector('.delBtn').addEventListener('click', () => { wrap.remove(); }, {passive:true});
-      return wrap;
-    }
-
-    async function loadEntries(){
-      try{
-        const r = await fetch(`${CFG.CONFIG_ENDPOINT}?action=load`, {cache:'no-store'});
-        if (r.ok){ const j = await r.json(); if (Array.isArray(j?.entries)) return j.entries; }
-      }catch(_){}
-      try{
-        const r = await fetch('cutty-ranks-data.json', {cache:'no-store'});
-        if (r.ok){ const j = await r.json(); if (Array.isArray(j?.entries)) return j.entries; }
-      }catch(_){}
-      try{
-        const s = localStorage.getItem('cutty_ranks_entries'); if (s){ const a=JSON.parse(s); if (Array.isArray(a)) return a; }
-      }catch(_){}
-      return [];
-    }
-    async function saveEntries(entries){
-      const r = await fetch(CFG.CONFIG_ENDPOINT+'?action=save', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({entries, auth: CFG.ADMIN_HASH_HEX})
-      });
-      const txt = await r.text(); let j=null; try{ j=JSON.parse(txt);}catch{}
-      if(!r.ok || !(j&&j.ok)) throw new Error(j?.error ? ('Server error: '+j.error) : ('HTTP '+r.status+' '+txt.slice(0,180)));
-      return j.entries || entries;
-    }
-
-    function openAdmin(){
-      adminEntriesBox.innerHTML = '';
-      (state.entries || []).forEach(e => adminEntriesBox.appendChild(entryRow(e)));
-      adminOverlay.classList.remove('adminHidden'); adminOverlay.setAttribute('aria-hidden','false');
-      adminStatus.textContent = '';
-    }
-    function closeAdmin(){ adminOverlay.classList.add('adminHidden'); adminOverlay.setAttribute('aria-hidden','true'); }
-    adminCloseBtn.addEventListener('click', closeAdmin, {passive:true});
-    addEntryBtn.addEventListener('click', ()=> adminEntriesBox.appendChild(entryRow()), {passive:true});
-    clearImgCache.addEventListener('click', ()=>{ localStorage.removeItem('yt_title_cache'); adminStatus.textContent='Cleared YouTube title cache.'; });
-
-    adminSaveBtn.addEventListener('click', async ()=>{
-      const entries = $$('.entry', adminEntriesBox).map(box => {
-        const name = box.querySelector('.djName').value.trim();
-        const image= box.querySelector('.imgUrl').value.trim();
-        const links = $$('.l', box).map(i=>i.value.trim()).filter(Boolean).slice(0,5);
-        return name || image || links.length ? {name, image, links} : null;
-      }).filter(Boolean);
-      if(!entries.length){ adminStatus.textContent='Nothing to save.'; return; }
-
-      const ok = u=>/^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//i.test(u);
-      for(const e of entries){
-        if(!e.name){ adminStatus.textContent='Each DJ needs a name.'; return; }
-        if(e.links.some(u=>!ok(u))) { adminStatus.textContent='Only YouTube links supported.'; return; }
-      }
-
-      adminStatus.textContent='Saving…';
-      try{
-        const saved = await saveEntries(entries);
-        state.entries = saved;
-        localStorage.setItem('cutty_ranks_entries', JSON.stringify(saved));
-        computeDailyDisplayOrder();                // recompute after save
-        state.selected = state.displayOrder?.[0] ?? 0; // keep selection sane
-        await bootRender(true);
-        adminStatus.textContent='Saved.';
-      }catch(err){
-        console.error(err);
-        state.entries = entries;
-        localStorage.setItem('cutty_ranks_entries', JSON.stringify(entries));
-        computeDailyDisplayOrder();
-        state.selected = state.displayOrder?.[0] ?? 0;
-        await bootRender(true);
-        adminStatus.textContent='Saved locally (check server).';
-      }
     });
+  </script>
 
-    function isTypingTarget(el){ if (!el) return false; const t=el.tagName; return t==='INPUT'||t==='TEXTAREA'||t==='SELECT'||el.isContentEditable; }
-    window.addEventListener('keydown', async (e)=>{
-      const key=(e.key||'').toLowerCase(); const isShiftA=e.shiftKey && (key==='a'||e.code==='KeyA');
-      if (!isShiftA) return; if (isTypingTarget(document.activeElement)) return;
-      e.preventDefault();
-      const pw = prompt('Enter passphrase'); if(!pw) return;
-      try{
-        const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
-        const hex = [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
-        if(hex===CFG.ADMIN_HASH_HEX) openAdmin(); else alert('Incorrect passphrase');
-      }catch(err){ console.warn('digest error', err); }
-    }, true);
+  <!-- JSON-LD Events injector -->
+  <script>
+  (function(){
+    const API_KEY = 'pk_0b8abc6f834b444f949f727e88a728e0';
+    const STATION_ID = 'cutters-choice-radio';
+    const DAYS_AHEAD = 7;
 
-    function bindControls(btns){
-      const {playDJ, shuffleDJ, playAll, shuffleAll} = btns;
-      playDJ.addEventListener('click', ()=>{ buildQueueDJ(state.selected,false); renderQueue(); playAt(0,true); }, {passive:true});
-      shuffleDJ.addEventListener('click', ()=>{ buildQueueDJ(state.selected,true);  renderQueue(); playAt(0,true); }, {passive:true});
-      playAll.addEventListener('click', ()=>{ buildQueueAll(false); renderQueue(); playAt(0,true); }, {passive:true});
-      shuffleAll.addEventListener('click', ()=>{ buildQueueAll(true);  renderQueue(); playAt(0,true); }, {passive:true});
-    }
-    bindControls({ playDJ:btnPlayDJ, shuffleDJ:btnShuffleDJ, playAll:btnPlayAll, shuffleAll:btnShuffleAll });
-    bindControls({ playDJ:mPlayDJ,  shuffleDJ:mShuffleDJ,  playAll:mPlayAll,  shuffleAll:mShuffleAll  });
+    const startISO = new Date().toISOString();
+    const endISO   = new Date(Date.now() + DAYS_AHEAD * 24 * 60 * 60 * 1000).toISOString();
 
-    function setHeights(){
-      const rect = gridEl.getBoundingClientRect();
-      const usable = Math.max(360, window.innerHeight - rect.top - 12);
-      document.documentElement.style.setProperty('--usable', usable + 'px');
-    }
-    window.addEventListener('resize', setHeights, {passive:true});
+    const url = 'https://api.radiocult.fm/api/station/' + encodeURIComponent(STATION_ID) +
+                '/schedule?startDate=' + encodeURIComponent(startISO) +
+                '&endDate=' + encodeURIComponent(endISO) +
+                '&expand=artist';
 
-    async function bootRender(skipSelect){
-      setHeights();
-      try{ loadTitleCache(); }catch{}
-      await loadStationArtists();
+    fetch(url, { headers: { 'x-api-key': API_KEY } })
+      .then(r => r.ok ? r.json() : Promise.reject(new Error('Schedule fetch failed: ' + r.status)))
+      .then(data => {
+        const events = Array.isArray(data?.schedules) ? data.schedules
+                     : Array.isArray(data) ? data
+                     : [];
+        if (!events.length) return;
 
-      if (!state.entries || !state.entries.length){
-        state.entries = await loadEntries();
-      }
+        const LISTEN_URL = 'https://cutterschoiceradio.com/listen';
+        const ORG = {
+          name: 'Cutters Choice Radio',
+          url:  'https://cutterschoiceradio.com',
+          logo: 'https://cutterschoiceradio.com/images/logo.png'
+        };
 
-      computeDailyDisplayOrder();
-      if (!skipSelect){ state.selected = state.displayOrder?.[0] ?? 0; } // start with first visible DJ today
+        const items = events.map(ev => {
+          const sISO = ev.startDateUtc || ev.startDate || ev.start;
+          const eISO = ev.endDateUtc   || ev.endDate   || ev.end;
+          const performers = (ev.artists || [])
+            .map(a => a && a.name ? { '@type':'Person', name:a.name } : null)
+            .filter(Boolean);
 
-      await renderDJGrid();
-      await renderCards();
-      buildQueueDJ(state.selected, false);
-      await renderQueue();
-      playAt(0,false);
-    }
+          const obj = {
+            '@type': 'Event',
+            name: ev.title || ev.name || 'Show',
+            startDate: sISO,
+            endDate:   eISO,
+            eventStatus: 'https://schema.org/EventScheduled',
+            eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
+            location: { '@type': 'VirtualLocation', url: LISTEN_URL },
+            organizer: { '@type': 'Organization', name: ORG.name, url: ORG.url, logo: ORG.logo }
+          };
+          if (performers.length) obj.performer = performers;
+          return obj;
+        });
 
-    document.addEventListener('DOMContentLoaded', () => bootRender(false));
+        const script = document.createElement('script');
+        script.type = 'application/ld+json';
+        script.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': items });
+        document.head.appendChild(script);
+      })
+      .catch(err => console.warn('[CCR JSON-LD injector]', err));
   })();
+  </script>
+
+  <!-- HLS.js loader + init for CCR TV -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <script>
+    (function(){
+      const videoEl = document.getElementById('ccr-tv-video');
+      const hlsSrc  = 'http://46.62.210.122/ccr-tv/ccr.m3u8';
+
+      if (!videoEl) return;
+
+      // Safari (and some mobile browsers) can natively play HLS
+      if (videoEl.canPlayType('application/vnd.apple.mpegurl')) {
+        videoEl.src = hlsSrc;
+      } else if (window.Hls) {
+        const hls = new Hls({
+          liveSyncDuration: 3,
+          liveMaxLatencyDuration: 10
+        });
+        hls.loadSource(hlsSrc);
+        hls.attachMedia(videoEl);
+      } else {
+        // fallback: just set src, some browsers might still try
+        videoEl.src = hlsSrc;
+      }
+    })();
   </script>
 </body>
 </html>

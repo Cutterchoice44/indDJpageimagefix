@@ -1,20 +1,16 @@
 /* ─── RESET & BASE STYLES ─────────────────────────────────────────── */
-*, *::before, *::after {
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
 :root{
   --brand-teal:#5A8785;
   --bg-dark:#000;
   --text-light:#fafafa;
 
-  /* Header sizing */
+  /* Header video strip sizing */
   --wave-height-desktop:200px;
-  --wave-height-mobile:80px;
+  --wave-height-mobile:80px; /* phones override below */
 
-  /* Logo sizing */
+  /* Logo sizing (space reserved to prevent CLS) */
   --logo-size-desktop:200px;
   --logo-size-mobile:100px;
 }
@@ -29,7 +25,7 @@ html,body{
   -moz-osx-font-smoothing:grayscale;
 }
 
-/* ─── HEADER (desktop / large) ───────────────────────────────────── */
+/* ─── HEADER (Video strips replacing GIFs) ───────────────────────── */
 .header-banner{
   position:relative;
   display:flex;
@@ -40,14 +36,11 @@ html,body{
   padding:clamp(12px,3vw,24px) 0;
   overflow:hidden;
   isolation:isolate;
-  flex-wrap:nowrap;
+  flex-wrap:nowrap; /* desktop: single row */
 }
+@media (max-width:768px){ .header-banner{ flex-wrap:wrap; } }
 
-.header-gif-right,
-.header-gif-left{
-  display:none !important;
-  background:none !important;
-}
+.header-gif-right,.header-gif-left{ display:none !important; background:none !important; }
 
 .header-wave{
   flex:1 1 0;
@@ -60,12 +53,11 @@ html,body{
   border-top:2px solid #000;
   border-bottom:2px solid #000;
 }
-
-header .logo-container,
-header .title{
-  position:relative;
-  z-index:1;
+@media (max-width:768px){
+  .header-wave{ height:var(--wave-height-mobile); min-width:40px; }
 }
+
+header .logo-container, header .title{ position:relative; z-index:1; }
 
 header .logo{
   height:var(--logo-size-desktop);
@@ -76,32 +68,19 @@ header .logo{
   margin-left:.7rem;
 }
 
-header .title{
-  flex:0 1 auto;
-  text-align:center;
-  min-width:260px;
-}
-header .title h1{
-  font-size:2rem;
-  margin:0;
-  font-family:'Bebas Neue',sans-serif;
-}
-header .title .tagline{
-  font-size:1.2rem;
-  color:var(--brand-teal);
-  margin-top:0;
-}
+/* Title block */
+header .title{ flex:0 1 auto; text-align:center; min-width:260px; }
+header .title h1{ font-size:2rem; margin:0; font-family:'Bebas Neue',sans-serif; }
+header .title .tagline{ font-size:1.2rem; color:var(--brand-teal); margin-top:0; }
 
-@media (max-width:768px){
-  header .title{ min-width:180px; }
-}
+@media (max-width:768px){ header .title{ min-width:180px; } }
 
 @media (prefers-reduced-motion:reduce){
   .header-wave{ display:none !important; }
   .header-banner{ justify-content:center; }
 }
 
-/* ─── NAVIGATION BAR (desktop / large) ───────────────────────────── */
+/* ─── NAVIGATION BAR ─────────────────────────────────────────────── */
 #main-nav{
   position:relative;
   display:flex !important;
@@ -115,6 +94,12 @@ header .title .tagline{
   z-index:1000 !important;
 }
 
+#main-nav .nav-item{ position:relative; z-index:1; }
+#main-nav .nav-item a{
+  color:#fff !important; font-size:2rem !important;
+  text-transform:uppercase !important; text-decoration:none !important;
+}
+
 #main-nav .nav-menu{
   display:flex !important;
   align-items:center !important;
@@ -123,107 +108,49 @@ header .title .tagline{
   flex:1 1 auto !important;
 }
 
-#main-nav a.nav-link,
-#main-nav summary.nav-link{
-  color:#fff !important;
-  font-family:'Bebas Neue',sans-serif !important;
-  font-size:2rem !important;
-  text-transform:uppercase !important;
-  text-decoration:none !important;
-  white-space:nowrap !important;
-  list-style:none !important;
-  display:inline-flex;
-  align-items:center;
-  cursor:pointer;
+#main-nav a.nav-link, #main-nav summary.nav-link{
+  color:#fff !important; font-family:'Bebas Neue',sans-serif !important;
+  font-size:2rem !important; text-transform:uppercase !important;
+  text-decoration:none !important; white-space:nowrap !important;
+  list-style:none !important; display:inline-flex; align-items:center; cursor:pointer;
 }
 
 .nav-details{ position:relative; }
 .nav-details .about-panel{
-  position:absolute;
-  top:calc(100% + 8px);
-  right:0;
-  width:min(520px,86vw);
-  background:#000;
-  color:#fff;
-  border:2px solid var(--brand-teal);
-  border-radius:8px;
-  padding:.75rem .9rem;
-  line-height:1.35;
-  box-shadow:0 8px 18px rgba(0,0,0,.45);
-  display:none;
-  z-index:1100;
+  position:absolute; top:calc(100% + 8px); right:0; width:min(520px,86vw);
+  background:#000; color:#fff; border:2px solid var(--brand-teal); border-radius:8px;
+  padding:.75rem .9rem; line-height:1.35; box-shadow:0 8px 18px rgba(0,0,0,.45);
+  display:none; z-index:1100;
 }
 .nav-details[open] .about-panel{ display:block; }
 .nav-details > summary::-webkit-details-marker{ display:none; }
-.nav-details > summary:focus{
-  outline:2px solid #fff;
-  outline-offset:2px;
-}
+.nav-details > summary:focus{ outline:2px solid #fff; outline-offset:2px; }
 
 #main-nav .nav-actions{
-  display:flex !important;
-  align-items:center !important;
-  justify-content:flex-end !important;
-  gap:.5rem !important;
+  display:flex !important; align-items:center !important; justify-content:flex-end !important; gap:.5rem !important;
 }
+#main-nav .social-icon, #main-nav .icon-img{
+  margin-left:.25rem !important; vertical-align:middle !important; width:2rem !important; height:auto !important;
+}
+#main-nav .nav-onemusic{ display:flex; align-items:center; margin-left:.5rem; }
+#main-nav .nav-onemusic img{ max-height:2rem; width:auto; height:auto; display:block; }
+@media (max-width:400px){ #main-nav .nav-onemusic{ display:none; } }
 
-#main-nav .social-icon,
-#main-nav .icon-img{
-  margin-left:.25rem !important;
-  vertical-align:middle !important;
-  width:2rem !important;
-  height:auto !important;
-  line-height:1 !important;
-  text-decoration:none !important;
-  color:#fff !important;
-}
+google-cast-button{ --icon-color:#fff; width:1.5rem; height:1.5rem; margin-left:.5rem; vertical-align:middle; display:inline-block; }
+#manualCastBtn{ display:none; background:none; border:none; color:#fff; font-size:1.8rem; cursor:pointer; margin-left:.25rem; }
 
-#main-nav .social-icon i{
-  font-size:2.1rem !important;
-}
+/* ─── GRID LAYOUT ─────────────────────────────────────────────────── */
+.grid-container{ display:grid; grid-template-columns:1fr; gap:1rem; padding:.6rem; }
 
-#main-nav .nav-onemusic{
-  display:flex;
-  align-items:center;
-  margin-left:.5rem;
+/* ─── SLIDESHOW ───────────────────────────────────────────────────── */
+#slideshow{
+  margin:0 auto; border:2px solid var(--brand-teal); box-sizing:border-box;
+  transform:none; transform-origin:center; display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1rem;
 }
-#main-nav .nav-onemusic img{
-  max-height:2rem;
-  width:auto;
-  height:auto;
-  display:block;
-}
-@media (max-width:400px){
-  #main-nav .nav-onemusic{ display:none; }
-}
+#slideshow > *{ height:100%; }
 
-google-cast-button{
-  --icon-color:#fff;
-  width:1.5rem;
-  height:1.5rem;
-  margin-left:.5rem;
-  vertical-align:middle;
-  display:inline-block;
-}
-#manualCastBtn{
-  display:none;
-  background:none;
-  border:none;
-  color:#fff;
-  font-size:1.8rem;
-  cursor:pointer;
-  margin-left:.25rem;
-}
-
-/* ─── GRID LAYOUT WRAPPER ────────────────────────────────────────── */
-.grid-container{
-  display:grid;
-  grid-template-columns:1fr;
-  gap:1rem;
-  padding:.6rem;
-}
-
-/* ─── GENERIC SECTION SHELL ──────────────────────────────────────── */
+/* ─── SECTION & TYPOGRAPHY ────────────────────────────────────────── */
 section{
   background:#000;
   border:2px solid var(--brand-teal);
@@ -236,9 +163,6 @@ section h2{
   color:var(--brand-teal);
   text-align:center;
   padding-bottom:.6rem;
-  font-family:'Bebas Neue',sans-serif;
-  letter-spacing:.5px;
-  text-transform:uppercase;
 }
 section h2::after{
   content:'';
@@ -250,11 +174,9 @@ section h2::after{
   width:0;
   animation:drawLineReverse 2s ease-out forwards;
 }
-@keyframes drawLineReverse{
-  to{ width:100%; }
-}
+@keyframes drawLineReverse{ to{ width:100%; } }
 
-/* ─── CHAT / CHAT POP OUT ────────────────────────────────────────── */
+/* ─── CHAT IFRAME & ACTIONS ──────────────────────────────────────── */
 .chat iframe{
   width:100%;
   height:1200px;
@@ -262,9 +184,7 @@ section h2::after{
   border-radius:4px;
   margin-top:.4rem;
 }
-.chat-actions{
-  text-align:center;
-}
+.chat-actions{ text-align:center; }
 .popout-btn{
   display:inline-block;
   margin:.5rem auto;
@@ -277,7 +197,7 @@ section h2::after{
   cursor:pointer;
 }
 
-/* ─── LIVE PLAYER + CCR TV ───────────────────────────────────────── */
+/* ─── LIVE PLAYER ─────────────────────────────────────────────────── */
 .live-player{
   background:#000;
   border:2px solid var(--brand-teal);
@@ -286,9 +206,10 @@ section h2::after{
   text-align:center;
 }
 
+/* We style iframe/audio here, but we DO NOT force generic sizing on video,
+   because #ccrTv is handled separately below. */
 .live-player iframe,
-.live-player audio,
-.live-player video{
+.live-player audio{
   width:100%;
   height:300px;
   max-height:55vh;
@@ -298,44 +219,34 @@ section h2::after{
   display:block;
 }
 
-/* outer wrapper around CCR TV */
+/* container for the CCR TV block under the popout buttons
+   NEW: lock aspect ratio and cap width so it can't blow layout */
 .tv-wrapper{
+  position:relative;
   width:100%;
-  max-width:1000px;
+  max-width:720px;
   margin:1rem auto 0;
   background:#000;
-  border:2px solid var(--brand-teal);
-  border-radius:6px;
-  padding:.5rem;
+  aspect-ratio:16 / 9;
+  overflow:hidden;
 }
 
-/* actual CCR TV <video> element (class="ccr-tv-video") */
-.ccr-tv-video{
+/* the actual CCR TV <video> element */
+#ccrTv{
+  position:absolute;
+  inset:0;
   display:block;
   width:100%;
-  max-width:100%;
+  height:100%;
   background:#000;
   object-fit:cover;
-  aspect-ratio:16/9;
-  max-height:600px;
+  border:2px solid var(--brand-teal);
   border-radius:4px;
-  /* wrapper already has the teal border */
-  border:0;
-}
-
-/* aspect-ratio fallback for ancient browsers */
-@supports not (aspect-ratio: 16/9){
-  .ccr-tv-video{
-    height:auto;
-    width:100%;
-  }
+  /* aspect-ratio handled by wrapper now */
 }
 
 /* text under radio player ("Loading archive show…") */
-.player-container{
-  max-width:1000px;
-  margin:0 auto;
-}
+.player-container{ max-width:1000px; margin:0 auto; }
 #now-archive{
   font-weight:bold;
   color:var(--brand-teal);
@@ -343,7 +254,7 @@ section h2::after{
   margin:.3rem 0 1rem;
 }
 
-/* optional DJ artwork block (kept for legacy use) */
+/* ─── CURRENT DJ ARTWORK (no longer shown, kept for fallback only) ─ */
 #now-art{
   width:100%;
   max-width:450px;
@@ -354,7 +265,7 @@ section h2::after{
   margin:1rem auto;
 }
 
-/* ─── MIXCLOUD ARCHIVE LIST ──────────────────────────────────────── */
+/* ─── MIXCLOUD ARCHIVE ─────────────────────────────────────────── */
 .mixcloud{
   display:flex;
   flex-direction:column;
@@ -379,10 +290,7 @@ section h2::after{
   text-align:center;
   padding-top:.5rem;
 }
-.add-mixcloud input,
-.add-mixcloud button{
-  font-size:1rem;
-}
+.add-mixcloud input,.add-mixcloud button{ font-size:1rem; }
 .add-mixcloud input{
   width:80%;
   max-width:600px;
@@ -415,11 +323,6 @@ section h2::after{
   padding:.4rem 0;
   font-size:1.5rem;
   border-bottom:.4px solid var(--brand-teal);
-  font-family:'Bebas Neue',sans-serif;
-  letter-spacing:.5px;
-  text-transform:uppercase;
-  text-align:center;
-  color:var(--brand-teal);
 }
 #schedule-container h3,
 #schedule-container .day-title{
@@ -437,7 +340,7 @@ section h2::after{
   padding:.35rem .6rem;
 }
 
-/* ─── FOOTER BANNER ─────────────────────────────────────────────── */
+/* ─── FOOTER BANNER ────────────────────────────────────────────── */
 .banner{
   display:flex;
   flex-direction:column;
@@ -456,82 +359,32 @@ section h2::after{
   letter-spacing:.5px;
   text-transform:uppercase;
   padding:.5rem 1rem;
-  font-family:'Bebas Neue',sans-serif;
 }
 .banner a:hover{ color:var(--text-light); }
 
-/* ─── MIXCLOUD DELETE / ADMIN MODE ───────────────────────────────── */
-.mixcloud-item{ position:relative; }
-.remove-link{
-  display:none !important;
-  text-align:right;
-  font-size:.9rem;
-  color:var(--brand-teal);
-  text-decoration:underline;
-  margin-top:.3rem;
-  cursor:pointer;
-}
-.admin-mode .remove-link{
-  display:inline-block !important;
-}
-
-/* ─── DESKTOP-ONLY CHAT ACTION VISIBILITY ───────────────────────── */
-@media only screen and (min-width:769px){
-  section.chat .chat-actions{ display:none !important; }
-}
-
-/* ─── POP-OUT BUTTON VISIBILITY (mobile/desktop balance) ────────── */
-@media (max-width:768px){
-  section.chat .chat-actions{ display:none !important; }
-  #chatPopupBtn{
-    display:inline-block !important;
-    margin:.5rem auto 1rem !important;
-  }
-}
-@media (min-width:769px){
-  section.chat .chat-actions{ display:block !important; }
-  #chatPopupBtn{ display:none !important; }
-}
-
-/* ─── SCHEDULE PAGE heading color overrides ─────────────────────── */
-.page-header h1,
-.month-controls .title{
-  color:#fff !important;
-}
-.week-grid .day-head,
-.week-grid .day-head .dow,
-.week-grid .day-head .date{
-  color:#fff !important;
-  opacity:1 !important;
-  filter:none !important;
-  mix-blend-mode:normal !important;
-}
-
-/* ─── MOBILE LAYOUT (≤768px) ────────────────────────────────────── */
+/* ─── MOBILE (≤768px) — EXACT LAYOUT FOR IMAGE B ────────────────── */
 @media (max-width:768px){
 
-  /* Kill the WEBM waves for stability on old Safari/mobile Firefox */
-  .header-wave{
-    display:none !important;
-  }
-
-  /* Simple stacked header for phones:
-     - one centered logo
-     - title/tagline under it
-  */
+  /* HEADER: one centered logo, WEBMs left/right; title+tagline below */
+  :root{ --wave-height-mobile:100px; }
   .header-banner{
-    display:flex !important;
-    flex-direction:column;
+    display:grid !important;
+    grid-template-columns: 1fr auto 1fr;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+      "waveL logo waveR"
+      "title title title";
     align-items:center;
-    justify-content:center;
     gap:6px;
     padding:8px 0 6px !important;
   }
-
-  /* use the first logo only */
-  .header-banner .logo-container:last-of-type{
-    display:none !important;
-  }
+  .header-wave-left  { grid-area: waveL; height:var(--wave-height-mobile) !important; }
+  .header-wave-right { grid-area: waveR; height:var(--wave-height-mobile) !important; }
+  .header-banner .logo-container:first-of-type { grid-area: logo; }
+  /* Hide the duplicate (right) logo on phones */
+  .header-banner .logo-container:last-of-type{ display:none !important; }
+  /* Remove the decorative black borders on the waves to avoid a line through the tagline */
+  .header-wave{ border:0 !important; }
 
   header .logo{
     height:var(--logo-size-mobile) !important;
@@ -539,43 +392,32 @@ section h2::after{
     max-width:var(--logo-size-mobile) !important;
     margin:0 auto !important;
   }
-
   .header-banner .title{
-    width:100%;
-    margin-top:2px;
-    text-align:center;
+    grid-area:title;
+    width:100%; margin-top:2px; text-align:center;
   }
-  .header-banner .title h1{
-    font-size:9.2vw;
-    line-height:1;
-    margin:0;
-  }
-  .header-banner .title .tagline{
-    font-size:3.8vw;
-    margin-top:4px;
-    color:var(--brand-teal);
-  }
+  .header-banner .title h1{ font-size:9.2vw; line-height:1; margin:0; }
+  .header-banner .title .tagline{ font-size:3.8vw; margin-top:4px; }
 
-  /* NAV: create two-row mobile nav below the main teal bar */
+  /* NAV: real second row under the links */
   #main-nav{
     position:relative !important;
     padding:.40rem .65rem .40rem !important;
-    margin-bottom:46px; /* reserve space for row 2 strip */
+    margin-bottom:46px; /* make room for the second strip */
   }
-
+  /* teal strip under the main bar to host row 2 */
   #main-nav::before{
     content:"";
     position:absolute;
     top:100%;
-    left:0;
-    right:0;
-    height:46px;
+    left:0; right:0;
+    height:46px;                     /* height of second row */
     background:var(--brand-teal);
-    border-top:2px solid #000;
+    border-top:2px solid #000;       /* thin divider between rows */
     border-bottom:2px solid #000;
   }
 
-  /* Row 1: main links */
+  /* Row 1 links */
   #main-nav .nav-menu{
     flex-wrap:nowrap !important;
     justify-content:space-between !important;
@@ -590,11 +432,11 @@ section h2::after{
     white-space:nowrap !important;
   }
 
-  /* ABOUT (row 2, left) */
+  /* Row 2: ABOUT (left) */
   #about-overlay{
     position:absolute !important;
     left:.65rem;
-    top:calc(100% + 8px);
+    top:calc(100% + 8px);            /* place on the second strip */
     z-index:1002;
   }
   .nav-details > summary.nav-link{
@@ -605,12 +447,11 @@ section h2::after{
     border-radius:999px;
   }
   .nav-details .about-panel{
-    left:0;
-    right:auto;
+    left:0; right:auto;
     width:calc(100vw - 22px);
   }
 
-  /* Social + CAST (row 2, right) */
+  /* Row 2: social + CAST (right) */
   #main-nav .nav-actions{
     position:absolute !important;
     right:.65rem;
@@ -618,96 +459,47 @@ section h2::after{
     gap:.75rem !important;
     z-index:1002;
   }
-  #main-nav .social-icon i{
-    font-size:1.35rem !important;
-  }
-  #main-nav .icon-img,
-  #main-nav .nav-onemusic{
-    display:none !important;
-  }
-  #manualCastBtn.nav-link{
-    font-size:.95rem !important;
-    padding:.28rem .5rem;
-  }
-  google-cast-button#castBtn{
-    transform:scale(0.78);
-    transform-origin:right center;
-  }
+  #main-nav .social-icon i{ font-size:1.35rem !important; }
+  #main-nav .icon-img, #main-nav .nav-onemusic{ display:none !important; }
 
-  /* Page sections stacked in mobile order */
-  .grid-container{
-    display:flex;
-    flex-direction:column;
-    padding:0 .5rem;
-  }
+  /* Page sections (stacked) */
+  .grid-container{ display:flex; flex-direction:column; padding:0 .5rem; }
+  .mixcloud{ display:none !important; }
   .live-player{ order:1; }
   .chat{ order:2; }
   .schedule{ order:3; }
-  .mixcloud{ display:none !important; } /* hide Mixcloud on phones */
 
-  .chat iframe{
-    height:70vh;
-    max-height:70vh;
-  }
-
-  .schedule{
-    overflow-y:auto;
-  }
+  .chat iframe{ height:70vh; max-height:70vh; }
+  .schedule{ overflow-y:auto; }
   #schedule-container{
-    max-height:55vh;
-    overflow-y:auto;
-    padding-right:6px;
-    scroll-behavior:smooth;
-    -webkit-overflow-scrolling:touch;
+    max-height:55vh; overflow-y:auto; padding-right:6px;
+    scroll-behavior:smooth; -webkit-overflow-scrolling:touch;
   }
-  #schedule-container h3,
-  #schedule-container .day-title{
-    position:sticky;
-    top:0;
-    z-index:2;
-  }
+  #schedule-container h3, #schedule-container .day-title{ position:sticky; top:0; z-index:2; }
 
-  /* hide desktop-only "Pop Out Player" button */
-  #popOutBtn{
-    display:none;
-  }
+  /* Footer shrink */
+  .banner{ padding:.35rem .55rem !important; gap:.25rem !important; }
+  footer.banner > div{ padding:.35rem .55rem !important; }
+  .banner a{ font-size:1rem !important; padding:.3rem .5rem !important; }
+  .banner span,.banner p{ font-size:.72rem !important; line-height:1.15 !important; }
 
-  /* footer shrink */
-  .banner{
-    padding:.35rem .55rem !important;
-    gap:.25rem !important;
-  }
-  .banner a{
-    font-size:1rem !important;
-    padding:.3rem .5rem !important;
-  }
-  .banner span,
-  .banner p{
-    font-size:.72rem !important;
-    line-height:1.15 !important;
-  }
+  #popOutBtn{ display:none; } /* desktop-only button */
 }
 
-/* ─── DESKTOP / LARGE SCREEN LAYOUT OVERRIDES ────────────────────── */
+/* ─── DESKTOP LAYOUT OVERWRITES ──────────────────────────────────── */
 @media (min-width:600px){
-  .grid-container{
-    grid-template-columns:1fr 1.5fr;
-  }
-  .banner{
-    flex-direction:row;
-    justify-content:space-between;
-  }
+  .grid-container{ grid-template-columns:1fr 1.5fr; }
+  .banner{ flex-direction:row; justify-content:space-between; }
 }
-
 @media (min-width:769px){
+  /* Only iframe/audio get a forced tall height on desktop.
+     We do NOT touch #ccrTv here; its wrapper controls it. */
   .live-player iframe,
-  .live-player audio,
-  .live-player video{
+  .live-player audio{
     height:600px;
     max-height:150vh;
   }
 
-  /* slideshow block if/when you bring it back */
   #slideshow{
     grid-column:1 / -1;
     width:100%;
@@ -715,349 +507,80 @@ section h2::after{
     transform:none;
     max-width:none;
     max-height:100vh;
-    margin:0 auto;
-    border:2px solid var(--brand-teal);
-    box-sizing:border-box;
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-    gap:1rem;
   }
-  #slideshow > *{
-    height:100%;
-  }
+  #slideshow > *{ height:100%; }
 
-  .grid-container{
-    grid-template-columns:1fr 1.5fr 1fr 1fr;
-  }
-
-  .chat iframe{
-    height:1200px;
-  }
+  .grid-container{ grid-template-columns:1fr 1.5fr 1fr 1fr; }
+  .chat iframe{ height:1200px; }
 }
-
 @media (min-width:900px){
-  header .title h1{
-    font-size:8rem;
-  }
-  header .title .tagline{
-    font-size:2.45rem;
-  }
+  header .title h1{ font-size:8rem; }
+  header .title .tagline{ font-size:2.45rem; }
   header .logo{
     height:var(--logo-size-desktop);
     width:var(--logo-size-desktop);
     max-width:var(--logo-size-desktop);
   }
-  #now-art{
-    max-width:600px;
-  }
+  #now-art{ max-width:600px; }
 }
 
-/* === CCR TV + HEADER/NAV SAFETY PATCH (added Nov 3 2025) === */
-
-:root {
-  --brand-teal:#5A8785;
-  --wave-height-desktop:120px;
-  --wave-height-mobile:80px;
+/* ─── DESKTOP ONLY: CHAT-SECTION POP-OUT VISIBILITY ──────────────── */
+@media only screen and (min-width:769px){
+  section.chat .chat-actions{ display:none !important; }
 }
 
-/* NAV bar sizing / spacing matches working HTML */
-#main-nav{
-  display:flex !important;
-  align-items:center !important;
-  gap:.5rem !important;
-  width:100% !important;
-  padding:.10rem .65rem !important;
-  margin:0 !important;
-  box-sizing:border-box !important;
-  background-color:var(--brand-teal) !important;
-  position:relative !important;
-  z-index:1000 !important;
-  border-top:2px solid #000;
-  border-bottom:2px solid #000;
-  flex-wrap:nowrap;
-}
-#main-nav .nav-menu{
-  display:flex !important;
-  align-items:center !important;
-  justify-content:space-evenly !important;
-  gap:clamp(.25rem,2vw,1.5rem) !important;
-  flex:1 1 auto !important;
-  min-width:0 !important;
-}
-#main-nav a.nav-link,
-#main-nav button.nav-link,
-#main-nav summary.nav-link{
-  color:#fff !important;
-  font-family:'Bebas Neue',sans-serif !important;
-  font-size:2rem !important;
-  text-transform:uppercase !important;
-  text-decoration:none !important;
-  white-space:nowrap !important;
-  list-style:none !important;
-  cursor:pointer !important;
-  display:inline-flex;
-  align-items:center;
-  line-height:1;
-}
-.nav-details{ position:relative; }
-.nav-details .about-panel{
-  position:absolute;
-  top:calc(100% + 8px);
-  right:0;
-  width:min(520px,86vw);
-  background:#000;
-  color:#fff;
-  border:2px solid var(--brand-teal);
-  border-radius:8px;
-  padding:.75rem .9rem;
-  line-height:1.35;
-  box-shadow:0 8px 18px rgba(0,0,0,.45);
-  display:none;
-  z-index:1100;
-}
-.nav-details[open] .about-panel{ display:block; }
-.nav-details > summary::-webkit-details-marker{ display:none; }
-.nav-details > summary:focus{ outline:2px solid #fff; outline-offset:2px; }
-
-#main-nav .nav-actions{
-  display:flex !important;
-  align-items:center !important;
-  justify-content:flex-end !important;
-  gap:.6rem !important;
-  flex:0 0 auto !important;
-}
-#main-nav .social-icon{
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  line-height:1 !important;
-  text-decoration:none !important;
-  color:#fff !important;
-}
-#main-nav .social-icon i{ font-size:2.1rem !important; }
-.icon-img{
-  width:2.6rem !important;
-  height:auto !important;
-  margin-left:.25rem !important;
-  vertical-align:middle !important;
-  display:inline-block !important;
-}
-#main-nav .nav-onemusic img{
-  max-height:2rem;
-  width:auto;
-  height:auto;
-  display:block;
-}
-
-/* HEADER strip (logo + left/right audiowave videos) */
-.header-banner{
-  position:relative;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:0;
-  background:#000;
-  padding:clamp(12px,3vw,24px) 0;
-  overflow:hidden;
-  isolation:isolate;
-  flex-wrap:nowrap;
-}
-@media (max-width:768px){
-  .header-banner{
-    flex-wrap:wrap;
-    gap:4px;
-    padding:10px 0 6px;
-  }
-}
-.header-gif-right,
-.header-gif-left{
+/* ─── MIXCLOUD DELETE LINK STYLES ────────────────────────────────── */
+.mixcloud-item{ position:relative; }
+.remove-link{
   display:none !important;
-}
-.header-wave{
-  flex:1 1 0;
-  width:auto;
-  min-width:60px;
-  height:var(--wave-height-desktop);
-  display:block;
-  object-fit:cover;
-  border-top:2px solid #000;
-  border-bottom:2px solid #000;
-  background:#000;
-}
-@media (max-width:768px){
-  .header-wave{
-    height:var(--wave-height-mobile);
-    min-width:40px;
-  }
-}
-.header-banner .title{
-  flex:0 1 auto;
-  text-align:center;
-  padding:0 .25rem;
-  min-width:260px;
-}
-@media (max-width:768px){
-  .header-banner .title{
-    min-width:180px;
-  }
-  .header-banner .title h1{
-    font-size:9.2vw;
-    line-height:1;
-    margin:0;
-    font-family:'Bebas Neue',sans-serif;
-  }
-  .header-banner .title .tagline{
-    font-size:4vw;
-    margin-top:4px;
-    color:var(--brand-teal);
-    font-family:Arial,sans-serif;
-  }
-}
-.logo{
-  width:160px;
-  height:160px;
-  aspect-ratio:1/1;
-  margin:0;
-}
-
-/* GRID SECTION sizing hint you already had */
-.schedule,
-.mixcloud{
-  content-visibility:auto;
-  contain-intrinsic-size:800px 600px;
-}
-
-/* === CCR TV FIX so it doesn't blow layout on desktop or mobile === */
-.tv-wrapper{
-  width:100%;
-  max-width:1000px;
-  margin:1rem auto 0;
-  background:#000;
-  border:2px solid var(--brand-teal);
-  border-radius:6px;
-  padding:.5rem;
-  position:relative;
-}
-
-#ccrTv{
-  display:block;
-  width:100%;
-  max-width:100%;
-  background:#000;
-  aspect-ratio:16 / 9;
-  object-fit:cover;
-  border-radius:4px;
-  border:0;
-}
-
-/* old browsers without aspect-ratio */
-@supports not (aspect-ratio: 16/9){
-  #ccrTv{
-    width:100%;
-    height:auto;
-  }
-}
-
-/* overlay that appears if autoplay gets blocked or Firefox can't start stream */
-.tv-manual-play{
-  display:none;
-  position:absolute;
-  inset:0;
-  background:rgba(0,0,0,0.6);
-  border-radius:4px;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-  padding:1rem;
-}
-.tv-manual-play button{
-  background:var(--brand-teal);
-  color:#fff;
-  font-family:'Bebas Neue',sans-serif;
-  font-size:1.2rem;
-  line-height:1;
-  border:2px solid #000;
-  border-radius:6px;
-  padding:.75rem 1rem;
+  text-align:right;
+  font-size:.9rem;
+  color:var(--brand-teal);
+  text-decoration:underline;
+  margin-top:.3rem;
   cursor:pointer;
 }
+.admin-mode .remove-link{ display:inline-block !important; }
 
-/* MOBILE tweaks (≤768px) that match the HTML version */
+/* ─── POP-OUT BUTTON VISIBILITY (keep behavior) ──────────────────── */
 @media (max-width:768px){
-
-  /* nav collapses into two "rows" worth of stuff */
-  #main-nav{
-    flex-direction:row;
-    flex-wrap:wrap;
-    align-items:center !important;
-    gap:.25rem !important;
-  }
-  #main-nav .nav-menu{
-    order:1;
-    width:100%;
-    justify-content:space-between !important;
-    gap:.2rem !important;
-    flex-wrap:wrap;
-  }
-  #main-nav a.nav-link,
-  #main-nav button.nav-link,
-  #main-nav summary.nav-link{
-    font-size:.95rem !important;
-    line-height:1 !important;
-    padding:.1rem .22rem !important;
-    letter-spacing:.02em;
-  }
-
-  .nav-details{
-    order:2;
-    flex:1 1 50%;
-    display:flex;
-    align-items:center;
-  }
-  .nav-details > summary.nav-link{
-    font-size:.95rem !important;
-    padding:.28rem .5rem;
-    background:rgba(0,0,0,.15);
-    border:1px solid rgba(255,255,255,.28);
-    border-radius:999px;
-    margin:0;
-    width:max-content;
-  }
-  .nav-details .about-panel{
-    width:calc(100vw - 22px);
-    right:-6px;
-  }
-
-  #main-nav .nav-actions{
-    order:2;
-    flex:1 1 50%;
-    justify-content:flex-end !important;
-    align-items:center !important;
-    gap:.45rem !important;
-  }
-  #main-nav .social-icon i{ font-size:1.25rem !important; }
-  .icon-img,
-  .nav-onemusic{
-    display:none !important;
-  }
-
-  #manualCastBtn.nav-link{
-    font-size:.95rem !important;
-    padding:.28rem .5rem;
-  }
-  google-cast-button#castBtn{
-    transform:scale(0.78);
-    transform-origin:right center;
-  }
-
-  /* keep the TV wrapper full width on phones */
-  .tv-wrapper{
-    max-width:100%;
+  section.chat .chat-actions{ display:none !important; }
+  #chatPopupBtn{
+    display:inline-block !important;
+    margin:.5rem auto 1rem !important;
   }
 }
+@media (min-width:769px){
+  section.chat .chat-actions{ display:block !important; }
+  #chatPopupBtn{ display:none !important; }
+}
 
-/* Motion-reduced users shouldn't have looping header strips */
-@media (prefers-reduced-motion:reduce){
+/* ─── SCHEDULE PAGE (headings white) ─────────────────────────────── */
+.page-header h1,
+.month-controls .title{
+  color:#fff !important;
+}
+.week-grid .day-head,
+.week-grid .day-head .dow,
+.week-grid .day-head .date{
+  color:#fff !important;
+  opacity:1 !important;
+  filter:none !important;
+  mix-blend-mode:normal !important;
+}
+
+/* --- Mobile performance: remove header WEBM strips --- */
+@media (max-width: 768px){
+  /* Don’t render the videos at all on phones */
   .header-wave{ display:none !important; }
-  .header-banner{ justify-content:center; }
+
+  /* Simple stacked header layout when waves are hidden */
+  .header-banner{
+    display:flex !important;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    padding:8px 0 6px !important;
+  }
 }

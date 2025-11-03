@@ -182,37 +182,32 @@
 
     /* ===============================
        CCR TV PLAYER STABILITY RULES
-       (this is the only real "new" bit)
        =============================== */
 
     /* Wrapper around the <video id="ccrTv">.
-       We lock its shape so different browsers
-       don't blow the layout apart. */
+       This keeps aspect ratio so Chrome/Firefox
+       don't randomly blow up the grid. */
     .tv-wrapper {
       position: relative;
       width: 100%;
-      max-width: 720px;          /* keep video to a sane width in your column */
-      aspect-ratio: 16 / 9;      /* consistent 16:9 box */
+      max-width: 720px;
+      aspect-ratio: 16 / 9;
       background: #000;
       overflow: hidden;
-      /* we are NOT adding borders/colors/shadows here,
-         so visual styling on the page stays how you had it */
     }
 
-    /* Force the video to fill that box and not resize the grid */
+    /* Force the <video> to live inside that box */
     #ccrTv {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
-      object-fit: cover;         /* fill the box; crop edges if aspect doesn't match */
+      object-fit: cover;
       background: #000;
       display: block;
     }
-
-    /* If you ever want letterbox instead of crop:
-       swap object-fit: cover;  -> object-fit: contain;
-       and you'll get black bars instead of cropping */
+    /* If you ever prefer black bars instead of cropping:
+       object-fit: contain; (instead of cover) */
   </style>
 
   <!-- Chromecast Init & SDK -->
@@ -600,16 +595,18 @@
   })();
   </script>
 
-  <!-- HLS.js loader + init for CCR TV -->
+  <!-- HLS.js loader + init for CCR TV (with cache-buster so Firefox/Chrome don't cling to an old manifest) -->
   <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
   <script>
     (function(){
-      // the <video> element in .tv-wrapper
-      const videoEl   = document.getElementById('ccrTv');
-      // your public HTTPS HLS playlist served by the Ubuntu box
-      const streamURL = 'https://ccr-tv.cutterschoiceradio.com/ccr-tv/ccr.m3u8';
-
+      const videoEl = document.getElementById('ccrTv');
       if (!videoEl) return;
+
+      // Base HLS URL from the CCR TV box
+      const baseURL = 'https://ccr-tv.cutterschoiceradio.com/ccr-tv/ccr.m3u8';
+
+      // Cache-buster so each page load forces a fresh manifest
+      const streamURL = baseURL + '?t=' + Date.now();
 
       // Required for autoplay on most browsers/mobile
       videoEl.muted = true;
@@ -629,7 +626,7 @@
         videoEl.src = streamURL;
         videoEl.addEventListener('loadedmetadata', attemptPlay);
 
-      // Everyone else (Chrome, Firefox via hls.js)
+      // Everyone else (Chrome, Firefox, Edge) via hls.js
       } else if (window.Hls) {
         const hls = new Hls({
           maxBufferLength: 10,

@@ -183,10 +183,6 @@
     /* ===============================
        CCR TV PLAYER STABILITY RULES
        =============================== */
-
-    /* Wrapper around the <video id="ccrTv">.
-       This keeps aspect ratio so Chrome/Firefox
-       don't randomly blow up the grid. */
     .tv-wrapper {
       position: relative;
       width: 100%;
@@ -195,19 +191,15 @@
       background: #000;
       overflow: hidden;
     }
-
-    /* Force the <video> to live inside that box */
     #ccrTv {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: cover; /* use 'contain' if you prefer letterbox */
       background: #000;
       display: block;
     }
-    /* If you ever prefer black bars instead of cropping:
-       object-fit: contain; (instead of cover) */
   </style>
 
   <!-- Chromecast Init & SDK -->
@@ -367,18 +359,18 @@
         <button id="popOutBtn" class="popout-btn">Pop Out Player</button>
         <button id="chatPopupBtn" class="popout-btn chat-btn-mobile" onclick="openChatPopup()">Chat</button>
 
-        <!-- CCR TV AUTO VIDEO FEED (HLS from your Ubuntu box over HTTPS) -->
+        <!-- CCR TV AUTO VIDEO FEED (HLS over HTTPS) -->
         <div class="tv-wrapper">
           <video
             id="ccrTv"
             playsinline
             muted
             controls
+            preload="none"
             poster="/images/archives-logo.jpeg"
           ></video>
         </div>
       </div>
-      <!-- NOTE: We removed "This Week’s Shows" + artwork block here -->
     </section>
 
     <!-- SCHEDULE SECTION -->
@@ -442,7 +434,6 @@
 
       if (!navMenu || !navActions || !merchLink) return;
 
-      // Invisible anchor to remember original spot (right AFTER MERCH)
       const anchor = document.createElement('span');
       anchor.id = 'merch-return-anchor';
       anchor.style.display = 'none';
@@ -595,58 +586,131 @@
   })();
   </script>
 
-  <!-- HLS.js loader + init for CCR TV (with cache-buster so Firefox/Chrome don't cling to an old manifest) -->
+  <!-- HLS.js loader + resilient CCR TV init -->
   <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
   <script>
     (function(){
-      const videoEl = document.getElementById('ccrTv');
-      if (!videoEl) return;
+      const video = document.getElementById('ccrTv');
+      if (!video) return;
 
-      // Base HLS URL from the CCR TV box
-      const baseURL = 'https://ccr-tv.cutterschoiceradio.com/ccr-tv/ccr.m3u8';
+      const STREAM_BASE = 'https://ccr-tv.cutterschoiceradio.com/ccr-tv/ccr.m3u8';
+      const makeURL = () => STREAM_BASE + '?t=' + Date.now();
 
-      // Cache-buster so each page load forces a fresh manifest
-      const streamURL = baseURL + '?t=' + Date.now();
+      // Required for autoplay on most platforms
+      video.muted = true;
+      video.playsInline = true;
 
-      // Required for autoplay on most browsers/mobile
-      videoEl.muted = true;
-      videoEl.playsInline = true;
+      let hls = null;
+      let userPaused = false;
+      let lastActive = Date.now();
 
       function attemptPlay() {
-        const p = videoEl.play();
-        if (p && typeof p.then === 'function') {
-          p.catch(err => {
-            console.warn('[CCR-TV] autoplay blocked:', err);
-          });
-        }
+        const p = video.play();
+        if (p && p.catch) p.catch(() => {/* autoplay might be blocked; UI controls exist */});
       }
 
-      // Safari / iOS (native HLS)
-      if (videoEl.canPlayType('application/vnd.apple.mpegURL')) {
-        videoEl.src = streamURL;
-        videoEl.addEventListener('loadedmetadata', attemptPlay);
+      function attachNative(url){
+        video.src = url;
+        video.addEventListener('loadedmetadata', attemptPlay, { once:true });
+      }
 
-      // Everyone else (Chrome, Firefox, Edge) via hls.js
-      } else if (window.Hls) {
-        const hls = new Hls({
+      function attachHls(url){
+        if (hls) { try { hls.destroy(); } catch(e){} hls = null; }
+        hls = new Hls({
+          // Keep buffer modest for live
           maxBufferLength: 10,
-          liveSyncDurationCount: 3,
-          enableWorker: true
+          backBufferLength: 30,
+          liveSyncDuration: 4,
+          liveMaxLatencyDuration: 30,
+          enableWorker: true,
+          lowLatencyMode: false,
+          // timeouts to avoid long stalls
+          fragLoadingTimeOut: 20000,
+          manifestLoadingTimeOut: 20000,
+          nudgeMaxRetry: 5
         });
-        hls.loadSource(streamURL);
-        hls.attachMedia(videoEl);
+        hls.loadSource(url);
+        hls.attachMedia(video);
 
         hls.on(Hls.Events.MANIFEST_PARSED, attemptPlay);
 
         hls.on(Hls.Events.ERROR, (evt, data) => {
-          console.warn('[CCR-TV] HLS.js error', evt, data);
-        });
+          // Keep it chatty in console without spamming users
+          console.warn('[CCR-TV] HLS error', data?.type, data?.details, 'fatal:', data?.fatal);
 
-      // Fallback (ancient browsers)
-      } else {
-        videoEl.src = streamURL;
-        videoEl.addEventListener('loadedmetadata', attemptPlay);
+          if (!data?.fatal) return;
+
+          switch (data.type) {
+            case Hls.ErrorTypes.NETWORK_ERROR:
+              // Soft kick the loader
+              try { hls.startLoad(); } catch(e){}
+              break;
+            case Hls.ErrorTypes.MEDIA_ERROR:
+              // Try to recover bad buffer / decode hiccups
+              try { hls.recoverMediaError(); } catch(e){}
+              break;
+            default:
+              // Hard reload with a fresh cache-buster
+              try { hls.destroy(); } catch(e){}
+              hls = null;
+              setTimeout(() => init(true), 500);
+          }
+        });
       }
+
+      function init(forceFresh){
+        const url = forceFresh ? makeURL() : makeURL(); // always cache-bust on init
+        if (video.canPlayType('application/vnd.apple.mpegURL')) {
+          attachNative(url);
+        } else if (window.Hls && window.Hls.isSupported()) {
+          attachHls(url);
+        } else {
+          // Very old browsers
+          attachNative(url);
+        }
+      }
+
+      // Watchdog: if playback stalls for ~10s while not user-paused, nudge the pipeline
+      const STALL_MS = 10000;
+      setInterval(() => {
+        const stalled = (Date.now() - lastActive) > STALL_MS;
+        const shouldPlay = !video.paused && !video.ended && !userPaused;
+
+        if (stalled && shouldPlay) {
+          console.warn('[CCR-TV] Stall detected — nudging loader');
+          if (hls) {
+            try { hls.stopLoad(); } catch(e){}
+            try { hls.startLoad(); } catch(e){}
+          } else {
+            // Native path: refresh src
+            const t = video.currentTime || 0;
+            const u = makeURL();
+            video.src = u;
+            video.currentTime = Math.max(0, t - 2); // jump slightly back
+            attemptPlay();
+          }
+        }
+      }, 2500);
+
+      // Track activity
+      video.addEventListener('timeupdate', () => { lastActive = Date.now(); }, { passive:true });
+      video.addEventListener('playing',    () => { lastActive = Date.now(); }, { passive:true });
+      video.addEventListener('pause',      () => { userPaused = true; });
+      video.addEventListener('play',       () => { userPaused = false; });
+
+      // If tab was hidden and comes back, give the loader a kick
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          if (hls) { try { hls.startLoad(); } catch(e){} }
+          attemptPlay();
+        }
+      });
+
+      // Boot
+      init(true);
+
+      // Cleanup on nav away
+      window.addEventListener('beforeunload', () => { try { hls?.destroy(); } catch(e){} });
     })();
   </script>
 </body>

@@ -6,7 +6,6 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- Enable Cast -->
@@ -41,254 +40,81 @@
   <!-- Preload likely-LCP (logo) to speed first paint -->
   <link rel="preload" href="/images/logo.png" as="image" imagesrcset="/images/logo.png 1x">
 
-  <!-- Main stylesheet (your existing site CSS) -->
+  <!-- Main stylesheet -->
   <link rel="stylesheet" href="style.css?v=1757106631679">
 
-  <!-- Fonts & Icons -->
+  <!-- Bebas Neue & FontAwesome -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <!-- INLINE LAYOUT FIXES / TV PLAYER STYLES / MOBILE SAFETY -->
+  <!-- INLINE NAV + HEADER + MOBILE TUNING -->
   <style>
-    :root {
-      --brand-teal:#5A8785;
-      --wave-height-desktop:120px;
-      --wave-height-mobile:80px;
-    }
+    :root { --brand-teal: #5A8785; --wave-height-desktop: 120px; --wave-height-mobile: 80px; }
 
-    /* NAV BAR (same as before) */
+    /* NAV BAR */
     #main-nav{
-      display:flex !important;
-      align-items:center !important;
-      gap:.5rem !important;
-      width:100% !important;
-      padding:.10rem .65rem !important;
-      margin:0 !important;
-      box-sizing:border-box !important;
-      background-color:var(--brand-teal) !important;
-      position:relative !important;
-      z-index:1000 !important;
-      border-top:2px solid #000;
-      border-bottom:2px solid #000;
+      display:flex !important; align-items:center !important; gap:.5rem !important;
+      width:100% !important; padding:.10rem .65rem !important; margin:0 !important;
+      box-sizing:border-box !important; background-color:var(--brand-teal) !important;
+      position:relative !important; z-index:1000 !important; border-top:2px solid #000; border-bottom:2px solid #000;
       flex-wrap:nowrap;
     }
     #main-nav .nav-menu{
-      display:flex !important;
-      align-items:center !important;
-      justify-content:space-evenly !important;
-      gap:clamp(.25rem,2vw,1.5rem) !important;
-      flex:1 1 auto !important;
-      min-width:0 !important;
+      display:flex !important; align-items:center !important; justify-content:space-evenly !important;
+      gap:clamp(.25rem,2vw,1.5rem) !important; flex:1 1 auto !important; min-width:0 !important;
     }
-    #main-nav a.nav-link,
-    #main-nav button.nav-link,
-    #main-nav summary.nav-link{
-      color:#fff !important;
-      font-family:'Bebas Neue',sans-serif !important;
-      font-size:2rem !important;
-      text-transform:uppercase !important;
-      text-decoration:none !important;
-      white-space:nowrap !important;
-      list-style:none !important;
-      cursor:pointer !important;
-      display:inline-flex;
-      align-items:center;
-      line-height:1;
+    #main-nav a.nav-link, #main-nav button.nav-link, #main-nav summary.nav-link{
+      color:#fff !important; font-family:'Bebas Neue',sans-serif !important; font-size:2rem !important;
+      text-transform:uppercase !important; text-decoration:none !important; white-space:nowrap !important;
+      list-style:none !important; cursor:pointer !important; display:inline-flex; align-items:center;
     }
     .nav-details{ position:relative; }
     .nav-details .about-panel{
-      position:absolute;
-      top:calc(100% + 8px);
-      right:0;
-      width:min(520px,86vw);
-      background:#000;
-      color:#fff;
-      border:2px solid var(--brand-teal);
-      border-radius:8px;
-      padding:.75rem .9rem;
-      line-height:1.35;
-      box-shadow:0 8px 18px rgba(0,0,0,.45);
-      display:none;
-      z-index:1100;
+      position:absolute; top:calc(100% + 8px); right:0; width:min(520px, 86vw);
+      background:#000; color:#fff; border:2px solid var(--brand-teal); border-radius:8px;
+      padding:.75rem .9rem; line-height:1.35; box-shadow:0 8px 18px rgba(0,0,0,.45); display:none; z-index:1100;
     }
     .nav-details[open] .about-panel{ display:block; }
     .nav-details > summary::-webkit-details-marker{ display:none; }
     .nav-details > summary:focus{ outline:2px solid #fff; outline-offset:2px; }
-    #main-nav .nav-actions{
-      display:flex !important;
-      align-items:center !important;
-      justify-content:flex-end !important;
-      gap:.6rem !important;
-      flex:0 0 auto !important;
-    }
-    #main-nav .social-icon{
-      display:inline-flex !important;
-      align-items:center !important;
-      justify-content:center !important;
-      line-height:1 !important;
-      text-decoration:none !important;
-      color:#fff !important;
-    }
+    #main-nav .nav-actions{ display:flex !important; align-items:center !important; justify-content:flex-end !important; gap:.6rem !important; flex:0 0 auto !important; }
+    #main-nav .social-icon{ display:inline-flex !important; align-items:center !important; justify-content:center !important; line-height:1 !important; text-decoration:none !important; color:#fff !important; }
     #main-nav .social-icon i{ font-size:2.1rem !important; }
-    .icon-img{
-      width:2.6rem !important;
-      height:auto !important;
-      margin-left:.25rem !important;
-      vertical-align:middle !important;
-      display:inline-block !important;
-    }
-    #main-nav .nav-onemusic img{
-      max-height:2rem;
-      width:auto;
-      height:auto;
-      display:block;
-    }
+    .icon-img{ width:2.6rem !important; height:auto !important; margin-left:.25rem !important; vertical-align:middle !important; display:inline-block !important; }
+    #main-nav .nav-onemusic img{ max-height:2rem; width:auto; height:auto; display:block; }
 
-    /* HEADER STRIP / LOGOS / WAVES (same desktop behavior) */
+    /* HEADER layout */
     .header-banner{
-      position:relative;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:0;
-      background:#000;
-      padding:clamp(12px,3vw,24px) 0;
-      overflow:hidden;
-      isolation:isolate;
-      flex-wrap:nowrap;
+      position:relative; display:flex; align-items:center; justify-content:space-between;
+      gap:0; background:#000; padding:clamp(12px, 3vw, 24px) 0;
+      overflow:hidden; isolation:isolate; flex-wrap:nowrap;
     }
-    @media (max-width:768px){
-      .header-banner{
-        flex-wrap:wrap;
-        gap:4px;
-      }
-    }
-    .header-gif-right,
-    .header-gif-left{
-      display:none !important;
-    }
+    @media (max-width:768px){ .header-banner{ flex-wrap:wrap; gap:4px; } }
+
+    .header-gif-right, .header-gif-left{ display:none !important; }
+
     .header-wave{
-      flex:1 1 0;
-      width:auto;
-      min-width:60px;
+      flex:1 1 0; width:auto; min-width:60px;
       height:var(--wave-height-desktop);
-      display:block;
-      object-fit:cover;
-      border-top:2px solid #000;
-      border-bottom:2px solid #000;
-      background:#000;
+      display:block; object-fit:cover;
+      border-top:2px solid #000; border-bottom:2px solid #000; background:#000;
     }
-    @media (max-width:768px){
-      .header-wave{
-        height:var(--wave-height-mobile);
-        min-width:40px;
-      }
-    }
+    @media (max-width:768px){ .header-wave{ height:var(--wave-height-mobile); min-width:40px; } }
 
-    .header-banner .title{
-      flex:0 1 auto;
-      text-align:center;
-      padding:0 .25rem;
-      min-width:260px;
-    }
-    @media (max-width:768px){
-      .header-banner .title{ min-width:180px; }
-    }
+    .header-banner .title{ flex:0 1 auto; text-align:center; padding:0 .25rem; min-width:260px; }
+    @media (max-width:768px){ .header-banner .title{ min-width:180px; } }
 
-    .logo{
-      width:160px;
-      height:160px;
-      aspect-ratio:1/1;
-      margin:0;
-    }
+    .logo{ width:160px; height:160px; aspect-ratio:1/1; margin:0; }
 
-    .schedule,
-    .mixcloud{
-      content-visibility:auto;
-      contain-intrinsic-size:800px 600px;
-    }
+    .schedule, .mixcloud{ content-visibility:auto; contain-intrinsic-size: 800px 600px; }
 
-    /* >>>>>>> CCR TV LAYOUT FIXES <<<<<<<< */
-
-    /* wrapper around the <video> so it can't blow out layout */
-    .tv-wrapper{
-      width:100%;
-      max-width:1000px;
-      margin:1rem auto 0;
-      background:#000;
-      border:2px solid var(--brand-teal);
-      border-radius:6px;
-      padding:.5rem;
-      position:relative;
-    }
-
-    /* actual <video> */
-    #ccrTv{
-      display:block;
-      width:100%;
-      max-width:100%;
-      background:#000;
-      aspect-ratio:16 / 9;
-      object-fit:cover;
-      border-radius:4px;
-      border:0;
-    }
-
-    /* aspect-ratio fallback for very old browsers */
-    @supports not (aspect-ratio: 16/9){
-      #ccrTv{
-        height:auto;
-        width:100%;
-      }
-    }
-
-    /* manual play overlay (shown if autoplay is blocked / hls fails) */
-    .tv-manual-play{
-      display:none;          /* JS will flip this to flex if needed */
-      position:absolute;
-      inset:0;
-      background:rgba(0,0,0,0.6);
-      border-radius:4px;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-      padding:1rem;
-    }
-    .tv-manual-play button{
-      background:var(--brand-teal);
-      color:#fff;
-      font-family:'Bebas Neue',sans-serif;
-      font-size:1.2rem;
-      line-height:1;
-      border:2px solid #000;
-      border-radius:6px;
-      padding:.75rem 1rem;
-      cursor:pointer;
-    }
-
-    /* ===== MOBILE ONLY ===== */
-    @media (max-width:768px){
-      :root{ --wave-height-mobile:110px; }
-
-      .header-banner{
-        padding:10px 0 6px;
-      }
-      .logo{
-        width:120px;
-        height:120px;
-      }
-      .header-banner .title h1{
-        font-size:9.2vw;
-        line-height:1;
-        margin:0;
-        font-family:'Bebas Neue',sans-serif;
-      }
-      .header-banner .title .tagline{
-        font-size:4vw;
-        margin-top:4px;
-        color:var(--brand-teal);
-        font-family:Arial,sans-serif;
-      }
+    /* ===== MOBILE ONLY ================================================= */
+    @media (max-width: 768px){
+      :root{ --wave-height-mobile: 110px; }
+      .header-banner{ padding:10px 0 6px; }
+      .logo{ width:120px; height:120px; }
+      .header-banner .title h1{ font-size:9.2vw; line-height:1; margin:0; }
+      .header-banner .title .tagline{ font-size:4vw; margin-top:4px; }
 
       #main-nav{
         flex-direction:row;
@@ -297,8 +123,7 @@
         gap:.25rem !important;
       }
       #main-nav .nav-menu{
-        order:1;
-        width:100%;
+        order:1; width:100%;
         justify-content:space-between !important;
         gap:.2rem !important;
         flex-wrap:wrap;
@@ -310,10 +135,8 @@
       }
 
       .nav-details{
-        order:2;
-        flex:1 1 50%;
-        display:flex;
-        align-items:center;
+        order:2; flex:1 1 50%;
+        display:flex; align-items:center;
       }
       .nav-details > summary.nav-link{
         font-size:.95rem !important;
@@ -324,32 +147,19 @@
         margin:0;
         width:max-content;
       }
-      .nav-details .about-panel{
-        width:calc(100vw - 22px);
-        right:-6px;
-      }
+      .nav-details .about-panel{ width:calc(100vw - 22px); right:-6px; }
 
       #main-nav .nav-actions{
-        order:2;
-        flex:1 1 50%;
+        order:2; flex:1 1 50%;
         justify-content:flex-end !important;
         align-items:center !important;
         gap:.45rem !important;
       }
       #main-nav .social-icon i{ font-size:1.25rem !important; }
-      .icon-img,
-      .nav-onemusic{
-        display:none !important;
-      }
+      .icon-img, .nav-onemusic{ display:none !important; }
 
-      #manualCastBtn.nav-link{
-        font-size:.95rem !important;
-        padding:.28rem .5rem;
-      }
-      google-cast-button#castBtn{
-        transform:scale(0.78);
-        transform-origin:right center;
-      }
+      #manualCastBtn.nav-link{ font-size:.95rem !important; padding:.28rem .5rem; }
+      google-cast-button#castBtn{ transform:scale(0.78); transform-origin:right center; }
 
       #main-nav a.nav-link,
       #main-nav button.nav-link,
@@ -359,25 +169,50 @@
         padding:.28rem .5rem !important;
       }
 
-      #main-nav + div[style*="height:2px"]{
-        margin-top:2px;
-      }
+      #main-nav + div[style*="height:2px"]{ margin-top:2px; }
 
-      .player-container #chatPopupBtn{
-        position:static;
-        margin-top:.5rem;
-      }
-
-      /* keep TV wrapper full width on mobile */
-      .tv-wrapper{
-        max-width:100%;
-      }
+      .player-container #chatPopupBtn{ position:static; margin-top:.5rem; }
     }
+    /* =================================================================== */
 
-    @media (prefers-reduced-motion:reduce){
+    @media (prefers-reduced-motion: reduce){
       .header-wave{ display:none !important; }
       .header-banner{ justify-content:center; }
     }
+
+    /* ===============================
+       CCR TV PLAYER STABILITY RULES
+       (this is the only real "new" bit)
+       =============================== */
+
+    /* Wrapper around the <video id="ccrTv">.
+       We lock its shape so different browsers
+       don't blow the layout apart. */
+    .tv-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 720px;          /* keep video to a sane width in your column */
+      aspect-ratio: 16 / 9;      /* consistent 16:9 box */
+      background: #000;
+      overflow: hidden;
+      /* we are NOT adding borders/colors/shadows here,
+         so visual styling on the page stays how you had it */
+    }
+
+    /* Force the video to fill that box and not resize the grid */
+    #ccrTv {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;         /* fill the box; crop edges if aspect doesn't match */
+      background: #000;
+      display: block;
+    }
+
+    /* If you ever want letterbox instead of crop:
+       swap object-fit: cover;  -> object-fit: contain;
+       and you'll get black bars instead of cropping */
   </style>
 
   <!-- Chromecast Init & SDK -->
@@ -398,7 +233,7 @@
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-3MSGZZ5QL6"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
+    function gtag(){dataLayer.push(arguments);}  
     gtag('js', new Date());
     gtag('config', 'G-3MSGZZ5QL6');
   </script>
@@ -537,7 +372,7 @@
         <button id="popOutBtn" class="popout-btn">Pop Out Player</button>
         <button id="chatPopupBtn" class="popout-btn chat-btn-mobile" onclick="openChatPopup()">Chat</button>
 
-        <!-- CCR TV AUTO VIDEO FEED (HLS over HTTPS) -->
+        <!-- CCR TV AUTO VIDEO FEED (HLS from your Ubuntu box over HTTPS) -->
         <div class="tv-wrapper">
           <video
             id="ccrTv"
@@ -545,15 +380,10 @@
             muted
             controls
             poster="/images/archives-logo.jpeg"
-            crossorigin="anonymous">
-          </video>
-
-          <!-- Fallback overlay if autoplay is blocked / Firefox spinner etc -->
-          <div class="tv-manual-play" id="tvManualPlay">
-            <button type="button" id="tvPlayBtn">▶ Play CCR TV</button>
-          </div>
+          ></video>
         </div>
       </div>
+      <!-- NOTE: We removed "This Week’s Shows" + artwork block here -->
     </section>
 
     <!-- SCHEDULE SECTION -->
@@ -603,7 +433,7 @@
     </div>
   </footer>
 
-  <!-- YOUR EXISTING SCRIPTS -->
+  <!-- YOUR SCRIPTS -->
   <script src="script.js?v=1757106631679" defer></script>
   <script src="slideshow.js?v=1757106631679" defer></script>
 
@@ -710,7 +540,7 @@
     });
   </script>
 
-  <!-- JSON-LD Events injector (unchanged) -->
+  <!-- JSON-LD Events injector -->
   <script>
   (function(){
     const API_KEY = 'pk_0b8abc6f834b444f949f727e88a728e0';
@@ -774,31 +604,22 @@
   <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
   <script>
     (function(){
-      const videoEl = document.getElementById('ccrTv');
-      const manualOverlay = document.getElementById('tvManualPlay');
-      const manualBtn = document.getElementById('tvPlayBtn');
-
-      // your public HTTPS HLS playlist on the CCR TV box
+      // the <video> element in .tv-wrapper
+      const videoEl   = document.getElementById('ccrTv');
+      // your public HTTPS HLS playlist served by the Ubuntu box
       const streamURL = 'https://ccr-tv.cutterschoiceradio.com/ccr-tv/ccr.m3u8';
 
       if (!videoEl) return;
 
-      // make sure browser is happy to autoplay (muted inline is usually allowed)
+      // Required for autoplay on most browsers/mobile
       videoEl.muted = true;
       videoEl.playsInline = true;
 
-      function showManual(){
-        if (manualOverlay) {
-          manualOverlay.style.display = 'flex';
-        }
-      }
-
-      function tryPlay() {
+      function attemptPlay() {
         const p = videoEl.play();
         if (p && typeof p.then === 'function') {
           p.catch(err => {
-            console.warn('[CCR-TV] autoplay blocked or load issue:', err);
-            showManual();
+            console.warn('[CCR-TV] autoplay blocked:', err);
           });
         }
       }
@@ -806,10 +627,10 @@
       // Safari / iOS (native HLS)
       if (videoEl.canPlayType('application/vnd.apple.mpegURL')) {
         videoEl.src = streamURL;
-        videoEl.addEventListener('loadedmetadata', tryPlay);
+        videoEl.addEventListener('loadedmetadata', attemptPlay);
 
+      // Everyone else (Chrome, Firefox via hls.js)
       } else if (window.Hls) {
-        // Chrome / Firefox / Edge use hls.js
         const hls = new Hls({
           maxBufferLength: 10,
           liveSyncDurationCount: 3,
@@ -818,30 +639,17 @@
         hls.loadSource(streamURL);
         hls.attachMedia(videoEl);
 
-        // once the manifest is parsed, attempt autoplay
-        hls.on(Hls.Events.MANIFEST_PARSED, tryPlay);
+        hls.on(Hls.Events.MANIFEST_PARSED, attemptPlay);
 
-        // if hls.js reports a fatal error (e.g. CORS / mime / 404), show manual
         hls.on(Hls.Events.ERROR, (evt, data) => {
           console.warn('[CCR-TV] HLS.js error', evt, data);
-          if (data && data.fatal) {
-            showManual();
-          }
         });
 
+      // Fallback (ancient browsers)
       } else {
-        // Super old browsers fallback: just set src and hope
         videoEl.src = streamURL;
-        videoEl.addEventListener('loadedmetadata', tryPlay);
+        videoEl.addEventListener('loadedmetadata', attemptPlay);
       }
-
-      // Manual Play button: let user trigger play if autoplay got blocked
-      manualBtn?.addEventListener('click', () => {
-        tryPlay();
-        if (!videoEl.paused) {
-          manualOverlay.style.display = 'none';
-        }
-      });
     })();
   </script>
 </body>

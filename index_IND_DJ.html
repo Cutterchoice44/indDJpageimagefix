@@ -37,7 +37,7 @@
   <link rel="preconnect" href="https://app.radiocult.fm" crossorigin>
   <link rel="preconnect" href="https://cdn.socket.io" crossorigin>
 
-  <!-- Preload likely-LCP (logo) to speed first paint -->
+  <!-- Preload likely-LCP (logo) -->
   <link rel="preload" href="/images/logo.png" as="image" imagesrcset="/images/logo.png 1x">
 
   <!-- Main stylesheet -->
@@ -586,7 +586,7 @@
   })();
   </script>
 
-  <!-- HLS.js loader + resilient CCR TV init -->
+  <!-- HLS.js loader + resilient CCR TV init (cache-busted URL, stall watchdog, self-recovery) -->
   <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
   <script>
     (function(){
@@ -606,7 +606,7 @@
 
       function attemptPlay() {
         const p = video.play();
-        if (p && p.catch) p.catch(() => {/* autoplay might be blocked; UI controls exist */});
+        if (p && p.catch) p.catch(()=>{});
       }
 
       function attachNative(url){
@@ -617,17 +617,15 @@
       function attachHls(url){
         if (hls) { try { hls.destroy(); } catch(e){} hls = null; }
         hls = new Hls({
-          // Keep buffer modest for live
+          lowLatencyMode: false,
+          liveSyncDurationCount: 3,   // stay ~3 segments behind live
+          liveMaxLatencyDurationCount: 10,
           maxBufferLength: 10,
           backBufferLength: 30,
-          liveSyncDuration: 4,
-          liveMaxLatencyDuration: 30,
           enableWorker: true,
-          lowLatencyMode: false,
-          // timeouts to avoid long stalls
+          // keep these modest so we don't hang forever
           fragLoadingTimeOut: 20000,
-          manifestLoadingTimeOut: 20000,
-          nudgeMaxRetry: 5
+          manifestLoadingTimeOut: 20000
         });
         hls.loadSource(url);
         hls.attachMedia(video);
@@ -635,58 +633,47 @@
         hls.on(Hls.Events.MANIFEST_PARSED, attemptPlay);
 
         hls.on(Hls.Events.ERROR, (evt, data) => {
-          // Keep it chatty in console without spamming users
-          console.warn('[CCR-TV] HLS error', data?.type, data?.details, 'fatal:', data?.fatal);
-
           if (!data?.fatal) return;
+          console.warn('[CCR-TV] fatal HLS error', data.type, data.details);
 
-          switch (data.type) {
-            case Hls.ErrorTypes.NETWORK_ERROR:
-              // Soft kick the loader
-              try { hls.startLoad(); } catch(e){}
-              break;
-            case Hls.ErrorTypes.MEDIA_ERROR:
-              // Try to recover bad buffer / decode hiccups
-              try { hls.recoverMediaError(); } catch(e){}
-              break;
-            default:
-              // Hard reload with a fresh cache-buster
-              try { hls.destroy(); } catch(e){}
-              hls = null;
-              setTimeout(() => init(true), 500);
+          if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+            try { hls.startLoad(); } catch(e){}
+          } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+            try { hls.recoverMediaError(); } catch(e){}
+          } else {
+            try { hls.destroy(); } catch(e){}
+            hls = null;
+            setTimeout(() => init(true), 500);
           }
         });
       }
 
       function init(forceFresh){
-        const url = forceFresh ? makeURL() : makeURL(); // always cache-bust on init
+        const url = makeURL(); // always cache-bust
         if (video.canPlayType('application/vnd.apple.mpegURL')) {
           attachNative(url);
         } else if (window.Hls && window.Hls.isSupported()) {
           attachHls(url);
         } else {
-          // Very old browsers
           attachNative(url);
         }
       }
 
-      // Watchdog: if playback stalls for ~10s while not user-paused, nudge the pipeline
+      // Stall watchdog: if time hasn't advanced in ~10s and user didn't pause, kick loader
       const STALL_MS = 10000;
       setInterval(() => {
         const stalled = (Date.now() - lastActive) > STALL_MS;
-        const shouldPlay = !video.paused && !video.ended && !userPaused;
-
-        if (stalled && shouldPlay) {
+        const shouldBePlaying = !video.paused && !video.ended && !userPaused;
+        if (stalled && shouldBePlaying) {
           console.warn('[CCR-TV] Stall detected — nudging loader');
           if (hls) {
             try { hls.stopLoad(); } catch(e){}
             try { hls.startLoad(); } catch(e){}
           } else {
-            // Native path: refresh src
-            const t = video.currentTime || 0;
             const u = makeURL();
+            const t = video.currentTime || 0;
             video.src = u;
-            video.currentTime = Math.max(0, t - 2); // jump slightly back
+            video.currentTime = Math.max(0, t - 2);
             attemptPlay();
           }
         }
@@ -695,10 +682,11 @@
       // Track activity
       video.addEventListener('timeupdate', () => { lastActive = Date.now(); }, { passive:true });
       video.addEventListener('playing',    () => { lastActive = Date.now(); }, { passive:true });
+      video.addEventListener('waiting',    () => { /* may stall; watchdog will handle */ }, { passive:true });
       video.addEventListener('pause',      () => { userPaused = true; });
       video.addEventListener('play',       () => { userPaused = false; });
 
-      // If tab was hidden and comes back, give the loader a kick
+      // If tab becomes visible again, kick loader
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
           if (hls) { try { hls.startLoad(); } catch(e){} }
@@ -706,7 +694,7 @@
         }
       });
 
-      // Boot
+      // Boot it
       init(true);
 
       // Cleanup on nav away

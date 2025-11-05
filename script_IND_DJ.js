@@ -4,11 +4,11 @@ const STATION_ID        = "cutters-choice-radio";
 const BASE_URL          = "https://api.radiocult.fm/api";
 const FALLBACK_ART      = "/images/archives-logo.jpeg";
 const MIXCLOUD_PASSWORD = "cutters44";
-const STREAM_URL        = "https://cutters-choice-radio.radiocult.fm/stream"; // HLS stream URL
+const STREAM_URL        = "https://cutters-choice-radio.radiocult.fm/stream"; // audio/HLS stream URL
 const isMobile          = /Mobi|Android/i.test(navigator.userAgent);
 
 // If your HTML uses a different container id for the preview, change this:
-const NEXT_PREVIEW_EL_ID = "This Week’s Shows";
+const NEXT_PREVIEW_EL_ID = "next-week-shows"; // (was "This Week’s Shows" which is not a valid id)
 
 let chatPopupWindow;
 let visitorId;
@@ -62,14 +62,17 @@ async function sendBan() {
 window.sendBan = sendBan;
 
 // 3) Chromecast Web Sender SDK Initialization
-window.__onGCastApiAvailable = isAvailable => {
-  if (isAvailable) {
-    cast.framework.CastContext.getInstance().setOptions({
-      receiverApplicationId: "77E0F81B", // ← Your Cast App ID
-      autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
-    });
-  }
-};
+// Guard so we don't override any existing initializer defined elsewhere.
+if (!window.__onGCastApiAvailable) {
+  window.__onGCastApiAvailable = isAvailable => {
+    if (isAvailable) {
+      cast.framework.CastContext.getInstance().setOptions({
+        receiverApplicationId: "77E0F81B", // ← Your Cast App ID
+        autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+      });
+    }
+  };
+}
 
 // 4) HELPERS
 function createGoogleCalLink(title, startUtc, endUtc) {
@@ -314,11 +317,7 @@ async function fetchNowPlayingArchive() {
   }
 }
 
-/** 6b) NEXT WEEK'S SHOWS PREVIEW (randomized)
- *  - Gathers all artists with a scheduled show in the next 8 days
- *  - Attempts to use their profile artwork; falls back to event artwork; otherwise local fallback
- *  - Randomizes the order before rendering
- */
+/** 6b) NEXT WEEK'S SHOWS PREVIEW (randomized) */
 async function fetchNextWeekPreview() {
   const grid = document.getElementById(NEXT_PREVIEW_EL_ID);
   if (!grid) return; // nothing to do if the container isn't present
@@ -327,7 +326,6 @@ async function fetchNextWeekPreview() {
 
   // helper: tolerant artist extraction from a schedule event
   const extractArtistFromEvent = ev => {
-    // Try common places an artist/host name might live
     return (
       ev.artist ||
       ev.metadata?.artist ||
@@ -355,7 +353,6 @@ async function fetchNextWeekPreview() {
   // try to fetch an artist directory (if the endpoint exists)
   async function fetchArtistDirectoryMap() {
     try {
-      // Most common endpoint naming; if RC changes, we just fall back gracefully.
       const { artists = [] } = await rcFetch(`/station/${STATION_ID}/artists`);
       const map = new Map();
       artists.forEach(a => {
@@ -521,7 +518,10 @@ document.addEventListener("DOMContentLoaded", () => {
       officialBtn.addEventListener("click", async () => {
         const session = context.getCurrentSession();
         if (!session) return; // the Cast UI will handle device picker
-        const mediaInfo = new chrome.cast.media.MediaInfo(STREAM_URL, "application/x-mpegurl");
+
+        // MIME auto-pick based on URL
+        const mime = /\.m3u8($|\?)/i.test(STREAM_URL) ? "application/x-mpegurl" : "audio/mpeg";
+        const mediaInfo = new chrome.cast.media.MediaInfo(STREAM_URL, mime);
         mediaInfo.streamType = chrome.cast.media.StreamType.LIVE;
         mediaInfo.metadata = new chrome.cast.media.MusicTrackMediaMetadata();
         mediaInfo.metadata.title = document.getElementById("now-dj")?.textContent || "Cutters Choice Radio";
@@ -569,7 +569,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ⛔️ REMOVED: “ghost chat logins” MutationObserver cleanup you no longer need.
-  // (If you see it anywhere else, it’s safe to delete.)
 
   // Ban check timing (kept)
   if ("requestIdleCallback" in window) requestIdleCallback(initBanCheck, { timeout: 2000 });

@@ -36,6 +36,7 @@
   <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
   <link rel="preconnect" href="https://app.radiocult.fm" crossorigin>
   <link rel="preconnect" href="https://cdn.socket.io" crossorigin>
+  <link rel="preconnect" href="https://ccr-tv.cutterschoiceradio.com" crossorigin>
 
   <!-- Preload likely-LCP (logo) -->
   <link rel="preload" href="/images/logo.png" as="image" imagesrcset="/images/logo.png 1x">
@@ -202,17 +203,7 @@
     }
   </style>
 
-  <!-- Chromecast Init & SDK -->
-  <script>
-    window.__onGCastApiAvailable = isAvailable => {
-      if (isAvailable) {
-        cast.framework.CastContext.getInstance().setOptions({
-          receiverApplicationId: '77E0F81B',
-          autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
-        });
-      }
-    };
-  </script>
+  <!-- Cast sender SDK (init happens later in body script) -->
   <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
 
   <!-- Other head scripts -->
@@ -497,10 +488,10 @@
         officialBtn?.addEventListener('click', async () => {
           const session = context.getCurrentSession();
           if (!session) return console.warn('No Chromecast session');
-          const mediaInfo = new chrome.cast.media.MediaInfo(
-            'https://cutters-choice-radio.radiocult.fm/stream',
-            'application/x-mpegurl'
-          );
+          // Auto-pick MIME: audio (Radiocult) vs. HLS (.m3u8)
+          const STREAM_URL = 'https://cutters-choice-radio.radiocult.fm/stream';
+          const mime = /\.m3u8($|\?)/.test(STREAM_URL) ? 'application/x-mpegurl' : 'audio/mpeg';
+          const mediaInfo = new chrome.cast.media.MediaInfo(STREAM_URL, mime);
           mediaInfo.streamType = chrome.cast.media.StreamType.LIVE;
           mediaInfo.metadata = new chrome.cast.media.MusicTrackMediaMetadata();
           mediaInfo.metadata.title = document.getElementById('now-dj').textContent;

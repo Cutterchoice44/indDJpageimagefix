@@ -91,7 +91,6 @@
 
     /* ================= DJ SELECTS — MOBILE NAV & gap fix ================= */
     @media (max-width:768px){
-      /* force single-row layout, remove any injected bottom border/dividers */
       body.dj-selects nav#main-nav{
         display:flex !important;
         flex-direction:row !important;
@@ -112,13 +111,11 @@
         height:0 !important;
         border:0 !important;
       }
-      /* kill any secondary rows/dup navs if present */
       body.dj-selects nav#main-nav .nav-actions,
       body.dj-selects nav#main-nav .nav-row-2,
       body.dj-selects nav#mobile-nav,
       body.dj-selects .secondary-nav{ display:none !important; }
 
-      /* single line, allow horizontal scroll if tight */
       body.dj-selects nav#main-nav .nav-menu{
         display:flex !important;
         flex:1 1 auto !important;
@@ -132,7 +129,6 @@
       }
       body.dj-selects nav#main-nav .nav-menu::-webkit-scrollbar{ display:none; }
 
-      /* compact link sizes */
       body.dj-selects nav#main-nav .nav-link,
       body.dj-selects nav#main-nav summary.nav-link{
         font-size:clamp(.8rem,3.2vw,1rem) !important;
@@ -140,7 +136,6 @@
         letter-spacing:.04em !important;
       }
 
-      /* *** remove the black empty space under nav on mobile *** */
       body.dj-selects #main-nav + .djselects-hero{ margin-top:0 !important; }
       body.dj-selects .nav-sep.bottom { display:none !important; }
     }
@@ -153,12 +148,9 @@
       display:grid; grid-template-columns:1.2fr auto 1.2fr;
       gap:.55rem; align-items:center; row-gap:.35rem;
 
-      /* ▼▼ background image layer for the blank area ▼▼ */
       position:relative;
       isolation:isolate;
     }
-    /* The image will scale to cover this hero band.
-       Upload djselectimage.png next to this HTML file. */
     .djselects-hero::before{
       content:"";
       position:absolute;
@@ -171,7 +163,6 @@
     }
     .djselects-hero > *{ position:relative; z-index:1; }
 
-    /* --- MOBILE-ONLY: remove hero background image (djselectimage.png) --- */
     @media (max-width:768px){
       body.dj-selects .djselects-hero::before{
         content:none !important;
@@ -198,7 +189,6 @@
     .hero-bio.bio-tight3{ font-size:1.04em; line-height:1.22; letter-spacing:.1px; }
     .hero-bio.bio-tight3 p{ margin:.12rem 0 .22rem; }
 
-    /* *** MOBILE: reduce bio size ~20% (ONLY this block changed earlier) *** */
     @media (max-width:768px){
       .hero-bio{ font-size:clamp(0.8rem,1.5vw,1.04rem); line-height:1.36; }
       .hero-bio.bio-tight1{ font-size:1.32em; }
@@ -279,12 +269,10 @@
       <a href="index.html"        class="nav-link">HOME</a>
       <a href="our-story.html"    class="nav-link">OUR STORY</a>
       <a href="index-ourDJS.html" class="nav-link">OUR DJS</a>
-      <!-- NEW: link to Cutty Ranks -->
       <a href="cutty-ranks.html"  class="nav-link">CUTTY RANKS</a>
       <a href="schedule.html"     class="nav-link">SCHEDULE</a>
       <a href="merch.html"        class="nav-link">MERCH</a>
 
-      <!-- ABOUT DJ SELECTS -->
       <details class="nav-details" id="selects-overlay">
         <summary class="nav-link" aria-label="About DJ Selects">ABOUT DJ SELECTS</summary>
         <div class="about-panel" id="dj-selects-blurb">
@@ -414,96 +402,57 @@
       }
       return String(v);
     }
+
     const escapeHtml = s => s.replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 
-    /* ===== Linkify helpers (URLs + emails; keep existing <a> intact) ===== */
-    const URL_PATTERN = /(?:(?:https?:\/\/|www\.)[^\s<]+|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})/g;
+    /* ===== Safe linkify (plain text only) ===== */
+    const LINK_RE = /(?:https?:\/\/[^\s<]+|www\.[^\s<]+|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})/g;
 
-    function buildLink(urlRaw){
-      let url = urlRaw;
-      const m = url.match(/[)\]\}.,!?;:'"]+$/);
-      let trailing = '';
-      if (m) { trailing = m[0]; url = url.slice(0, -m[0].length); }
+    function linkifySafe(text){
+      const out=[]; let last=0; LINK_RE.lastIndex=0; let m;
+      while((m=LINK_RE.exec(text))){
+        out.push(escapeHtml(text.slice(last,m.index)));
+        let url=m[0];
 
-      let href = url;
-      if (/^[^@\s]+@[^@\s]+$/.test(url)) {
-        href = 'mailto:' + url;
-      } else if (!/^https?:\/\//i.test(url)) {
-        href = 'https://' + url; // add scheme for "www."
+        // Trim trailing punctuation like ) ] } . , ! ? : ; ' "
+        const trail=url.match(/[)\]\}.,!?;:'"]+$/);
+        let trailing=''; if(trail){ trailing=trail[0]; url=url.slice(0,-trail[0].length); }
+
+        let href=url;
+        if(/^[^@\s]+@[^@\s]+\.[A-Za-z]{2,}$/.test(url)) href='mailto:'+url;
+        else if(!/^https?:\/\//i.test(url)) href='https://'+url;
+
+        out.push(`<a href="${escapeHtml(href)}" target="_blank" rel="nofollow noopener noreferrer ugc">${escapeHtml(url)}</a>`);
+        if(trailing) out.push(escapeHtml(trailing));
+        last=m.index+m[0].length;
       }
-
-      const a = document.createElement('a');
-      a.href = href;
-      a.textContent = url;
-      a.target = '_blank';
-      a.rel = 'nofollow noopener noreferrer ugc';
-      return { a, trailing };
+      out.push(escapeHtml(text.slice(last)));
+      return out.join('');
     }
 
-    function linkifyStringToNodes(str){
-      const frag = document.createDocumentFragment();
-      let last = 0; let m;
-      URL_PATTERN.lastIndex = 0;
-      while ((m = URL_PATTERN.exec(str))){
-        if (m.index > last) frag.appendChild(document.createTextNode(str.slice(last, m.index)));
-        const { a, trailing } = buildLink(m[0]);
-        frag.appendChild(a);
-        if (trailing) frag.appendChild(document.createTextNode(trailing));
-        last = m.index + m[0].length;
-      }
-      if (last < str.length) frag.appendChild(document.createTextNode(str.slice(last)));
-      return frag;
-    }
-
-    function linkifyElement(root){
-      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-        acceptNode(node){
-          const s = node.nodeValue || '';
-          if (!s || !URL_PATTERN.test(s)) return NodeFilter.FILTER_REJECT;
-          URL_PATTERN.lastIndex = 0;
-          const p = node.parentElement;
-          if (p && p.closest('a,script,style')) return NodeFilter.FILTER_REJECT;
-          return NodeFilter.FILTER_ACCEPT;
-        }
-      });
-      const nodes = [];
-      let n; while ((n = walker.nextNode())) nodes.push(n);
-      nodes.forEach(node => node.replaceWith(linkifyStringToNodes(node.nodeValue)));
-    }
-
-    function linkifyToHTML(text){
-      const tmp = document.createElement('div');
-      tmp.appendChild(linkifyStringToNodes(text));
-      return tmp.innerHTML;
-    }
-
-    /* Replace: formatBioHTML to include linkifying */
     function formatBioHTML(raw){
       if(!raw) return '';
 
-      // If API already provided HTML, sanitize then linkify only text nodes
+      // If Radio Cult already returns HTML, keep it (after removing script/style).
       if (/<[a-z][\s\S]*>/i.test(raw)) {
-        const div = document.createElement('div');
-        div.innerHTML = raw;
-        div.querySelectorAll('script,style').forEach(n => n.remove());
+        const div=document.createElement('div');
+        div.innerHTML=raw;
+        div.querySelectorAll('script,style').forEach(n=>n.remove());
         div.innerHTML = div.innerHTML.replace(/\bparagraph\b/gi,'');
-        linkifyElement(div);
-        return div.innerHTML;
+        return div.innerHTML; // do NOT mutate further (avoids breaking markup)
       }
 
-      // Plain text: paragraphize + linkify
+      // Plain text: paragraphize + linkify safely
       const text = raw
         .replace(/\bparagraph\b/gi,'')
         .replace(/\r?\n\s*\r?\n/g,'\n')
         .trim();
 
-      const container = document.createElement('div');
-      text.split(/\r?\n/).filter(Boolean).forEach(line => {
-        const p = document.createElement('p');
-        p.innerHTML = linkifyToHTML(line.trim());
-        container.appendChild(p);
-      });
-      return container.innerHTML;
+      return text
+        .split(/\r?\n/)
+        .filter(Boolean)
+        .map(line => `<p>${linkifySafe(line.trim())}</p>`)
+        .join('');
     }
 
     function pickDescription(a){
@@ -657,7 +606,7 @@
       const r=await fetch(`${CFG.PROXY_ENDPOINT}?fn=bandcamp_oembed&url=${encodeURIComponent(url)}`);
       const text=await r.text(); let j={};
       try{ j=JSON.parse(text);}catch{ throw new Error(text||'Proxy error'); }
-      const meta={ title:j?.title||'Bandcamp', thumb=j?.thumbnail_url||'', src:(()=>{const html=String(j?.html||''); const m=html.match(/src=["']([^"']+)["']/i); return m?m[1]:'';})() };
+      const meta={ title:j?.title||'Bandcamp', thumb:j?.thumbnail_url||'', src:(()=>{const html=String(j?.html||''); const m=html.match(/src=["']([^"']+)["']/i); return m?m[1]:'';})() };
       bcCache.set(url,meta); return meta; };
 
     function setPreview(t, play=false){

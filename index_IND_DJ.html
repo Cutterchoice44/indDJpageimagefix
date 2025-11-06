@@ -159,9 +159,6 @@
       #main-nav .social-icon i{ font-size:1.25rem !important; }
       .icon-img, .nav-onemusic{ display:none !important; }
 
-      #manualCastBtn.nav-link{ font-size:.95rem !important; padding:.28rem .5rem; }
-      google-cast-button#castBtn{ transform:scale(0.78); transform-origin:right center; }
-
       #main-nav a.nav-link,
       #main-nav button.nav-link,
       #main-nav summary.nav-link{
@@ -623,23 +620,28 @@
 
         hls.on(Hls.Events.MANIFEST_PARSED, attemptPlay);
 
+        // 🔧 Robust recovery: hard-reload on frag/level/manifest errors (fixes Firefox after source switch)
         hls.on(Hls.Events.ERROR, (evt, data) => {
-          if (!data?.fatal) return;
-          console.warn('[CCR-TV] fatal HLS error', data.type, data.details);
+          const fatal = data?.fatal;
+          const det = data?.details || '';
+          const isFragOrLevelErr = /FRAG_|LEVEL_|MANIFEST_LOAD_ERROR|MANIFEST_PARSING_ERROR|MANIFEST_INCOMPATIBLE_CODECS_ERROR/i.test(det);
 
-          if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
-            try { hls.startLoad(); } catch(e){}
-          } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
-            try { hls.recoverMediaError(); } catch(e){}
-          } else {
+          if (fatal || isFragOrLevelErr) {
             try { hls.destroy(); } catch(e){}
             hls = null;
-            setTimeout(() => init(true), 500);
+            setTimeout(() => attachHls(makeURL()), 400); // cache-busted fresh load
+            return;
+          }
+
+          if (data?.type === Hls.ErrorTypes.NETWORK_ERROR) {
+            try { hls.startLoad(); } catch(e){}
+          } else if (data?.type === Hls.ErrorTypes.MEDIA_ERROR) {
+            try { hls.recoverMediaError(); } catch(e){}
           }
         });
       }
 
-      function init(forceFresh){
+      function init(){
         const url = makeURL(); // always cache-bust
         if (video.canPlayType('application/vnd.apple.mpegURL')) {
           attachNative(url);
@@ -660,6 +662,14 @@
           if (hls) {
             try { hls.stopLoad(); } catch(e){}
             try { hls.startLoad(); } catch(e){}
+            // If still stalled after a brief wait, hard-reload with cache-buster
+            setTimeout(() => {
+              if ((Date.now() - lastActive) > STALL_MS && !video.paused) {
+                try { hls.destroy(); } catch(e){}
+                hls = null;
+                attachHls(makeURL());
+              }
+            }, 1200);
           } else {
             const u = makeURL();
             const t = video.currentTime || 0;
@@ -686,7 +696,7 @@
       });
 
       // Boot it
-      init(true);
+      init();
 
       // Cleanup on nav away
       window.addEventListener('beforeunload', () => { try { hls?.destroy(); } catch(e){} });

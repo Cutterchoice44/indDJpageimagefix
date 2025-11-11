@@ -77,7 +77,7 @@
     .nav-details > summary::-webkit-details-marker{ display:none; }
     .nav-details > summary:focus{ outline:2px solid #fff; outline-offset:2px; }
 
-    /* ================= DJ SELECTS — MOBILE NAV & gap fix ================= */
+    /* ================= DJ SELECTS — MOBILE NAV ================= */
     @media (max-width:768px){
       body.dj-selects nav#main-nav{
         display:flex !important; flex-direction:row !important; align-items:center !important;
@@ -127,6 +127,7 @@
     .hero-right{ background:#0b0b0b; border:2px solid var(--brand-teal); border-radius:6px; padding:.6rem .75rem; }
     .hero-bio{ font-size:clamp(1.32rem,2.2vw,1.65rem); line-height:1.38; }
     .hero-bio p{ margin:.25rem 0 .45rem; }
+    .hero-bio p.bio-gap{ margin:.8rem 0; } /* why: keep intentional blank lines visible */
     .hero-bio a{ color:var(--brand-teal); text-decoration:underline; text-underline-offset:2px; }
     .hero-bio a:hover{ filter:brightness(1.15); }
 
@@ -366,11 +367,11 @@
     function sanitizeHtml(html){
       const div=document.createElement('div');
       div.innerHTML=html;
-      div.querySelectorAll('script,style,noscript').forEach(n=>n.remove());
+      div.querySelectorAll('script,style,noscript').forEach(n=>n.remove()); /* why: prevent XSS */
       div.querySelectorAll('*').forEach(el=>{
         [...el.attributes].forEach(a=>{
           const name=a.name.toLowerCase();
-          if(name.startsWith('on')) el.removeAttribute(a.name);
+          if(name.startsWith('on')) el.removeAttribute(a.name);           /* why: strip event handlers */
           if((name==='href'||name==='src') && /^(javascript|data):/i.test(a.value)) el.removeAttribute(a.name);
         });
       });
@@ -426,35 +427,46 @@
       }
       return escapeHtml(String(n));
     }
+
     function renderBlock(n){
       if(n==null) return '';
+
+      /* strings */
       if(typeof n==='string'){
-        const s=n.trim();
-        if(!s) return '';
+        const s=n;
+        if(s.trim() === '') return `<p class="bio-gap"><br></p>`;   /* why: keep blank paras */
         return `<p>${linkifySafe(s)}</p>`;
       }
+
+      /* arrays */
       if(Array.isArray(n)) return n.map(renderBlock).join('');
 
+      /* objects */
       if(typeof n==='object'){
+        /* passthrough HTML */
         if(typeof n.html==='string') return sanitizeHtml(n.html);
-        if(typeof n.plain_text==='string' || typeof n.text==='string'){
-          const s = n.plain_text ?? n.text;
-          return s.trim()? `<p>${linkifySafe(s)}</p>` : '';
-        }
+
         const t=(n.type||'').toLowerCase();
 
+        /* explicit paragraph blocks — even empty ones */
         if(t==='paragraph' || t==='p' || (!t && asChildren(n).length)){
-          const body = renderInline(n);
-          return body ? `<p>${body}</p>` : '';
+          const bodyInline = renderInline(n).trim();
+          if(bodyInline && bodyInline.replace(/<br\s*\/?>/gi,'').trim()!==''){
+            return `<p>${bodyInline}</p>`;
+          }
+          return `<p class="bio-gap"><br></p>`;
         }
-        if(t==='heading_1' || t==='h1'){
-          const body = renderInline(n);
-          return body ? `<h1>${body}</h1>` : '';
+
+        /* plain text fields on non-typed nodes */
+        if(typeof n.plain_text==='string' || typeof n.text==='string'){
+          const s = n.plain_text ?? n.text;
+          if(s.trim()==='') return `<p class="bio-gap"><br></p>`;
+          return `<p>${linkifySafe(s)}</p>`;
         }
-        if(t==='heading_2' || t==='h2'){
-          const body = renderInline(n);
-          return body ? `<h2>${body}</h2>` : '';
-        }
+
+        if(t==='heading_1' || t==='h1'){ const body=renderInline(n); return body? `<h1>${body}</h1>`:``; }
+        if(t==='heading_2' || t==='h2'){ const body=renderInline(n); return body? `<h2>${body}</h2>`:``; }
+
         if(t==='bulleted_list' || t==='unordered_list' || t==='ul'){
           const items = asChildren(n).map(c=>`<li>${renderInline(c)}</li>`).join('');
           return items? `<ul>${items}</ul>` : '';
@@ -467,14 +479,15 @@
           return `<li>${renderInline(n)}</li>`;
         }
 
+        /* fallback: render children */
         const kids = asChildren(n);
-        if(kids && kids.length){
-          return kids.map(k=>renderBlock(k)).join('');
-        }
+        if(kids && kids.length) return kids.map(k=>renderBlock(k)).join('');
         return '';
       }
+
       return '';
     }
+
     function renderRichHTML(input){
       if(Array.isArray(input)) return input.map(renderBlock).join('');
       return renderBlock(input);
@@ -486,42 +499,58 @@
       return (c==null? '' : c);
     }
 
-    /* === Robust plain-text → paragraphs === */
-    function splitIntoParagraphs(text){
-      const norm = String(text)
-        .replace(/\r\n/g,'\n')
-        .replace(/\r/g,'\n');
-      // split on: newline + whitespace-only (spaces/tabs/NBSP) + newline (one or more)
-      const parts = norm.split(/\n[ \t\u00A0]*\n(?:[ \t\u00A0]*\n)*/g)
-        .map(s => s.replace(/^[ \t\u00A0]+|[ \t\u00A0]+$/g,''))
-        .filter(Boolean);
-      return parts;
+    /* === Plain text → HTML with preserved blank lines === */
+    function plainTextToHTMLWithGaps(text){
+      const lines = String(text).replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+      const out = [];
+      let buf = [];
+      let pendingGaps = 0;
+
+      const flushBuf = () => {
+        if(buf.length){
+          const inner = linkifySafe(buf.join('\n').replace(/\n/g,'<br>'));
+          out.push(`<p>${inner}</p>`);
+          buf = [];
+        }
+      };
+      const flushGaps = () => {
+        while(pendingGaps-- > 0) out.push('<p class="bio-gap"><br></p>');
+        pendingGaps = 0;
+      };
+
+      for(const line of lines){
+        if(/^[ \t\u00A0]*$/.test(line)){ /* blank/whitespace-only line */
+          if(buf.length){ flushBuf(); pendingGaps = 1; }
+          else { pendingGaps++; }
+        }else{
+          flushGaps();
+          buf.push(line);
+        }
+      }
+      if(buf.length) flushBuf(); else flushGaps();
+      return out.join('');
     }
 
     /* === Format bio entry point === */
     function formatBioHTML(raw){
       if(raw == null) return '';
 
-      // HTML string
+      /* HTML string → keep structure */
       if(typeof raw === 'string' && /<[a-z][\s\S]*>/i.test(raw)){
         return sanitizeHtml(raw);
       }
 
-      // JSON-like rich text
+      /* JSON-like rich text */
       if(isRichish(raw)){
         const html = renderRichHTML(raw);
         if(html && /<[a-z][\s\S]*>/i.test(html)) return html;
-        const text = String(html||'').trim();
-        if(!text) return '';
-        const paras = splitIntoParagraphs(text);
-        return paras.map(p => `<p>${linkifySafe(p.replace(/\n/g,'<br>'))}</p>`).join('');
+        const text = String(html||'');
+        return plainTextToHTMLWithGaps(text);
       }
 
-      // Plain string
-      const s = String(raw).trim();
-      if(!s) return '';
-      const paras = splitIntoParagraphs(s);
-      return paras.map(p => `<p>${linkifySafe(p.replace(/\n/g,'<br>'))}</p>`).join('');
+      /* Plain string */
+      const s = String(raw);
+      return plainTextToHTMLWithGaps(s);
     }
 
     function extractSocials(obj){
@@ -579,8 +608,9 @@
 
       djBioBox.innerHTML = formatBioHTML(state.selector.description);
 
+      /* density helper: ignore empty/spacer paragraphs */
       (function applyBioDensity(){
-        const n = djBioBox.querySelectorAll('p').length;
+        const n = [...djBioBox.querySelectorAll('p')].filter(p => p.classList.contains('bio-gap') ? false : (p.textContent.trim().length>0)).length;
         djBioBox.classList.remove('bio-tight1','bio-tight2','bio-tight3');
         if (n >= 9)      djBioBox.classList.add('bio-tight3');
         else if (n >= 6) djBioBox.classList.add('bio-tight2');

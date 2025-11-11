@@ -277,7 +277,6 @@
   </div>
 
   <script>
-    /* Page config */
     window.DJ_SELECTS = {
       CONFIG_ENDPOINT: 'dj-selects-config.php',
       PROXY_ENDPOINT:  'rc-proxy.php',
@@ -367,11 +366,11 @@
     function sanitizeHtml(html){
       const div=document.createElement('div');
       div.innerHTML=html;
-      div.querySelectorAll('script,style,noscript').forEach(n=>n.remove()); // why: prevent XSS
+      div.querySelectorAll('script,style,noscript').forEach(n=>n.remove());
       div.querySelectorAll('*').forEach(el=>{
         [...el.attributes].forEach(a=>{
           const name=a.name.toLowerCase();
-          if(name.startsWith('on')) el.removeAttribute(a.name); // why: strip event handlers
+          if(name.startsWith('on')) el.removeAttribute(a.name);
           if((name==='href'||name==='src') && /^(javascript|data):/i.test(a.value)) el.removeAttribute(a.name);
         });
       });
@@ -383,11 +382,11 @@
       if(!x) return false;
       if(typeof x==='string') return false;
       if(Array.isArray(x)) return true;
-      return !!(x.type || x.children || x.rich_text || x.content || typeof x.text==='string' || typeof x.html==='string' || typeof x.plain_text==='string');
+      return !!(x.type || x.children || x.rich_text || x.content || x.nodes || x.blocks || typeof x.text==='string' || typeof x.html==='string' || typeof x.plain_text==='string');
     }
     function asChildren(n){
       if(Array.isArray(n)) return n;
-      return n?.children || n?.rich_text || n?.content || [];
+      return n?.children || n?.rich_text || n?.content || n?.nodes || n?.blocks || (n?.value && (n.value.children || n.value.content)) || [];
     }
     function getMarks(n){
       const ann = n?.annotations || n?.marks;
@@ -448,7 +447,6 @@
           const body = renderInline(n);
           return body ? `<p>${body}</p>` : '';
         }
-
         if(t==='heading_1' || t==='h1'){
           const body = renderInline(n);
           return body ? `<h1>${body}</h1>` : '';
@@ -457,12 +455,8 @@
           const body = renderInline(n);
           return body ? `<h2>${body}</h2>` : '';
         }
-
         if(t==='bulleted_list' || t==='unordered_list' || t==='ul'){
-          const items = asChildren(n).map(c=>{
-            if((c?.type||'').toLowerCase().includes('list_item')) return `<li>${renderInline(c)}</li>`;
-            return `<li>${renderInline(c)}</li>`;
-          }).join('');
+          const items = asChildren(n).map(c=>`<li>${renderInline(c)}</li>`).join('');
           return items? `<ul>${items}</ul>` : '';
         }
         if(t==='ordered_list' || t==='numbered_list' || t==='ol'){
@@ -473,7 +467,6 @@
           return `<li>${renderInline(n)}</li>`;
         }
 
-        // Fallback: render children as blocks separated by paragraphs if needed.
         const kids = asChildren(n);
         if(kids && kids.length){
           return kids.map(k=>renderBlock(k)).join('');
@@ -487,35 +480,48 @@
       return renderBlock(input);
     }
 
-    /* === Description extraction: return raw, not flattened === */
+    /* === Description extraction: return raw === */
     function pickDescription(a){
       const c = a?.description ?? a?.bio ?? a?.about ?? a?.profile ?? a?.details?.description ?? '';
       return (c==null? '' : c);
+    }
+
+    /* === Robust plain-text → paragraphs === */
+    function splitIntoParagraphs(text){
+      const norm = String(text)
+        .replace(/\r\n/g,'\n')
+        .replace(/\r/g,'\n');
+      // split on: newline + whitespace-only (spaces/tabs/NBSP) + newline (one or more)
+      const parts = norm.split(/\n[ \t\u00A0]*\n(?:[ \t\u00A0]*\n)*/g)
+        .map(s => s.replace(/^[ \t\u00A0]+|[ \t\u00A0]+$/g,''))
+        .filter(Boolean);
+      return parts;
     }
 
     /* === Format bio entry point === */
     function formatBioHTML(raw){
       if(raw == null) return '';
 
-      // Already HTML in a string
+      // HTML string
       if(typeof raw === 'string' && /<[a-z][\s\S]*>/i.test(raw)){
         return sanitizeHtml(raw);
       }
 
-      // JSON-like rich text (arrays/objects)
+      // JSON-like rich text
       if(isRichish(raw)){
         const html = renderRichHTML(raw);
         if(html && /<[a-z][\s\S]*>/i.test(html)) return html;
-        // Safety net: treat as plain text if it produced no tags
         const text = String(html||'').trim();
-        return text ? `<p>${linkifySafe(text)}</p>` : '';
+        if(!text) return '';
+        const paras = splitIntoParagraphs(text);
+        return paras.map(p => `<p>${linkifySafe(p.replace(/\n/g,'<br>'))}</p>`).join('');
       }
 
-      // Plain string → paragraphs + linkify
-      const text = String(raw).replace(/\r\n/g,'\n').replace(/\u00A0/g,' ').trim();
-      if(!text) return '';
-      const paragraphs = text.split(/\n{2,}/);
-      return paragraphs.map(p => `<p>${linkifySafe(p.trim().replace(/\n/g,'<br>'))}</p>`).join('');
+      // Plain string
+      const s = String(raw).trim();
+      if(!s) return '';
+      const paras = splitIntoParagraphs(s);
+      return paras.map(p => `<p>${linkifySafe(p.replace(/\n/g,'<br>'))}</p>`).join('');
     }
 
     function extractSocials(obj){

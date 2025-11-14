@@ -574,136 +574,148 @@
   })();
   </script>
 
-  <!-- HLS.js loader + resilient CCR TV init (cache-busted URL, stall watchdog, self-recovery) -->
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
-  <script>
-    (function(){
-      const video = document.getElementById('ccrTv');
-      if (!video) return;
+ <!-- HLS.js loader + resilient CCR TV init (cache-busted URL, stall watchdog, self-recovery + LM poll) -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
+<script>
+  (function(){
+    const video = document.getElementById('ccrTv');
+    if (!video) return;
 
-      const STREAM_BASE = 'https://ccr-tv.cutterschoiceradio.com/ccr-tv/current/ccr.m3u8';
-      const makeURL = () => STREAM_BASE + '?t=' + Date.now();
+    const STREAM_BASE = 'https://ccr-tv.cutterschoiceradio.com/ccr-tv/current/ccr.m3u8';
+    const makeURL = () => STREAM_BASE + '?t=' + Date.now();
 
-      // Required for autoplay on most platforms
-      video.muted = true;
-      video.playsInline = true;
+    // Help Chrome with CORS/MSE
+    video.setAttribute('crossorigin', 'anonymous');
+    video.muted = true;
+    video.playsInline = true;
 
-      let hls = null;
-      let userPaused = false;
-      let lastActive = Date.now();
+    let hls = null;
+    let userPaused = false;
+    let lastActive = Date.now();
 
-      function attemptPlay() {
-        const p = video.play();
-        if (p && p.catch) p.catch(()=>{});
-      }
+    function attemptPlay() {
+      const p = video.play();
+      if (p && p.catch) p.catch(()=>{});
+    }
 
-      function attachNative(url){
-        video.src = url;
-        // ensure play when metadata is ready
-        video.addEventListener('loadedmetadata', attemptPlay, { once:true });
-      }
+    function forceReload() {
+      // Hard reattach with cache-busted URL (most reliable Chrome kick)
+      try { hls?.destroy(); } catch(e){}
+      hls = null;
+      attachHls(makeURL());
+    }
 
-      function attachHls(url){
-        if (hls) { try { hls.destroy(); } catch(e){} hls = null; }
-        hls = new Hls({
-          lowLatencyMode: false,
-          liveSyncDurationCount: 3,   // ~3 segments behind live for stability
-          liveMaxLatencyDurationCount: 10,
-          maxBufferLength: 10,
-          backBufferLength: 30,
-          enableWorker: true,
-          fragLoadingTimeOut: 20000,
-          manifestLoadingTimeOut: 20000,
-          // keep retry delays modest; server switches quickly
-          fragLoadingRetryDelay: 1000,
-          manifestLoadingRetryDelay: 1000
-        });
-        hls.loadSource(url);
-        hls.attachMedia(video);
+    function attachNative(url){
+      video.src = url;
+      video.addEventListener('loadedmetadata', attemptPlay, { once:true });
+    }
 
-        hls.on(Hls.Events.MANIFEST_PARSED, attemptPlay);
+    function attachHls(url){
+      if (hls) { try { hls.destroy(); } catch(e){} hls = null; }
+      hls = new Hls({
+        lowLatencyMode: false,
+        liveSyncDurationCount: 3,
+        liveMaxLatencyDurationCount: 10,
+        maxBufferLength: 10,
+        backBufferLength: 30,
+        enableWorker: true,
+        fragLoadingTimeOut: 20000,
+        manifestLoadingTimeOut: 20000,
+        fragLoadingRetryDelay: 1000,
+        manifestLoadingRetryDelay: 1000
+      });
+      hls.loadSource(url);
+      hls.attachMedia(video);
 
-        // Robust recovery across source flips / network blips
-        hls.on(Hls.Events.ERROR, (evt, data) => {
-          const fatal = data?.fatal;
-          const det = data?.details || '';
-          const isFragOrLevelErr = /FRAG_|LEVEL_|MANIFEST_LOAD_ERROR|MANIFEST_PARSING_ERROR|MANIFEST_INCOMPATIBLE_CODECS_ERROR/i.test(det);
+      hls.on(Hls.Events.MANIFEST_PARSED, attemptPlay);
 
-          if (fatal || isFragOrLevelErr) {
-            try { hls.destroy(); } catch(e){}
-            hls = null;
-            // Hard reload with cache-busted URL
-            setTimeout(() => attachHls(makeURL()), 400);
-            return;
-          }
+      hls.on(Hls.Events.ERROR, (evt, data) => {
+        const fatal = data?.fatal;
+        const det = data?.details || '';
+        const isFragOrLevelErr = /FRAG_|LEVEL_|MANIFEST_LOAD_ERROR|MANIFEST_PARSING_ERROR|MANIFEST_INCOMPATIBLE_CODECS_ERROR/i.test(det);
 
-          if (data?.type === Hls.ErrorTypes.NETWORK_ERROR) {
-            try { hls.startLoad(); } catch(e){}
-          } else if (data?.type === Hls.ErrorTypes.MEDIA_ERROR) {
-            try { hls.recoverMediaError(); } catch(e){}
-          }
-        });
-      }
-
-      function init(){
-        const url = makeURL(); // always cache-bust
-        if (video.canPlayType('application/vnd.apple.mpegURL')) {
-          attachNative(url);
-        } else if (window.Hls && window.Hls.isSupported()) {
-          attachHls(url);
-        } else {
-          attachNative(url);
+        if (fatal || isFragOrLevelErr) {
+          forceReload();
+          return;
         }
-      }
-
-      // Stall watchdog: if time hasn't advanced in ~10s and user didn't pause, nudge/hard-reload
-      const STALL_MS = 10000;
-      setInterval(() => {
-        const stalled = (Date.now() - lastActive) > STALL_MS;
-        const shouldBePlaying = !video.paused && !video.ended && !userPaused;
-        if (stalled && shouldBePlaying) {
-          console.warn('[CCR-TV] Stall detected — nudging loader');
-          if (hls) {
-            try { hls.stopLoad(); } catch(e){}
-            try { hls.startLoad(); } catch(e){}
-            setTimeout(() => {
-              if ((Date.now() - lastActive) > STALL_MS && !video.paused) {
-                try { hls.destroy(); } catch(e){}
-                hls = null;
-                attachHls(makeURL());
-              }
-            }, 1200);
-          } else {
-            const u = makeURL();
-            const t = video.currentTime || 0;
-            video.src = u;
-            video.currentTime = Math.max(0, t - 2);
-            attemptPlay();
-          }
-        }
-      }, 2500);
-
-      // Track activity
-      video.addEventListener('timeupdate', () => { lastActive = Date.now(); }, { passive:true });
-      video.addEventListener('playing',    () => { lastActive = Date.now(); }, { passive:true });
-      video.addEventListener('waiting',    () => { /* may stall; watchdog will handle */ }, { passive:true });
-      video.addEventListener('pause',      () => { userPaused = true; });
-      video.addEventListener('play',       () => { userPaused = false; });
-
-      // If tab becomes visible again, kick loader
-      document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') {
-          if (hls) { try { hls.startLoad(); } catch(e){} }
-          attemptPlay();
+        if (data?.type === Hls.ErrorTypes.NETWORK_ERROR) {
+          try { hls.startLoad(); } catch(e){}
+        } else if (data?.type === Hls.ErrorTypes.MEDIA_ERROR) {
+          try { hls.recoverMediaError(); } catch(e){}
         }
       });
+    }
 
-      // Boot it
-      init();
+    function init(){
+      const url = makeURL();
+      if (video.canPlayType('application/vnd.apple.mpegURL')) {
+        attachNative(url);
+      } else if (window.Hls && window.Hls.isSupported()) {
+        attachHls(url);
+      } else {
+        attachNative(url);
+      }
+    }
 
-      // Cleanup on nav away
-      window.addEventListener('beforeunload', () => { try { hls?.destroy(); } catch(e){} });
-    })();
-  </script>
+    // Stall watchdog (10s without progress while playing ⇒ reload path)
+    const STALL_MS = 10000;
+    setInterval(() => {
+      const stalled = (Date.now() - lastActive) > STALL_MS;
+      const shouldBePlaying = !video.paused && !video.ended && !userPaused;
+      if (stalled && shouldBePlaying) {
+        if (hls) {
+          try { hls.stopLoad(); } catch(e){}
+          try { hls.startLoad(); } catch(e){}
+          setTimeout(() => {
+            if ((Date.now() - lastActive) > STALL_MS && !video.paused) forceReload();
+          }, 1200);
+        } else {
+          const u = makeURL();
+          const t = video.currentTime || 0;
+          video.src = u;
+          video.currentTime = Math.max(0, t - 2);
+          attemptPlay();
+        }
+      }
+    }, 2500);
+
+    // 🔁 Manifest Last-Modified poll — if LM changes but playback doesn’t move, hard reload (fixes Chrome sticking on source flip)
+    let lastLM = '';
+    async function pollLM(){
+      try {
+        const r = await fetch(STREAM_BASE + '?ping=' + Date.now(), { method:'HEAD', cache:'no-store' });
+        const lm = (r.headers.get('last-modified') || '') + (r.headers.get('etag') || '');
+        if (!lastLM) { lastLM = lm; return; }
+        const changed = lm && lm !== lastLM;
+        const stalled = (Date.now() - lastActive) > (STALL_MS/2);
+        if (changed && stalled) {
+          lastLM = lm;
+          forceReload();
+        } else if (changed) {
+          lastLM = lm;
+        }
+      } catch {}
+    }
+    setInterval(pollLM, 5000);
+
+    // Activity tracking
+    video.addEventListener('timeupdate', () => { lastActive = Date.now(); }, { passive:true });
+    video.addEventListener('playing',    () => { lastActive = Date.now(); }, { passive:true });
+    video.addEventListener('waiting',    () => {}, { passive:true });
+    video.addEventListener('pause',      () => { userPaused = true; });
+    video.addEventListener('play',       () => { userPaused = false; });
+
+    // When tab becomes visible again, nudge loader
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        if (hls) { try { hls.startLoad(); } catch(e){} }
+        attemptPlay();
+      }
+    });
+
+    init();
+    window.addEventListener('beforeunload', () => { try { hls?.destroy(); } catch(e){} });
+  })();
+</script>
 </body>
 </html>

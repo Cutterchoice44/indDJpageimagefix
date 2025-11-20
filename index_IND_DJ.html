@@ -37,6 +37,9 @@
   <link rel="preconnect" href="https://app.radiocult.fm" crossorigin>
   <link rel="preconnect" href="https://cdn.socket.io" crossorigin>
   <link rel="preconnect" href="https://ccr-tv.cutterschoiceradio.com" crossorigin>
+  <!-- NEW: preconnects for Mixcloud -->
+  <link rel="preconnect" href="https://www.mixcloud.com" crossorigin>
+  <link rel="preconnect" href="https://widget.mixcloud.com" crossorigin>
 
   <!-- Preload likely-LCP (logo) -->
   <link rel="preload" href="/images/logo.png" as="image" imagesrcset="/images/logo.png 1x">
@@ -242,7 +245,7 @@
     </div>
 
     <!-- WEBM wave between left logo and titles -->
-    <video class="header-wave header-wave-left" aria-hidden="true" muted loop autoplay playsinline preload="metadata">
+    <video class="header-wave header-wave-left" aria-hidden="true" muted loop autoplay playsinline preload="none">
       <source src="/images/audiowave.webm" type="video/webm">
     </video>
 
@@ -252,7 +255,7 @@
     </div>
 
     <!-- WEBM wave between titles and right logo -->
-    <video class="header-wave header-wave-right" aria-hidden="true" muted loop autoplay playsinline preload="metadata">
+    <video class="header-wave header-wave-right" aria-hidden="true" muted loop autoplay playsinline preload="none">
       <source src="/images/audiowave.webm" type="video/webm">
     </video>
 
@@ -353,8 +356,10 @@
             id="ccrTv"
             playsinline
             muted
+            autoplay
             controls
             preload="none"
+            crossOrigin="anonymous"
             poster="/images/archives-logo.jpeg"
           ></video>
         </div>
@@ -574,136 +579,140 @@
   })();
   </script>
 
- <!-- HLS.js loader + resilient CCR TV init (cache-busted URL, stall watchdog, self-recovery + LM poll) -->
-<script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
-<script>
-(function () {
-  const video = document.getElementById('ccrTv');
-  if (!video) return;
+  <!-- HLS.js loader + resilient CCR TV init (cache-busted URL, stall watchdog, self-recovery) -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
+  <script>
+    (function(){
+      const video = document.getElementById('ccrTv');
+      if (!video) return;
 
-  const STREAM_BASE = 'https://ccr-tv.cutterschoiceradio.com/ccr-tv/current/ccr.m3u8';
-  const makeURL = () => STREAM_BASE + '?t=' + Date.now();
+      const STREAM_BASE = 'https://ccr-tv.cutterschoiceradio.com/ccr-tv/current/ccr.m3u8';
+      const makeURL = () => STREAM_BASE + '?t=' + Date.now();
 
-  // Required for autoplay on most platforms
-  video.muted = true;
-  video.playsInline = true;
+      // Required for autoplay on most platforms
+      video.muted = true;
+      video.playsInline = true;
 
-  let hls = null;
-  let userPaused = false;
-  let lastActive = Date.now();
+      let hls = null;
+      let userPaused = false;
+      let lastActive = Date.now();
 
-  function attemptPlay() {
-    const p = video.play();
-    if (p && p.catch) p.catch(() => {});
-  }
-
-  function attachNative(url) {
-    video.src = url;
-    video.addEventListener('loadedmetadata', attemptPlay, { once: true });
-  }
-
-  function attachHls(url) {
-    if (hls) { try { hls.destroy(); } catch (_) {} hls = null; }
-    hls = new Hls({
-      // Prefer Hls.js on Firefox (and generally), it’s more robust
-      lowLatencyMode: false,
-      liveSyncDurationCount: 3,
-      liveMaxLatencyDurationCount: 10,
-      maxBufferLength: 10,
-      backBufferLength: 30,
-      enableWorker: true,
-
-      // Make Firefox recover quickly
-      manifestLoadingTimeOut: 15000,
-      levelLoadingTimeOut: 15000,
-      fragLoadingTimeOut: 15000,
-      manifestLoadingRetryDelay: 1500,
-      levelLoadingRetryDelay: 1500,
-      fragLoadingRetryDelay: 1500,
-      nudgeMaxRetry: 3,
-      capLevelToPlayerSize: true
-    });
-
-    hls.loadSource(url);
-    hls.attachMedia(video);
-    hls.on(Hls.Events.MANIFEST_PARSED, attemptPlay);
-
-    // Hard recover on fatal/parse/manifest errors (Firefox can stick otherwise)
-    hls.on(Hls.Events.ERROR, (_, data) => {
-      const fatal = data?.fatal;
-      const det = data?.details || '';
-      const hard = fatal || /FRAG_|LEVEL_|MANIFEST_(LOAD|PARSING|INCOMPATIBLE_CODECS)_ERROR/i.test(det);
-
-      if (hard) {
-        try { hls.destroy(); } catch (_) {}
-        hls = null;
-        setTimeout(() => attachHls(makeURL()), 400); // fresh cache-busted load
-        return;
+      function attemptPlay() {
+        const p = video.play();
+        if (p && p.catch) p.catch(()=>{});
       }
-      if (data?.type === Hls.ErrorTypes.NETWORK_ERROR) {
-        try { hls.startLoad(); } catch (_) {}
-      } else if (data?.type === Hls.ErrorTypes.MEDIA_ERROR) {
-        try { hls.recoverMediaError(); } catch (_) {}
+
+      function attachNative(url){
+        video.src = url;
+        video.addEventListener('loadedmetadata', attemptPlay, { once:true });
       }
-    });
-  }
 
-  function init() {
-    const url = makeURL();
-    // ⚠️ Prefer Hls.js first — better cross-browser consistency (esp. Firefox)
-    if (window.Hls && window.Hls.isSupported()) {
-      attachHls(url);
-    } else if (video.canPlayType('application/vnd.apple.mpegURL')) {
-      attachNative(url);
-    } else {
-      // Last-ditch: still try native
-      attachNative(url);
-    }
-  }
+      function attachHls(url){
+        if (hls) { try { hls.destroy(); } catch(e){} hls = null; }
+        hls = new Hls({
+          lowLatencyMode: false,
+          liveSyncDurationCount: 3,   // stay ~3 segments behind live
+          liveMaxLatencyDurationCount: 10,
+          maxBufferLength: 10,
+          backBufferLength: 30,
+          enableWorker: true,
+          // keep these modest so we don't hang forever
+          fragLoadingTimeOut: 20000,
+          manifestLoadingTimeOut: 20000
+        });
+        hls.loadSource(url);
+        hls.attachMedia(video);
 
-  // Stall watchdog: if time doesn’t advance for ~10s, kick loader
-  const STALL_MS = 10000;
-  setInterval(() => {
-    const stalled = (Date.now() - lastActive) > STALL_MS;
-    const shouldBePlaying = !video.paused && !video.ended && !userPaused;
-    if (stalled && shouldBePlaying) {
-      if (hls) {
-        try { hls.stopLoad(); } catch (_) {}
-        try { hls.startLoad(); } catch (_) {}
-        setTimeout(() => {
-          if ((Date.now() - lastActive) > STALL_MS && !video.paused) {
-            try { hls.destroy(); } catch (_) {}
-            hls = null;
-            attachHls(makeURL());
+        hls.on(Hls.Events.MANIFEST_PARSED, attemptPlay);
+
+        // Robust recovery: hard-reload on frag/level/manifest errors (fixes Firefox after source switch)
+        hls.on(Hls.Events.ERROR, (evt, data) => {
+          const fatal = data?.fatal;
+          const det = data?.details || '';
+          const isFragOrLevelErr = /FRAG_|LEVEL_|MANIFEST_LOAD_ERROR|MANIFEST_PARSING_ERROR|MANIFEST_INCOMPATIBLE_CODECS_ERROR/i.test(det);
+
+          // NEW: handle Firefox buffer stalls gently
+          if (data?.details === Hls.ErrorDetails.BUFFER_STALLED_ERROR) {
+            try { hls.stopLoad(); } catch(e){}
+            try { hls.startLoad(); } catch(e){}
+            return;
           }
-        }, 1200);
-      } else {
-        const u = makeURL();
-        const t = video.currentTime || 0;
-        video.src = u;
-        video.currentTime = Math.max(0, t - 2);
-        attemptPlay();
+
+          if (fatal || isFragOrLevelErr) {
+            try { hls.destroy(); } catch(e){}
+            hls = null;
+            setTimeout(() => attachHls(makeURL()), 400); // cache-busted fresh load
+            return;
+          }
+
+          if (data?.type === Hls.ErrorTypes.NETWORK_ERROR) {
+            try { hls.startLoad(); } catch(e){}
+          } else if (data?.type === Hls.ErrorTypes.MEDIA_ERROR) {
+            try { hls.recoverMediaError(); } catch(e){}
+          }
+        });
       }
-    }
-  }, 2500);
 
-  // Track activity
-  video.addEventListener('timeupdate', () => { lastActive = Date.now(); }, { passive: true });
-  video.addEventListener('playing',    () => { lastActive = Date.now(); }, { passive: true });
-  video.addEventListener('pause',      () => { userPaused = true; });
-  video.addEventListener('play',       () => { userPaused = false; });
+      function init(){
+        const url = makeURL(); // always cache-bust
+        if (video.canPlayType('application/vnd.apple.mpegURL')) {
+          attachNative(url);
+        } else if (window.Hls && window.Hls.isSupported()) {
+          attachHls(url);
+        } else {
+          attachNative(url);
+        }
+      }
 
-  // If tab becomes visible again, nudge loader
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
-      if (hls) { try { hls.startLoad(); } catch (_) {} }
-      attemptPlay();
-    }
-  });
+      // Stall watchdog: if time hasn't advanced in ~6s and user didn't pause, kick loader
+      const STALL_MS = 6000; // was 10000
+      setInterval(() => {
+        const stalled = (Date.now() - lastActive) > STALL_MS;
+        const shouldBePlaying = !video.paused && !video.ended && !userPaused;
+        if (stalled && shouldBePlaying) {
+          console.warn('[CCR-TV] Stall detected — nudging loader');
+          if (hls) {
+            try { hls.stopLoad(); } catch(e){}
+            try { hls.startLoad(); } catch(e){}
+            // If still stalled after a brief wait, hard-reload with cache-buster
+            setTimeout(() => {
+              if ((Date.now() - lastActive) > STALL_MS && !video.paused) {
+                try { hls.destroy(); } catch(e){}
+                hls = null;
+                attachHls(makeURL());
+              }
+            }, 1200);
+          } else {
+            const u = makeURL();
+            const t = video.currentTime || 0;
+            video.src = u;
+            video.currentTime = Math.max(0, t - 2);
+            attemptPlay();
+          }
+        }
+      }, 2500);
 
-  init();
-  window.addEventListener('beforeunload', () => { try { hls?.destroy(); } catch (_) {} });
-})();
-</script>
+      // Track activity
+      video.addEventListener('timeupdate', () => { lastActive = Date.now(); }, { passive:true });
+      video.addEventListener('playing',    () => { lastActive = Date.now(); }, { passive:true });
+      video.addEventListener('waiting',    () => { /* may stall; watchdog will handle */ }, { passive:true });
+      video.addEventListener('pause',      () => { userPaused = true; });
+      video.addEventListener('play',       () => { userPaused = false; });
+
+      // If tab becomes visible again, kick loader
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          if (hls) { try { hls.startLoad(); } catch(e){} }
+          attemptPlay();
+        }
+      });
+
+      // Boot it
+      init();
+
+      // Cleanup on nav away
+      window.addEventListener('beforeunload', () => { try { hls?.destroy(); } catch(e){} });
+    })();
+  </script>
 </body>
 </html>

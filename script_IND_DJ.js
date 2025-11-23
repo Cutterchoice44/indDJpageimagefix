@@ -1,11 +1,14 @@
 // 1) GLOBAL CONFIG & MOBILE DETECTION
-const API_KEY           = "pk_0b8abc6f834b444f949f727e88a728e0"; // ← your Radiocult API key
+const API_KEY           = "pk_0b8abc6f834b444f949f727e88a728e0"; // ← Radiocult API key
 const STATION_ID        = "cutters-choice-radio";
 const BASE_URL          = "https://api.radiocult.fm/api";
 const FALLBACK_ART      = "/images/archives-logo.jpeg";
 const MIXCLOUD_PASSWORD = "cutters44";
 const STREAM_URL        = "https://cutters-choice-radio.radiocult.fm/stream"; // audio/HLS stream URL
 const isMobile          = /Mobi|Android/i.test(navigator.userAgent);
+
+// HLS TV stream (served via nginx alias /ccr-tv/current/ccr.m3u8 ➜ OBS or fallback)
+const CCR_TV_M3U8       = "https://ccr-tv.cutterschoiceradio.com/ccr-tv/current/ccr.m3u8";
 
 // If your HTML uses a different container id for the preview, change this:
 const NEXT_PREVIEW_EL_ID = "next-week-shows"; // (was "This Week’s Shows" which is not a valid id)
@@ -19,7 +22,6 @@ if (window.location.hash === "#admin") {
 }
 
 // 2) BAN LOGIC (FingerprintJS v3+)
-// (Kept; you only asked to remove ghost-login cleanup, not the ban tools)
 function blockChat() {
   document.getElementById("popOutBtn")?.remove();
   document.getElementById("chatModal")?.remove();
@@ -62,12 +64,11 @@ async function sendBan() {
 window.sendBan = sendBan;
 
 // 3) Chromecast Web Sender SDK Initialization
-// Guard so we don't override any existing initializer defined elsewhere.
 if (!window.__onGCastApiAvailable) {
   window.__onGCastApiAvailable = isAvailable => {
     if (isAvailable) {
       cast.framework.CastContext.getInstance().setOptions({
-        receiverApplicationId: "77E0F81B", // ← Your Cast App ID
+        receiverApplicationId: "77E0F81B",
         autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
       });
     }
@@ -123,7 +124,6 @@ function shuffleIframesHourly() {
 
   const nodes = Array.from(container.children);
   shuffleInPlace(nodes).forEach(n => container.appendChild(n));
-
   localStorage.setItem("lastShuffleTime", Date.now());
 }
 
@@ -281,7 +281,6 @@ async function fetchWeeklySchedule() {
         t.textContent = `${fmt(ev.startDateUtc)}–${fmt(ev.endDateUtc)}`;
         wrap.appendChild(t);
 
-        // ⛔️ No image/icon in schedule rows anymore
         const span = document.createElement("span");
         span.textContent = ev.title || "Untitled show";
         wrap.appendChild(span);
@@ -320,37 +319,28 @@ async function fetchNowPlayingArchive() {
 /** 6b) NEXT WEEK'S SHOWS PREVIEW (randomized) */
 async function fetchNextWeekPreview() {
   const grid = document.getElementById(NEXT_PREVIEW_EL_ID);
-  if (!grid) return; // nothing to do if the container isn't present
+  if (!grid) return;
 
   grid.innerHTML = "<p>Loading next week’s shows…</p>";
 
-  // helper: tolerant artist extraction from a schedule event
-  const extractArtistFromEvent = ev => {
-    return (
-      ev.artist ||
-      ev.metadata?.artist ||
-      ev.content?.artist ||
-      ev.content?.host ||
-      ev.content?.hosts?.[0] ||
-      ev.content?.name ||
-      (typeof ev.title === "string" ? ev.title.split(" – ")[0] : "") ||
-      ""
-    );
-  };
+  const extractArtistFromEvent = ev =>
+    ev.artist ||
+    ev.metadata?.artist ||
+    ev.content?.artist ||
+    ev.content?.host ||
+    ev.content?.hosts?.[0] ||
+    ev.content?.name ||
+    (typeof ev.title === "string" ? ev.title.split(" – ")[0] : "") ||
+    "";
 
-  // helper: tolerant artwork extraction from a schedule event
-  const extractArtFromEvent = ev => {
-    return (
-      ev.artwork_url ||
-      ev.metadata?.artwork_url ||
-      ev.content?.artwork_url ||
-      ev.content?.image_url ||
-      ev.content?.cover_url ||
-      null
-    );
-  };
+  const extractArtFromEvent = ev =>
+    ev.artwork_url ||
+    ev.metadata?.artwork_url ||
+    ev.content?.artwork_url ||
+    ev.content?.image_url ||
+    ev.content?.cover_url ||
+    null;
 
-  // try to fetch an artist directory (if the endpoint exists)
   async function fetchArtistDirectoryMap() {
     try {
       const { artists = [] } = await rcFetch(`/station/${STATION_ID}/artists`);
@@ -363,12 +353,11 @@ async function fetchNextWeekPreview() {
       });
       return map;
     } catch {
-      return new Map(); // silently fall back
+      return new Map();
     }
   }
 
   try {
-    // 8 days forward window
     const start = new Date();
     const end   = new Date(start.getTime() + 8 * 24 * 60 * 60 * 1000);
 
@@ -384,14 +373,12 @@ async function fetchNextWeekPreview() {
       return;
     }
 
-    // Unique artists with shows in window
-    const byArtist = new Map(); // name -> { name, artCandidate }
+    const byArtist = new Map();
     schedules.forEach(ev => {
       const rawName = extractArtistFromEvent(ev);
       const name = normName(rawName);
       if (!name) return;
       if (!byArtist.has(name)) {
-        // prefer artist directory artwork; else try event artwork; else fallback
         const dirArt = artistMap.get(name);
         const evArt  = extractArtFromEvent(ev);
         byArtist.set(name, {
@@ -407,10 +394,8 @@ async function fetchNextWeekPreview() {
       return;
     }
 
-    // Randomize
     shuffleInPlace(cards);
 
-    // Render
     const frag = document.createDocumentFragment();
     cards.forEach(({ name, art }) => {
       const item = document.createElement("div");
@@ -455,8 +440,9 @@ function openChatPopup() {
   else if (chatPopupWindow && !chatPopupWindow.closed) chatPopupWindow.focus();
   else chatPopupWindow = window.open(url, "CuttersChatPopup", "width=400,height=700,resizable=yes,scrollbars=yes");
 }
+window.openChatPopup = openChatPopup;
 
-// 8) BANNER GIF ROTATION
+// 8) BANNER GIF ROTATION (kept if elements exist)
 const rightEl = document.querySelector(".header-gif-right");
 const leftEl  = document.querySelector(".header-gif-left");
 if (rightEl && leftEl) {
@@ -465,7 +451,8 @@ if (rightEl && leftEl) {
     { right: "/images/Untitled design(7).gif", left: "/images/Untitled design(8).gif" }
   ];
   let current = 0, sweepCount = 0;
-  const speedMs = (parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--gif-speed").replace("s", "")) || 12) * 1000;
+  const speedVar = getComputedStyle(document.documentElement).getPropertyValue("--gif-speed");
+  const speedMs = (parseFloat(String(speedVar).replace("s", "")) || 12) * 1000;
   setInterval(() => {
     sweepCount++;
     if (sweepCount >= 2) {
@@ -477,8 +464,165 @@ if (rightEl && leftEl) {
   }, speedMs);
 }
 
-// 9) INITIALIZATION
+// 9) CCR TV — Robust HLS Player (autoplay, stall watchdog, fast OBS⇄fallback recovery)
+function initCcrTv() {
+  if (window.__ccrTvInitDone) return; // idempotent
+  window.__ccrTvInitDone = true;
+
+  const video = document.getElementById("ccrTv");
+  if (!video) return;
+
+  // Hard-cache-buster to force Chrome to pick up symlink switches quickly
+  const makeURL = () => `${CCR_TV_M3U8}?t=${Date.now()}`;
+
+  // Required for autoplay across browsers
+  video.muted = true;
+  video.setAttribute("muted", "");
+  video.playsInline = true;
+
+  let hls = null;
+  let userPaused = false;
+  let lastActive = Date.now();
+  let lastReload  = 0;
+
+  function attemptPlay() {
+    const p = video.play();
+    if (p && p.catch) p.catch(() => {});
+  }
+
+  function attachNative(url){
+    video.src = url;
+    video.addEventListener("loadedmetadata", attemptPlay, { once:true });
+  }
+
+  function destroyHls() {
+    if (hls) {
+      try { hls.destroy(); } catch(e){}
+      hls = null;
+    }
+  }
+
+  function attachHls(url){
+    destroyHls();
+    if (window.Hls && window.Hls.isSupported()) {
+      hls = new Hls({
+        lowLatencyMode: false,
+        liveSyncDurationCount: 3,
+        liveMaxLatencyDurationCount: 10,
+        maxBufferLength: 10,
+        backBufferLength: 30,
+        enableWorker: true,
+        fragLoadingTimeOut: 20000,
+        manifestLoadingTimeOut: 20000
+      });
+      hls.loadSource(url);
+      hls.attachMedia(video);
+
+      hls.on(Hls.Events.MANIFEST_PARSED, attemptPlay);
+
+      hls.on(Hls.Events.ERROR, (evt, data) => {
+        const fatal = data?.fatal;
+        const det   = data?.details || "";
+        const type  = data?.type;
+        const isFragOrLevelErr = /FRAG_|LEVEL_|MANIFEST_LOAD_ERROR|MANIFEST_PARSING_ERROR|MANIFEST_INCOMPATIBLE_CODECS_ERROR/i.test(det);
+
+        // Gentle fix for buffer stalls (seen on Firefox sometimes)
+        if (det === Hls.ErrorDetails.BUFFER_STALLED_ERROR) {
+          try { hls.stopLoad(); } catch(e){}
+          try { hls.startLoad(); } catch(e){}
+          return;
+        }
+
+        // If manifest/frag/level went bad or fatal -> hard reload quickly (picks up symlink switch)
+        if (fatal || isFragOrLevelErr) {
+          destroyHls();
+          setTimeout(() => attachHls(makeURL()), 400);
+          return;
+        }
+
+        // Non-fatal hints
+        if (type === Hls.ErrorTypes.NETWORK_ERROR) {
+          try { hls.startLoad(); } catch(e){}
+        } else if (type === Hls.ErrorTypes.MEDIA_ERROR) {
+          try { hls.recoverMediaError(); } catch(e){}
+        }
+      });
+    } else {
+      // Native (Safari, some mobile)
+      attachNative(url);
+    }
+  }
+
+  function hardReloadIfNeeded(reason) {
+    const now = Date.now();
+    if (now - lastReload < 1200) return; // throttle
+    lastReload = now;
+    if (hls) {
+      destroyHls();
+      attachHls(makeURL());
+    } else {
+      const t = video.currentTime || 0;
+      video.src = makeURL();
+      video.currentTime = Math.max(0, t - 2);
+      attemptPlay();
+    }
+    if (reason) console.warn("[CCR-TV] reload:", reason);
+  }
+
+  // Stall watchdog — kick loader if playback time hasn't advanced
+  const STALL_MS = 6000;
+  setInterval(() => {
+    const stalled = (Date.now() - lastActive) > STALL_MS;
+    const shouldBePlaying = !video.paused && !video.ended && !userPaused;
+    if (stalled && shouldBePlaying) {
+      if (hls) {
+        try { hls.stopLoad(); } catch(e){}
+        try { hls.startLoad(); } catch(e){}
+        // If still stalled after a moment, do a hard reload (cache-busted)
+        setTimeout(() => {
+          if ((Date.now() - lastActive) > STALL_MS && !video.paused) {
+            hardReloadIfNeeded("stalled");
+          }
+        }, 1200);
+      } else {
+        hardReloadIfNeeded("native-stalled");
+      }
+    }
+  }, 2500);
+
+  // Track activity & user intent
+  video.addEventListener("timeupdate", () => { lastActive = Date.now(); }, { passive:true });
+  video.addEventListener("playing",    () => { lastActive = Date.now(); }, { passive:true });
+  video.addEventListener("waiting",    () => {}, { passive:true });
+  video.addEventListener("pause",      () => { userPaused = true; });
+  video.addEventListener("play",       () => { userPaused = false; });
+
+  // If tab becomes visible again, nudge loader
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      if (hls) { try { hls.startLoad(); } catch(e){} }
+      attemptPlay();
+    }
+  });
+
+  // Video error -> reload quickly (handles OBS stop → fallback & vice versa)
+  video.addEventListener("error", () => hardReloadIfNeeded("video-error"));
+
+  // Kick it off
+  const url = makeURL();
+  if (video.canPlayType("application/vnd.apple.mpegURL")) attachNative(url);
+  else attachHls(url);
+
+  // Expose tiny debug helper
+  window.CCRTV = {
+    reload: () => hardReloadIfNeeded("manual"),
+    status: () => ({ userPaused, lastActive, hls: !!hls })
+  };
+}
+
+// 10) INITIALIZATION
 document.addEventListener("DOMContentLoaded", () => {
+  // Data/UI
   fetchLiveNow();
   fetchWeeklySchedule();
   fetchNowPlayingArchive();
@@ -492,7 +636,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (officialBtn && manualBtn && window.cast?.framework) {
     const context = cast.framework.CastContext.getInstance();
 
-    // Toggle visibility based on availability
     const updateCastVisibility = () => {
       const hasDevices = context.getCastState() !== cast.framework.CastState.NO_DEVICES_AVAILABLE;
       officialBtn.style.display = hasDevices ? "inline-block" : "none";
@@ -504,7 +647,6 @@ document.addEventListener("DOMContentLoaded", () => {
       window.__ccrCastStateBound = true;
     }
 
-    // Manual fallback starts a session (only bind once)
     if (!manualBtn.dataset.ccrBound) {
       manualBtn.dataset.ccrBound = "1";
       manualBtn.addEventListener("click", () => {
@@ -512,14 +654,11 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    // Official button: when session exists, load our stream (only bind once)
     if (!officialBtn.dataset.ccrBound) {
       officialBtn.dataset.ccrBound = "1";
       officialBtn.addEventListener("click", async () => {
         const session = context.getCurrentSession();
-        if (!session) return; // the Cast UI will handle device picker
-
-        // MIME auto-pick based on URL
+        if (!session) return;
         const mime = /\.m3u8($|\?)/i.test(STREAM_URL) ? "application/x-mpegurl" : "audio/mpeg";
         const mediaInfo = new chrome.cast.media.MediaInfo(STREAM_URL, mime);
         mediaInfo.streamType = chrome.cast.media.StreamType.LIVE;
@@ -534,7 +673,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   // ------------------------------------------------------------------------------
 
-  // Mobile cleanup
+  // Mobile cleanup (hide desktop-only chat popout on small screens)
   if (window.matchMedia("(max-width: 768px)").matches) {
     document.querySelectorAll("section.chat .chat-actions").forEach(el => el.remove());
   }
@@ -568,9 +707,10 @@ document.addEventListener("DOMContentLoaded", () => {
     w.document.close();
   });
 
-  // ⛔️ REMOVED: “ghost chat logins” MutationObserver cleanup you no longer need.
-
   // Ban check timing (kept)
   if ("requestIdleCallback" in window) requestIdleCallback(initBanCheck, { timeout: 2000 });
   else setTimeout(initBanCheck, 2000);
+
+  // CCR TV boot (robust HLS)
+  initCcrTv();
 });

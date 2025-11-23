@@ -37,7 +37,6 @@
   <link rel="preconnect" href="https://app.radiocult.fm" crossorigin>
   <link rel="preconnect" href="https://cdn.socket.io" crossorigin>
   <link rel="preconnect" href="https://ccr-tv.cutterschoiceradio.com" crossorigin>
-  <!-- NEW: preconnects for Mixcloud -->
   <link rel="preconnect" href="https://www.mixcloud.com" crossorigin>
   <link rel="preconnect" href="https://widget.mixcloud.com" crossorigin>
 
@@ -187,17 +186,18 @@
     .tv-wrapper {
       position: relative;
       width: 100%;
-      max-width: 720px;
+      max-width: 828px; /* was 720px (~+15%) */
       aspect-ratio: 16 / 9;
       background: #000;
       overflow: hidden;
+      margin-inline: auto; /* ensure centered if container allows */
     }
     #ccrTv {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
-      object-fit: cover; /* use 'contain' if you prefer letterbox */
+      object-fit: cover; /* change to 'contain' if you prefer letterbox */
       background: #000;
       display: block;
     }
@@ -359,7 +359,7 @@
             autoplay
             controls
             preload="none"
-            crossOrigin="anonymous"
+            crossorigin="anonymous"
             poster="/images/archives-logo.jpeg"
           ></video>
         </div>
@@ -490,7 +490,6 @@
         officialBtn?.addEventListener('click', async () => {
           const session = context.getCurrentSession();
           if (!session) return console.warn('No Chromecast session');
-          // Auto-pick MIME: audio (Radiocult) vs. HLS (.m3u8)
           const STREAM_URL = 'https://cutters-choice-radio.radiocult.fm/stream';
           const mime = /\.m3u8($|\?)/.test(STREAM_URL) ? 'application/x-mpegurl' : 'audio/mpeg';
           const mediaInfo = new chrome.cast.media.MediaInfo(STREAM_URL, mime);
@@ -579,7 +578,7 @@
   })();
   </script>
 
-  <!-- HLS.js loader + resilient CCR TV init (cache-busted URL, stall watchdog, self-recovery) -->
+  <!-- HLS.js loader + resilient CCR TV init -->
   <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
   <script>
     (function(){
@@ -589,18 +588,14 @@
       const STREAM_BASE = 'https://ccr-tv.cutterschoiceradio.com/ccr-tv/current/ccr.m3u8';
       const makeURL = () => STREAM_BASE + '?t=' + Date.now();
 
-      // Required for autoplay on most platforms
-      video.muted = true;
+      video.muted = true;         // required for autoplay
       video.playsInline = true;
 
       let hls = null;
       let userPaused = false;
       let lastActive = Date.now();
 
-      function attemptPlay() {
-        const p = video.play();
-        if (p && p.catch) p.catch(()=>{});
-      }
+      function attemptPlay(){ const p = video.play(); if (p && p.catch) p.catch(()=>{}); }
 
       function attachNative(url){
         video.src = url;
@@ -608,15 +603,14 @@
       }
 
       function attachHls(url){
-        if (hls) { try { hls.destroy(); } catch(e){} hls = null; }
+        if (hls) { try{hls.destroy();}catch(e){} hls = null; }
         hls = new Hls({
           lowLatencyMode: false,
-          liveSyncDurationCount: 3,   // stay ~3 segments behind live
+          liveSyncDurationCount: 3,
           liveMaxLatencyDurationCount: 10,
           maxBufferLength: 10,
           backBufferLength: 30,
           enableWorker: true,
-          // keep these modest so we don't hang forever
           fragLoadingTimeOut: 20000,
           manifestLoadingTimeOut: 20000
         });
@@ -624,61 +618,59 @@
         hls.attachMedia(video);
 
         hls.on(Hls.Events.MANIFEST_PARSED, attemptPlay);
+        hls.on(Hls.Events.LEVEL_LOADED,   () => { lastActive = Date.now(); });
 
-        // Robust recovery: hard-reload on frag/level/manifest errors (fixes Firefox after source switch)
         hls.on(Hls.Events.ERROR, (evt, data) => {
           const fatal = data?.fatal;
           const det = data?.details || '';
-          const isFragOrLevelErr = /FRAG_|LEVEL_|MANIFEST_LOAD_ERROR|MANIFEST_PARSING_ERROR|MANIFEST_INCOMPATIBLE_CODECS_ERROR/i.test(det);
-
-          // NEW: handle Firefox buffer stalls gently
-          if (data?.details === Hls.ErrorDetails.BUFFER_STALLED_ERROR) {
-            try { hls.stopLoad(); } catch(e){}
-            try { hls.startLoad(); } catch(e){}
+          if (det === Hls.ErrorDetails.BUFFER_STALLED_ERROR) {
+            try{ hls.stopLoad(); }catch(e){}
+            try{ hls.startLoad(); }catch(e){}
             return;
           }
-
-          if (fatal || isFragOrLevelErr) {
-            try { hls.destroy(); } catch(e){}
-            hls = null;
-            setTimeout(() => attachHls(makeURL()), 400); // cache-busted fresh load
+          if (fatal || /FRAG_|LEVEL_|MANIFEST_/i.test(det)) {
+            try{hls.destroy();}catch(e){} hls = null;
+            setTimeout(()=>attachHls(makeURL()), 400);
             return;
           }
-
           if (data?.type === Hls.ErrorTypes.NETWORK_ERROR) {
-            try { hls.startLoad(); } catch(e){}
+            try{ hls.startLoad(); }catch(e){}
           } else if (data?.type === Hls.ErrorTypes.MEDIA_ERROR) {
-            try { hls.recoverMediaError(); } catch(e){}
+            try{ hls.recoverMediaError(); }catch(e){}
           }
         });
       }
 
-      function init(){
-        const url = makeURL(); // always cache-bust
-        if (video.canPlayType('application/vnd.apple.mpegURL')) {
-          attachNative(url);
-        } else if (window.Hls && window.Hls.isSupported()) {
-          attachHls(url);
-        } else {
-          attachNative(url);
+      async function pollManifest(){
+        try {
+          const r = await fetch(makeURL(), { method:'GET', cache:'no-store' });
+          if (!r.ok) throw 0;
+          lastActive = Date.now();
+        } catch {
+          // If fetch fails (e.g., symlink flip mid-load), force a fresh attach.
+          if (hls) { try{hls.destroy();}catch(e){} hls = null; }
+          attachHls(makeURL());
         }
       }
 
-      // Stall watchdog: if time hasn't advanced in ~6s and user didn't pause, kick loader
-      const STALL_MS = 6000; // was 10000
+      function init(){
+        const url = makeURL();
+        if (video.canPlayType('application/vnd.apple.mpegURL')) { attachNative(url); }
+        else if (window.Hls && window.Hls.isSupported())        { attachHls(url); }
+        else                                                    { attachNative(url); }
+      }
+
+      // Stall watchdog
+      const STALL_MS = 6000;
       setInterval(() => {
         const stalled = (Date.now() - lastActive) > STALL_MS;
         const shouldBePlaying = !video.paused && !video.ended && !userPaused;
         if (stalled && shouldBePlaying) {
-          console.warn('[CCR-TV] Stall detected — nudging loader');
           if (hls) {
-            try { hls.stopLoad(); } catch(e){}
-            try { hls.startLoad(); } catch(e){}
-            // If still stalled after a brief wait, hard-reload with cache-buster
+            try{ hls.stopLoad(); }catch(e){} try{ hls.startLoad(); }catch(e){}
             setTimeout(() => {
               if ((Date.now() - lastActive) > STALL_MS && !video.paused) {
-                try { hls.destroy(); } catch(e){}
-                hls = null;
+                try{ hls.destroy(); }catch(e){} hls = null;
                 attachHls(makeURL());
               }
             }, 1200);
@@ -692,25 +684,19 @@
         }
       }, 2500);
 
-      // Track activity
+      // Poll manifest to accelerate source flips in Chrome
+      setInterval(pollManifest, 3000);
+
+      // Track activity & visibility
       video.addEventListener('timeupdate', () => { lastActive = Date.now(); }, { passive:true });
       video.addEventListener('playing',    () => { lastActive = Date.now(); }, { passive:true });
-      video.addEventListener('waiting',    () => { /* may stall; watchdog will handle */ }, { passive:true });
       video.addEventListener('pause',      () => { userPaused = true; });
       video.addEventListener('play',       () => { userPaused = false; });
-
-      // If tab becomes visible again, kick loader
       document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') {
-          if (hls) { try { hls.startLoad(); } catch(e){} }
-          attemptPlay();
-        }
+        if (document.visibilityState === 'visible') { if (hls) { try{hls.startLoad();}catch(e){} } attemptPlay(); }
       });
 
-      // Boot it
       init();
-
-      // Cleanup on nav away
       window.addEventListener('beforeunload', () => { try { hls?.destroy(); } catch(e){} });
     })();
   </script>

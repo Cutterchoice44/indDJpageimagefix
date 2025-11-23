@@ -43,8 +43,8 @@
   <!-- Preload likely-LCP (logo) -->
   <link rel="preload" href="/images/logo.png" as="image" imagesrcset="/images/logo.png 1x">
 
-  <!-- Main stylesheet -->
-  <link rel="stylesheet" href="style.css?v=1757106631679">
+  <!-- Main stylesheet (cache-busted) -->
+  <link rel="stylesheet" href="style.css?v=2025-11-23-1">
 
   <!-- Bebas Neue & FontAwesome -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
@@ -181,29 +181,29 @@
     }
 
     /* ===============================
-       CCR TV PLAYER STABILITY RULES
+       CCR TV PLAYER (letterboxed + bigger)
        =============================== */
     .tv-wrapper {
       position: relative;
       width: 100%;
-      max-width: 828px; /* was 720px (~+15%) */
+      max-width: 828px; /* ~+15% from 720px */
       aspect-ratio: 16 / 9;
       background: #000;
       overflow: hidden;
-      margin-inline: auto; /* ensure centered if container allows */
+      margin-inline: auto;
     }
     #ccrTv {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
-      object-fit: cover; /* change to 'contain' if you prefer letterbox */
-      background: #000;
+      object-fit: contain; /* letterboxed */
+      background: #000;    /* safe background for bars */
       display: block;
     }
   </style>
 
-  <!-- Cast sender SDK (init happens later in body script) -->
+  <!-- Cast sender SDK -->
   <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
 
   <!-- Other head scripts -->
@@ -413,9 +413,11 @@
     </div>
   </footer>
 
-  <!-- YOUR SCRIPTS -->
-  <script src="script.js?v=1757106631679" defer></script>
-  <script src="slideshow.js?v=1757106631679" defer></script>
+  <!-- JS (cache-busted) -->
+  <!-- Hls.js first (deferred), then your single-page app script, then slideshow -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1" defer></script>
+  <script src="script.js?v=2025-11-23-1" defer></script>
+  <script src="slideshow.js?v=2025-11-23-1" defer></script>
 
   <!-- Move MERCH to bottom nav row on mobile, restore on desktop -->
   <script>
@@ -455,70 +457,7 @@
     })();
   </script>
 
-  <!-- Chromecast Handler & Manual Fallback -->
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const manualBtn   = document.getElementById('manualCastBtn');
-      const officialBtn = document.querySelector('google-cast-button');
-
-      function setButtonsByState(state) {
-        const noDevices =
-          !state ||
-          state === cast.framework.CastState.NO_DEVICES_AVAILABLE ||
-          state === cast.framework.CastState.NOT_CONNECTED;
-
-        if (officialBtn) officialBtn.style.display = noDevices ? 'none' : 'inline-block';
-        if (manualBtn)   manualBtn.style.display   = noDevices ? 'inline-flex' : 'none';
-      }
-
-      let sdkSeen = false;
-      window.__onGCastApiAvailable = isAvailable => {
-        if (!isAvailable) return;
-        sdkSeen = true;
-        const context = cast.framework.CastContext.getInstance();
-        context.setOptions({
-          receiverApplicationId: '77E0F81B',
-          autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
-        });
-
-        try { setButtonsByState(context.getCastState()); } catch {}
-        context.addEventListener(
-          cast.framework.CastContextEventType.CAST_STATE_CHANGED,
-          e => setButtonsByState(e.castState)
-        );
-
-        officialBtn?.addEventListener('click', async () => {
-          const session = context.getCurrentSession();
-          if (!session) return console.warn('No Chromecast session');
-          const STREAM_URL = 'https://cutters-choice-radio.radiocult.fm/stream';
-          const mime = /\.m3u8($|\?)/.test(STREAM_URL) ? 'application/x-mpegurl' : 'audio/mpeg';
-          const mediaInfo = new chrome.cast.media.MediaInfo(STREAM_URL, mime);
-          mediaInfo.streamType = chrome.cast.media.StreamType.LIVE;
-          mediaInfo.metadata = new chrome.cast.media.MusicTrackMediaMetadata();
-          mediaInfo.metadata.title = document.getElementById('now-dj').textContent;
-          mediaInfo.metadata.albumName = 'Cutters Choice Radio';
-          const request = new chrome.cast.media.LoadRequest(mediaInfo);
-          try { await session.loadMedia(request); } catch (err) { console.error('Chromecast error:', err); }
-        });
-      };
-
-      setTimeout(() => {
-        if (!sdkSeen && manualBtn) manualBtn.style.display = 'inline-flex';
-        if (!sdkSeen && officialBtn) officialBtn.style.display = 'none';
-      }, 2500);
-
-      manualBtn?.addEventListener('click', async () => {
-        try {
-          const context = cast.framework.CastContext.getInstance();
-          await context.requestSession();
-        } catch (err) {
-          console.warn('Fallback session error', err);
-        }
-      });
-    });
-  </script>
-
-  <!-- JSON-LD Events injector -->
+  <!-- JSON-LD Events injector (kept) -->
   <script>
   (function(){
     const API_KEY = 'pk_0b8abc6f834b444f949f727e88a728e0';
@@ -578,127 +517,8 @@
   })();
   </script>
 
-  <!-- HLS.js loader + resilient CCR TV init -->
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
-  <script>
-    (function(){
-      const video = document.getElementById('ccrTv');
-      if (!video) return;
-
-      const STREAM_BASE = 'https://ccr-tv.cutterschoiceradio.com/ccr-tv/current/ccr.m3u8';
-      const makeURL = () => STREAM_BASE + '?t=' + Date.now();
-
-      video.muted = true;         // required for autoplay
-      video.playsInline = true;
-
-      let hls = null;
-      let userPaused = false;
-      let lastActive = Date.now();
-
-      function attemptPlay(){ const p = video.play(); if (p && p.catch) p.catch(()=>{}); }
-
-      function attachNative(url){
-        video.src = url;
-        video.addEventListener('loadedmetadata', attemptPlay, { once:true });
-      }
-
-      function attachHls(url){
-        if (hls) { try{hls.destroy();}catch(e){} hls = null; }
-        hls = new Hls({
-          lowLatencyMode: false,
-          liveSyncDurationCount: 3,
-          liveMaxLatencyDurationCount: 10,
-          maxBufferLength: 10,
-          backBufferLength: 30,
-          enableWorker: true,
-          fragLoadingTimeOut: 20000,
-          manifestLoadingTimeOut: 20000
-        });
-        hls.loadSource(url);
-        hls.attachMedia(video);
-
-        hls.on(Hls.Events.MANIFEST_PARSED, attemptPlay);
-        hls.on(Hls.Events.LEVEL_LOADED,   () => { lastActive = Date.now(); });
-
-        hls.on(Hls.Events.ERROR, (evt, data) => {
-          const fatal = data?.fatal;
-          const det = data?.details || '';
-          if (det === Hls.ErrorDetails.BUFFER_STALLED_ERROR) {
-            try{ hls.stopLoad(); }catch(e){}
-            try{ hls.startLoad(); }catch(e){}
-            return;
-          }
-          if (fatal || /FRAG_|LEVEL_|MANIFEST_/i.test(det)) {
-            try{hls.destroy();}catch(e){} hls = null;
-            setTimeout(()=>attachHls(makeURL()), 400);
-            return;
-          }
-          if (data?.type === Hls.ErrorTypes.NETWORK_ERROR) {
-            try{ hls.startLoad(); }catch(e){}
-          } else if (data?.type === Hls.ErrorTypes.MEDIA_ERROR) {
-            try{ hls.recoverMediaError(); }catch(e){}
-          }
-        });
-      }
-
-      async function pollManifest(){
-        try {
-          const r = await fetch(makeURL(), { method:'GET', cache:'no-store' });
-          if (!r.ok) throw 0;
-          lastActive = Date.now();
-        } catch {
-          // If fetch fails (e.g., symlink flip mid-load), force a fresh attach.
-          if (hls) { try{hls.destroy();}catch(e){} hls = null; }
-          attachHls(makeURL());
-        }
-      }
-
-      function init(){
-        const url = makeURL();
-        if (video.canPlayType('application/vnd.apple.mpegURL')) { attachNative(url); }
-        else if (window.Hls && window.Hls.isSupported())        { attachHls(url); }
-        else                                                    { attachNative(url); }
-      }
-
-      // Stall watchdog
-      const STALL_MS = 6000;
-      setInterval(() => {
-        const stalled = (Date.now() - lastActive) > STALL_MS;
-        const shouldBePlaying = !video.paused && !video.ended && !userPaused;
-        if (stalled && shouldBePlaying) {
-          if (hls) {
-            try{ hls.stopLoad(); }catch(e){} try{ hls.startLoad(); }catch(e){}
-            setTimeout(() => {
-              if ((Date.now() - lastActive) > STALL_MS && !video.paused) {
-                try{ hls.destroy(); }catch(e){} hls = null;
-                attachHls(makeURL());
-              }
-            }, 1200);
-          } else {
-            const u = makeURL();
-            const t = video.currentTime || 0;
-            video.src = u;
-            video.currentTime = Math.max(0, t - 2);
-            attemptPlay();
-          }
-        }
-      }, 2500);
-
-      // Poll manifest to accelerate source flips in Chrome
-      setInterval(pollManifest, 3000);
-
-      // Track activity & visibility
-      video.addEventListener('timeupdate', () => { lastActive = Date.now(); }, { passive:true });
-      video.addEventListener('playing',    () => { lastActive = Date.now(); }, { passive:true });
-      video.addEventListener('pause',      () => { userPaused = true; });
-      video.addEventListener('play',       () => { userPaused = false; });
-      document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') { if (hls) { try{hls.startLoad();}catch(e){} } attemptPlay(); }
-      });
-
-      init();
-      window.addEventListener('beforeunload', () => { try { hls?.destroy(); } catch(e){} });
-    })();
-  </script>
+  <!-- Removed old inline Chromecast handler and old inline HLS init;
+       both are now handled inside script.js for a single source of truth. -->
 </body>
 </html>
+

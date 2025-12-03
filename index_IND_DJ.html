@@ -45,7 +45,7 @@
   </script>
 
   <style>
-    :root{ --brand-teal:#5A8785; --hero-size:360px; --preview-max:920px; --rc-title-scale:1.55; }
+    :root{ --brand-teal:#5A8785; --hero-size:360px; --preview-max:920px; --rc-title-scale:1.6; }
     .nav-sep{height:2px;background-color:var(--brand-teal);}
     #main-nav .nav-menu{ justify-content: space-evenly !important; }
     #main-nav summary.nav-link{
@@ -111,48 +111,20 @@
     main.compact-grid{ background-image:url('/images/bricks2.png'); background-repeat:repeat; background-size:3000px auto; background-position:center top; }
     #mainPreview{ padding:16px; background:rgba(0,0,0,.35); box-shadow:inset 0 0 0 2px rgba(90,135,133,.45); border-radius:8px; }
 
-    /* === BIO: sizing + links (match RC content) === */
+    /* === BIO: typography === */
     .hero-right{ position:relative; background:#0b0b0b; border:2px solid var(--brand-teal); border-radius:6px; padding:.6rem .75rem; }
-
     .hero-bio{ font-size:1rem; line-height:1.5; word-break:break-word; }
     .hero-bio p{ margin:0 0 1em; }
-    .hero-bio p.bio-gap{ margin:1em 0; }
+    .hero-bio p.bio-gap{ margin:1em 0; }          /* keeps intentional blanks visible */
     .hero-bio p.preserve{ white-space:break-spaces; }
-
-    /* Title-like first lines for plain text blocks */
-    .hero-bio .title-line{
-      font-weight:800;
-      font-size:calc(1rem * var(--rc-title-scale));
-      line-height:1.25;
-      margin:.6em 0 .25em;
-      letter-spacing:.2px;
-    }
-
+    .hero-bio .title-line{ font-weight:800; font-size:calc(1rem * var(--rc-title-scale)); line-height:1.25; margin:.6em 0 .25em; letter-spacing:.2px; }
     .hero-bio a{ color:var(--brand-teal); text-decoration:underline; text-underline-offset:2px; }
     .hero-bio a:hover{ filter:brightness(1.15); }
 
-    .hero-bio h1,.hero-bio h2,.hero-bio h3,.hero-bio h4,.hero-bio h5,.hero-bio h6{
-      font-family:'Bebas Neue',sans-serif; letter-spacing:.3px; margin:.35rem 0 .2rem; line-height:1.1;
-    }
-    .hero-bio h1{ font-size:1.375rem; color:#cfe; }
-    .hero-bio h2{ font-size:1.2rem;   color:#dff; }
-    .hero-bio h3{ font-size:1.05rem;  color:#eff; }
-    .hero-bio h4{ font-size:1rem;     color:#fff; }
-    .hero-bio h5{ font-size:.95rem;   color:#fff; }
-    .hero-bio h6{ font-size:.9rem;    color:#fff; opacity:.95; }
-
-    .hero-bio ul,.hero-bio ol{ margin:.25rem 0 .75rem 1.25rem; padding-left:1.25rem; }
-    .hero-bio li{ margin:.15rem 0; }
-
+    /* Optional RC-like blocks */
     .hero-bio blockquote{ margin:.75rem 0; padding:.5rem .75rem; border-left:3px solid var(--brand-teal); background:#0f1111; border-radius:4px; }
-    .hero-bio pre{ margin:.75rem 0; padding:.6rem .75rem; background:#0f1111; border:1px solid #284f4d; border-radius:6px; overflow:auto; }
-    .hero-bio code{ font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:.92em; }
-    .hero-bio pre code{ white-space:pre-wrap; }
 
-    /* no-op density */
-    .hero-bio.bio-tight1,.hero-bio.bio-tight2,.hero-bio.bio-tight3{ font-size:inherit; line-height:inherit; }
-
-    /* ===== Debug visuals (only when ?debugbio=1) ===== */
+    /* Debug visuals (only when ?debugbio=1) */
     .hero-bio.bio-debug .title-line{ outline:2px dashed var(--brand-teal); background:rgba(90,135,133,.12); border-radius:4px; }
     .hero-bio.bio-debug p.preserve:not(.title-line){ outline:1px dashed #3a5554; background:rgba(58,85,84,.08); border-radius:4px; }
     .hero-bio.bio-debug p.bio-gap{ outline:1px dashed #444; background:repeating-linear-gradient(90deg, transparent, transparent 6px, rgba(255,255,255,.12) 6px, rgba(255,255,255,.12) 10px); min-height:.8em; }
@@ -160,7 +132,7 @@
 
     @media (max-width:768px){
       .hero-bio{ font-size:1rem; line-height:1.5; }
-      .hero-bio .title-line{ font-size:calc(1rem * 1.35); } /* why: avoid oversized titles on narrow screens */
+      .hero-bio .title-line{ font-size:calc(1rem * 1.35); }
     }
 
     .profile-topline{ display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; margin-bottom:.2rem; }
@@ -379,7 +351,7 @@
     function sanitizeHtml(html){
       const div=document.createElement('div');
       div.innerHTML=html;
-      div.querySelectorAll('script,style,noscript').forEach(n=>n.remove()); /* why: prevent XSS */
+      div.querySelectorAll('script,style,noscript').forEach(n=>n.remove());
       div.querySelectorAll('*').forEach(el=>{
         [...el.attributes].forEach(a=>{
           const name=a.name.toLowerCase();
@@ -390,7 +362,7 @@
       return div.innerHTML;
     }
 
-    /* === Rich text rendering helpers === */
+    /* === Rich-ish detection === */
     const isRichish = (x) => {
       if(!x) return false;
       if(typeof x==='string') return false;
@@ -398,6 +370,8 @@
       return !!(x.type || x.children || x.rich_text || x.content || x.nodes || x.blocks || typeof x.text==='string' || typeof x.html==='string' || typeof x.plain_text==='string');
     };
     const asChildren = (n) => Array.isArray(n) ? n : (n?.children || n?.rich_text || n?.content || n?.nodes || n?.blocks || (n?.value && (n.value.children || n.value.content)) || []);
+
+    /* === Inline renderer === */
     const getMarks = (n) => {
       const ann = n?.annotations || n?.marks;
       if(!ann) return {};
@@ -429,6 +403,8 @@
       }
       return escapeHtml(String(n));
     }
+
+    /* === Plain helpers === */
     const plainFrom = (n) => {
       if(n==null) return '';
       if(typeof n==='string') return n;
@@ -441,7 +417,7 @@
       return String(n);
     };
 
-    /* === Heuristic: title detection for plain text blocks === */
+    /* === Title heuristics === */
     function isTitleish(first, next){
       const a = String(first||'').trim();
       const b = String(next||'').trim();
@@ -482,18 +458,11 @@
       return out.join('');
     }
 
-    /* === Rich block renderer (kept) === */
+    /* === Rich block renderer === */
     function renderBlock(n){
       if(n==null) return '';
-
-      if(typeof n==='string'){
-        const s=n;
-        if(s.trim() === '') return `<p class="bio-gap"><br></p>`;
-        return `<p class="preserve">${linkifySafe(s)}</p>`;
-      }
-
+      if(typeof n==='string'){ const s=n; if(s.trim()==='') return `<p class="bio-gap"><br></p>`; return `<p class="preserve">${linkifySafe(s)}</p>`; }
       if(Array.isArray(n)) return n.map(renderBlock).join('');
-
       if(typeof n==='object'){
         if(typeof n.html==='string') return sanitizeHtml(n.html);
         const t=(n.type||'').toLowerCase();
@@ -515,19 +484,11 @@
         if(t==='heading_1' || t==='h1'){ const body=renderInline(n); return body? `<h1>${body}</h1>`:``; }
         if(t==='heading_2' || t==='h2'){ const body=renderInline(n); return body? `<h2>${body}</h2>`:``; }
         if(t==='heading_3' || t==='h3'){ const body=renderInline(n); return body? `<h3>${body}</h3>`:``; }
-        if(t==='heading_4' || t==='h4'){ const body=renderInline(n); return body? `<h4>${body}</h4>`:``; }
-        if(t==='heading_5' || t==='h5'){ const body=renderInline(n); return body? `<h5>${body}</h5>`:``; }
-        if(t==='heading_6' || t==='h6'){ const body=renderInline(n); return body? `<h6>${body}</h6>`:``; }
 
         if(t==='blockquote' || t==='quote'){
           const kids=asChildren(n);
           const inner = (kids && kids.length) ? kids.map(renderBlock).join('') : `<p>${renderInline(n)}</p>`;
           return `<blockquote>${inner}</blockquote>`;
-        }
-
-        if(t==='code_block' || t==='pre' || t==='preformatted'){
-          const body = plainFrom(n);
-          return `<pre><code>${escapeHtml(body)}</code></pre>`;
         }
 
         if(t==='bulleted_list' || t==='unordered_list' || t==='ul'){
@@ -546,18 +507,11 @@
         if(kids && kids.length) return kids.map(k=>renderBlock(k)).join('');
         return '';
       }
-
       return '';
     }
     function renderRichHTML(input){ return Array.isArray(input) ? input.map(renderBlock).join('') : renderBlock(input); }
 
-    /* === Description extraction === */
-    function pickDescription(a){
-      const c = a?.description ?? a?.bio ?? a?.about ?? a?.profile ?? a?.details?.description ?? '';
-      return (c==null? '' : c);
-    }
-
-    /* === Detect “array-of-plain” and format as plain (so titles apply) === */
+    /* === Array-of-plain detector (so titles work even if RC sends arrays) === */
     function arrayLooksPlain(arr){
       return Array.isArray(arr) && arr.every(n => {
         if(typeof n==='string') return true;
@@ -570,38 +524,68 @@
         return false;
       });
     }
-    function arrayPlainToJoinedText(arr){
-      const parts = arr.map(n => (typeof n==='string') ? n : (n.plain_text ?? n.text ?? '') );
-      /* why: preserve paragraph separation between array items */
-      return parts.join('\n\n');
+    const arrayPlainToJoinedText = (arr) => arr.map(n => (typeof n==='string') ? n : (n.plain_text ?? n.text ?? '') ).join('\n\n');
+
+    /* === Post-processor: promote titles in rendered HTML === */
+    const stripTags = (html) => html.replace(/<[^>]*>/g,'');
+    const textFromHTML = (html) => stripTags(html).replace(/\s+/g,' ').trim();
+    function splitParaIfTitleish(p){
+      const parts = p.innerHTML.split(/<br\s*\/?>/i);
+      if(parts.length>=2){
+        const a = textFromHTML(parts[0]);
+        const b = textFromHTML(parts[1]);
+        if(isTitleish(a,b)){
+          const rest = parts.slice(1).join('<br>');
+          const frag = document.createElement('div');
+          frag.innerHTML = `<p class="preserve title-line">${parts[0]}</p><p class="preserve">${rest}</p>`;
+          p.replaceWith(...frag.childNodes);
+          return true;
+        }
+      }
+      return false;
+    }
+    function postProcessBio(root){
+      if(!root) return;
+      [...root.querySelectorAll('p')].forEach(p => splitParaIfTitleish(p));
+      const nodes=[...root.childNodes];
+      let group=[];
+      const isP = n => n.nodeType===1 && n.tagName==='P' && !n.classList.contains('bio-gap');
+      const textOf = el => (el?el.textContent:'').replace(/\s+/g,' ').trim();
+      const flush=()=>{
+        const paras=group.filter(isP);
+        if(paras.length){
+          const first=paras[0], second=paras[1];
+          if(isTitleish(textOf(first), textOf(second))) first.classList.add('title-line');
+        }
+        group=[];
+      };
+      for(const n of nodes){
+        if(isP(n)) group.push(n);
+        else flush();
+      }
+      flush();
     }
 
+    /* === Description extraction === */
+    const pickDescription = (a) => a?.description ?? a?.bio ?? a?.about ?? a?.profile ?? a?.details?.description ?? '';
+
     /* === Format bio entry point === */
-    function formatBioHTML(raw){
+    function formatBioHTML(raw, forcePlain=false){
       if(raw == null) return '';
-
-      /* Array-of-plain: treat as text to enable title detection */
+      if(forcePlain){
+        const s = Array.isArray(raw) ? arrayPlainToJoinedText(raw) : String(typeof raw==='object' ? plainFrom(raw) : raw);
+        return plainTextToHTMLWithGaps(s);
+      }
       if(Array.isArray(raw) && arrayLooksPlain(raw)){
-        const joined = arrayPlainToJoinedText(raw);
-        return plainTextToHTMLWithGaps(joined);
+        return plainTextToHTMLWithGaps(arrayPlainToJoinedText(raw));
       }
-
-      /* Raw HTML string */
-      if(typeof raw === 'string' && /<[a-z][\s\S]*>/i.test(raw)){
-        return sanitizeHtml(raw);
-      }
-
-      /* Rich JSON-ish */
+      if(typeof raw === 'string' && /<[a-z][\s\S]*>/i.test(raw)) return sanitizeHtml(raw);
       if(isRichish(raw)){
         const html = renderRichHTML(raw);
         if(html && /<[a-z][\s\S]*>/i.test(html)) return html;
-        const text = String(html||'');
-        return plainTextToHTMLWithGaps(text);
+        return plainTextToHTMLWithGaps(String(html||''));
       }
-
-      /* Plain string */
-      const s = String(raw);
-      return plainTextToHTMLWithGaps(s);
+      return plainTextToHTMLWithGaps(String(raw));
     }
 
     function extractSocials(obj){
@@ -657,10 +641,15 @@
       if(djNameBig) djNameBig.textContent=state.selector.name||'';
       if(state.selector.image) djProfile.src=state.selector.image;
 
-      djBioBox.innerHTML = formatBioHTML(state.selector.description);
-
-      /* Debug flag */
+      /* URL param overrides */
       const params = new URLSearchParams(location.search);
+      const forcePlain = params.has('forceplain') && !['0','false','off'].includes((params.get('forceplain')||'1').toLowerCase());
+      const rcscale = params.get('rcscale'); if(rcscale) document.documentElement.style.setProperty('--rc-title-scale', rcscale);
+
+      djBioBox.innerHTML = formatBioHTML(state.selector.description, forcePlain);
+      postProcessBio(djBioBox); /* <- ensure titles regardless of payload shape */
+
+      /* Debug */
       const dbg = params.has('debugbio') && !['0','false','off'].includes((params.get('debugbio')||'1').toLowerCase());
       if(dbg){
         djBioBox.classList.add('bio-debug');

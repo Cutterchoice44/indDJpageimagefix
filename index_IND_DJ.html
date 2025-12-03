@@ -35,6 +35,7 @@
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
   <link rel="preconnect" href="https://app.radiocult.fm" crossorigin>
+  <link rel="preconnect" href="https://cdn.socket.io" crossorigin>
   <link rel="preconnect" href="https://ccr-tv.cutterschoiceradio.com" crossorigin>
   <link rel="preconnect" href="https://www.mixcloud.com" crossorigin>
   <link rel="preconnect" href="https://widget.mixcloud.com" crossorigin>
@@ -200,12 +201,28 @@
       background: #000;    /* safe background for bars */
       display: block;
     }
+
+    /* Footer partner logos: hover/focus affordance + stack under on small screens */
+    footer.banner .footer-logos a img{ transition: opacity .2s ease; }
+    footer.banner .footer-logos a:hover img,
+    footer.banner .footer-logos a:focus-visible img{ opacity: .85; } /* why: subtle feedback */
+
+    @media (max-width: 640px){
+      footer.banner > div { flex-wrap: wrap; } /* allow a second row */
+      footer.banner .footer-logos{
+        flex: 1 0 100%;
+        justify-content: center;
+        margin-top: 6px;
+      }
+      footer.banner .footer-logos img{ height: 28px; }
+    }
   </style>
 
   <!-- Cast sender SDK -->
   <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
 
   <!-- Other head scripts -->
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" defer></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-3MSGZZ5QL6"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -408,6 +425,55 @@
       ">
         Amazon, Alexa and all related logos are trademarks of Amazon.com, Inc. or its affiliates.
       </span>
+
+      <!-- Footer partner logos (right on desktop, stacked below on small screens) -->
+      <div class="footer-logos" style="display:flex;align-items:center;gap:.5rem;">
+        <a
+          href="http://www.internet-radio.com/?utm_source=cutterschoiceradio&utm_medium=banner&utm_campaign=partners-2025&utm_content=footer-static"
+          title="Internet Radio"
+          target="_blank"
+          rel="noopener noreferrer nofollow sponsored"
+          data-partner="internet-radio"
+          data-placement="footer"
+        >
+          <picture>
+            <source srcset="/images/internet-radio.webp 1x, /images/internet-radio@2x.webp 2x" type="image/webp">
+            <source srcset="/images/internet-radio.png 1x, /images/internet-radio@2x.png 2x" type="image/png">
+            <img
+              src="/images/internet-radio.png"
+              alt="Internet Radio"
+              loading="lazy"
+              decoding="async"
+              referrerpolicy="no-referrer"
+              style="height:36px;width:auto;display:block;"
+              data-fallback="https://www.internet-radio.com/images/banners/Internet-Radio.com_Banner_Ad_Animated_Gif_728x90_v1.gif"
+            >
+          </picture>
+        </a>
+
+        <a
+          href="https://radioguide.fm/?utm_source=cutterschoiceradio&utm_medium=banner&utm_campaign=partners-2025&utm_content=footer-static"
+          title="Online radio"
+          target="_blank"
+          rel="noopener noreferrer nofollow sponsored"
+          data-partner="radioguide"
+          data-placement="footer"
+        >
+          <picture>
+            <source srcset="/images/radioguide.webp 1x, /images/radioguide@2x.webp 2x" type="image/webp">
+            <source srcset="/images/radioguide.png 1x, /images/radioguide@2x.png 2x" type="image/png">
+            <img
+              src="/images/radioguide.png"
+              alt="Online radio"
+              loading="lazy"
+              decoding="async"
+              referrerpolicy="no-referrer"
+              style="height:36px;width:auto;display:block;"
+              data-fallback="https://radioguide.fm/public/img/banners/banner0.png"
+            >
+          </picture>
+        </a>
+      </div>
     </div>
   </footer>
 
@@ -513,6 +579,43 @@
       })
       .catch(err => console.warn('[CCR JSON-LD injector]', err));
   })();
+  </script>
+
+  <!-- GA4 outbound click tracking + IMG fallback -->
+  <script>
+    // Outbound click attribution
+    (function () {
+      function onClick(e) {
+        const a = e.target.closest && e.target.closest('a[href^="http"]');
+        if (!a) return;
+        const url = a.href;
+        const host = (new URL(url)).hostname.replace(/^www\./, '');
+        const partner = a.dataset.partner || host || 'external';
+        const placement = a.dataset.placement || 'unknown';
+        if (typeof gtag === 'function') {
+          gtag('event', 'outbound_click', {
+            event_category: 'engagement',
+            event_label: url,
+            link_url: url,
+            partner,
+            placement
+          });
+        }
+      }
+      document.addEventListener('click', onClick, { capture: true });
+    })();
+
+    // Fallback to remote banner if local static asset missing
+    (function () {
+      document.querySelectorAll('.footer-logos img[data-fallback]').forEach(function(img){
+        img.addEventListener('error', function(){
+          if (img.dataset.fallback && img.src !== img.dataset.fallback) {
+            img.srcset = '';
+            img.src = img.dataset.fallback;
+          }
+        }, { once: true });
+      });
+    })();
   </script>
 
   <!-- Removed old inline Chromecast handler and old inline HLS init;

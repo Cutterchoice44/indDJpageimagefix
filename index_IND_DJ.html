@@ -57,7 +57,7 @@
   </script>
 
   <style>
-    :root{ --brand-teal:#5A8785; --hero-size:360px; --preview-max:920px; }
+    :root{ --brand-teal:#5A8785; --hero-size:360px; --preview-max:920px; --rc-title-scale:1.55; }
     .nav-sep{height:2px;background-color:var(--brand-teal);}
     #main-nav .nav-menu{ justify-content: space-evenly !important; }
     #main-nav summary.nav-link{
@@ -126,14 +126,20 @@
     /* === BIO: sizing + links (match Radio Cult content) === */
     .hero-right{ background:#0b0b0b; border:2px solid var(--brand-teal); border-radius:6px; padding:.6rem .75rem; }
 
-    .hero-bio{
-      font-size:1rem;
-      line-height:1.5;
-      word-break:break-word;
-    }
+    .hero-bio{ font-size:1rem; line-height:1.5; word-break:break-word; }
     .hero-bio p{ margin:0 0 1em; }
     .hero-bio p.bio-gap{ margin:1em 0; }
     .hero-bio p.preserve{ white-space:break-spaces; }
+
+    /* Title-like first lines for plain text groups */
+    .hero-bio .title-line{
+      font-weight:800;
+      font-size:calc(1rem * var(--rc-title-scale));
+      line-height:1.25;
+      margin:.6em 0 .25em;
+      letter-spacing:.2px;
+    }
+
     .hero-bio a{ color:var(--brand-teal); text-decoration:underline; text-underline-offset:2px; }
     .hero-bio a:hover{ filter:brightness(1.15); }
 
@@ -150,23 +156,17 @@
     .hero-bio ul,.hero-bio ol{ margin:.25rem 0 .75rem 1.25rem; padding-left:1.25rem; }
     .hero-bio li{ margin:.15rem 0; }
 
-    .hero-bio blockquote{
-      margin:.75rem 0; padding:.5rem .75rem; border-left:3px solid var(--brand-teal); background:#0f1111; border-radius:4px;
-    }
-
-    .hero-bio pre{
-      margin:.75rem 0; padding:.6rem .75rem; background:#0f1111; border:1px solid #284f4d; border-radius:6px; overflow:auto;
-    }
+    .hero-bio blockquote{ margin:.75rem 0; padding:.5rem .75rem; border-left:3px solid var(--brand-teal); background:#0f1111; border-radius:4px; }
+    .hero-bio pre{ margin:.75rem 0; padding:.6rem .75rem; background:#0f1111; border:1px solid #284f4d; border-radius:6px; overflow:auto; }
     .hero-bio code{ font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:.92em; }
     .hero-bio pre code{ white-space:pre-wrap; }
 
-    /* Remove legacy density scaling (kept no-ops for safety) */
-    .hero-bio.bio-tight1,
-    .hero-bio.bio-tight2,
-    .hero-bio.bio-tight3{ font-size:inherit; line-height:inherit; }
+    /* no-op density */
+    .hero-bio.bio-tight1,.hero-bio.bio-tight2,.hero-bio.bio-tight3{ font-size:inherit; line-height:inherit; }
 
     @media (max-width:768px){
       .hero-bio{ font-size:1rem; line-height:1.5; }
+      .hero-bio .title-line{ font-size:calc(1rem * 1.35); } /* why: avoid oversized titles on narrow screens */
     }
 
     .profile-topline{ display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; margin-bottom:.2rem; }
@@ -460,6 +460,50 @@
       return String(n);
     }
 
+    /* === Heuristic: detect title-like first lines in plain text groups === */
+    function isTitleish(first, next){
+      const a = String(first||'').trim();
+      const b = String(next||'').trim();
+      if(a.length < 6) return false;
+      if(/^[•*\-\u2013\u2014]/.test(a)) return false;           /* why: bullets/dashes at start aren't titles */
+      const hasSep = /[-:\u2013\u2014]/.test(a);                /* -, :, en/em dash inside */
+      const nextIsSentence = /[.!?]$/.test(b) && b.length > 3;  /* why: description line usually ends with punctuation */
+      const aEndsSentence = /[.!?]$/.test(a);
+      return (hasSep && !aEndsSentence) || nextIsSentence;
+    }
+
+    /* === Plain text → HTML (preserve gaps; promote title lines) === */
+    function plainTextToHTMLWithGaps(text){
+      const lines = String(text).replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+      const out = [];
+      let buf = [];
+      let pendingGaps = 0;
+
+      const flushGaps = () => { while(pendingGaps-- > 0) out.push('<p class="bio-gap"><br></p>'); pendingGaps = 0; };
+      const renderGroup = (arr) => {
+        if(!arr.length) return;
+        const first = arr[0], rest = arr.slice(1);
+        if(isTitleish(first, rest[0])){
+          out.push(`<p class="preserve title-line">${linkifySafe(first)}</p>`);
+          if(rest.length) out.push(`<p class="preserve">${linkifySafe(rest.join('\n'))}</p>`);
+        }else{
+          out.push(`<p class="preserve">${linkifySafe(arr.join('\n'))}</p>`);
+        }
+      };
+      const flushBuf = () => { if(buf.length){ flushGaps(); renderGroup(buf); buf=[]; } };
+
+      for(const line of lines){
+        if(/^[ \t\u00A0]*$/.test(line)){
+          if(buf.length){ flushBuf(); pendingGaps = 1; }
+          else { pendingGaps++; }
+        }else{
+          buf.push(line);
+        }
+      }
+      if(buf.length) flushBuf(); else flushGaps();
+      return out.join('');
+    }
+
     function renderBlock(n){
       if(n==null) return '';
 
@@ -539,44 +583,12 @@
       return (c==null? '' : c);
     }
 
-    /* === Plain text → HTML with preserved blank lines/spaces === */
-    function plainTextToHTMLWithGaps(text){
-      const lines = String(text).replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
-      const out = [];
-      let buf = [];
-      let pendingGaps = 0;
-
-      const flushBuf = () => {
-        if(buf.length){
-          const inner = linkifySafe(buf.join('\n'));
-          out.push(`<p class="preserve">${inner}</p>`);
-          buf = [];
-        }
-      };
-      const flushGaps = () => {
-        while(pendingGaps-- > 0) out.push('<p class="bio-gap"><br></p>');
-        pendingGaps = 0;
-      };
-
-      for(const line of lines){
-        if(/^[ \t\u00A0]*$/.test(line)){
-          if(buf.length){ flushBuf(); pendingGaps = 1; }
-          else { pendingGaps++; }
-        }else{
-          flushGaps();
-          buf.push(line);
-        }
-      }
-      if(buf.length) flushBuf(); else flushGaps();
-      return out.join('');
-    }
-
     /* === Format bio entry point === */
     function formatBioHTML(raw){
       if(raw == null) return '';
 
       if(typeof raw === 'string' && /<[a-z][\s\S]*>/i.test(raw)){
-        return sanitizeHtml(raw);
+        return sanitizeHtml(raw); /* why: keep RC HTML intact */
       }
 
       if(isRichish(raw)){
@@ -787,124 +799,3 @@
   </script>
 </body>
 </html>
-
-<!-- ========================== -->
-<!-- File: package.json (tests) -->
-{
-  "name": "ccr-dj-selects-tests",
-  "private": true,
-  "type": "module",
-  "devDependencies": {
-    "@playwright/test": "^1.47.0"
-  },
-  "scripts": {
-    "test": "playwright test",
-    "test:update": "playwright test --update-snapshots"
-  }
-}
-
-<!-- File: playwright.config.ts -->
-import { defineConfig, devices } from '@playwright/test';
-
-const baseURL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8080';
-
-export default defineConfig({
-  testDir: 'tests',
-  timeout: 30000,
-  expect: { timeout: 5000 },
-  use: {
-    baseURL,
-    trace: 'on-first-retry'
-  },
-  projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-  ]
-});
-
-<!-- File: tests/fixtures/radiocult-selector.json -->
-{
-  "id": "selector-1",
-  "slug": "selector",
-  "name": "Test Selector",
-  "image": "/images/default-dj.png",
-  "shareUrl": "https://radiocult.fm/artist/test-selector",
-  "description": [
-    { "type": "heading_2", "text": "About the Selector" },
-    { "type": "paragraph", "children": [{ "text": "This line stays normal size." }] },
-    { "type": "heading_4", "text": "Smaller Heading (H4)" },
-    { "type": "paragraph", "children": [{ "text": "Indented paragraph follows a quote." }] },
-    { "type": "blockquote", "children": [
-      { "type": "paragraph", "children": [{ "text": "Pulled quote with\nmanual wraps." }] }
-    ]},
-    { "type": "code_block", "text": "const x = 42;\nconsole.log(x);" },
-    "",
-    { "type": "paragraph", "children": [{ "text": "Inline code like ", "marks": [] }, { "text": "x += 1", "annotations": { "code": true } }, { "text": " is preserved.", "marks": [] }] },
-    { "type": "heading_6", "text": "Tiny Heading (H6)" }
-  ],
-  "socials": { "instagram": "cutterschoiceradio", "twitter": "CCRadio" }
-}
-
-<!-- File: tests/dj-selects-bio.spec.ts -->
-import { test, expect } from '@playwright/test';
-import fs from 'node:fs';
-import path from 'node:path';
-
-const rcBase = 'https://api.radiocult.fm/api';
-const fixture = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'radiocult-selector.json'), 'utf8'));
-
-test.describe('DJ Selects bio mirrors Radio Cult formatting', () => {
-  test.beforeEach(async ({ page, baseURL }) => {
-    // Intercept Radio Cult endpoints
-    await page.route(new RegExp(`^${rcBase}/station/cutters-choice-radio/(artists|presenters)$`), route => {
-      route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ artists: [fixture] })
-      });
-    });
-    await page.route(new RegExp(`^${rcBase}/station/cutters-choice-radio/(artists|presenters)/selector$`), route => {
-      route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(fixture)
-      });
-    });
-    await page.route('**/dj-selects-config.php**', route => {
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, tracks: [ 'https://youtu.be/dQw4w9WgXcQ' ] }) });
-    });
-    await page.route('**/dj-selects-data.json', route => {
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ tracks: [ 'https://youtu.be/dQw4w9WgXcQ' ] }) });
-    });
-    await page.route('**/*', route => {
-      // Let all other requests pass through
-      route.continue();
-    });
-
-    await page.goto(`${baseURL}/dj-selects.html`);
-    await expect(page.locator('#djBio')).toBeVisible();
-    await expect(page.locator('#djBio :text("About the Selector")')).toBeVisible();
-  });
-
-  for (const width of [420, 768, 1280]) {
-    test(`bio snapshot @${width}px`, async ({ page }) => {
-      await page.setViewportSize({ width, height: 900 });
-      const bio = page.locator('#djBio');
-      await expect(bio).toBeVisible();
-      await expect(bio).toHaveScreenshot(`bio-${width}.png`, { maxDiffPixelRatio: 0.02 });
-    });
-  }
-
-  test('structure: headings, blockquote, code preserved', async ({ page }) => {
-    const h2 = page.locator('#djBio h2');
-    const h4 = page.locator('#djBio h4');
-    const h6 = page.locator('#djBio h6');
-    const quote = page.locator('#djBio blockquote');
-    const codeBlock = page.locator('#djBio pre code');
-
-    await expect(h2).toHaveCount(1);
-    await expect(h4).toHaveCount(1);
-    await expect(h6).toHaveCount(1);
-    await expect(quote).toHaveCount(1);
-    await expect(codeBlock).toContainText('const x = 42;');
-  });
-});

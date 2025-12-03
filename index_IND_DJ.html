@@ -67,12 +67,22 @@
 
     /* ================= DJ SELECTS — MOBILE NAV ================= */
     @media (max-width:768px){
-      body.dj-selects nav#main-nav{ display:flex !important; flex-direction:row !important; align-items:center !important; justify-content:space-between !important; padding:.40rem .65rem !important; margin-bottom:0 !important; border-bottom:0 !important; grid-template-columns:none !important; grid-template-rows:none !important; grid-template-areas:none !important; row-gap:0 !important; }
+      body.dj-selects nav#main-nav{
+        display:flex !important; flex-direction:row !important; align-items:center !important;
+        justify-content:space-between !important; padding:.40rem .65rem !important; margin-bottom:0 !important;
+        border-bottom:0 !important; grid-template-columns:none !important; grid-template-rows:none !important; grid-template-areas:none !important; row-gap:0 !important;
+      }
       body.dj-selects nav#main-nav::after, body.dj-selects nav#main-nav::before{ content:none !important; display:none !important; height:0 !important; border:0 !important; }
       body.dj-selects nav#main-nav .nav-actions, body.dj-selects nav#main-nav .nav-row-2, body.dj-selects nav#mobile-nav, body.dj-selects .secondary-nav{ display:none !important; }
-      body.dj-selects nav#main-nav .nav-menu{ display:flex !important; flex:1 1 auto !important; min-width:0 !important; gap:.35rem !important; flex-wrap:nowrap !important; white-space:nowrap !important; overflow-x:auto !important; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+      body.dj-selects nav#main-nav .nav-menu{
+        display:flex !important; flex:1 1 auto !important; min-width:0 !important; gap:.35rem !important;
+        flex-wrap:nowrap !important; white-space:nowrap !important; overflow-x:auto !important;
+        -webkit-overflow-scrolling:touch; scrollbar-width:none;
+      }
       body.dj-selects nav#main-nav .nav-menu::-webkit-scrollbar{ display:none; }
-      body.dj-selects nav#main-nav .nav-link, body.dj-selects nav#main-nav summary.nav-link{ font-size:clamp(.8rem,3.2vw,1rem) !important; padding:.2rem .25rem !important; letter-spacing:.04em !important; }
+      body.dj-selects nav#main-nav .nav-link, body.dj-selects nav#main-nav summary.nav-link{
+        font-size:clamp(.8rem,3.2vw,1rem) !important; padding:.2rem .25rem !important; letter-spacing:.04em !important;
+      }
       body.dj-selects #main-nav + .djselects-hero{ margin-top:0 !important; }
       body.dj-selects .nav-sep.bottom { display:none !important; }
     }
@@ -84,7 +94,8 @@
       position:relative; isolation:isolate;
     }
     .djselects-hero::before{
-      content:""; position:absolute; inset:0; background-image:url('djselectimage.png'); background-repeat:no-repeat; background-size:cover; background-position:center; z-index:0;
+      content:""; position:absolute; inset:0;
+      background-image:url('djselectimage.png'); background-repeat:no-repeat; background-size:cover; background-position:center; z-index:0;
     }
     .djselects-hero > *{ position:relative; z-index:1; }
     @media (max-width:768px){ body.dj-selects .djselects-hero::before{ content:none !important; background:none !important; } }
@@ -100,7 +111,7 @@
     main.compact-grid{ background-image:url('/images/bricks2.png'); background-repeat:repeat; background-size:3000px auto; background-position:center top; }
     #mainPreview{ padding:16px; background:rgba(0,0,0,.35); box-shadow:inset 0 0 0 2px rgba(90,135,133,.45); border-radius:8px; }
 
-    /* === BIO panel === */
+    /* === BIO: sizing + links (match RC content) === */
     .hero-right{ position:relative; background:#0b0b0b; border:2px solid var(--brand-teal); border-radius:6px; padding:.6rem .75rem; }
 
     .hero-bio{ font-size:1rem; line-height:1.5; word-break:break-word; }
@@ -108,21 +119,34 @@
     .hero-bio p.bio-gap{ margin:1em 0; }
     .hero-bio p.preserve{ white-space:break-spaces; }
 
-    /* Title-like first lines for plain text groups */
-    .hero-bio .title-line{ font-weight:800; font-size:calc(1rem * var(--rc-title-scale)); line-height:1.25; margin:.6em 0 .25em; letter-spacing:.2px; }
+    /* Title-like first lines for plain text blocks */
+    .hero-bio .title-line{
+      font-weight:800;
+      font-size:calc(1rem * var(--rc-title-scale));
+      line-height:1.25;
+      margin:.6em 0 .25em;
+      letter-spacing:.2px;
+    }
 
     .hero-bio a{ color:var(--brand-teal); text-decoration:underline; text-underline-offset:2px; }
     .hero-bio a:hover{ filter:brightness(1.15); }
 
-    .hero-bio h1,.hero-bio h2,.hero-bio h3,.hero-bio h4,.hero-bio h5,.hero-bio h6{ font-family:'Bebas Neue',sans-serif; letter-spacing:.3px; margin:.35rem 0 .2rem; line-height:1.1; }
-    .hero-bio h1{ font-size:1.375rem; color:#cfe; } .hero-bio h2{ font-size:1.2rem; color:#dff; } .hero-bio h3{ font-size:1.05rem; color:#eff; }
-    .hero-bio h4{ font-size:1rem; color:#fff; } .hero-bio h5{ font-size:.95rem; color:#fff; } .hero-bio h6{ font-size:.9rem; color:#fff; opacity:.95; }
+    .hero-bio h1,.hero-bio h2,.hero-bio h3,.hero-bio h4,.hero-bio h5,.hero-bio h6{
+      font-family:'Bebas Neue',sans-serif; letter-spacing:.3px; margin:.35rem 0 .2rem; line-height:1.1;
+    }
+    .hero-bio h1{ font-size:1.375rem; color:#cfe; }
+    .hero-bio h2{ font-size:1.2rem;   color:#dff; }
+    .hero-bio h3{ font-size:1.05rem;  color:#eff; }
+    .hero-bio h4{ font-size:1rem;     color:#fff; }
+    .hero-bio h5{ font-size:.95rem;   color:#fff; }
+    .hero-bio h6{ font-size:.9rem;    color:#fff; opacity:.95; }
 
     .hero-bio ul,.hero-bio ol{ margin:.25rem 0 .75rem 1.25rem; padding-left:1.25rem; }
     .hero-bio li{ margin:.15rem 0; }
+
     .hero-bio blockquote{ margin:.75rem 0; padding:.5rem .75rem; border-left:3px solid var(--brand-teal); background:#0f1111; border-radius:4px; }
     .hero-bio pre{ margin:.75rem 0; padding:.6rem .75rem; background:#0f1111; border:1px solid #284f4d; border-radius:6px; overflow:auto; }
-    .hero-bio code{ font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; font-size:.92em; }
+    .hero-bio code{ font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:.92em; }
     .hero-bio pre code{ white-space:pre-wrap; }
 
     /* no-op density */
@@ -136,7 +160,7 @@
 
     @media (max-width:768px){
       .hero-bio{ font-size:1rem; line-height:1.5; }
-      .hero-bio .title-line{ font-size:calc(1rem * 1.35); }
+      .hero-bio .title-line{ font-size:calc(1rem * 1.35); } /* why: avoid oversized titles on narrow screens */
     }
 
     .profile-topline{ display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; margin-bottom:.2rem; }
@@ -210,8 +234,10 @@
       <details class="nav-details" id="selects-overlay">
         <summary class="nav-link" aria-label="About DJ Selects">ABOUT DJ SELECTS</summary>
         <div class="about-panel" id="dj-selects-blurb">
-          <p>Every week a different resident curates five essential tracks across the spectrum of underground music.
-            Use the embeds to preview and follow the artists and labels featured.</p>
+          <p>
+            Every week a different resident curates five essential tracks across the spectrum of underground music.
+            Use the embeds to preview and follow the artists and labels featured.
+          </p>
         </div>
       </details>
     </div>
@@ -290,7 +316,6 @@
           socialsBox=$('#djSocials'),
           stripList=$('#stripList'),
           mainPreview=$('#mainPreview');
-
     const adminOverlay=$('#adminOverlay'),
           adminTextarea=$('#adminTracks'),
           adminSaveBtn=$('#adminSave'),
@@ -365,35 +390,25 @@
       return div.innerHTML;
     }
 
-    /* === Rich text rendering for RadioCult-like JSON === */
-    function isRichish(x){
+    /* === Rich text rendering helpers === */
+    const isRichish = (x) => {
       if(!x) return false;
       if(typeof x==='string') return false;
       if(Array.isArray(x)) return true;
       return !!(x.type || x.children || x.rich_text || x.content || x.nodes || x.blocks || typeof x.text==='string' || typeof x.html==='string' || typeof x.plain_text==='string');
-    }
-    function asChildren(n){
-      if(Array.isArray(n)) return n;
-      return n?.children || n?.rich_text || n?.content || n?.nodes || n?.blocks || (n?.value && (n.value.children || n.value.content)) || [];
-    }
-    function getMarks(n){
+    };
+    const asChildren = (n) => Array.isArray(n) ? n : (n?.children || n?.rich_text || n?.content || n?.nodes || n?.blocks || (n?.value && (n.value.children || n.value.content)) || []);
+    const getMarks = (n) => {
       const ann = n?.annotations || n?.marks;
       if(!ann) return {};
-      if(Array.isArray(ann)){
-        const m={}; ann.forEach(x=>{ const t=(x?.type||x)?.toString().toLowerCase(); if(t) m[t]=true; });
-        return m;
-      }
+      if(Array.isArray(ann)){ const m={}; ann.forEach(x=>{ const t=(x?.type||x)?.toString().toLowerCase(); if(t) m[t]=true; }); return m; }
       return ann;
-    }
-    function renderInline(nodes){
-      const parts = [].concat(asChildren(nodes)).map(renderNodeInline);
-      return parts.join('');
-    }
+    };
+    const renderInline = (nodes) => [].concat(asChildren(nodes)).map(renderNodeInline).join('');
     function renderNodeInline(n){
       if(n==null) return '';
       if(typeof n==='string') return linkifySafe(n);
       if(Array.isArray(n)) return n.map(renderNodeInline).join('');
-
       if(typeof n==='object'){
         if(typeof n.html==='string') return sanitizeHtml(n.html);
         if(typeof n.plain_text==='string') return linkifySafe(n.plain_text);
@@ -414,39 +429,34 @@
       }
       return escapeHtml(String(n));
     }
-
-    function plainFrom(n){
+    const plainFrom = (n) => {
       if(n==null) return '';
       if(typeof n==='string') return n;
       if(Array.isArray(n)) return n.map(plainFrom).join('');
       if(typeof n==='object'){
         if(typeof n.plain_text==='string') return n.plain_text;
         if(typeof n.text==='string') return n.text;
-        const kids=asChildren(n);
-        if(kids && kids.length) return kids.map(plainFrom).join('');
-        return '';
+        const kids=asChildren(n); if(kids && kids.length) return kids.map(plainFrom).join(''); return '';
       }
       return String(n);
-    }
+    };
 
-    /* === Heuristic: title-like first lines in plain text groups === */
+    /* === Heuristic: title detection for plain text blocks === */
     function isTitleish(first, next){
       const a = String(first||'').trim();
       const b = String(next||'').trim();
       if(a.length < 6) return false;
-      if(/^[•*\-\u2013\u2014]/.test(a)) return false; /* bullets */
+      if(/^[•*\-\u2013\u2014]/.test(a)) return false;
       const hasSep = /[-:\u2013\u2014]/.test(a);
       const nextIsSentence = /[.!?]$/.test(b) && b.length > 3;
       const aEndsSentence = /[.!?]$/.test(a);
       return (hasSep && !aEndsSentence) || nextIsSentence;
     }
 
-    /* === Plain text → HTML (preserve gaps; promote title lines) === */
+    /* === Plain text → HTML (preserve gaps; promote titles) === */
     function plainTextToHTMLWithGaps(text){
       const lines = String(text).replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
-      const out = [];
-      let buf = [];
-      let pendingGaps = 0;
+      const out = []; let buf = []; let pendingGaps = 0;
 
       const flushGaps = () => { while(pendingGaps-- > 0) out.push('<p class="bio-gap"><br></p>'); pendingGaps = 0; };
       const renderGroup = (arr) => {
@@ -463,8 +473,7 @@
 
       for(const line of lines){
         if(/^[ \t\u00A0]*$/.test(line)){
-          if(buf.length){ flushBuf(); pendingGaps = 1; }
-          else { pendingGaps++; }
+          if(buf.length){ flushBuf(); pendingGaps = 1; } else { pendingGaps++; }
         }else{
           buf.push(line);
         }
@@ -473,6 +482,7 @@
       return out.join('');
     }
 
+    /* === Rich block renderer (kept) === */
     function renderBlock(n){
       if(n==null) return '';
 
@@ -486,7 +496,6 @@
 
       if(typeof n==='object'){
         if(typeof n.html==='string') return sanitizeHtml(n.html);
-
         const t=(n.type||'').toLowerCase();
 
         if(t==='paragraph' || t==='p' || (!t && asChildren(n).length)){
@@ -540,26 +549,59 @@
 
       return '';
     }
+    function renderRichHTML(input){ return Array.isArray(input) ? input.map(renderBlock).join('') : renderBlock(input); }
 
-    function renderRichHTML(input){
-      if(Array.isArray(input)) return input.map(renderBlock).join('');
-      return renderBlock(input);
-    }
-
+    /* === Description extraction === */
     function pickDescription(a){
       const c = a?.description ?? a?.bio ?? a?.about ?? a?.profile ?? a?.details?.description ?? '';
       return (c==null? '' : c);
     }
 
+    /* === Detect “array-of-plain” and format as plain (so titles apply) === */
+    function arrayLooksPlain(arr){
+      return Array.isArray(arr) && arr.every(n => {
+        if(typeof n==='string') return true;
+        if(n && typeof n==='object'){
+          const hasRich = n.html || n.children || n.rich_text || n.content || n.nodes || n.blocks;
+          const t=(n.type||'').toLowerCase();
+          const onlyText = (typeof n.text==='string' || typeof n.plain_text==='string');
+          return !hasRich && (t==='' || t==='text' || t==='paragraph') && onlyText;
+        }
+        return false;
+      });
+    }
+    function arrayPlainToJoinedText(arr){
+      const parts = arr.map(n => (typeof n==='string') ? n : (n.plain_text ?? n.text ?? '') );
+      /* why: preserve paragraph separation between array items */
+      return parts.join('\n\n');
+    }
+
+    /* === Format bio entry point === */
     function formatBioHTML(raw){
       if(raw == null) return '';
-      if(typeof raw === 'string' && /<[a-z][\s\S]*>/i.test(raw)) return sanitizeHtml(raw);
+
+      /* Array-of-plain: treat as text to enable title detection */
+      if(Array.isArray(raw) && arrayLooksPlain(raw)){
+        const joined = arrayPlainToJoinedText(raw);
+        return plainTextToHTMLWithGaps(joined);
+      }
+
+      /* Raw HTML string */
+      if(typeof raw === 'string' && /<[a-z][\s\S]*>/i.test(raw)){
+        return sanitizeHtml(raw);
+      }
+
+      /* Rich JSON-ish */
       if(isRichish(raw)){
         const html = renderRichHTML(raw);
         if(html && /<[a-z][\s\S]*>/i.test(html)) return html;
-        const text = String(html||''); return plainTextToHTMLWithGaps(text);
+        const text = String(html||'');
+        return plainTextToHTMLWithGaps(text);
       }
-      const s = String(raw); return plainTextToHTMLWithGaps(s);
+
+      /* Plain string */
+      const s = String(raw);
+      return plainTextToHTMLWithGaps(s);
     }
 
     function extractSocials(obj){
@@ -617,15 +659,12 @@
 
       djBioBox.innerHTML = formatBioHTML(state.selector.description);
 
-      /* === Debug mode (QA only) === */
+      /* Debug flag */
       const params = new URLSearchParams(location.search);
       const dbg = params.has('debugbio') && !['0','false','off'].includes((params.get('debugbio')||'1').toLowerCase());
       if(dbg){
         djBioBox.classList.add('bio-debug');
-        const badge=document.createElement('div');
-        badge.className='bio-debug-badge';
-        badge.textContent='Bio Debug ON';
-        djBioBox.parentElement.appendChild(badge);
+        const badge=document.createElement('div'); badge.className='bio-debug-badge'; badge.textContent='Bio Debug ON'; djBioBox.parentElement.appendChild(badge);
       }
 
       if(state.selector.shareUrl){ profileLink.href=state.selector.shareUrl; profileLink.style.display='inline-block'; }

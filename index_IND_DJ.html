@@ -1,237 +1,45 @@
+<!-- File: dj-selects.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <!-- Prevent browser caching -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cutters Choice Radio — DJ Selects</title>
 
-  <!-- Enable Cast -->
-  <meta name="google-cast-enabled" content="true">
-
-  <title>Cutters Choice Radio</title>
-  <link rel="canonical" href="https://cutterschoiceradio.com/">
-  <meta name="description" content="Cutters Choice Radio — underground, community-driven electronic music: breakbeat, bass, rave and more. Listen live 24/7.">
+  <!-- Canonical + SEO -->
+  <link rel="canonical" href="https://cutterschoiceradio.com/dj-selects.html">
+  <meta name="description" content="Each week a different Cutters Choice Radio DJ selects five tracks. Browse the picks, read the bio, and preview YouTube/Bandcamp.">
   <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#5A8785">
 
-  <!-- Social preview (Open Graph + Twitter) -->
+  <!-- Social preview -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Cutters Choice Radio">
-  <meta property="og:description" content="Underground, community-driven electronic music: breakbeat, bass, rave and more. Listen live 24/7.">
-  <meta property="og:url" content="https://cutterschoiceradio.com/">
+  <meta property="og:title" content="DJ Selects — Cutters Choice Radio">
+  <meta property="og:description" content="Weekly DJ picks: five tracks selected by a Cutters Choice Radio selector.">
+  <meta property="og:url" content="https://cutterschoiceradio.com/dj-selects.html">
   <meta property="og:site_name" content="Cutters Choice Radio">
   <meta property="og:image" content="https://cutterschoiceradio.com/images/logo.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Cutters Choice Radio">
-  <meta name="twitter:description" content="Underground, community-driven electronic music: breakbeat, bass, rave and more. Listen live 24/7.">
+  <meta name="twitter:title" content="DJ Selects — Cutters Choice Radio">
+  <meta name="twitter:description" content="Weekly DJ picks: five tracks selected by a Cutters Choice Radio selector.">
   <meta name="twitter:image" content="https://cutterschoiceradio.com/images/logo.png">
 
-  <!-- Performance hints -->
+  <!-- Performance -->
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
-  <link rel="preconnect" href="https://app.radiocult.fm" crossorigin>
-  <link rel="preconnect" href="https://cdn.socket.io" crossorigin>
-  <link rel="preconnect" href="https://ccr-tv.cutterschoiceradio.com" crossorigin>
-  <link rel="preconnect" href="https://www.mixcloud.com" crossorigin>
-  <link rel="preconnect" href="https://widget.mixcloud.com" crossorigin>
+  <link rel="preconnect" href="https://api.radiocult.fm" crossorigin>
+  <link rel="preconnect" href="https://www.youtube-nocookie.com" crossorigin>
+  <link rel="preconnect" href="https://bandcamp.com" crossorigin>
 
-  <!-- Preload likely-LCP (logo) -->
-  <link rel="preload" href="/images/logo.png" as="image" imagesrcset="/images/logo.png 1x">
+  <!-- Global site styles (keep) -->
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
-  <!-- Main stylesheet (cache-busted) -->
-  <link rel="stylesheet" href="style.css?v=2025-11-23-1">
-
-  <!-- Bebas Neue & FontAwesome -->
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-  <!-- INLINE NAV + HEADER + MOBILE TUNING -->
-  <style>
-    :root { --brand-teal: #5A8785; --wave-height-desktop: 120px; --wave-height-mobile: 80px; }
-
-    /* NAV BAR */
-    #main-nav{
-      display:flex !important; align-items:center !important; gap:.5rem !important;
-      width:100% !important; padding:.10rem .65rem !important; margin:0 !important;
-      box-sizing:border-box !important; background-color:var(--brand-teal) !important;
-      position:relative !important; z-index:1000 !important; border-top:2px solid #000; border-bottom:2px solid #000;
-      flex-wrap:nowrap;
-    }
-    #main-nav .nav-menu{
-      display:flex !important; align-items:center !important; justify-content:space-evenly !important;
-      gap:clamp(.25rem,2vw,1.5rem) !important; flex:1 1 auto !important; min-width:0 !important;
-    }
-    #main-nav a.nav-link, #main-nav button.nav-link, #main-nav summary.nav-link{
-      color:#fff !important; font-family:'Bebas Neue',sans-serif !important; font-size:2rem !important;
-      text-transform:uppercase !important; text-decoration:none !important; white-space:nowrap !important;
-      list-style:none !important; cursor:pointer !important; display:inline-flex; align-items:center;
-    }
-    .nav-details{ position:relative; }
-    .nav-details .about-panel{
-      position:absolute; top:calc(100% + 8px); right:0; width:min(520px, 86vw);
-      background:#000; color:#fff; border:2px solid var(--brand-teal); border-radius:8px;
-      padding:.75rem .9rem; line-height:1.35; box-shadow:0 8px 18px rgba(0,0,0,.45); display:none; z-index:1100;
-    }
-    .nav-details[open] .about-panel{ display:block; }
-    .nav-details > summary::-webkit-details-marker{ display:none; }
-    .nav-details > summary:focus{ outline:2px solid #fff; outline-offset:2px; }
-    #main-nav .nav-actions{ display:flex !important; align-items:center !important; justify-content:flex-end !important; gap:.6rem !important; flex:0 0 auto !important; }
-    #main-nav .social-icon{ display:inline-flex !important; align-items:center !important; justify-content:center !important; line-height:1 !important; text-decoration:none !important; color:#fff !important; }
-    #main-nav .social-icon i{ font-size:2.1rem !important; }
-    .icon-img{ width:2.6rem !important; height:auto !important; margin-left:.25rem !important; vertical-align:middle !important; display:inline-block !important; }
-    #main-nav .nav-onemusic img{ max-height:2rem; width:auto; height:auto; display:block; }
-
-    /* HEADER layout */
-    .header-banner{
-      position:relative; display:flex; align-items:center; justify-content:space-between;
-      gap:0; background:#000; padding:clamp(12px, 3vw, 24px) 0;
-      overflow:hidden; isolation:isolate; flex-wrap:nowrap;
-    }
-    @media (max-width:768px){ .header-banner{ flex-wrap:wrap; gap:4px; } }
-
-    .header-gif-right, .header-gif-left{ display:none !important; }
-
-    .header-wave{
-      flex:1 1 0; width:auto; min-width:60px;
-      height:var(--wave-height-desktop);
-      display:block; object-fit:cover;
-      border-top:2px solid #000; border-bottom:2px solid #000; background:#000;
-    }
-    @media (max-width:768px){ .header-wave{ height:var(--wave-height-mobile); min-width:40px; } }
-
-    .header-banner .title{ flex:0 1 auto; text-align:center; padding:0 .25rem; min-width:260px; }
-    @media (max-width:768px){ .header-banner .title{ min-width:180px; } }
-
-    .logo{ width:160px; height:160px; aspect-ratio:1/1; margin:0; }
-
-    .schedule, .mixcloud{ content-visibility:auto; contain-intrinsic-size: 800px 600px; }
-
-    /* ===== MOBILE ONLY ================================================= */
-    @media (max-width: 768px){
-      :root{ --wave-height-mobile: 110px; }
-      .header-banner{ padding:10px 0 6px; }
-      .logo{ width:120px; height:120px; }
-      .header-banner .title h1{ font-size:9.2vw; line-height:1; margin:0; }
-      .header-banner .title .tagline{ font-size:4vw; margin-top:4px; }
-
-      #main-nav{
-        flex-direction:row;
-        flex-wrap:wrap;
-        align-items:center !important;
-        gap:.25rem !important;
-      }
-      #main-nav .nav-menu{
-        order:1; width:100%;
-        justify-content:space-between !important;
-        gap:.2rem !important;
-        flex-wrap:wrap;
-      }
-      #main-nav a.nav-link{
-        font-size:.95rem !important;
-        padding:.1rem .22rem;
-        letter-spacing:.02em;
-      }
-
-      .nav-details{
-        order:2; flex:1 1 50%;
-        display:flex; align-items:center;
-      }
-      .nav-details > summary.nav-link{
-        font-size:.95rem !important;
-        padding:.28rem .5rem;
-        background:rgba(0,0,0,.15);
-        border:1px solid rgba(255,255,255,.28);
-        border-radius:999px;
-        margin:0;
-        width:max-content;
-      }
-      .nav-details .about-panel{ width:calc(100vw - 22px); right:-6px; }
-
-      #main-nav .nav-actions{
-        order:2; flex:1 1 50%;
-        justify-content:flex-end !important;
-        align-items:center !important;
-        gap:.45rem !important;
-      }
-      #main-nav .social-icon i{ font-size:1.25rem !important; }
-      .icon-img, .nav-onemusic{ display:none !important; }
-
-      #main-nav a.nav-link,
-      #main-nav button.nav-link,
-      #main-nav summary.nav-link{
-        font-size:.95rem !important;
-        line-height:1 !important;
-        padding:.28rem .5rem !important;
-      }
-
-      #main-nav + div[style*="height:2px"]{ margin-top:2px; }
-
-      .player-container #chatPopupBtn{ position:static; margin-top:.5rem; }
-    }
-    /* =================================================================== */
-
-    @media (prefers-reduced-motion: reduce){
-      .header-wave{ display:none !important; }
-      .header-banner{ justify-content:center; }
-    }
-
-    /* ===============================
-       CCR TV PLAYER (letterboxed + bigger)
-       =============================== */
-    .tv-wrapper {
-      position: relative;
-      width: 100%;
-      max-width: 828px; /* ~+15% from 720px */
-      aspect-ratio: 16 / 9;
-      background: #000;
-      overflow: hidden;
-      margin-inline: auto;
-    }
-    #ccrTv {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: contain; /* letterboxed */
-      background: #000;    /* safe background for bars */
-      display: block;
-    }
-
-    /* Footer partner logos: hover/focus affordance + stack under on small screens */
-    footer.banner .footer-logos a img{ transition: opacity .2s ease; }
-    footer.banner .footer-logos a:hover img,
-    footer.banner .footer-logos a:focus-visible img{ opacity: .85; } /* why: subtle feedback */
-
-    @media (max-width: 640px){
-      footer.banner > div { flex-wrap: wrap; } /* allow a second row */
-      footer.banner .footer-logos{
-        flex: 1 0 100%;
-        justify-content: center;
-        margin-top: 6px;
-      }
-      footer.banner .footer-logos img{ height: 28px; }
-    }
-  </style>
-
-  <!-- Cast sender SDK -->
-  <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
-
-  <!-- Other head scripts -->
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" defer></script>
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-3MSGZZ5QL6"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}  
-    gtag('js', new Date());
-    gtag('config', 'G-3MSGZZ5QL6');
-  </script>
-
-  <!-- Site-wide Organization JSON-LD -->
+  <!-- Organization JSON-LD -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -247,378 +55,856 @@
     ]
   }
   </script>
+
+  <style>
+    :root{ --brand-teal:#5A8785; --hero-size:360px; --preview-max:920px; }
+    .nav-sep{height:2px;background-color:var(--brand-teal);}
+    #main-nav .nav-menu{ justify-content: space-evenly !important; }
+    #main-nav summary.nav-link{
+      color:#fff !important; font-family:'Bebas Neue',sans-serif !important;
+      font-size:2rem !important; text-transform:uppercase !important;
+      text-decoration:none !important; white-space:nowrap !important;
+      list-style:none !important; cursor:pointer !important; display:inline-flex; align-items:center;
+    }
+    .nav-details{ position:relative; }
+    .nav-details .about-panel{
+      position:absolute; top:calc(100% + 8px); right:0; width:min(520px,86vw);
+      background:#000; color:#fff; border:2px solid var(--brand-teal);
+      border-radius:8px; padding:.75rem .9rem; line-height:1.35;
+      box-shadow:0 8px 18px rgba(0,0,0,.45); display:none; z-index:1100;
+    }
+    .nav-details[open] .about-panel{ display:block; }
+    .nav-details > summary::-webkit-details-marker{ display:none; }
+    .nav-details > summary:focus{ outline:2px solid #fff; outline-offset:2px; }
+
+    /* ================= DJ SELECTS — MOBILE NAV ================= */
+    @media (max-width:768px){
+      body.dj-selects nav#main-nav{
+        display:flex !important; flex-direction:row !important; align-items:center !important;
+        justify-content:space-between !important; padding:.40rem .65rem !important; margin-bottom:0 !important;
+        border-bottom:0 !important; grid-template-columns:none !important; grid-template-rows:none !important; grid-template-areas:none !important; row-gap:0 !important;
+      }
+      body.dj-selects nav#main-nav::after, body.dj-selects nav#main-nav::before{ content:none !important; display:none !important; height:0 !important; border:0 !important; }
+      body.dj-selects nav#main-nav .nav-actions, body.dj-selects nav#main-nav .nav-row-2, body.dj-selects nav#mobile-nav, body.dj-selects .secondary-nav{ display:none !important; }
+      body.dj-selects nav#main-nav .nav-menu{
+        display:flex !important; flex:1 1 auto !important; min-width:0 !important; gap:.35rem !important;
+        flex-wrap:nowrap !important; white-space:nowrap !important; overflow-x:auto !important;
+        -webkit-overflow-scrolling:touch; scrollbar-width:none;
+      }
+      body.dj-selects nav#main-nav .nav-menu::-webkit-scrollbar{ display:none; }
+      body.dj-selects nav#main-nav .nav-link, body.dj-selects nav#main-nav summary.nav-link{
+        font-size:clamp(.8rem,3.2vw,1rem) !important; padding:.2rem .25rem !important; letter-spacing:.04em !important;
+      }
+      body.dj-selects #main-nav + .djselects-hero{ margin-top:0 !important; }
+      body.dj-selects .nav-sep.bottom { display:none !important; }
+    }
+
+    /* ====== Page content ====== */
+    .djselects-hero{
+      padding:.45rem .6rem .25rem; border:2px solid var(--brand-teal); border-left:0;border-right:0;
+      margin-bottom:.35rem; display:grid; grid-template-columns:1.2fr auto 1.2fr; gap:.55rem; align-items:center; row-gap:.35rem;
+      position:relative; isolation:isolate;
+    }
+    .djselects-hero::before{
+      content:""; position:absolute; inset:0;
+      background-image:url('djselectimage.png'); background-repeat:no-repeat; background-size:cover; background-position:center; z-index:0;
+    }
+    .djselects-hero > *{ position:relative; z-index:1; }
+    @media (max-width:768px){ body.dj-selects .djselects-hero::before{ content:none !important; background:none !important; } }
+
+    .strap{ font-family:'Bebas Neue',sans-serif; }
+    .djselects-hero .strap{ font-size:clamp(1.235rem,2.21vw,1.495rem)!important; line-height:1.05; }
+    .djselects-hero .weekline{ font-family:'Bebas Neue',sans-serif; font-size:clamp(4.3rem,6.2vw,4.0rem)!important; line-height:1; margin-top:.15rem; letter-spacing:.2px; }
+    .selector-name{ font-family:'Bebas Neue',sans-serif; color:#5A8785; font-size:clamp(3.2rem,8.2vw,5.6rem); line-height:.95; margin-top:.08rem; letter-spacing:.2px; }
+    #djNameText{ display:none; }
+    .hero-art{ display:flex; align-items:center; justify-content:center; }
+    .hero-art img{ width:var(--hero-size); height:var(--hero-size); object-fit:cover; border:2px solid var(--brand-teal); border-radius:6px; background:#000; }
+
+    main.compact-grid{ background-image:url('/images/bricks2.png'); background-repeat:repeat; background-size:3000px auto; background-position:center top; }
+    #mainPreview{ padding:16px; background:rgba(0,0,0,.35); box-shadow:inset 0 0 0 2px rgba(90,135,133,.45); border-radius:8px; }
+
+    /* === BIO: sizing + links (match Radio Cult content) === */
+    .hero-right{ background:#0b0b0b; border:2px solid var(--brand-teal); border-radius:6px; padding:.6rem .75rem; }
+
+    .hero-bio{
+      font-size:1rem;
+      line-height:1.5;
+      word-break:break-word;
+    }
+    .hero-bio p{ margin:0 0 1em; }
+    .hero-bio p.bio-gap{ margin:1em 0; }
+    .hero-bio p.preserve{ white-space:break-spaces; }
+    .hero-bio a{ color:var(--brand-teal); text-decoration:underline; text-underline-offset:2px; }
+    .hero-bio a:hover{ filter:brightness(1.15); }
+
+    .hero-bio h1,.hero-bio h2,.hero-bio h3,.hero-bio h4,.hero-bio h5,.hero-bio h6{
+      font-family:'Bebas Neue',sans-serif; letter-spacing:.3px; margin:.35rem 0 .2rem; line-height:1.1;
+    }
+    .hero-bio h1{ font-size:1.375rem; color:#cfe; }
+    .hero-bio h2{ font-size:1.2rem;   color:#dff; }
+    .hero-bio h3{ font-size:1.05rem;  color:#eff; }
+    .hero-bio h4{ font-size:1rem;     color:#fff; }
+    .hero-bio h5{ font-size:.95rem;   color:#fff; }
+    .hero-bio h6{ font-size:.9rem;    color:#fff; opacity:.95; }
+
+    .hero-bio ul,.hero-bio ol{ margin:.25rem 0 .75rem 1.25rem; padding-left:1.25rem; }
+    .hero-bio li{ margin:.15rem 0; }
+
+    .hero-bio blockquote{
+      margin:.75rem 0; padding:.5rem .75rem; border-left:3px solid var(--brand-teal); background:#0f1111; border-radius:4px;
+    }
+
+    .hero-bio pre{
+      margin:.75rem 0; padding:.6rem .75rem; background:#0f1111; border:1px solid #284f4d; border-radius:6px; overflow:auto;
+    }
+    .hero-bio code{ font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:.92em; }
+    .hero-bio pre code{ white-space:pre-wrap; }
+
+    /* Remove legacy density scaling (kept no-ops for safety) */
+    .hero-bio.bio-tight1,
+    .hero-bio.bio-tight2,
+    .hero-bio.bio-tight3{ font-size:inherit; line-height:inherit; }
+
+    @media (max-width:768px){
+      .hero-bio{ font-size:1rem; line-height:1.5; }
+    }
+
+    .profile-topline{ display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; margin-bottom:.2rem; }
+    .profile-link{ display:inline-block; font-size:.88rem; border:1px solid #335d5b; padding:.16rem .4rem; border-radius:4px; background:#0b0b0b; color:#dff; text-decoration:none; }
+    .socials{ display:flex; align-items:center; gap:.45rem; flex-wrap:wrap; margin-top:.15rem; }
+    .socials a{ display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:999px; border:1px solid #335d5b; background:#0f0f0f; color:#e9ffff; text-decoration:none; }
+    .socials a:hover{ box-shadow:inset 0 0 0 2px var(--brand-teal); }
+
+    .nextbar{ margin:.25rem .6rem .55rem; }
+    .nextbar-inner{ display:flex; align-items:center; gap:.8rem; background:#0b0b0b; border:2px solid var(--brand-teal); padding:.45rem .6rem; border-radius:6px; }
+    .nextbar .label{ font-family:'Bebas Neue',sans-serif; font-size:clamp(1rem,2vw,1.35rem); }
+    .nextbar .when{ font-family:'Bebas Neue',sans-serif; font-size:clamp(1.05rem,2.2vw,1.45rem); color:var(--brand-teal); }
+
+    .compact-grid{ display:grid; grid-template-columns:240px minmax(0,1fr); gap:.6rem; padding:0 .6rem 1rem; }
+    .strip-list{ display:grid; grid-template-rows:repeat(5,1fr); gap:.35rem; }
+    .strip{ border:1px solid #264745; background:#0a0a0a; border-radius:6px; overflow:hidden; position:relative; }
+    .strip.selected{ outline:2px solid var(--brand-teal); }
+    .strip iframe{ width:100%; height:100%; border:0; display:block; position:relative; z-index:1; }
+    .strip .overlayBtn{ position:absolute; inset:0; appearance:none; background:transparent; border:0; cursor:pointer; z-index:3; }
+
+    .preview{ display:flex; align-items:center; justify-content:center; max-width:var(--preview-max); margin:0 auto; width:100%; }
+    .preview iframe{ width:100%; aspect-ratio:16/9; height:auto; max-height:56vh; border:0; display:block; }
+    .big-placeholder{ font-family:'Bebas Neue',sans-serif; color:#6fa39f; font-size:clamp(1rem,1.8vw,1.25rem); padding:.6rem; width:100%; max-width:var(--preview-max); }
+
+    @media (max-width:1200px){ :root{ --hero-size:300px; --preview-max:860px; } }
+    @media (max-width:1050px){ .djselects-hero{ grid-template-columns:1fr auto 1fr; } :root{ --hero-size:260px; --preview-max:820px; } }
+    @media (max-width:900px){
+      .djselects-hero{ grid-template-columns:1fr; }
+      .hero-right{ order:3 } .hero-art{ order:2; justify-content:flex-start }
+      .compact-grid{ grid-template-columns:1fr; }
+      .preview iframe{ max-height:66vh; min-height:220px; }
+      .strip iframe{ pointer-events:none; }
+      :root{ --hero-size:200px; --preview-max:92vw; }
+    }
+    @media (max-width:768px){ .strip-list{ grid-template-rows:repeat(5,76px); } :root{ --hero-size:180px; } }
+
+    /* Admin overlay */
+    .adminHidden{ display:none!important; }
+    #adminOverlay{ position:fixed; inset:0; background:rgba(0,0,0,.82); color:#fff; z-index:9999; display:flex; align-items:center; justify-content:center; }
+    #adminPanel{ width:min(840px,92vw); max-height:90vh; overflow:auto; background:#0e1414; border:2px solid var(--brand-teal); border-radius:10px; padding:16px; box-shadow:0 12px 40px rgba(0,0,0,.55); }
+    #adminPanel h3{ font-family:'Bebas Neue',sans-serif; letter-spacing:.5px; margin:0 0 6px; }
+    #adminPanel p.hint b{ font-weight:700; }
+    #adminPanel textarea{ width:100%; height:200px; background:#050808; color:#eaffff; border:1px solid #2a5653; border-radius:6px; padding:8px; }
+    #adminPanel .row{ display:flex; gap:8px; margin-top:10px; align-items:center; }
+    #adminPanel button{ padding:10px 14px; border-radius:6px; border:1px solid #2a5653; background:#0b2322; color:#eaffff; cursor:pointer; }
+    #adminStatus{ opacity:.9; font-size:.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:52ch; }
+  </style>
 </head>
 
-<body>
-  <!-- HEADER -->
+<body class="dj-selects">
+  <!-- Header -->
   <header class="header-banner" role="banner">
-    <div class="header-gif-right"></div>
-    <div class="header-gif-left"></div>
-
-    <div class="logo-container">
-      <img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="eager" decoding="async" width="160" height="160" fetchpriority="high">
-    </div>
-
-    <!-- WEBM wave between left logo and titles -->
-    <video class="header-wave header-wave-left" aria-hidden="true" muted loop autoplay playsinline preload="none">
-      <source src="/images/audiowave.webm" type="video/webm">
-    </video>
-
-    <div class="title">
-      <h1>Cutters Choice Radio</h1>
-      <p class="tagline">The home of relentless flavas and significant bangers!</p>
-    </div>
-
-    <!-- WEBM wave between titles and right logo -->
-    <video class="header-wave header-wave-right" aria-hidden="true" muted loop autoplay playsinline preload="none">
-      <source src="/images/audiowave.webm" type="video/webm">
-    </video>
-
-    <div class="logo-container">
-      <img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="eager" decoding="async" width="160" height="160">
-    </div>
+    <div class="header-gif-right" aria-hidden="true"></div><div class="header-gif-left" aria-hidden="true"></div>
+    <div class="logo-container"><img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="lazy" decoding="async"></div>
+    <div class="title"><h1>Cutters Choice Radio</h1><p class="tagline">The home of relentless flavas and significant bangers!</p></div>
+    <div class="logo-container"><img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="lazy" decoding="async"></div>
   </header>
 
-  <div style="height:2px;background-color:var(--brand-teal);"></div>
+  <div class="nav-sep top"></div>
 
-  <!-- NAVIGATION -->
+  <!-- Nav -->
   <nav id="main-nav" aria-label="Primary">
     <div class="nav-menu">
+      <a href="index.html"        class="nav-link">HOME</a>
       <a href="our-story.html"    class="nav-link">OUR STORY</a>
       <a href="index-ourDJS.html" class="nav-link">OUR DJS</a>
-      <a href="dj-selects.html"   class="nav-link">DJ SELECTS</a>
       <a href="cutty-ranks.html"  class="nav-link">CUTTY RANKS</a>
       <a href="schedule.html"     class="nav-link">SCHEDULE</a>
       <a href="merch.html"        class="nav-link">MERCH</a>
 
-      <!-- ABOUT THE STATION -->
-      <details class="nav-details" id="about-overlay">
-        <summary class="nav-link" aria-label="About the station">ABOUT THE STATION</summary>
-        <div class="about-panel" id="about-station-content">
+      <details class="nav-details" id="selects-overlay">
+        <summary class="nav-link" aria-label="About DJ Selects">ABOUT DJ SELECTS</summary>
+        <div class="about-panel" id="dj-selects-blurb">
           <p>
-            Cutters Choice Radio is a community of resident DJs and selectors broadcasting across underground music of all genres, representing bass and rave culture. Explore each profile for bios, mixes and show times, and discover new artists on our weekly schedule.
+            Every week a different resident curates five essential tracks across the spectrum of underground music.
+            Use the embeds to preview and follow the artists and labels featured.
           </p>
         </div>
       </details>
     </div>
-
-    <div class="nav-actions">
-      <a href="https://facebook.com/cutterschoiceradio"  target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="Facebook">
-        <i class="fab fa-facebook-f"></i>
-      </a>
-      <a href="https://instagram.com/cutterschoiceradio" target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="Instagram">
-        <i class="fab fa-instagram"></i>
-      </a>
-
-      <!-- Alexa logo -->
-      <img src="/images/alexa-logo.webp" alt="Alexa" class="icon-img" loading="lazy" decoding="async" width="42" height="42">
-
-      <!-- TuneIn logo -->
-      <a href="https://tunein.com/radio/Cutters-Choice-Radio-s344746/" target="_blank" rel="noopener noreferrer" aria-label="TuneIn">
-        <img src="/images/tunein-logo.png" alt="TuneIn" class="icon-img" loading="lazy" decoding="async" width="42" height="42">
-      </a>
-
-      <!-- OneMusic badge -->
-      <div class="nav-onemusic">
-        <a href="https://onemusicnz.com" target="_blank" rel="noopener noreferrer">
-          <img src="/images/ONEMUSICLOGO.png" alt="We’re licensed to play OneMusic NZ" loading="lazy" decoding="async" width="120" height="40">
-        </a>
-      </div>
-
-      <!-- Cast controls -->
-      <google-cast-button id="castBtn" title="Cast"></google-cast-button>
-      <button id="manualCastBtn" class="nav-link" type="button" title="Cast this stream" aria-label="Cast this stream">CAST</button>
-    </div>
   </nav>
 
-  <div style="height:2px;background-color:var(--brand-teal);"></div>
+  <!-- HERO -->
+  <section class="djselects-hero">
+    <div class="hero-left">
+      <div class="strap">EACH WEEK IN A NON SPECIFIC ORDER A DIFFERENT CUTTERS DJ SELECTS THEIR 5 TRACKS OF THE WEEK</div>
+      <div class="weekline">THIS WEEKS CUTTERS DJ SELECTOR</div>
+      <div id="djNameBig" class="selector-name">—</div>
+      <span id="djNameText" aria-hidden="true">—</span>
+    </div>
+    <div class="hero-art"><img id="djProfileThumb" src="/images/default-dj.png" alt="DJ profile" /></div>
+    <div class="hero-right">
+      <div class="profile-topline"><a id="djProfileLink" class="profile-link" href="#" target="_blank" rel="noopener" style="display:none">View profile</a></div>
+      <div id="djBio" class="hero-bio"></div>
+      <div id="djSocials" class="socials"></div>
+    </div>
+  </section>
 
-  <!-- MAIN GRID CONTENT -->
-  <div class="grid-container">
-    <!-- CHAT SECTION -->
-    <section class="chat" aria-labelledby="chat-heading">
-      <h2 id="chat-heading">Cutters Chat</h2>
-      <iframe title="Cutters Choice Radio Chat"
-              src="https://app.radiocult.fm/embed/chat/cutters-choice-radio?theme=midnight&primaryColor=%235A8785&corners=sharp"
-              width="100%" height="700" frameborder="0"
-              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-              loading="lazy" seamless>
-      </iframe>
-      <div class="chat-actions"><button class="popout-btn" onclick="openChatPopup()">Pop Out Chat</button></div>
-      <div class="rc-user-list-container"><div class="rc-user-list"></div></div>
+  <!-- NEXT SHOW -->
+  <section class="nextbar">
+    <div class="nextbar-inner">
+      <span class="label">SELECTORS NEXT SCHEDULED SHOW</span>
+      <span class="when" id="nextShowWhen"></span>
+    </div>
+  </section>
+
+  <!-- TRACKS + PREVIEW -->
+  <main class="compact-grid" role="main">
+    <aside id="stripList" class="strip-list"></aside>
+    <section class="preview" id="mainPreview" aria-live="polite">
+      <div class="big-placeholder">Select a track</div>
     </section>
+  </main>
 
-    <!-- LIVE PLAYER SECTION -->
-    <section class="live-player" aria-labelledby="now-dj">
-      <h2 id="now-dj">Now Playing: Live</h2>
-
-      <div class="player-container">
-        <!-- RadioCult audio / now playing widget -->
-        <iframe id="inlinePlayer" title="Cutters Choice Radio player"
-                src="https://app.radiocult.fm/embed/square-player/cutters-choice-radio?theme=midnight&primaryColor=%235A8785&corners=sharp"
-                allow="autoplay; encrypted-media" loading="lazy"></iframe>
-
-        <!-- text under radio player -->
-        <div id="now-archive" role="status" aria-live="polite">Loading archive show…</div>
-
-        <!-- popouts -->
-        <button id="popOutBtn" class="popout-btn">Pop Out Player</button>
-        <button id="chatPopupBtn" class="popout-btn chat-btn-mobile" onclick="openChatPopup()">Chat</button>
-
-        <!-- CCR TV AUTO VIDEO FEED (HLS over HTTPS) -->
-        <div class="tv-wrapper">
-          <video
-            id="ccrTv"
-            playsinline
-            muted
-            autoplay
-            controls
-            preload="none"
-            crossorigin="anonymous"
-            poster="/images/archives-logo.jpeg"
-          ></video>
-        </div>
-      </div>
-    </section>
-
-    <!-- SCHEDULE SECTION -->
-    <section class="schedule" aria-labelledby="schedule-heading">
-      <h2 class="schedule-heading" id="schedule-heading">This Week’s Lineup</h2>
-      <div class="schedule-scroll" id="schedule-container">
-        <p>Loading this week’s schedule…</p>
-      </div>
-    </section>
-
-    <!-- MIXCLOUD ARCHIVE SECTION -->
-    <section class="mixcloud" aria-labelledby="mixcloud-heading">
-      <h2 id="mixcloud-heading">Latest Archived Shows</h2>
-      <div id="mixcloud-list"></div>
-      <div class="add-mixcloud">
-        <input id="mixcloud-url" type="text" placeholder="Paste Mixcloud URL here…">
-        <button onclick="addMixcloud()">Add Show</button>
-      </div>
-    </section>
-  </div>
-
-  <!-- FOOTER -->
-  <footer class="banner">
-    <div style="
-      background-color: var(--brand-teal);
-      padding: 0.10rem 0.65rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    ">
-      <a href="privacy-policy.html"
-         style="
-           color: #fff;
-           font-family: 'Bebas Neue', sans-serif;
-           font-size: 2rem;
-           text-transform: uppercase;
-           text-decoration: none;
-         ">PRIVACY POLICY</a>
-      <span style="
-        color: #fff;
-        font-family: 'Bebas Neue', sans-serif;
-        font-size: 0.8rem;
-        text-transform: uppercase;
-      ">
-        Amazon, Alexa and all related logos are trademarks of Amazon.com, Inc. or its affiliates.
-      </span>
-
-      <!-- Footer partner logos (right on desktop, stacked below on small screens) -->
-      <div class="footer-logos" style="display:flex;align-items:center;gap:.5rem;">
-        <a
-          href="http://www.internet-radio.com/?utm_source=cutterschoiceradio&utm_medium=banner&utm_campaign=partners-2025&utm_content=footer-static"
-          title="Internet Radio"
-          target="_blank"
-          rel="noopener noreferrer nofollow sponsored"
-          data-partner="internet-radio"
-          data-placement="footer"
-        >
-          <picture>
-            <source srcset="/images/internet-radio.webp 1x, /images/internet-radio@2x.webp 2x" type="image/webp">
-            <source srcset="/images/internet-radio.png 1x, /images/internet-radio@2x.png 2x" type="image/png">
-            <img
-              src="/images/internet-radio.png"
-              alt="Internet Radio"
-              loading="lazy"
-              decoding="async"
-              referrerpolicy="no-referrer"
-              style="height:36px;width:auto;display:block;"
-              data-fallback="https://www.internet-radio.com/images/banners/Internet-Radio.com_Banner_Ad_Animated_Gif_728x90_v1.gif"
-            >
-          </picture>
-        </a>
-
-        <a
-          href="https://radioguide.fm/?utm_source=cutterschoiceradio&utm_medium=banner&utm_campaign=partners-2025&utm_content=footer-static"
-          title="Online radio"
-          target="_blank"
-          rel="noopener noreferrer nofollow sponsored"
-          data-partner="radioguide"
-          data-placement="footer"
-        >
-          <picture>
-            <source srcset="/images/radioguide.webp 1x, /images/radioguide@2x.webp 2x" type="image/webp">
-            <source srcset="/images/radioguide.png 1x, /images/radioguide@2x.png 2x" type="image/png">
-            <img
-              src="/images/radioguide.png"
-              alt="Online radio"
-              loading="lazy"
-              decoding="async"
-              referrerpolicy="no-referrer"
-              style="height:36px;width:auto;display:block;"
-              data-fallback="https://radioguide.fm/public/img/banners/banner0.png"
-            >
-          </picture>
-        </a>
+  <!-- Admin overlay (SHIFT + A) -->
+  <div id="adminOverlay" class="adminHidden" aria-hidden="true">
+    <div id="adminPanel">
+      <h3>DJ Selects — Admin</h3>
+      <p class="hint">Paste up to 5 URLs (YouTube or Bandcamp), one per line. Press <b>Save</b> to update.</p>
+      <textarea id="adminTracks"></textarea>
+      <div class="row">
+        <button id="adminSave">Save</button>
+        <button id="adminClose">Close</button>
+        <div id="adminStatus"></div>
       </div>
     </div>
-  </footer>
+  </div>
 
-  <!-- JS (cache-busted) -->
-  <!-- Hls.js first (deferred), then your single-page app script, then slideshow -->
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@1" defer></script>
-  <script src="script.js?v=2025-11-23-1" defer></script>
-  <script src="slideshow.js?v=2025-11-23-1" defer></script>
-
-  <!-- Move MERCH to bottom nav row on mobile, restore on desktop -->
   <script>
-    (function(){
-      const mq = window.matchMedia('(max-width: 768px)');
-      const navMenu    = document.querySelector('#main-nav .nav-menu');
-      const navActions = document.querySelector('#main-nav .nav-actions');
-      const merchLink  = document.querySelector('#main-nav .nav-menu a.nav-link[href$="merch.html"]');
-
-      if (!navMenu || !navActions || !merchLink) return;
-
-      const anchor = document.createElement('span');
-      anchor.id = 'merch-return-anchor';
-      anchor.style.display = 'none';
-      merchLink.after(anchor);
-
-      function moveIfNeeded(e){
-        const isMobile = (e && 'matches' in e) ? e.matches : mq.matches;
-
-        if (isMobile) {
-          if (!merchLink.dataset.moved) {
-            navActions.insertBefore(merchLink, navActions.firstChild);
-            merchLink.dataset.moved = '1';
-          }
-        } else {
-          if (merchLink.dataset.moved) {
-            anchor.before(merchLink);
-            merchLink.dataset.moved = '';
-          }
-        }
-      }
-
-      moveIfNeeded();
-      if (mq.addEventListener) mq.addEventListener('change', moveIfNeeded);
-      else mq.addListener && mq.addListener(moveIfNeeded);
-      window.addEventListener('orientationchange', moveIfNeeded);
-    })();
+    window.DJ_SELECTS = {
+      CONFIG_ENDPOINT: 'dj-selects-config.php',
+      PROXY_ENDPOINT:  'rc-proxy.php',
+      ADMIN_HASH_HEX: '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e'
+    };
   </script>
 
-  <!-- JSON-LD Events injector (kept) -->
   <script>
-  (function(){
-    const API_KEY = 'pk_0b8abc6f834b444f949f727e88a728e0';
+  (() => {
+    const BASE_URL   = 'https://api.radiocult.fm/api';
     const STATION_ID = 'cutters-choice-radio';
-    const DAYS_AHEAD = 7;
+    const API_KEY    = 'pk_0b8abc6f834b444f949f727e88a728e0';
 
-    const startISO = new Date().toISOString();
-    const endISO   = new Date(Date.now() + DAYS_AHEAD * 24 * 60 * 60 * 1000).toISOString();
+    const CFG = window.DJ_SELECTS || {};
+    const $  = (s, r=document) => r.querySelector(s);
+    const $$ = (s, r=document) => [...r.querySelectorAll(s)];
 
-    const url = 'https://api.radiocult.fm/api/station/' + encodeURIComponent(STATION_ID) +
-                '/schedule?startDate=' + encodeURIComponent(startISO) +
-                '&endDate=' + encodeURIComponent(endISO) +
-                '&expand=artist';
+    const djNameText=$('#djNameText'),
+          djNameBig=$('#djNameBig'),
+          djProfile=$('#djProfileThumb'),
+          djBioBox=$('#djBio'),
+          nextWhen=$('#nextShowWhen'),
+          profileLink=$('#djProfileLink'),
+          socialsBox=$('#djSocials'),
+          stripList=$('#stripList'),
+          mainPreview=$('#mainPreview');
+    const adminOverlay=$('#adminOverlay'),
+          adminTextarea=$('#adminTracks'),
+          adminSaveBtn=$('#adminSave'),
+          adminCloseBtn=$('#adminClose'),
+          adminStatus=$('#adminStatus');
 
-    fetch(url, { headers: { 'x-api-key': API_KEY } })
-      .then(r => r.ok ? r.json() : Promise.reject(new Error('Schedule fetch failed: ' + r.status)))
-      .then(data => {
-        const events = Array.isArray(data?.schedules) ? data.schedules
-                     : Array.isArray(data) ? data
-                     : [];
-        if (!events.length) return;
+    const state = { selector:{ kind:'artist', id:'', slug:'selector', name:'', image:'', description:null, shareUrl:'', socials:{} }, tracks:[], authed:false };
 
-        const LISTEN_URL = 'https://cutterschoiceradio.com/listen';
-        const ORG = {
-          name: 'Cutters Choice Radio',
-          url:  'https://cutterschoiceradio.com',
-          logo: 'https://cutterschoiceradio.com/images/logo.png'
-        };
+    /* ── utils ─────────────────────────────────────────────────────── */
+    const headers = { 'x-api-key': API_KEY };
+    const fetchJSON = async (url, opt={}) => {
+      const r=await fetch(url,{cache:'no-store',...opt,headers:{...(opt.headers||{}),...headers}});
+      if(!r.ok) throw new Error(String(r.status));
+      return r.json();
+    };
 
-        const items = events.map(ev => {
-          const sISO = ev.startDateUtc || ev.startDate || ev.start;
-          const eISO = ev.endDateUtc   || ev.endDate   || ev.end;
-          const performers = (ev.artists || [])
-            .map(a => a && a.name ? { '@type':'Person', name:a.name } : null)
-            .filter(Boolean);
-
-          const obj = {
-            '@type': 'Event',
-            name: ev.title || ev.name || 'Show',
-            startDate: sISO,
-            endDate:   eISO,
-            eventStatus: 'https://schema.org/EventScheduled',
-            eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
-            location: { '@type': 'VirtualLocation', url: LISTEN_URL },
-            organizer: { '@type': 'Organization', name: ORG.name, url: ORG.url, logo: ORG.logo }
-          };
-          if (performers.length) obj.performer = performers;
-          return obj;
+    const nz = iso => {
+      try{
+        const d=new Date(iso);
+        return d.toLocaleString(undefined,{
+          weekday:'short',day:'numeric',month:'short',
+          hour:'2-digit',minute:'2-digit',hour12:false,timeZoneName:'short'
         });
+      }catch{return '';}
+    };
 
-        const script = document.createElement('script');
-        script.type = 'application/ld+json';
-        script.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': items });
-        document.head.appendChild(script);
-      })
-      .catch(err => console.warn('[CCR JSON-LD injector]', err));
+    const tags = t => Array.isArray(t) ? t.map(x=>String(x).toLowerCase())
+      : (typeof t==='string' ? t.split(',').map(s=>s.trim().toLowerCase()) : []);
+
+    /* === Safe text/HTML helpers === */
+    const escapeHtml = s => String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    const LINK_RE = /(?:https?:\/\/[^\s<]+|www\.[^\s<]+|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})/g;
+    function linkifySafe(text){
+      const out=[]; let last=0; LINK_RE.lastIndex=0; let m;
+      while((m=LINK_RE.exec(text))){
+        out.push(escapeHtml(text.slice(last,m.index)));
+        let url=m[0];
+        const trail=url.match(/[)\]\}.,!?;:'"]+$/);
+        let trailing=''; if(trail){ trailing=trail[0]; url=url.slice(0,-trail[0].length); }
+        let href=url;
+        if(/^[^@\s]+@[^@\s]+\.[A-Za-z]{2,}$/.test(url)) href='mailto:'+url;
+        else if(!/^https?:\/\//i.test(url)) href='https://'+url;
+        out.push(`<a href="${escapeHtml(href)}" target="_blank" rel="nofollow noopener noreferrer ugc">${escapeHtml(url)}</a>`);
+        if(trailing) out.push(escapeHtml(trailing));
+        last=m.index+m[0].length;
+      }
+      out.push(escapeHtml(text.slice(last)));
+      return out.join('');
+    }
+    function safeUrl(u){
+      try{
+        let s=String(u||'').trim();
+        if(!s) return '#';
+        if(/^(javascript|data):/i.test(s)) return '#';
+        if(/^[a-z][a-z0-9+.-]*:/i.test(s)) return s;
+        if(s.startsWith('//')) return 'https:'+s;
+        if(s.startsWith('/')) return s;
+        return 'https://'+s;
+      }catch{return '#';}
+    }
+    function sanitizeHtml(html){
+      const div=document.createElement('div');
+      div.innerHTML=html;
+      div.querySelectorAll('script,style,noscript').forEach(n=>n.remove()); /* why: prevent XSS */
+      div.querySelectorAll('*').forEach(el=>{
+        [...el.attributes].forEach(a=>{
+          const name=a.name.toLowerCase();
+          if(name.startsWith('on')) el.removeAttribute(a.name);           /* why: strip event handlers */
+          if((name==='href'||name==='src') && /^(javascript|data):/i.test(a.value)) el.removeAttribute(a.name);
+        });
+      });
+      return div.innerHTML;
+    }
+
+    /* === Rich text rendering for RadioCult-like JSON === */
+    function isRichish(x){
+      if(!x) return false;
+      if(typeof x==='string') return false;
+      if(Array.isArray(x)) return true;
+      return !!(x.type || x.children || x.rich_text || x.content || x.nodes || x.blocks || typeof x.text==='string' || typeof x.html==='string' || typeof x.plain_text==='string');
+    }
+    function asChildren(n){
+      if(Array.isArray(n)) return n;
+      return n?.children || n?.rich_text || n?.content || n?.nodes || n?.blocks || (n?.value && (n.value.children || n.value.content)) || [];
+    }
+    function getMarks(n){
+      const ann = n?.annotations || n?.marks;
+      if(!ann) return {};
+      if(Array.isArray(ann)){
+        const m={}; ann.forEach(x=>{ const t=(x?.type||x)?.toString().toLowerCase(); if(t) m[t]=true; });
+        return m;
+      }
+      return ann;
+    }
+    function renderInline(nodes){
+      const parts = [].concat(asChildren(nodes)).map(renderNodeInline);
+      return parts.join('');
+    }
+    function renderNodeInline(n){
+      if(n==null) return '';
+      if(typeof n==='string') return linkifySafe(n);
+      if(Array.isArray(n)) return n.map(renderNodeInline).join('');
+
+      if(typeof n==='object'){
+        if(typeof n.html==='string') return sanitizeHtml(n.html);
+        if(typeof n.plain_text==='string') return linkifySafe(n.plain_text);
+        if(typeof n.text==='string'){
+          let html = linkifySafe(n.text);
+          const m = getMarks(n);
+          if(m.bold||m.strong) html=`<strong>${html}</strong>`;
+          if(m.italic||m.em)  html=`<em>${html}</em>`;
+          if(m.underline)     html=`<u>${html}</u>`;
+          if(m.code)          html=`<code>${html}</code>`;
+          if(n.href||n.url)   html=`<a href="${escapeHtml(safeUrl(n.href||n.url))}" target="_blank" rel="nofollow noopener noreferrer ugc">${html}</a>`;
+          return html;
+        }
+        const t=(n.type||'').toLowerCase();
+        if(t==='link' && (n.href||n.url)) return `<a href="${escapeHtml(safeUrl(n.href||n.url))}" target="_blank" rel="nofollow noopener noreferrer ugc">${renderInline(n)}</a>`;
+        if(t==='br' || t==='line_break') return '<br>';
+        return renderInline(n);
+      }
+      return escapeHtml(String(n));
+    }
+
+    function plainFrom(n){
+      if(n==null) return '';
+      if(typeof n==='string') return n;
+      if(Array.isArray(n)) return n.map(plainFrom).join('');
+      if(typeof n==='object'){
+        if(typeof n.plain_text==='string') return n.plain_text;
+        if(typeof n.text==='string') return n.text;
+        const kids=asChildren(n);
+        if(kids && kids.length) return kids.map(plainFrom).join('');
+        return '';
+      }
+      return String(n);
+    }
+
+    function renderBlock(n){
+      if(n==null) return '';
+
+      if(typeof n==='string'){
+        const s=n;
+        if(s.trim() === '') return `<p class="bio-gap"><br></p>`;
+        return `<p class="preserve">${linkifySafe(s)}</p>`;
+      }
+
+      if(Array.isArray(n)) return n.map(renderBlock).join('');
+
+      if(typeof n==='object'){
+        if(typeof n.html==='string') return sanitizeHtml(n.html);
+
+        const t=(n.type||'').toLowerCase();
+
+        if(t==='paragraph' || t==='p' || (!t && asChildren(n).length)){
+          const bodyInline = renderInline(n).trim();
+          if(bodyInline && bodyInline.replace(/<br\s*\/?>/gi,'').trim()!==''){
+            return `<p>${bodyInline}</p>`;
+          }
+          return `<p class="bio-gap"><br></p>`;
+        }
+
+        if(typeof n.plain_text==='string' || typeof n.text==='string'){
+          const s = n.plain_text ?? n.text;
+          if(s.trim()==='') return `<p class="bio-gap"><br></p>`;
+          return `<p class="preserve">${linkifySafe(s)}</p>`;
+        }
+
+        if(t==='heading_1' || t==='h1'){ const body=renderInline(n); return body? `<h1>${body}</h1>`:``; }
+        if(t==='heading_2' || t==='h2'){ const body=renderInline(n); return body? `<h2>${body}</h2>`:``; }
+        if(t==='heading_3' || t==='h3'){ const body=renderInline(n); return body? `<h3>${body}</h3>`:``; }
+        if(t==='heading_4' || t==='h4'){ const body=renderInline(n); return body? `<h4>${body}</h4>`:``; }
+        if(t==='heading_5' || t==='h5'){ const body=renderInline(n); return body? `<h5>${body}</h5>`:``; }
+        if(t==='heading_6' || t==='h6'){ const body=renderInline(n); return body? `<h6>${body}</h6>`:``; }
+
+        if(t==='blockquote' || t==='quote'){
+          const kids=asChildren(n);
+          const inner = (kids && kids.length) ? kids.map(renderBlock).join('') : `<p>${renderInline(n)}</p>`;
+          return `<blockquote>${inner}</blockquote>`;
+        }
+
+        if(t==='code_block' || t==='pre' || t==='preformatted'){
+          const body = plainFrom(n);
+          return `<pre><code>${escapeHtml(body)}</code></pre>`;
+        }
+
+        if(t==='bulleted_list' || t==='unordered_list' || t==='ul'){
+          const items = asChildren(n).map(c=>`<li>${renderInline(c)}</li>`).join('');
+          return items? `<ul>${items}</ul>` : '';
+        }
+        if(t==='ordered_list' || t==='numbered_list' || t==='ol'){
+          const items = asChildren(n).map(c=>`<li>${renderInline(c)}</li>`).join('');
+          return items? `<ol>${items}</ol>` : '';
+        }
+        if(t==='bulleted_list_item' || t==='numbered_list_item' || t==='list_item' || t==='li'){
+          return `<li>${renderInline(n)}</li>`;
+        }
+
+        const kids = asChildren(n);
+        if(kids && kids.length) return kids.map(k=>renderBlock(k)).join('');
+        return '';
+      }
+
+      return '';
+    }
+
+    function renderRichHTML(input){
+      if(Array.isArray(input)) return input.map(renderBlock).join('');
+      return renderBlock(input);
+    }
+
+    /* === Description extraction: return raw === */
+    function pickDescription(a){
+      const c = a?.description ?? a?.bio ?? a?.about ?? a?.profile ?? a?.details?.description ?? '';
+      return (c==null? '' : c);
+    }
+
+    /* === Plain text → HTML with preserved blank lines/spaces === */
+    function plainTextToHTMLWithGaps(text){
+      const lines = String(text).replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+      const out = [];
+      let buf = [];
+      let pendingGaps = 0;
+
+      const flushBuf = () => {
+        if(buf.length){
+          const inner = linkifySafe(buf.join('\n'));
+          out.push(`<p class="preserve">${inner}</p>`);
+          buf = [];
+        }
+      };
+      const flushGaps = () => {
+        while(pendingGaps-- > 0) out.push('<p class="bio-gap"><br></p>');
+        pendingGaps = 0;
+      };
+
+      for(const line of lines){
+        if(/^[ \t\u00A0]*$/.test(line)){
+          if(buf.length){ flushBuf(); pendingGaps = 1; }
+          else { pendingGaps++; }
+        }else{
+          flushGaps();
+          buf.push(line);
+        }
+      }
+      if(buf.length) flushBuf(); else flushGaps();
+      return out.join('');
+    }
+
+    /* === Format bio entry point === */
+    function formatBioHTML(raw){
+      if(raw == null) return '';
+
+      if(typeof raw === 'string' && /<[a-z][\s\S]*>/i.test(raw)){
+        return sanitizeHtml(raw);
+      }
+
+      if(isRichish(raw)){
+        const html = renderRichHTML(raw);
+        if(html && /<[a-z][\s\S]*>/i.test(html)) return html;
+        const text = String(html||'');
+        return plainTextToHTMLWithGaps(text);
+      }
+
+      const s = String(raw);
+      return plainTextToHTMLWithGaps(s);
+    }
+
+    function extractSocials(obj){
+      const buckets=[obj?.socials,obj?.social,obj?.links,obj?.contact,obj?.contacts,obj].filter(Boolean);
+      const out={}, set=(k,v)=>{ if(v && !out[k]) out[k]=String(v).trim(); };
+      for(const b of buckets){
+        set('website',b.website||b.url); set('facebook',b.facebook||b.fb); set('instagram',b.instagram||b.ig);
+        set('twitter',b.twitter||b.x); set('mixcloud',b.mixcloud); set('soundcloud',b.soundcloud||b.sc); set('email',b.email);
+      }
+      const norm=s=>s?.startsWith('@')?s.slice(1):s;
+      if(out.twitter&&!/^https?:/i.test(out.twitter)) out.twitter=`https://twitter.com/${norm(out.twitter)}`;
+      if(out.instagram&&!/^https?:/i.test(out.instagram)) out.instagram=`https://instagram.com/${norm(out.instagram)}`;
+      if(out.facebook&&!/^https?:/i.test(out.facebook)) out.facebook=`https://facebook.com/${norm(out.facebook)}`;
+      if(out.mixcloud&&!/^https?:/i.test(out.mixcloud)) out.mixcloud=`https://www.mixcloud.com/${norm(out.mixcloud)}/`;
+      if(out.soundcloud&&!/^https?:/i.test(out.soundcloud)) out.soundcloud=`https://soundcloud.com/${norm(out.soundcloud)}`;
+      if(out.email&&!/^mailto:/i.test(out.email)) out.email=`mailto:${out.email}`;
+      return out;
+    }
+
+    /* ── SELECTOR + detail ─────────────────────────────────────────── */
+    async function loadSelector(){
+      const findBy = (arr) =>
+        arr.find(x=>tags(x.tags).includes('selector')) ||
+        arr.find(x=>(x.slug||'').toLowerCase()==='selector') ||
+        arr.find(x=>(x.name||'').toLowerCase()==='selector');
+
+      let a=null, kind='artist';
+      try{ const j=await fetchJSON(`${BASE_URL}/station/${STATION_ID}/artists`); a=findBy(j?.artists||j?.data||j||[]);}catch{}
+      if(!a){ try{ const j=await fetchJSON(`${BASE_URL}/station/${STATION_ID}/presenters`); a=findBy(j?.presenters||j?.data||j||[]); if(a) kind='presenter';}catch{} }
+      if(!a){
+        djNameText.textContent='—'; if(djNameBig) djNameBig.textContent='—';
+        djBioBox.innerHTML='<p>No artist/presenter tagged “SELECTOR”.</p>'; return;
+      }
+
+      const kindPath = (kind==='presenter'?'presenters':'artists');
+      let detail=null;
+      try{ detail=await fetchJSON(`${BASE_URL}/station/${STATION_ID}/${kindPath}/${a.id}`);}catch{}
+      if(!detail){ try{ detail=await fetchJSON(`${BASE_URL}/station/${STATION_ID}/${kindPath}/${a.slug||'selector'}`);}catch{} }
+
+      const merged={...a,...(detail||{})};
+      state.selector={
+        kind,
+        id:merged.id||a.id||'',
+        slug:(merged.slug||a.slug||'selector'),
+        name:(merged.name||a.name||''),
+        image:merged.logo?.['512x512']||merged.logo?.default||merged.image||a.image||'',
+        description:pickDescription(merged) ?? pickDescription(a),
+        shareUrl:merged.shareUrl||merged.url||a.shareUrl||a.url||'',
+        socials:extractSocials(merged)
+      };
+
+      djNameText.textContent=state.selector.name||'';
+      if(djNameBig) djNameBig.textContent=state.selector.name||'';
+      if(state.selector.image) djProfile.src=state.selector.image;
+
+      djBioBox.innerHTML = formatBioHTML(state.selector.description);
+
+      if(state.selector.shareUrl){ profileLink.href=state.selector.shareUrl; profileLink.style.display='inline-block'; }
+
+      socialsBox.innerHTML='';
+      const S=state.selector.socials||{};
+      const add=(href,title,icon)=>{
+        if(!href) return;
+        const a=document.createElement('a');
+        a.href=href;a.target='_blank';a.rel='noopener';a.title=title;
+        a.innerHTML=`<i class="${icon}"></i>`;
+        socialsBox.appendChild(a);
+      };
+      add(S.twitter,'X / Twitter','fa-brands fa-x-twitter');
+      add(S.instagram,'Instagram','fa-brands fa-instagram');
+      add(S.facebook,'Facebook','fa-brands fa-facebook-f');
+      add(S.mixcloud,'Mixcloud','fa-brands fa-mixcloud');
+      add(S.soundcloud,'SoundCloud','fa-brands fa-soundcloud');
+      add(S.website,'Website','fa-solid fa-globe');
+      add(S.email,'Email','fa-solid fa-envelope');
+    }
+
+    /* ── Next scheduled show ───────────────────────────────────────── */
+    async function loadNextShow(){
+      if(!state.selector.id){ nextWhen.textContent='TBA'; return; }
+      const kindPath=(state.selector.kind==='presenter'?'presenters':'artists');
+      const now=new Date().toISOString(), end=new Date(Date.now()+365*24*60*60*1000).toISOString();
+      try{
+        const j=await fetchJSON(`${BASE_URL}/station/${STATION_ID}/${kindPath}/${state.selector.id}/schedule?startDate=${encodeURIComponent(now)}&endDate=${encodeURIComponent(end)}`);
+        const list=j?.schedules||j?.data||j?.items||[];
+        if(!Array.isArray(list)||!list.length){ nextWhen.textContent='TBA'; return; }
+        const iso=s=>s.startDateUtc||s.startDate||s.start||s.scheduledStart||s.start_time||s.start_at;
+        const future=list.map(s=>({s,t:new Date(iso(s)||0)})).filter(x=>x.t>new Date()).sort((a,b)=>a.t-b.t)[0];
+        nextWhen.textContent=future?nz(iso(future.s)):nz(iso(list[0]));
+      }catch{ nextWhen.textContent='Unable to load schedule'; }
+    }
+
+    /* ── Config: server → file → localStorage ──────────────────────── */
+    async function loadConfig(){
+      let ok=false;
+      try{
+        const r=await fetch(`${CFG.CONFIG_ENDPOINT}?action=load`,{cache:'no-store'});
+        if(r.ok){
+          const j=await r.json();
+          if(Array.isArray(j?.tracks)){ state.tracks=j.tracks.slice(0,5); ok=true; }
+        }
+      }catch{}
+      if(!ok){
+        try{
+          const r=await fetch('dj-selects-data.json',{cache:'no-store'});
+          if(r.ok){
+            const j=await r.json();
+            if(Array.isArray(j?.tracks)){ state.tracks=j.tracks.slice(0,5); ok=true; }
+          }
+        }catch{}
+      }
+      if(!ok){
+        try{
+          const s=localStorage.getItem('djselects_tracks');
+          if(s){
+            const a=JSON.parse(s);
+            if(Array.isArray(a)) state.tracks=a.slice(0,5);
+          }
+        }catch{}
+      }
+    }
+
+    /* ── Media render ─────────────────────────────────────────────── */
+    const parseTrack=(u)=>{ if(!u) return null; try{
+      const x=new URL(u.trim()); const host=x.hostname.toLowerCase();
+      if(host.includes('youtu')){
+        let id='';
+        if(host==='youtu.be') id=x.pathname.slice(1);
+        else if(x.pathname.startsWith('/shorts/')) id=x.pathname.split('/')[2]||'';
+        else if(x.searchParams.get('v')) id=x.searchParams.get('v');
+        else if(/^\/embed\//.test(x.pathname)) id=x.pathname.split('/').pop();
+        id=(id||'').split('?')[0].split('&')[0]; if(!id) return null;
+        return {kind:'youtube', src:`https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1`};
+      }
+      return {kind:'iframe', src:u.trim()};
+    }catch{return null;} };
+
+    const iframe=(src,title='Media player')=>`<iframe src="${src}" title="${title}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
+
+    function setPreview(t, play=false){
+      let src=t.src;
+      if (play && t.kind==='youtube') src += (src.includes('?') ? '&' : '?') + 'autoplay=1';
+      mainPreview.innerHTML=iframe(src, t.kind==='youtube'?'YouTube player':'Media player');
+    }
+
+    function renderTracks(){
+      stripList.innerHTML='';
+      const items=state.tracks.map(parseTrack).filter(Boolean).slice(0,5);
+      items.forEach((t,idx)=>{
+        const el=document.createElement('div'); el.className='strip';
+        el.innerHTML=iframe(t.src,'Media preview')+'<button class="overlayBtn" aria-label="Select"></button>';
+        el.querySelector('.overlayBtn').addEventListener('click',()=>{ $$('.strip').forEach(s=>s.classList.remove('selected')); el.classList.add('selected'); setPreview(t,true); },{passive:true});
+        if(idx===0) el.classList.add('selected');
+        stripList.appendChild(el);
+      });
+      if(items.length) setPreview(items[0]); else mainPreview.innerHTML='<div class="big-placeholder">Select a track</div>';
+    }
+
+    async function boot(){ await loadConfig(); await loadSelector(); await loadNextShow(); renderTracks(); }
+    document.addEventListener('DOMContentLoaded', boot);
+
+    /* Admin (SHIFT + A) */
+    async function sha256hex(str){ const enc=new TextEncoder().encode(str); const h=await crypto.subtle.digest('SHA-256',enc); return [...new Uint8Array(h)].map(b=>b.toString(16)).map(s=>s.padStart(2,'0')).join(''); }
+    function openAdmin(){ adminOverlay.classList.remove('adminHidden'); adminOverlay.setAttribute('aria-hidden','false'); adminTextarea.value=(state.tracks||[]).join('\n'); adminStatus.textContent=''; }
+    function closeAdmin(){ adminOverlay.classList.add('adminHidden'); adminOverlay.setAttribute('aria-hidden','true'); }
+    document.addEventListener('keydown', async (e)=>{ if(e.shiftKey && e.code==='KeyA'){ e.preventDefault(); if(!state.authed){ const pw=prompt('Enter passphrase'); if(!pw) return; const hex=await sha256hex(pw); if(hex===CFG.ADMIN_HASH_HEX){ state.authed=true; openAdmin(); } else alert('Incorrect passphrase'); } else openAdmin(); } });
+    adminCloseBtn.addEventListener('click', closeAdmin);
+
+    async function serverSave(lines){
+      const r=await fetch(CFG.CONFIG_ENDPOINT+'?action=save',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({tracks:lines,auth:CFG.ADMIN_HASH_HEX})
+      });
+      const txt=await r.text();
+      let j=null; try{ j=JSON.parse(txt); }catch{}
+      if(!r.ok || !(j&&j.ok)){
+        const msg = j?.error ? ('Server error: '+j.error) : ('HTTP '+r.status+' '+txt.slice(0,180));
+        throw new Error(msg);
+      }
+      return j.tracks || lines;
+    }
+    adminSaveBtn.addEventListener('click', async ()=>{
+      const lines=adminTextarea.value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean).slice(0,5);
+      adminStatus.textContent='Saving…';
+      try{
+        const saved=await serverSave(lines);
+        state.tracks=saved; localStorage.setItem('djselects_tracks',JSON.stringify(saved)); renderTracks();
+        adminStatus.textContent='Saved.';
+      }catch(err){
+        console.error('Admin save error:',err);
+        state.tracks=lines; localStorage.setItem('djselects_tracks',JSON.stringify(lines)); renderTracks();
+        adminStatus.textContent=String(err.message||err) || 'Saved locally only (check server perms).';
+      }
+    });
   })();
   </script>
-
-  <!-- GA4 outbound click tracking + IMG fallback -->
-  <script>
-    // Outbound click attribution
-    (function () {
-      function onClick(e) {
-        const a = e.target.closest && e.target.closest('a[href^="http"]');
-        if (!a) return;
-        const url = a.href;
-        const host = (new URL(url)).hostname.replace(/^www\./, '');
-        const partner = a.dataset.partner || host || 'external';
-        const placement = a.dataset.placement || 'unknown';
-        if (typeof gtag === 'function') {
-          gtag('event', 'outbound_click', {
-            event_category: 'engagement',
-            event_label: url,
-            link_url: url,
-            partner,
-            placement
-          });
-        }
-      }
-      document.addEventListener('click', onClick, { capture: true });
-    })();
-
-    // Fallback to remote banner if local static asset missing
-    (function () {
-      document.querySelectorAll('.footer-logos img[data-fallback]').forEach(function(img){
-        img.addEventListener('error', function(){
-          if (img.dataset.fallback && img.src !== img.dataset.fallback) {
-            img.srcset = '';
-            img.src = img.dataset.fallback;
-          }
-        }, { once: true });
-      });
-    })();
-  </script>
-
-  <!-- Removed old inline Chromecast handler and old inline HLS init;
-       both are now handled inside script.js for a single source of truth. -->
 </body>
 </html>
+
+<!-- ========================== -->
+<!-- File: package.json (tests) -->
+{
+  "name": "ccr-dj-selects-tests",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "@playwright/test": "^1.47.0"
+  },
+  "scripts": {
+    "test": "playwright test",
+    "test:update": "playwright test --update-snapshots"
+  }
+}
+
+<!-- File: playwright.config.ts -->
+import { defineConfig, devices } from '@playwright/test';
+
+const baseURL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8080';
+
+export default defineConfig({
+  testDir: 'tests',
+  timeout: 30000,
+  expect: { timeout: 5000 },
+  use: {
+    baseURL,
+    trace: 'on-first-retry'
+  },
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+  ]
+});
+
+<!-- File: tests/fixtures/radiocult-selector.json -->
+{
+  "id": "selector-1",
+  "slug": "selector",
+  "name": "Test Selector",
+  "image": "/images/default-dj.png",
+  "shareUrl": "https://radiocult.fm/artist/test-selector",
+  "description": [
+    { "type": "heading_2", "text": "About the Selector" },
+    { "type": "paragraph", "children": [{ "text": "This line stays normal size." }] },
+    { "type": "heading_4", "text": "Smaller Heading (H4)" },
+    { "type": "paragraph", "children": [{ "text": "Indented paragraph follows a quote." }] },
+    { "type": "blockquote", "children": [
+      { "type": "paragraph", "children": [{ "text": "Pulled quote with\nmanual wraps." }] }
+    ]},
+    { "type": "code_block", "text": "const x = 42;\nconsole.log(x);" },
+    "",
+    { "type": "paragraph", "children": [{ "text": "Inline code like ", "marks": [] }, { "text": "x += 1", "annotations": { "code": true } }, { "text": " is preserved.", "marks": [] }] },
+    { "type": "heading_6", "text": "Tiny Heading (H6)" }
+  ],
+  "socials": { "instagram": "cutterschoiceradio", "twitter": "CCRadio" }
+}
+
+<!-- File: tests/dj-selects-bio.spec.ts -->
+import { test, expect } from '@playwright/test';
+import fs from 'node:fs';
+import path from 'node:path';
+
+const rcBase = 'https://api.radiocult.fm/api';
+const fixture = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'radiocult-selector.json'), 'utf8'));
+
+test.describe('DJ Selects bio mirrors Radio Cult formatting', () => {
+  test.beforeEach(async ({ page, baseURL }) => {
+    // Intercept Radio Cult endpoints
+    await page.route(new RegExp(`^${rcBase}/station/cutters-choice-radio/(artists|presenters)$`), route => {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ artists: [fixture] })
+      });
+    });
+    await page.route(new RegExp(`^${rcBase}/station/cutters-choice-radio/(artists|presenters)/selector$`), route => {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(fixture)
+      });
+    });
+    await page.route('**/dj-selects-config.php**', route => {
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, tracks: [ 'https://youtu.be/dQw4w9WgXcQ' ] }) });
+    });
+    await page.route('**/dj-selects-data.json', route => {
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ tracks: [ 'https://youtu.be/dQw4w9WgXcQ' ] }) });
+    });
+    await page.route('**/*', route => {
+      // Let all other requests pass through
+      route.continue();
+    });
+
+    await page.goto(`${baseURL}/dj-selects.html`);
+    await expect(page.locator('#djBio')).toBeVisible();
+    await expect(page.locator('#djBio :text("About the Selector")')).toBeVisible();
+  });
+
+  for (const width of [420, 768, 1280]) {
+    test(`bio snapshot @${width}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      const bio = page.locator('#djBio');
+      await expect(bio).toBeVisible();
+      await expect(bio).toHaveScreenshot(`bio-${width}.png`, { maxDiffPixelRatio: 0.02 });
+    });
+  }
+
+  test('structure: headings, blockquote, code preserved', async ({ page }) => {
+    const h2 = page.locator('#djBio h2');
+    const h4 = page.locator('#djBio h4');
+    const h6 = page.locator('#djBio h6');
+    const quote = page.locator('#djBio blockquote');
+    const codeBlock = page.locator('#djBio pre code');
+
+    await expect(h2).toHaveCount(1);
+    await expect(h4).toHaveCount(1);
+    await expect(h6).toHaveCount(1);
+    await expect(quote).toHaveCount(1);
+    await expect(codeBlock).toContainText('const x = 42;');
+  });
+});

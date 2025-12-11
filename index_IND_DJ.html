@@ -1,437 +1,168 @@
-<!-- /best-of-2025-mixes.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Cutters Choice Best of 2025 Mixes</title>
-  <link rel="canonical" href="https://cutterschoiceradio.com/best-of-2025-mixes.html">
-  <meta name="description" content="Cutters Choice Best of 2025 Mixes — standout sets from CCR selectors.">
-  <meta name="theme-color" content="#5A8785">
+<?php
+/* =========================================================================
+   /best-of-2025-mixes-config.php
+   Minimal JSON backend for "Best of 2025 Mixes"
+   -------------------------------------------------------------------------
+   REQUIREMENTS
+   - Create folder: /data  (same dir as this PHP)
+   - Upload the JSON file from below as: /data/best-of-2025-mixes.json
+   - Ensure web server can write to /data (e.g., chmod 755 on /data, 644 on file)
+   - Client sends either 'auth' (SHA-256 hex of passphrase) OR 'password'
+   -------------------------------------------------------------------------
+   ADMIN PASSWORD (plaintext): ccr2025!
+   SHA-256 HEX: 446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e
+   ========================================================================= */
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+declare(strict_types=1);
 
-  <style>
-    :root{
-      --brand-teal:#5A8785; --bg:#000; --text:#FAFAFA; --muted:#CFE4E2;
-      --maxw: 1700px;
-    }
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;line-height:1.45}
+header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 
-    /* ===== Header ===== */
-    header.header-banner{background:#000;padding:1rem 0;display:flex;justify-content:space-between;align-items:center}
-    header .logo-container img{height:160px;width:auto}
-    .title{text-align:center}
-    .title h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.4rem,6.8vw,6rem);letter-spacing:.5px;color:#fff;line-height:1;text-transform:uppercase}
-    .title .tagline{color:var(--brand-teal);margin-top:.3rem}
-    @media (max-width:700px){ header .logo-container img{height:96px} }
+const DATA_FILE       = __DIR__ . '/data/best-of-2025-mixes.json';
+const ADMIN_HASH_HEX  = '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e'; // sha256('ccr2025!')
 
-    .thin-teal-line{height:2px;background:var(--brand-teal);width:100%}
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+$action = $_GET['action'] ?? ($_POST['action'] ?? ($method === 'POST' ? 'save' : 'load'));
 
-    /* ===== Top Nav (evenly spaced) ===== */
-    nav#best-nav{background:var(--brand-teal);border-top:2px solid #000;border-bottom:2px solid #000}
-    nav#best-nav ul{list-style:none;display:flex;width:100%;margin:0;padding:.35rem 0}
-    nav#best-nav li{flex:1 1 0;display:flex}
-    nav#best-nav a{
-      flex:1;display:flex;justify-content:center;align-items:center;text-align:center;
-      text-decoration:none;color:#fff;text-transform:uppercase;
-      font-family:'Bebas Neue',sans-serif;font-size:clamp(.95rem,2.4vw,2rem);
-      letter-spacing:.6px;opacity:.95;padding:.35rem .25rem;
-    }
-    nav#best-nav a:hover{opacity:1}
+function fail(int $code, string $msg) {
+  http_response_code($code);
+  echo json_encode(['ok' => false, 'error' => $msg], JSON_UNESCAPED_SLASHES);
+  exit;
+}
 
-    /* ===== Page container ===== */
-    .wrap{max-width:var(--maxw);margin:0 auto;padding:1rem}
+function ok(array $payload) {
+  echo json_encode(['ok' => true] + $payload, JSON_UNESCAPED_SLASHES);
+  exit;
+}
 
-    /* ===== Mix rows (match mockup proportions) ===== */
-    .mix-row{
-      display:grid;
-      grid-template-columns: 520px 1fr;
-      gap:1rem;
-      border:2px solid var(--brand-teal);
-      background:#0B0B0B;
-      margin:12px 0;
-    }
-    /* left column */
-    .mix-left{position:relative;padding:.75rem;border-right:2px solid var(--brand-teal);background:#0B0B0B}
-    .artist-ribbon{
-      position:relative; /* why: anchor border line */
-      text-align:center;
-      margin:-.25rem -.75rem .6rem;
-      padding:.1rem .5rem .25rem;
-      border-bottom:1px solid var(--brand-teal);
-      font-family:'Bebas Neue',sans-serif;
-      letter-spacing:.06em; text-transform:uppercase; color:#fff; font-size:1.35rem;
-    }
-    .bio{
-      display:grid;grid-template-columns:140px 1fr;gap:.75rem;
-    }
-    .bio img{width:140px;height:140px;object-fit:cover;border:1px solid var(--brand-teal);background:#111}
-    .copy{font-size:.95rem;color:#E7F2F1}
+function ensureDataFile(): void {
+  $dir = dirname(DATA_FILE);
+  if (!is_dir($dir)) {
+    @mkdir($dir, 0755, true);
+  }
+  if (!file_exists(DATA_FILE)) {
+    @file_put_contents(DATA_FILE, "[]\n", LOCK_EX);
+    @chmod(DATA_FILE, 0644);
+  }
+}
 
-    /* right column (widget) */
-    .mix-right{display:flex;align-items:center;justify-content:center;padding:.75rem;background:#0E0E0E}
-    .mix-right iframe{width:100%;height:120px;border:0;display:block}
+function loadEntries(): array {
+  ensureDataFile();
+  $raw = @file_get_contents(DATA_FILE);
+  if ($raw === false) return [];
+  $data = json_decode($raw, true);
+  return is_array($data) ? $data : [];
+}
 
-    @media (max-width:1200px){
-      .mix-row{grid-template-columns:1fr}
-      .mix-left{border-right:0;border-bottom:2px solid var(--brand-teal)}
-      .bio{grid-template-columns:120px 1fr}
-      .bio img{width:120px;height:120px}
-    }
-    @media (max-width:520px){
-      .bio{grid-template-columns:1fr}
-      .bio img{width:100%;height:auto;aspect-ratio:1/1}
-    }
+function sha256_hex(string $s): string {
+  return hash('sha256', $s);
+}
 
-    /* Empty state */
-    .empty{border:2px dashed var(--brand-teal);padding:1rem;text-align:center;color:#BBD5D3;margin:1rem 0}
+function checkAuth(array $in): bool {
+  // Accept either a pre-hashed token or a plaintext password (server hashes to compare).
+  $auth = $in['auth'] ?? '';
+  $pwd  = $in['password'] ?? '';
+  if (is_string($auth) && strtolower($auth) === ADMIN_HASH_HEX) return true;
+  if (is_string($pwd)  && sha256_hex($pwd)   === ADMIN_HASH_HEX) return true;
+  return false;
+}
 
-    /* ===== Admin (hidden until Shift+A) ===== */
-    .admin-bar{position:sticky;top:0;background:#081F1E;border:2px solid var(--brand-teal);padding:.75rem;display:none;gap:.75rem;z-index:6}
-    .admin-bar input,.admin-bar textarea,.admin-bar select{width:100%;padding:.55rem;background:#000;color:#fff;border:1px solid var(--brand-teal)}
-    .admin-grid{display:grid;grid-template-columns:240px 1fr 1fr auto;gap:.5rem}
-    .admin-actions button,.ghost-btn{background:var(--brand-teal);color:#000;border:none;padding:.55rem .7rem;cursor:pointer}
-    .ghost-btn{background:transparent;color:var(--brand-teal);border:1px solid var(--brand-teal)}
-    .admin-list{margin-top:.5rem}
-    .admin-item{display:grid;grid-template-columns:1fr auto;align-items:center;padding:.4rem .5rem;border:1px solid #204846;margin:.3rem 0}
-    .admin-item .buttons button{margin-left:.25rem}
-    .admin-meta{font-size:.9rem;color:#A5C4C2}
+function sanitizeCopy(?string $s): string {
+  if ($s === null) return '';
+  // strip tags and trim; clamp length
+  $t = trim(strip_tags($s));
+  if (mb_strlen($t) > 2000) $t = mb_substr($t, 0, 2000);
+  return $t;
+}
 
-    /* Login modal (only via Shift+A) */
-    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.7);z-index:100}
-    .modal .card{background:#0B1414;border:2px solid var(--brand-teal);padding:1rem;max-width:360px;width:92%}
-    .modal .card h3{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;margin-bottom:.5rem}
-    .modal input{width:100%;padding:.6rem;background:#000;color:#fff;border:1px solid var(--brand-teal)}
-    .modal .row{display:flex;gap:.5rem;margin-top:.6rem}
-    .hide{display:none!important}
-  </style>
-</head>
-<body>
-  <!-- Header -->
-  <header class="header-banner" role="banner" aria-label="Site header">
-    <div class="logo-container"><img src="/images/logo.png" alt="Cutters Choice Radio logo" loading="lazy"></div>
-    <div class="title">
-      <h1>CUTTERS CHOICE BEST OF 2025 MIXES</h1>
-      <p class="tagline">Relentless flavas. Significant bangers. Certified standouts.</p>
-    </div>
-    <div class="logo-container"><img src="/images/logo.png" alt="Cutters Choice Radio logo" loading="lazy"></div>
-  </header>
+function isValidWidget(string $url): bool {
+  // Must be HTTPS Mixcloud widget iframe with feed param
+  $parts = @parse_url($url);
+  if (!$parts || !isset($parts['scheme'],$parts['host'],$parts['path'])) return false;
+  if (strtolower($parts['scheme']) !== 'https') return false;
 
-  <div class="thin-teal-line"></div>
-  <nav id="best-nav" aria-label="Primary navigation">
-    <ul role="list">
-      <li><a href="index.html">Home</a></li>
-      <li><a href="our-story.html">Our Story</a></li>
-      <li><a href="index-ourDJS.html">Our DJs</a></li>
-      <li><a href="dj-selects.html">DJ Selects</a></li>
-      <li><a href="cutty-ranks.html">Cutty Ranks</a></li>
-      <li><a href="schedule.html">Schedule</a></li>
-      <li><a href="merch.html">Merch</a></li>
-    </ul>
-  </nav>
-  <div class="thin-teal-line"></div>
+  $host = strtolower($parts['host']);
+  if ($host !== 'www.mixcloud.com' && $host !== 'player.mixcloud.com' && $host !== 'mixcloud.com') return false;
 
-  <main class="wrap" role="main">
-    <!-- Admin (hidden unless Shift+A + password) -->
-    <section id="admin" class="admin-bar" aria-label="Admin controls">
-      <div class="admin-grid">
-        <select id="artistSelect" aria-label="Select Artist"></select>
-        <input id="mixInput" type="text" placeholder="Paste Mixcloud page URL, widget URL, or full <iframe>…" aria-label="Mixcloud input">
-        <textarea id="copy" rows="1" placeholder="Optional copy/notes" aria-label="Copy"></textarea>
-        <div class="admin-actions">
-          <button id="addBtn" title="Add mix"><i class="fa fa-plus"></i> Add</button>
-          <button id="exportBtn" class="ghost-btn" title="Export JSON"><i class="fa fa-download"></i></button>
-          <label class="ghost-btn" title="Import JSON" style="display:inline-flex;align-items:center;gap:.4rem;cursor:pointer">
-            <i class="fa fa-upload"></i><input id="importFile" type="file" accept="application/json" style="display:none">Import
-          </label>
-          <button id="logoutBtn" class="ghost-btn" title="Logout"><i class="fa fa-right-from-bracket"></i></button>
-        </div>
-      </div>
-      <div class="admin-list" id="adminList" aria-live="polite"></div>
-      <p class="admin-meta">Export and upload to <code>/data/best-of-2025-mixes.json</code> so everyone sees the changes.</p>
-    </section>
+  if (strpos($parts['path'], '/widget/iframe') !== 0 && strpos($parts['path'], '/widget/iframe/') === false) {
+    return false;
+  }
 
-    <!-- Public list -->
-    <div id="mixes" aria-live="polite"></div>
-    <div id="empty" class="empty">No mixes yet.</div>
-  </main>
+  if (empty($parts['query'])) return false;
+  parse_str($parts['query'], $q);
+  // require feed param and it should look like a percent-encoded /user/mix/
+  if (empty($q['feed'])) return false;
+  $feed = rawurldecode($q['feed']);
+  return (bool)preg_match('#^/[A-Za-z0-9_\-\.]+/[A-Za-z0-9_\-\.]+/#', $feed);
+}
 
-  <!-- Login modal (hidden by default) -->
-  <div id="loginModal" class="modal" role="dialog" aria-modal="true" aria-label="Admin login">
-    <div class="card">
-      <h3>Admin Login</h3>
-      <input id="pwd" type="password" placeholder="Password" autocomplete="current-password">
-      <div class="row">
-        <button id="loginBtn" class="admin-actions"><i class="fa fa-unlock"></i> Login</button>
-        <button id="cancelLogin" class="ghost-btn">Cancel</button>
-      </div>
-      <p id="loginErr" class="hide" style="color:#f66;margin-top:.5rem">Incorrect password.</p>
-    </div>
-  </div>
+function sanitizeEntries($in): array {
+  if (!is_array($in)) fail(400, 'Invalid payload.');
+  // Hard limits
+  if (count($in) > 300) fail(413, 'Too many entries.');
+  $out = [];
+  foreach ($in as $row) {
+    if (!is_array($row)) continue;
+    $artistId  = isset($row['artistId']) ? (string)$row['artistId'] : '';
+    $widgetSrc = isset($row['widgetSrc']) ? (string)$row['widgetSrc'] : '';
+    $copy      = isset($row['copy']) ? (string)$row['copy'] : '';
 
-  <script>
-    /* ===== Config ===== */
-    const BASE_URL   = 'https://api.radiocult.fm/api';
-    const STATION_ID = 'cutters-choice-radio';
-    const API_KEY    = 'pk_0b8abc6f834b444f949f727e88a728e0';
-    const ADMIN_PASSWORD = 'ccr2025!';
+    if ($artistId === '' || $widgetSrc === '') continue;
+    if (!isValidWidget($widgetSrc)) continue;
 
-    const SHARED_JSON_URL = '/data/best-of-2025-mixes.json';
-    const LS_DRAFT        = 'ccr_best_2025_draft';
-    const ADMIN_KEY       = 'ccr_best_2025_admin';
+    $out[] = [
+      'artistId'  => $artistId,
+      'widgetSrc' => $widgetSrc,
+      'copy'      => sanitizeCopy($copy),
+    ];
+  }
+  return $out;
+}
 
-    /* ===== State ===== */
-    let ARTISTS = [];
-    let ARTIST_MAP = new Map();
-    let MIXES = []; // [{id,artistId,copy,widgetSrc,createdAt}]
+function saveEntries(array $entries): array {
+  ensureDataFile();
+  $json = json_encode($entries, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . "\n";
+  if ($json === false) fail(500, 'Encode failed.');
 
-    /* ===== DOM ===== */
-    const mixesEl     = document.getElementById('mixes');
-    const emptyEl     = document.getElementById('empty');
-    const adminBar    = document.getElementById('admin');
-    const adminList   = document.getElementById('adminList');
-    const artistSel   = document.getElementById('artistSelect');
-    const copyEl      = document.getElementById('copy');
-    const mixInputEl  = document.getElementById('mixInput');
-    const addBtn      = document.getElementById('addBtn');
-    const exportBtn   = document.getElementById('exportBtn');
-    const importFile  = document.getElementById('importFile');
-    const logoutBtn   = document.getElementById('logoutBtn');
+  // Atomic write: temp + rename
+  $tmp = DATA_FILE . '.tmp.' . bin2hex(random_bytes(4));
+  if (@file_put_contents($tmp, $json, LOCK_EX) === false) {
+    fail(500, 'Write failed.');
+  }
+  if (!@rename($tmp, DATA_FILE)) {
+    @unlink($tmp);
+    fail(500, 'Replace failed.');
+  }
+  @chmod(DATA_FILE, 0644);
+  return $entries;
+}
 
-    const modal       = document.getElementById('loginModal');
-    const loginBtn    = document.getElementById('loginBtn');
-    const cancelLogin = document.getElementById('cancelLogin');
-    const pwdInput    = document.getElementById('pwd');
-    const loginErr    = document.getElementById('loginErr');
+/* ===== Router ===== */
+try {
+  if ($action === 'load') {
+    $entries = loadEntries();
+    ok(['entries' => $entries]);
+  }
 
-    /* ===== Utils ===== */
-    const uid = () => 'm_' + Math.random().toString(36).slice(2,9);
+  if ($action === 'save') {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') fail(405, 'POST required.');
+    $raw = file_get_contents('php://input');
+    if ($raw === '' || $raw === false) fail(400, 'Empty body.');
+    // Reject huge payloads
+    if (strlen($raw) > 512 * 1024) fail(413, 'Payload too large.');
 
-    // Robust Mixcloud normalizer (page URL, widget URL, or pasted iframe → standard widget src)
-    function normalizeMixcloud(input){
-      const raw = (input || '').trim();
-      if(!raw) return '';
-      const srcMatch = raw.match(/<iframe[^>]*\s+src=["']([^"']+)["']/i);
-      const candidate = srcMatch ? srcMatch[1] : raw;
+    $in = json_decode($raw, true);
+    if (!is_array($in)) fail(400, 'Invalid JSON.');
 
-      try{
-        const u = new URL(candidate);
+    if (!checkAuth($in)) fail(401, 'Unauthorized.');
 
-        // Already a widget: normalize host to www.mixcloud.com
-        if (/mixcloud\.com\/widget\/iframe/i.test(u.href)) {
-          return u.href.replace(/^[^:]+:\/\/[^/]+/, 'https://www.mixcloud.com');
-        }
+    $entries = sanitizeEntries($in['entries'] ?? null);
+    $saved   = saveEntries($entries);
 
-        // Mixcloud page → /user/mix-slug/ to feed param
-        const host = u.hostname.replace(/^www\./,'');
-        if (host === 'mixcloud.com') {
-          let path = u.pathname; if (!path.endsWith('/')) path += '/';
-          const m = path.match(/^\/([^/]+)\/([^/]+)\//);
-          if (m && m[1] && m[2]) {
-            const feed = encodeURIComponent(`/${m[1]}/${m[2]}/`);
-            // Keep artwork like your mockup (no hide_cover)
-            return `https://www.mixcloud.com/widget/iframe/?light=1&feed=${feed}`;
-          }
-        }
-      }catch(e){ /* ignore */ }
-      return '';
-    }
+    ok(['entries' => $saved]);
+  }
 
-    function saveDraft(){ localStorage.setItem(LS_DRAFT, JSON.stringify(MIXES)); }
-    function loadDraft(){ try{ return JSON.parse(localStorage.getItem(LS_DRAFT) || '[]'); } catch{ return []; } }
-
-    function setAdmin(on){ sessionStorage.setItem(ADMIN_KEY, on ? '1' : ''); adminBar.style.display = on ? 'block' : 'none'; }
-    const isAdmin = () => sessionStorage.getItem(ADMIN_KEY) === '1';
-
-    function normTags(tags){
-      if(Array.isArray(tags)) return tags.map(t => String(t).toLowerCase());
-      if(typeof tags==='string') return tags.split(',').map(t => t.trim().toLowerCase());
-      return [];
-    }
-
-    /* ===== Data IO ===== */
-    async function fetchArtists(){
-      const res = await fetch(`${BASE_URL}/station/${STATION_ID}/artists`, { headers: { 'x-api-key': API_KEY }});
-      if(!res.ok) throw new Error(`Artists API ${res.status}`);
-      const { artists = [] } = await res.json();
-      ARTISTS = artists;
-      ARTIST_MAP.clear();
-      for(const a of ARTISTS){
-        const logo = (a.logo && (a.logo['512x512'] || a.logo.default)) || '';
-        ARTIST_MAP.set(String(a.id), { id:String(a.id), name:a.name, logo });
-      }
-    }
-
-    async function fetchShared(){
-      try{
-        const res = await fetch(SHARED_JSON_URL, { cache: 'no-store' });
-        if(!res.ok) throw new Error('No shared JSON yet');
-        const data = await res.json();
-        if(Array.isArray(data)) MIXES = data;
-      }catch(_){
-        MIXES = [];
-      }
-    }
-
-    /* ===== Render ===== */
-    function render(){
-      mixesEl.innerHTML = '';
-      emptyEl.style.display = MIXES.length ? 'none' : 'block';
-
-      for(const mix of MIXES){
-        const artist = ARTIST_MAP.get(String(mix.artistId)) || {name:'Unknown', logo:''};
-
-        const row = document.createElement('section');
-        row.className='mix-row';
-        row.setAttribute('aria-label', `${artist.name} mix`);
-
-        // LEFT
-        const left = document.createElement('div');
-        left.className='mix-left';
-
-        const ribbon = document.createElement('div');
-        ribbon.className = 'artist-ribbon';
-        ribbon.textContent = artist.name;
-        left.appendChild(ribbon);
-
-        const bio = document.createElement('div');
-        bio.className = 'bio';
-
-        const img = document.createElement('img');
-        img.src = artist.logo || '';
-        img.alt = artist.name;
-        img.loading = 'lazy';
-        bio.appendChild(img);
-
-        const copy = document.createElement('p');
-        copy.className = 'copy';
-        copy.textContent = mix.copy || '';
-        bio.appendChild(copy);
-
-        left.appendChild(bio);
-
-        // RIGHT
-        const right = document.createElement('div');
-        right.className='mix-right';
-        const iframe = document.createElement('iframe');
-        iframe.allow = 'autoplay; encrypted-media';
-        iframe.loading = 'lazy';
-        iframe.title = `${artist.name} on Mixcloud`;
-        iframe.src = mix.widgetSrc; // normalized
-        right.appendChild(iframe);
-
-        row.append(left,right);
-        mixesEl.appendChild(row);
-      }
-
-      if(isAdmin()) renderAdminList();
-    }
-
-    function renderAdminList(){
-      adminList.innerHTML = '';
-      MIXES.forEach((m,i)=>{
-        const artist = ARTIST_MAP.get(String(m.artistId)) || {name:'Unknown'};
-        const item = document.createElement('div'); item.className='admin-item';
-        const meta = document.createElement('div');
-        meta.innerHTML = `<div><b>${artist.name}</b></div>
-                          <div class="admin-meta">${m.widgetSrc}</div>
-                          <div class="admin-meta">${m.copy?m.copy.replace(/</g,'&lt;'):''}</div>`;
-        const btns = document.createElement('div'); btns.className='buttons';
-        const up=document.createElement('button'); up.textContent='↑';
-        const down=document.createElement('button'); down.textContent='↓';
-        const del=document.createElement('button'); del.textContent='✕';
-        up.onclick=()=>{ if(i>0){ [MIXES[i-1],MIXES[i]]=[MIXES[i],MIXES[i-1]]; saveDraft(); render(); } };
-        down.onclick=()=>{ if(i<MIXES.length-1){ [MIXES[i+1],MIXES[i]]=[MIXES[i],MIXES[i+1]]; saveDraft(); render(); } };
-        del.onclick=()=>{ MIXES.splice(i,1); saveDraft(); render(); };
-        btns.append(up,down,del);
-        item.append(meta,btns);
-        adminList.appendChild(item);
-      });
-    }
-
-    function populateArtistSelect(){
-      const websiteTagged = ARTISTS.filter(a => normTags(a.tags).includes('website'));
-      const list = websiteTagged.length ? websiteTagged : ARTISTS.slice();
-      artistSel.innerHTML=''; const opt0=document.createElement('option'); opt0.value=''; opt0.textContent='Select artist…'; artistSel.appendChild(opt0);
-      list.sort((a,b)=>a.name.localeCompare(b.name)).forEach(a=>{ const o=document.createElement('option'); o.value=a.id; o.textContent=a.name; artistSel.appendChild(o); });
-    }
-
-    /* ===== Admin actions ===== */
-    addBtn.addEventListener('click', ()=>{
-      const artistId = artistSel.value.trim();
-      const mixInput = mixInputEl.value.trim();
-      const copy = copyEl.value.trim();
-
-      const widgetSrc = normalizeMixcloud(mixInput);
-      if(!artistId){ alert('Pick an artist'); return; }
-      if(!widgetSrc){ alert('Enter a valid Mixcloud page URL, widget URL, or <iframe>'); return; }
-
-      MIXES.push({ id:uid(), artistId, copy, widgetSrc, createdAt:Date.now() });
-      saveDraft();
-      copyEl.value=''; mixInputEl.value=''; artistSel.value='';
-      render();
-    });
-
-    exportBtn.addEventListener('click', ()=>{
-      const blob = new Blob([JSON.stringify(MIXES,null,2)], {type:'application/json'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'best-of-2025-mixes.json';
-      a.click();
-      URL.revokeObjectURL(a.href);
-    });
-
-    importFile.addEventListener('change', async e=>{
-      const file=e.target.files[0]; if(!file) return;
-      try{
-        const text = await file.text();
-        const data = JSON.parse(text);
-        if(!Array.isArray(data)) throw new Error('Invalid JSON');
-        MIXES = data; saveDraft(); render();
-      }catch(err){ alert('Import failed: '+err.message); }
-      finally{ importFile.value=''; }
-    });
-
-    logoutBtn.addEventListener('click', ()=>{ setAdmin(false); render(); });
-
-    /* ===== Hidden login (Shift+A) ===== */
-    function openModal(){ modal.style.display='flex'; pwdInput.value=''; loginErr.classList.add('hide'); setTimeout(()=>pwdInput.focus(),0); }
-    function closeModal(){ modal.style.display='none'; }
-    document.addEventListener('keydown', (e)=>{
-      const tag = document.activeElement && document.activeElement.tagName;
-      if(['INPUT','TEXTAREA','SELECT'].includes(tag)) return;
-      if(e.shiftKey && String(e.key).toLowerCase()==='a'){ e.preventDefault(); openModal(); }
-      if(e.key==='Escape' && modal.style.display==='flex'){ closeModal(); }
-    });
-    cancelLogin.addEventListener('click', closeModal);
-    loginBtn.addEventListener('click', tryLogin);
-    pwdInput.addEventListener('keydown', e=>{ if(e.key==='Enter') tryLogin(); });
-    function tryLogin(){
-      if (pwdInput.value.trim() === ADMIN_PASSWORD){
-        setAdmin(true); closeModal(); render();
-      } else {
-        loginErr.classList.remove('hide');
-      }
-    }
-
-    /* ===== Boot ===== */
-    (async function init(){
-      try{ await fetchArtists(); populateArtistSelect(); }
-      catch(err){ console.error(err); alert('Failed to load artists from Radio Cult API.'); }
-
-      await fetchShared();
-
-      const draft = loadDraft();
-      if (isAdmin() && Array.isArray(draft) && draft.length) MIXES = draft;
-
-      setAdmin(sessionStorage.getItem(ADMIN_KEY)==='1');
-      render();
-    })();
-  </script>
-</body>
-</html>
+  fail(400, 'Unknown action.');
+} catch (Throwable $e) {
+  fail(500, 'Server error.');
+}

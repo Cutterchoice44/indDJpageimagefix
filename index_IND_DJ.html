@@ -1,168 +1,62 @@
 <?php
-/* =========================================================================
-   /best-of-2025-mixes-config.php
-   Minimal JSON backend for "Best of 2025 Mixes"
-   -------------------------------------------------------------------------
-   REQUIREMENTS
-   - Create folder: /data  (same dir as this PHP)
-   - Upload the JSON file from below as: /data/best-of-2025-mixes.json
-   - Ensure web server can write to /data (e.g., chmod 755 on /data, 644 on file)
-   - Client sends either 'auth' (SHA-256 hex of passphrase) OR 'password'
-   -------------------------------------------------------------------------
-   ADMIN PASSWORD (plaintext): ccr2025!
-   SHA-256 HEX: 446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e
-   ========================================================================= */
-
 declare(strict_types=1);
-
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 
-const DATA_FILE       = __DIR__ . '/data/best-of-2025-mixes.json';
-const ADMIN_HASH_HEX  = '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e'; // sha256('ccr2025!')
+const DATA_FILE      = __DIR__ . '/data/best-of-2025-mixes.json';
+const ADMIN_HASH_HEX = '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e'; // sha256('ccr2025!')
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-$action = $_GET['action'] ?? ($_POST['action'] ?? ($method === 'POST' ? 'save' : 'load'));
+$action = $_GET['action'] ?? ($_POST['action'] ?? ($method==='POST' ? 'save' : 'load'));
 
-function fail(int $code, string $msg) {
-  http_response_code($code);
-  echo json_encode(['ok' => false, 'error' => $msg], JSON_UNESCAPED_SLASHES);
-  exit;
+function respond($ok, $extra=[]){ echo json_encode(['ok'=>$ok]+$extra, JSON_UNESCAPED_SLASHES); exit; }
+function fail($code,$msg){ http_response_code($code); respond(false,['error'=>$msg]); }
+function ensureFile(){
+  $dir = dirname(DATA_FILE); if(!is_dir($dir)) @mkdir($dir,0755,true);
+  if(!file_exists(DATA_FILE)){ @file_put_contents(DATA_FILE,"[]\n",LOCK_EX); @chmod(DATA_FILE,0644); }
 }
-
-function ok(array $payload) {
-  echo json_encode(['ok' => true] + $payload, JSON_UNESCAPED_SLASHES);
-  exit;
+function loadAll(){ ensureFile(); $raw=@file_get_contents(DATA_FILE); $j=json_decode($raw?:'[]',true); return is_array($j)?$j:[]; }
+function validWidget($u){
+  $p=@parse_url($u); if(!$p||($p['scheme']??'')!=='https') return false;
+  $h=strtolower($p['host']??''); if(!in_array($h,['www.mixcloud.com','mixcloud.com','player.mixcloud.com'])) return false;
+  if(strpos($p['path']??'','/widget/iframe')!==0 && strpos($p['path']??'','/widget/iframe/')===false) return false;
+  parse_str($p['query']??'', $q); if(empty($q['feed'])) return false;
+  $feed=rawurldecode($q['feed']); return (bool)preg_match('#^/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/#',$feed);
 }
-
-function ensureDataFile(): void {
-  $dir = dirname(DATA_FILE);
-  if (!is_dir($dir)) {
-    @mkdir($dir, 0755, true);
-  }
-  if (!file_exists(DATA_FILE)) {
-    @file_put_contents(DATA_FILE, "[]\n", LOCK_EX);
-    @chmod(DATA_FILE, 0644);
-  }
-}
-
-function loadEntries(): array {
-  ensureDataFile();
-  $raw = @file_get_contents(DATA_FILE);
-  if ($raw === false) return [];
-  $data = json_decode($raw, true);
-  return is_array($data) ? $data : [];
-}
-
-function sha256_hex(string $s): string {
-  return hash('sha256', $s);
-}
-
-function checkAuth(array $in): bool {
-  // Accept either a pre-hashed token or a plaintext password (server hashes to compare).
-  $auth = $in['auth'] ?? '';
-  $pwd  = $in['password'] ?? '';
-  if (is_string($auth) && strtolower($auth) === ADMIN_HASH_HEX) return true;
-  if (is_string($pwd)  && sha256_hex($pwd)   === ADMIN_HASH_HEX) return true;
-  return false;
-}
-
-function sanitizeCopy(?string $s): string {
-  if ($s === null) return '';
-  // strip tags and trim; clamp length
-  $t = trim(strip_tags($s));
-  if (mb_strlen($t) > 2000) $t = mb_substr($t, 0, 2000);
-  return $t;
-}
-
-function isValidWidget(string $url): bool {
-  // Must be HTTPS Mixcloud widget iframe with feed param
-  $parts = @parse_url($url);
-  if (!$parts || !isset($parts['scheme'],$parts['host'],$parts['path'])) return false;
-  if (strtolower($parts['scheme']) !== 'https') return false;
-
-  $host = strtolower($parts['host']);
-  if ($host !== 'www.mixcloud.com' && $host !== 'player.mixcloud.com' && $host !== 'mixcloud.com') return false;
-
-  if (strpos($parts['path'], '/widget/iframe') !== 0 && strpos($parts['path'], '/widget/iframe/') === false) {
-    return false;
-  }
-
-  if (empty($parts['query'])) return false;
-  parse_str($parts['query'], $q);
-  // require feed param and it should look like a percent-encoded /user/mix/
-  if (empty($q['feed'])) return false;
-  $feed = rawurldecode($q['feed']);
-  return (bool)preg_match('#^/[A-Za-z0-9_\-\.]+/[A-Za-z0-9_\-\.]+/#', $feed);
-}
-
-function sanitizeEntries($in): array {
-  if (!is_array($in)) fail(400, 'Invalid payload.');
-  // Hard limits
-  if (count($in) > 300) fail(413, 'Too many entries.');
-  $out = [];
-  foreach ($in as $row) {
-    if (!is_array($row)) continue;
-    $artistId  = isset($row['artistId']) ? (string)$row['artistId'] : '';
-    $widgetSrc = isset($row['widgetSrc']) ? (string)$row['widgetSrc'] : '';
-    $copy      = isset($row['copy']) ? (string)$row['copy'] : '';
-
-    if ($artistId === '' || $widgetSrc === '') continue;
-    if (!isValidWidget($widgetSrc)) continue;
-
-    $out[] = [
-      'artistId'  => $artistId,
-      'widgetSrc' => $widgetSrc,
-      'copy'      => sanitizeCopy($copy),
-    ];
+function sanitize($rows){
+  if(!is_array($rows)) return [];
+  $out=[];
+  foreach($rows as $r){
+    $artistId = isset($r['artistId']) ? (string)$r['artistId'] : '';
+    $widget   = isset($r['widgetSrc']) ? (string)$r['widgetSrc'] : '';
+    $copy     = isset($r['copy']) ? (string)$r['copy'] : '';
+    if($artistId && $widget && validWidget($widget)){
+      $copy = trim(strip_tags($copy)); if (mb_strlen($copy)>2000) $copy=mb_substr($copy,0,2000);
+      $out[] = ['artistId'=>$artistId, 'widgetSrc'=>$widget, 'copy'=>$copy];
+    }
   }
   return $out;
 }
-
-function saveEntries(array $entries): array {
-  ensureDataFile();
-  $json = json_encode($entries, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . "\n";
-  if ($json === false) fail(500, 'Encode failed.');
-
-  // Atomic write: temp + rename
-  $tmp = DATA_FILE . '.tmp.' . bin2hex(random_bytes(4));
-  if (@file_put_contents($tmp, $json, LOCK_EX) === false) {
-    fail(500, 'Write failed.');
-  }
-  if (!@rename($tmp, DATA_FILE)) {
-    @unlink($tmp);
-    fail(500, 'Replace failed.');
-  }
-  @chmod(DATA_FILE, 0644);
-  return $entries;
+function saveAll($rows){
+  ensureFile();
+  $json = json_encode($rows, JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT)."\n";
+  $tmp = DATA_FILE.'.tmp.'.bin2hex(random_bytes(4));
+  if(@file_put_contents($tmp,$json,LOCK_EX)===false) fail(500,'Write failed');
+  if(!@rename($tmp,DATA_FILE)){ @unlink($tmp); fail(500,'Replace failed'); }
+  @chmod(DATA_FILE,0644); return $rows;
 }
-
-/* ===== Router ===== */
-try {
-  if ($action === 'load') {
-    $entries = loadEntries();
-    ok(['entries' => $entries]);
-  }
-
-  if ($action === 'save') {
-    if ($_SERVER['REQUEST_METHOD'] !== 'POST') fail(405, 'POST required.');
-    $raw = file_get_contents('php://input');
-    if ($raw === '' || $raw === false) fail(400, 'Empty body.');
-    // Reject huge payloads
-    if (strlen($raw) > 512 * 1024) fail(413, 'Payload too large.');
-
-    $in = json_decode($raw, true);
-    if (!is_array($in)) fail(400, 'Invalid JSON.');
-
-    if (!checkAuth($in)) fail(401, 'Unauthorized.');
-
-    $entries = sanitizeEntries($in['entries'] ?? null);
-    $saved   = saveEntries($entries);
-
-    ok(['entries' => $saved]);
-  }
-
-  fail(400, 'Unknown action.');
-} catch (Throwable $e) {
-  fail(500, 'Server error.');
+if ($action==='load'){ respond(true, ['entries'=>loadAll()]); }
+if ($action==='save'){
+  if($method!=='POST') fail(405,'POST required');
+  $raw=file_get_contents('php://input'); if(!$raw) fail(400,'Empty body');
+  $in=json_decode($raw,true); if(!is_array($in)) fail(400,'Invalid JSON');
+  $auth=strtolower((string)($in['auth']??'')); if($auth!==ADMIN_HASH_HEX) fail(401,'Unauthorized');
+  $rows=sanitize($in['entries']??[]); respond(true, ['entries'=>saveAll($rows)]);
 }
+fail(400,'Unknown action');
+
+<!-- =====================================================================
+File: /data/best-of-2025-mixes.json
+Create folder /data if it doesn’t exist. File contents:
+===================================================================== -->
+[]

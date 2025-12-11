@@ -8,41 +8,54 @@
   <meta name="theme-color" content="#5A8785" />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
   <style>
-    :root{ --teal:#5A8785; --bg:#000; --maxw:1700px; }
+    :root{ --teal:#5A8785; --bg:#000; }
     *{box-sizing:border-box;margin:0;padding:0}
     body{background:#000;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+    /* Header */
     header.hd{display:flex;align-items:center;justify-content:space-between;padding:1rem 0}
     .logo{height:160px;width:auto}
     .title{text-align:center}
     .title h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.8rem,6.8vw,6rem);line-height:1;text-transform:uppercase}
     .title p{color:var(--teal);margin-top:.25rem}
     .sep{height:2px;background:var(--teal)}
+    /* Nav */
     nav#main{background:var(--teal);border-top:2px solid #000;border-bottom:2px solid #000}
     nav#main ul{display:flex;list-style:none;justify-content:space-evenly;align-items:center;padding:.35rem .25rem}
-    nav#main a{color:#fff;text-decoration:none;font-family:'Bebas Neue',sans-serif;text-transform:uppercase;
-               font-size:clamp(1rem,2.4vw,2rem);letter-spacing:.5px}
-    .wrap{max-width:var(--maxw);margin:0 auto;padding:12px}
-
-    /* mix row */
+    nav#main a{color:#fff;text-decoration:none;font-family:'Bebas Neue',sans-serif;text-transform:uppercase;font-size:clamp(1rem,2.4vw,2rem);letter-spacing:.5px}
+    /* Full-bleed content */
+    .wrap{width:100%;max-width:none;margin:0;padding:0}
+    /* Mix row (full width, teal separators) */
     .mix-row{
-      display:grid; grid-template-columns:minmax(520px,1fr) 1.6fr; grid-template-rows:auto 1fr; gap:12px;
-      background:#0B0B0B; border-top:2px solid var(--teal); border-bottom:2px solid var(--teal); margin-bottom:12px;
+      display:grid;
+      grid-template-columns:minmax(560px,1fr) 1.6fr; /* 560px left column */
+      grid-template-rows:auto 1fr;
+      gap:12px;
+      background:#0B0B0B;
+      border-top:2px solid var(--teal);
+      border-bottom:2px solid var(--teal);
+      margin:0;
     }
-    .row-title{grid-column:1/-1; position:relative; text-align:center; padding:.65rem 0 .3rem}
+    .row-title{grid-column:1 / -1; position:relative; text-align:center; padding:.65rem 0 .3rem}
     .row-title::before{content:"";position:absolute;left:0;right:0;top:50%;height:2px;background:var(--teal)}
-    .label{position:relative;background:#000;color:#fff;display:inline-block;padding:.1rem .7rem;
-           font-family:'Bebas Neue',sans-serif;text-transform:uppercase;letter-spacing:.06em}
+    .label{position:relative;z-index:1;display:inline-block;background:#000;color:#fff;padding:.1rem .7rem;line-height:1.1;
+           font-family:'Bebas Neue',sans-serif;font-size:1.3rem;text-transform:uppercase;letter-spacing:.06em}
     .left{padding:.75rem}
     .bio{display:grid;grid-template-columns:140px 1fr;gap:.75rem}
     .bio img{width:140px;height:140px;object-fit:cover;border:1px solid var(--teal);background:#111}
-    .copy{color:#e7f2f1;font-size:.95rem;white-space:pre-wrap}
+    .copy{color:#E7F2F1;font-size:.95rem;white-space:pre-wrap}
     .right{padding:.75rem;border-left:2px solid var(--teal);display:flex;align-items:center;justify-content:center;background:#0E0E0E}
     .right iframe{width:100%;height:120px;border:0;display:block}
-    @media (max-width:1200px){ .mix-row{grid-template-columns:1fr} .right{border-left:0;border-top:2px solid var(--teal)}
-      .bio{grid-template-columns:120px 1fr}.bio img{width:120px;height:120px}}
-    @media (max-width:560px){ .bio{grid-template-columns:1fr} .bio img{width:100%;height:auto;aspect-ratio:1/1} }
-
-    /* Admin overlay (hidden; Shift+A opens, like Cutty Ranks) */
+    @media (max-width:1200px){
+      .mix-row{grid-template-columns:1fr}
+      .right{border-left:0;border-top:2px solid var(--teal)}
+      .bio{grid-template-columns:120px 1fr}
+      .bio img{width:120px;height:120px}
+    }
+    @media (max-width:560px){
+      .bio{grid-template-columns:1fr}
+      .bio img{width:100%;height:auto;aspect-ratio:1/1}
+    }
+    /* Admin overlay */
     .overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;z-index:9999}
     .panel{width:min(980px,95vw);max-height:92vh;overflow:auto;background:#0e1414;border:2px solid var(--teal);border-radius:10px;padding:14px}
     .panel h3{font-family:'Bebas Neue',sans-serif;margin:0 0 10px}
@@ -54,6 +67,12 @@
     .btn{padding:8px 12px;border-radius:6px;border:1px solid #2a5653;background:#0b2322;color:#eaffff;cursor:pointer}
     .muted{color:#a7cbc7;font-size:.9rem}
     .status{opacity:.9;font-size:.9rem;margin-left:auto}
+    /* Login modal */
+    .login-card{width:min(420px,94vw);background:#0e1414;border:2px solid var(--teal);border-radius:10px;padding:16px}
+    .login-card h3{font-family:'Bebas Neue',sans-serif;margin:0 0 10px}
+    .login-row{display:flex;gap:8px;align-items:center;margin-top:8px}
+    .login-input{flex:1;background:#050808;color:#eaffff;border:1px solid #2a5653;border-radius:6px;padding:10px}
+    .error{color:#ff7a7a;font-size:.9rem;margin-top:6px;display:none}
   </style>
 </head>
 <body>
@@ -82,7 +101,7 @@
     <p id="empty" class="muted" style="padding:12px;display:none">No mixes yet.</p>
   </main>
 
-  <!-- Hidden admin (Shift+A) -->
+  <!-- Admin overlay (after login) -->
   <div id="admin" class="overlay" aria-hidden="true">
     <div class="panel" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
       <h3 id="adminTitle">Best of 2025 — Admin</h3>
@@ -93,36 +112,58 @@
         <button id="close" class="btn">Close</button>
         <span id="status" class="status"></span>
       </div>
-      <p class="muted" style="margin-top:6px">Shift+A to open; password is the same as other pages.</p>
+      <p class="muted" style="margin-top:6px">Shift+A to open; password same as other pages.</p>
     </div>
   </div>
 
-  <!-- Config (same pattern as Cutty Ranks) -->
+  <!-- Login overlay (Shift+A) -->
+  <div id="login" class="overlay" aria-hidden="true">
+    <div class="login-card" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+      <h3 id="loginTitle">Admin Login</h3>
+      <div class="login-row">
+        <input id="pwd" type="password" class="login-input" placeholder="Password" autocomplete="current-password" />
+        <button id="loginBtn" class="btn">Login</button>
+        <button id="loginCancel" class="btn">Cancel</button>
+      </div>
+      <div id="loginErr" class="error">Incorrect password.</div>
+      <p class="muted" style="margin-top:8px">Press Shift+A anywhere to open this login.</p>
+    </div>
+  </div>
+
   <script>
-    window.BEST_MIXES = {
-      CONFIG_ENDPOINT: 'best-of-2025-mixes-config.php',
-      ADMIN_HASH_HEX : '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e'  // sha256('ccr2025!')
-    };
-    window.RC = {
+    /* Config */
+    const CONFIG_ENDPOINT = 'best-of-2025-mixes-config.php';
+    const ADMIN_HASH_HEX  = '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e'; // sha256('ccr2025!')
+    const RC = {
       BASE_URL: 'https://api.radiocult.fm/api',
       STATION_ID: 'cutters-choice-radio',
       API_KEY: 'pk_0b8abc6f834b444f949f727e88a728e0'
     };
-  </script>
 
-  <script>
-  (() => {
-    const CFG = window.BEST_MIXES, RC = window.RC;
-    const $  = (s,r=document)=>r.querySelector(s);
-    const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+    /* DOM */
+    const listEl = document.getElementById('list');
+    const emptyEl = document.getElementById('empty');
+    const admin = document.getElementById('admin');
+    const entriesEl = document.getElementById('entries');
+    const addBtn = document.getElementById('add');
+    const saveBtn = document.getElementById('save');
+    const closeBtn = document.getElementById('close');
+    const statusEl = document.getElementById('status');
 
-    const listEl = $('#list'), emptyEl = $('#empty');
-    const overlay = $('#admin'), entriesEl = $('#entries');
-    const addBtn = $('#add'), saveBtn = $('#save'), closeBtn = $('#close'), statusEl = $('#status');
+    const login = document.getElementById('login');
+    const pwdInput = document.getElementById('pwd');
+    const loginBtn = document.getElementById('loginBtn');
+    const loginCancel = document.getElementById('loginCancel');
+    const loginErr = document.getElementById('loginErr');
 
-    const state = { entries: [], artists: [], artistMap:new Map() };
+    /* State */
+    const state = { entries: [], artists: [], artistMap:new Map(), authed:false };
 
-    /* ---------- helpers ---------- */
+    /* Utils */
+    const $ = (s,r=document)=>r.querySelector(s);
+    const $$= (s,r=document)=>[...r.querySelectorAll(s)];
+    function isTyping(el){ const t=el?.tagName; return t==='INPUT'||t==='TEXTAREA'||t==='SELECT'||el?.isContentEditable; }
+
     function normalizeMixcloud(input){
       const raw = (input||'').trim(); if(!raw) return '';
       const ifm = raw.match(/<iframe[^>]*\s+src=["']([^"']+)["']/i);
@@ -133,46 +174,51 @@
           return u.href.replace(/^[^:]+:\/\/[^/]+/, 'https://www.mixcloud.com');
         }
         const host = u.hostname.replace(/^www\./,'');
-        if (host==='mixcloud.com'){
-          let p=u.pathname; if(!p.endsWith('/')) p+='/';
-          const m=p.match(/^\/([^/]+)\/([^/]+)\//); if(m){ const feed=encodeURIComponent(`/${m[1]}/${m[2]}/`);
-            return `https://www.mixcloud.com/widget/iframe/?light=1&feed=${feed}`; }
+        if (host === 'mixcloud.com') {
+          let p = u.pathname; if(!p.endsWith('/')) p+='/';
+          const m = p.match(/^\/([^/]+)\/([^/]+)\//);
+          if (m) {
+            const feed = encodeURIComponent(`/${m[1]}/${m[2]}/`);
+            return `https://www.mixcloud.com/widget/iframe/?light=1&feed=${feed}`;
+          }
         }
       }catch(_){}
       return '';
     }
 
-    /* ---------- Radio Cult artists ---------- */
+    /* Radio Cult artists */
     async function loadArtists(){
       const r = await fetch(`${RC.BASE_URL}/station/${RC.STATION_ID}/artists`, { headers:{'x-api-key':RC.API_KEY} });
       if(!r.ok) throw new Error('Artists API '+r.status);
       const {artists=[]} = await r.json();
       state.artists = artists;
-      state.artistMap = new Map(artists.map(a=>[String(a.id), {id:String(a.id), name:a.name, logo:(a.logo&&(a.logo['512x512']||a.logo.default))||''}]));
+      state.artistMap = new Map(
+        artists.map(a=>[String(a.id), { id:String(a.id), name:a.name, logo:(a.logo&&(a.logo['512x512']||a.logo.default))||'' }])
+      );
     }
 
-    /* ---------- server IO (same pattern as Cutty Ranks) ---------- */
+    /* Server IO */
     async function loadEntries(){
       try{
-        const r = await fetch(`${CFG.CONFIG_ENDPOINT}?action=load`, {cache:'no-store'});
-        if (r.ok){ const j = await r.json(); if (Array.isArray(j?.entries)) return j.entries; }
+        const r = await fetch(`${CONFIG_ENDPOINT}?action=load`, {cache:'no-store'});
+        if (r.ok) { const j = await r.json(); if (Array.isArray(j?.entries)) return j.entries; }
       }catch(_){}
       try{
-        const s = localStorage.getItem('best_2025_entries'); if (s){ const a=JSON.parse(s); if (Array.isArray(a)) return a; }
+        const s = localStorage.getItem('best_2025_entries'); if (s) { const a = JSON.parse(s); if (Array.isArray(a)) return a; }
       }catch(_){}
       return [];
     }
     async function saveEntries(entries){
-      const r = await fetch(CFG.CONFIG_ENDPOINT+'?action=save', {
+      const r = await fetch(CONFIG_ENDPOINT+'?action=save', {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ entries, auth: CFG.ADMIN_HASH_HEX })
+        body: JSON.stringify({ entries, auth: ADMIN_HASH_HEX })
       });
       const txt = await r.text(); let j=null; try{ j=JSON.parse(txt);}catch{}
-      if(!r.ok || !(j&&j.ok)) throw new Error(j?.error ? ('Server error: '+j.error) : ('HTTP '+r.status+' '+txt.slice(0,180)));
+      if(!r.ok || !(j&&j.ok)) throw new Error(j?.error ? ('Server: '+j.error) : ('HTTP '+r.status+' '+txt.slice(0,160)));
       return j.entries || entries;
-    } // matches Cutty Ranks load/save flow :contentReference[oaicite:4]{index=4}
+    }
 
-    /* ---------- public render ---------- */
+    /* Render (public) */
     function render(){
       listEl.innerHTML='';
       if(!state.entries.length){ emptyEl.style.display='block'; return; }
@@ -184,7 +230,7 @@
         const left=document.createElement('div'); left.className='left';
         const bio=document.createElement('div'); bio.className='bio';
         const img=document.createElement('img'); img.src=a.logo||''; img.alt=a.name; img.loading='lazy';
-        const copy=document.createElement('div'); copy.className='copy'; copy.textContent = e.copy||'';
+        const copy=document.createElement('div'); copy.className='copy'; copy.textContent=e.copy||'';
         bio.append(img,copy); left.append(bio);
         const right=document.createElement('div'); right.className='right';
         const ifm=document.createElement('iframe'); ifm.allow='autoplay; encrypted-media'; ifm.loading='lazy'; ifm.title=`${a.name} — Mixcloud`; ifm.src=e.widgetSrc||'';
@@ -193,11 +239,13 @@
       });
     }
 
-    /* ---------- admin overlay ---------- */
-    function artistOptions(selected){ return ['<option value="">Select artist…</option>'].concat(
-      state.artists.slice().sort((x,y)=>x.name.localeCompare(y.name))
-        .map(a=>`<option value="${a.id}" ${String(a.id)===String(selected)?'selected':''}>${a.name}</option>`)).join(''); }
-
+    /* Admin overlay */
+    function artistOptions(sel){
+      return ['<option value="">Select artist…</option>']
+        .concat(state.artists.slice().sort((x,y)=>x.name.localeCompare(y.name))
+        .map(a=>`<option value="${a.id}" ${String(a.id)===String(sel)?'selected':''}>${a.name}</option>`))
+        .join('');
+    }
     function entryEditor(data={}){
       const w=document.createElement('div'); w.className='entry';
       w.innerHTML=`<div class="row"><label>Artist</label><select class="artist">${artistOptions(data.artistId||'')}</select></div>
@@ -210,25 +258,19 @@
       w.querySelector('.del').onclick  = ()=> w.remove();
       return w;
     }
-
-    function openAdmin(){
-      entriesEl.innerHTML=''; (state.entries||[]).forEach(e=>entriesEl.appendChild(entryEditor(e)));
-      overlay.style.display='flex'; overlay.setAttribute('aria-hidden','false'); statusEl.textContent='';
-    }
-    function closeAdmin(){ overlay.style.display='none'; overlay.setAttribute('aria-hidden','true'); }
-    closeBtn.addEventListener('click', closeAdmin, {passive:true});
+    function openAdmin(){ entriesEl.innerHTML=''; (state.entries||[]).forEach(e=>entriesEl.appendChild(entryEditor(e))); admin.style.display='flex'; admin.setAttribute('aria-hidden','false'); statusEl.textContent=''; }
+    function closeAdmin(){ admin.style.display='none'; admin.setAttribute('aria-hidden','true'); }
     addBtn.addEventListener('click', ()=> entriesEl.appendChild(entryEditor()), {passive:true});
-
+    closeBtn.addEventListener('click', closeAdmin, {passive:true});
     saveBtn.addEventListener('click', async ()=>{
       const rows = $$('.entry', entriesEl);
       const out = rows.map(r=>{
         const artistId=r.querySelector('.artist').value.trim();
-        const mix    =normalizeMixcloud(r.querySelector('.mix').value.trim());
-        const copy   =r.querySelector('.txt').value.trim();
+        const mix = normalizeMixcloud(r.querySelector('.mix').value.trim());
+        const copy=r.querySelector('.txt').value.trim();
         return (artistId && mix) ? {artistId, widgetSrc:mix, copy} : null;
       }).filter(Boolean);
       if(!out.length){ statusEl.textContent='Nothing to save.'; return; }
-
       statusEl.textContent='Saving…';
       try{
         const saved = await saveEntries(out);
@@ -243,26 +285,34 @@
       }
     });
 
-    function isTyping(el){ const t=el?.tagName; return t==='INPUT'||t==='TEXTAREA'||t==='SELECT'||el?.isContentEditable; }
-    window.addEventListener('keydown', async (e)=>{
-      const key=(e.key||'').toLowerCase(); if(!(e.shiftKey&&(key==='a'||e.code==='KeyA'))) return;
-      if (isTyping(document.activeElement)) return;
-      e.preventDefault();
-      const pw = prompt('Enter passphrase'); if(!pw) return;
-      try{
-        const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
-        const hex = [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
-        if (hex===CFG.ADMIN_HASH_HEX) openAdmin(); else alert('Incorrect passphrase');
-      }catch(err){ console.warn('digest error', err); }
-    }, true); // mirrors Cutty Ranks admin gate :contentReference[oaicite:5]{index=5}
+    /* Login modal */
+    function openLogin(){ login.style.display='flex'; login.setAttribute('aria-hidden','false'); loginErr.style.display='none'; pwdInput.value=''; pwdInput.focus(); }
+    function closeLogin(){ login.style.display='none'; login.setAttribute('aria-hidden','true'); }
+    async function tryLogin(){
+      const pw = (pwdInput.value||'').trim(); if(!pw) return;
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+      const hex = [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+      if (hex === ADMIN_HASH_HEX) { closeLogin(); openAdmin(); } else { loginErr.style.display='block'; }
+    }
+    loginBtn.addEventListener('click', tryLogin);
+    pwdInput.addEventListener('keydown', e=>{ if(e.key==='Enter') tryLogin(); });
+    loginCancel.addEventListener('click', closeLogin);
 
-    /* ---------- boot ---------- */
+    /* Hotkey */
+    window.addEventListener('keydown', (e)=>{
+      const key=(e.key||'').toLowerCase();
+      if(e.shiftKey && (key==='a' || e.code==='KeyA')){
+        if (!isTyping(document.activeElement)) { e.preventDefault(); openLogin(); }
+      }
+      if(key==='escape'){ if(login.getAttribute('aria-hidden')==='false') closeLogin(); if(admin.getAttribute('aria-hidden')==='false') closeAdmin(); }
+    }, true);
+
+    /* Boot */
     (async function init(){
       try{ await loadArtists(); }catch(err){ console.warn('Artists fetch failed', err); }
       state.entries = await loadEntries();
       render();
     })();
-  })();
   </script>
 </body>
 </html>

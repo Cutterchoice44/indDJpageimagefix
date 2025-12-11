@@ -15,36 +15,35 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
   <style>
-    :root{ --brand-teal:#5A8785; --bg:#000; --text:#FAFAFA; --muted:#CFE4E2; --maxw:1300px; }
+    :root{ --brand-teal:#5A8785; --bg:#000; --text:#FAFAFA; --muted:#CFE4E2; --maxw:1400px; }
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;line-height:1.4}
+    html,body{background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;line-height:1.45}
 
     /* Header */
     header.header-banner{background:#000;padding:1rem 0;display:flex;justify-content:space-between;align-items:center}
-    header .logo-container img{height:180px;width:auto}
-    .title h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.2rem,6.6vw,6rem);letter-spacing:.5px;color:#fff;line-height:1;text-transform:uppercase;text-align:center}
+    header .logo-container img{height:160px;width:auto}
+    .title h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.4rem,6.8vw,6rem);letter-spacing:.5px;color:#fff;line-height:1;text-transform:uppercase;text-align:center}
     .title .tagline{color:var(--brand-teal);text-align:center;margin-top:.25rem}
-    @media (max-width:700px){ header .logo-container img{height:100px} }
+    @media (max-width:700px){ header .logo-container img{height:96px} }
 
     .thin-teal-line{height:2px;background:var(--brand-teal);width:100%}
 
-    /* NAV — evenly spaced edge-to-edge */
+    /* NAV — evenly spaced across full width */
     nav#best-nav{background:var(--brand-teal);border-top:2px solid #000;border-bottom:2px solid #000}
     nav#best-nav ul{list-style:none;display:flex;width:100%;margin:0;padding:.35rem 0}
     nav#best-nav li{flex:1 1 0;display:flex}
     nav#best-nav a{
       flex:1;display:flex;justify-content:center;align-items:center;text-align:center;
       text-decoration:none;color:#fff;text-transform:uppercase;
-      font-family:'Bebas Neue',sans-serif;font-size:clamp(.9rem,2.4vw,2rem);
+      font-family:'Bebas Neue',sans-serif;font-size:clamp(.95rem,2.4vw,2rem);
       letter-spacing:.6px;opacity:.95;padding:.35rem .25rem;
     }
     nav#best-nav a:hover{opacity:1}
 
-    /* Page wrap */
     .wrap{max-width:var(--maxw);margin:0 auto;padding:1rem}
 
     /* Mix rows */
-    .mix-row{display:grid;grid-template-columns:420px 1fr;gap:1rem;border:2px solid var(--brand-teal);margin-bottom:1rem;background:#0A0A0A}
+    .mix-row{display:grid;grid-template-columns:minmax(360px,520px) 1fr;gap:1rem;border:2px solid var(--brand-teal);margin-bottom:1rem;background:#0A0A0A}
     .mix-left{display:grid;grid-template-columns:140px 1fr;gap:.75rem;padding:.75rem}
     .mix-left img{width:140px;height:140px;object-fit:cover;border:1px solid var(--brand-teal);background:#111}
     .mix-meta h3{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;color:var(--muted);margin-bottom:.35rem;text-transform:uppercase}
@@ -52,7 +51,7 @@
     .mix-right{display:flex;align-items:center;justify-content:center;padding:.75rem;background:#0E0E0E;border-left:2px solid var(--brand-teal)}
     .mix-right iframe{width:100%;height:120px;border:0;display:block}
 
-    @media (max-width:1000px){
+    @media (max-width:1100px){
       .mix-row{grid-template-columns:1fr}
       .mix-left{grid-template-columns:120px 1fr}
       .mix-left img{width:120px;height:120px}
@@ -63,10 +62,9 @@
       .mix-left img{width:100%;height:auto;aspect-ratio:1/1}
     }
 
-    /* Empty state */
     .empty{border:2px dashed var(--brand-teal);padding:1rem;text-align:center;color:#BBD5D3;margin:1rem 0}
 
-    /* Admin (hidden until Shift+A + correct pwd) */
+    /* Admin (hidden until Shift+A) */
     .admin-bar{position:sticky;top:0;background:#081F1E;border:2px solid var(--brand-teal);padding:.75rem;display:none;gap:.75rem;z-index:6}
     .admin-bar input,.admin-bar textarea,.admin-bar select{width:100%;padding:.55rem;background:#000;color:#fff;border:1px solid var(--brand-teal)}
     .admin-grid{display:grid;grid-template-columns:240px 1fr 1fr auto;gap:.5rem}
@@ -77,7 +75,7 @@
     .admin-item .buttons button{margin-left:.25rem}
     .admin-meta{font-size:.9rem;color:#A5C4C2}
 
-    /* Login modal (never visible until Shift+A) */
+    /* Login modal (only via Shift+A) */
     .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.7);z-index:100}
     .modal .card{background:#0B1414;border:2px solid var(--brand-teal);padding:1rem;max-width:360px;width:92%}
     .modal .card h3{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;margin-bottom:.5rem}
@@ -111,11 +109,11 @@
   <div class="thin-teal-line"></div>
 
   <main class="wrap" role="main">
-    <!-- Admin toolbar (only after login) -->
+    <!-- Admin toolbar -->
     <section id="admin" class="admin-bar" aria-label="Admin controls">
       <div class="admin-grid">
         <select id="artistSelect" aria-label="Select Artist"></select>
-        <input id="mixInput" type="text" placeholder="Paste Mixcloud page URL OR widget URL OR <iframe> code" aria-label="Mixcloud input">
+        <input id="mixInput" type="text" placeholder="Paste Mixcloud page URL, widget URL, or full <iframe>…" aria-label="Mixcloud input">
         <textarea id="copy" rows="1" placeholder="Optional copy/notes" aria-label="Copy"></textarea>
         <div class="admin-actions">
           <button id="addBtn" title="Add mix"><i class="fa fa-plus"></i> Add</button>
@@ -127,7 +125,7 @@
         </div>
       </div>
       <div class="admin-list" id="adminList" aria-live="polite"></div>
-      <p class="admin-meta">After edits, click <b>Export</b> and upload to <code>/data/best-of-2025-mixes.json</code> so everyone sees it.</p>
+      <p class="admin-meta">Export and upload to <code>/data/best-of-2025-mixes.json</code> so everyone sees the changes.</p>
     </section>
 
     <!-- Public list -->
@@ -135,7 +133,7 @@
     <div id="empty" class="empty">No mixes yet.</div>
   </main>
 
-  <!-- Hidden Login modal (opens only via Shift+A) -->
+  <!-- Hidden Login modal (Shift+A) -->
   <div id="loginModal" class="modal" role="dialog" aria-modal="true" aria-label="Admin login">
     <div class="card">
       <h3>Admin Login</h3>
@@ -155,8 +153,8 @@
     const API_KEY    = 'pk_0b8abc6f834b444f949f727e88a728e0';
     const ADMIN_PASSWORD = 'ccr2025!';
 
-    const SHARED_JSON_URL = '/data/best-of-2025-mixes.json';  // public, same for everyone
-    const LS_DRAFT        = 'ccr_best_2025_draft';             // local safety net
+    const SHARED_JSON_URL = '/data/best-of-2025-mixes.json'; // public
+    const LS_DRAFT        = 'ccr_best_2025_draft';
     const ADMIN_KEY       = 'ccr_best_2025_admin';
 
     /* ==== State ==== */
@@ -186,36 +184,38 @@
     /* ==== Utils ==== */
     const uid = () => 'm_' + Math.random().toString(36).slice(2,9);
 
-    // WHY: accept any Mixcloud input (page URL, widget URL, or full iframe)
+    // WHY: Mixcloud widget must be on mixcloud.com/widget/iframe. Accept page URL, widget URL, or <iframe>.
     function normalizeMixcloud(input){
       const raw = (input || '').trim();
       if(!raw) return '';
 
-      // Case 1: full <iframe ... src="...">
-      const srcMatch = raw.match(/src=["']([^"']+)["']/i);
+      // 1) Extract src if it's an <iframe ...>
+      const srcMatch = raw.match(/<iframe[^>]*\s+src=["']([^"']+)["']/i);
       const candidate = srcMatch ? srcMatch[1] : raw;
 
       try{
         const u = new URL(candidate);
-        // Already a widget or player iframe
-        if (/player\.mixcloud\.com\/widget\/iframe/i.test(u.href)) {
-          return u.href;
+
+        // If it's already a widget, standardize to www.mixcloud.com domain
+        if (/mixcloud\.com\/widget\/iframe/i.test(u.href)) {
+          // keep existing params, but ensure www.mixcloud.com host
+          return u.href.replace(/^[^:]+:\/\/[^/]+/, 'https://www.mixcloud.com');
         }
-        // Mixcloud page URL -> build widget
-        if (/mixcloud\.com/i.test(u.hostname)) {
-          // Use only the path "/user/cloudcast/"
+
+        // If it's a Mixcloud page URL, build widget
+        if (/mixcloud\.com$/i.test(u.hostname) || /mixcloud\.com$/i.test(u.hostname.replace(/^www\./,''))){
+          // expect /user/mix-slug/
           let path = u.pathname;
           if (!path.endsWith('/')) path += '/';
-          // Remove /discover etc.; only accept "/user/slug/"
-          // If path does not look like /user/slug/, bail
-          const parts = path.split('/').filter(Boolean);
-          if (parts.length >= 2) {
-            const feed = encodeURIComponent('/' + parts[0] + '/' + parts[1] + '/');
-            return `https://player.mixcloud.com/widget/iframe/?hide_cover=1&light=1&feed=${feed}`;
+          // reduce to just "/user/slug/"
+          const m = path.match(/^\/([^/]+)\/([^/]+)\//);
+          if (m && m[1] && m[2]) {
+            const feed = encodeURIComponent(`/${m[1]}/${m[2]}/`);
+            return `https://www.mixcloud.com/widget/iframe/?hide_cover=1&light=1&feed=${feed}`;
           }
         }
       }catch(e){
-        // fallthrough
+        // ignore
       }
       return '';
     }
@@ -252,7 +252,7 @@
         const data = await res.json();
         if(Array.isArray(data)) MIXES = data;
       }catch(_){
-        MIXES = []; // will show empty state until uploaded
+        MIXES = [];
       }
     }
 
@@ -276,9 +276,11 @@
 
         const right = document.createElement('div'); right.className='mix-right';
         const iframe = document.createElement('iframe');
-        iframe.allow = 'autoplay';
+        iframe.allow = 'autoplay; encrypted-media';
+        iframe.loading = 'lazy';
+        iframe.referrerPolicy = 'no-referrer-when-downgrade';
         iframe.title = `${artist.name} on Mixcloud`;
-        iframe.src = mix.widgetSrc; // WHY: we normalized earlier
+        iframe.src = mix.widgetSrc; // normalized
         right.appendChild(iframe);
 
         row.append(left,right);
@@ -325,7 +327,7 @@
 
       const widgetSrc = normalizeMixcloud(mixInput);
       if(!artistId){ alert('Pick an artist'); return; }
-      if(!widgetSrc){ alert('Enter a Mixcloud URL/widget/iframe'); return; }
+      if(!widgetSrc){ alert('Enter a valid Mixcloud page URL, widget URL, or <iframe>'); return; }
 
       MIXES.push({ id:uid(), artistId, copy, widgetSrc, createdAt:Date.now() });
       saveDraft();
@@ -355,21 +357,18 @@
 
     logoutBtn.addEventListener('click', ()=>{ setAdmin(false); render(); });
 
-    /* ==== Hidden login shortcuts ==== */
+    /* ==== Hidden login (Shift+A) ==== */
     function openModal(){ modal.style.display='flex'; pwdInput.value=''; loginErr.classList.add('hide'); setTimeout(()=>pwdInput.focus(),0); }
     function closeModal(){ modal.style.display='none'; }
-
     document.addEventListener('keydown', (e)=>{
       const tag = document.activeElement && document.activeElement.tagName;
       if(['INPUT','TEXTAREA','SELECT'].includes(tag)) return;
       if(e.shiftKey && String(e.key).toLowerCase()==='a'){ e.preventDefault(); openModal(); }
       if(e.key==='Escape' && modal.style.display==='flex'){ closeModal(); }
     });
-
     cancelLogin.addEventListener('click', closeModal);
     loginBtn.addEventListener('click', tryLogin);
     pwdInput.addEventListener('keydown', e=>{ if(e.key==='Enter') tryLogin(); });
-
     function tryLogin(){
       if (pwdInput.value.trim() === ADMIN_PASSWORD){
         setAdmin(true); closeModal(); render();
@@ -383,10 +382,8 @@
       try{ await fetchArtists(); populateArtistSelect(); }
       catch(err){ console.error(err); alert('Failed to load artists from Radio Cult API.'); }
 
-      // Load shared JSON then render
       await fetchShared();
 
-      // If admin has a draft locally, prefer it (so you can keep editing before publishing)
       const draft = loadDraft();
       if (isAdmin() && Array.isArray(draft) && draft.length) MIXES = draft;
 

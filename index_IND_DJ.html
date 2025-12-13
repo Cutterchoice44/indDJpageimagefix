@@ -7,12 +7,12 @@
   <meta name="description" content="Standout CCR mixes from 2025." />
   <meta name="theme-color" content="#5A8785" />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
-  <script>/* hook so CSS can animate the teal rails */document.documentElement.classList.add('js');</script>
+  <script>document.documentElement.classList.add('js');</script>
   <style>
     :root{
       --teal:#5A8785;
       --bg:#000;
-      --line-thickness:8px; /* thicker teal divider */
+      --line-thickness:8px;
     }
     *{box-sizing:border-box;margin:0;padding:0}
     body{background:#000;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
@@ -33,22 +33,22 @@
 
     /* Content wrap + guaranteed bottom teal line */
     .wrap{width:100%;max-width:none;margin:0;padding:0}
-    #list{border-bottom:var(--line-thickness) solid var(--teal)} /* ensures a teal line after the last entry */
+    #list{border-bottom:var(--line-thickness) solid var(--teal)}
 
     /* Mix row */
     #list .mix-row{
       display:grid;
       grid-template-columns:minmax(560px,1fr) 1.6fr;
       grid-template-rows:auto 1fr;
-      row-gap:4px;                 /* tighter vertical gaps */
-      column-gap:8px;
+      row-gap:6px;
+      column-gap:10px;
       background:#0B0B0B;
     }
 
-    /* Title strip with animated thick rails that hug the label */
+    /* Title strip with animated thick rails */
     #list .row-title{
       grid-column:1 / -1; position:relative; text-align:center;
-      padding:.18rem 0 0;          /* tighter to reduce black bands */
+      padding:.22rem 0 0;
       overflow:hidden;
     }
     #list .row-title::before,
@@ -68,12 +68,12 @@
       .js #list .row-title::before, .js #list .row-title::after{ animation:none !important; transform:scaleX(1) !important; }
     }
 
-    /* DJ name: +30% size + slow pulse */
+    /* DJ name (+20% vs previous) */
     #list .row-title .label{
       position:relative; z-index:1; display:inline-block;
-      background:#000; color:#fff; padding:.04rem .6rem; line-height:1.02;
+      background:#000; color:#fff; padding:.06rem .7rem; line-height:1.06;
       font-family:'Bebas Neue',sans-serif; text-transform:uppercase; letter-spacing:.06em;
-      font-size:calc(1.3rem * 1.3);
+      font-size:calc(1.3rem * 1.56);
       animation:djFlash 3.2s ease-in-out infinite alternate;
     }
     @keyframes djFlash{
@@ -84,27 +84,32 @@
       #list .row-title .label{ animation:none; }
     }
 
-    /* Columns — tighter padding so content sits closer to teal rails */
-    #list .left{ padding:.25rem .4rem !important; }
-    #list .right{ padding:.25rem .4rem !important; border-left:2px solid var(--teal); display:flex; align-items:center; justify-content:center; background:#0E0E0E; }
+    /* Columns */
+    #list .left{  padding:.34rem .52rem !important; }
+    #list .right{ padding:.34rem .52rem !important; border-left:2px solid var(--teal); display:flex; align-items:center; justify-content:center; background:#0E0E0E; }
 
-    #list .bio{ display:grid; grid-template-columns:100px 1fr; gap:.4rem }
-    #list .bio img{ width:100px; height:100px; object-fit:cover; border:1px solid var(--teal); background:#111; display:block }
+    #list .bio{ display:grid; grid-template-columns:115px 1fr; gap:.5rem }
+    #list .bio img{ width:115px; height:115px; object-fit:cover; border:1px solid var(--teal); background:#111; display:block }
 
-    #list .copy{ color:#E7F2F1; font-size:.95rem; white-space:pre-wrap }
+    #list .copy{ color:#E7F2F1; font-size:.98rem; white-space:pre-wrap }
 
-    #list .right iframe{ width:100%; height:94px; border:0; display:block } /* shorter Mixcloud to kill black bars */
+    #list .right iframe{ width:100%; height:108px; border:0; display:block }
 
     /* Responsive */
     @media (max-width:1200px){
       #list .mix-row{ grid-template-columns:1fr }
       #list .right{ border-left:0; border-top:2px solid var(--teal) }
-      #list .bio{ grid-template-columns:90px 1fr }
-      #list .bio img{ width:90px; height:90px }
+      #list .bio{ grid-template-columns:104px 1fr }
+      #list .bio img{ width:104px; height:104px }
+      #list .right iframe{ height:108px }
     }
+
+    /* Mobile: shrink DJ image by ≥50% */
     @media (max-width:560px){
-      #list .bio{ grid-template-columns:1fr }
-      #list .bio img{ width:100%; height:auto; aspect-ratio:1/1 }
+      /* keep two columns so the art stays small next to text */
+      #list .bio{ grid-template-columns:56px 1fr; align-items:start; gap:.45rem }
+      #list .bio img{ width:56px; height:56px } /* <= 50% of 115px */
+      #list .right iframe{ height:120px }
     }
 
     /* Admin overlay */
@@ -217,7 +222,7 @@
     const $$= (s,r=document)=>[...r.querySelectorAll(s)];
     function isTyping(el){ const t=el?.tagName; return t==='INPUT'||t==='TEXTAREA'||t==='SELECT'||el?.isContentEditable; }
 
-    /* Fisher–Yates shuffle (display order only) */
+    /* Fisher–Yates shuffle (randomises listing order every render) */
     function shuffle(arr){
       const a = arr.slice();
       for(let i=a.length-1;i>0;i--){
@@ -281,7 +286,7 @@
       return j.entries || entries;
     }
 
-    /* Render (public) with animated rails + randomized order */
+    /* Render (random order + animated rails) */
     function render(){
       listEl.innerHTML='';
       if(!state.entries.length){ emptyEl.style.display='block'; return; }
@@ -309,7 +314,6 @@
         row.append(title,left,right);
         listEl.append(row);
 
-        // animate teal rails after insert (staggered lightly)
         requestAnimationFrame(()=> setTimeout(()=> title.classList.add('animate'), 60 + idx*90));
       });
     }

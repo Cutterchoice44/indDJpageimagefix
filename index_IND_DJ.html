@@ -17,25 +17,35 @@
     *{box-sizing:border-box;margin:0;padding:0}
     body{background:#000;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
 
-    /* Header */
-    header.hd{display:flex;align-items:center;justify-content:space-between;padding:1rem 0}
+    /* ===== HEADER ===================================================== */
+    header.hd{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:1rem 0;
+    }
     .logo{height:160px;width:auto}
-    .title{text-align:center}
-    .title h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.8rem,6.8vw,6rem);line-height:1;text-transform:uppercase}
-    .title p{color:var(--teal);margin-top:.25rem}
+    .title{ text-align:center; max-width:min(78vw,1100px); margin:0 8px; }
+    /* Desktop: single-line big heading (unchanged) */
+    .title h1{
+      font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(2.8rem,6.8vw,6rem);
+      line-height:1;
+      text-transform:uppercase;
+      white-space:nowrap;                /* single line on desktop */
+    }
+    .title p.tagline{ color:var(--teal); margin-top:.25rem; }
 
     .sep{height:2px;background:var(--teal)}
 
-    /* Nav */
+    /* ===== NAV ======================================================== */
     nav#main{background:var(--teal);border-top:2px solid #000;border-bottom:2px solid #000}
     nav#main ul{display:flex;list-style:none;justify-content:space-evenly;align-items:center;padding:.35rem .25rem}
     nav#main a{color:#fff;text-decoration:none;font-family:'Bebas Neue',sans-serif;text-transform:uppercase;font-size:clamp(1rem,2.4vw,2rem);letter-spacing:.5px}
 
-    /* Content wrap + guaranteed bottom teal line */
+    /* ===== CONTENT WRAP =============================================== */
     .wrap{width:100%;max-width:none;margin:0;padding:0}
-    #list{border-bottom:var(--line-thickness) solid var(--teal)}
+    #list{border-bottom:var(--line-thickness) solid var(--teal)} /* bottom divider after last entry */
 
-    /* Mix row */
+    /* ===== MIX ROW ==================================================== */
     #list .mix-row{
       display:grid;
       grid-template-columns:minmax(560px,1fr) 1.6fr;
@@ -45,7 +55,7 @@
       background:#0B0B0B;
     }
 
-    /* Title strip with animated thick rails */
+    /* Title strip + animated teal rails */
     #list .row-title{
       grid-column:1 / -1; position:relative; text-align:center;
       padding:.22rem 0 0;
@@ -68,13 +78,13 @@
       .js #list .row-title::before, .js #list .row-title::after{ animation:none !important; transform:scaleX(1) !important; }
     }
 
-    /* DJ name (+20% vs previous) */
+    /* DJ name (20% larger than before) + slow pulse */
     #list .row-title .label{
       position:relative; z-index:1; display:inline-block;
       background:#000; color:#fff; padding:.06rem .7rem; line-height:1.06;
       font-family:'Bebas Neue',sans-serif; text-transform:uppercase; letter-spacing:.06em;
       font-size:calc(1.3rem * 1.56);
-      animation:djFlash 3.2s ease-in-out infinite alternate;
+      animation:djFlash 3.2s ease-in-out infinite alternate; /* why: subtle attention */
     }
     @keyframes djFlash{
       0%   { opacity:1;   text-shadow:0 0 0 rgba(90,135,133,0); }
@@ -90,12 +100,10 @@
 
     #list .bio{ display:grid; grid-template-columns:115px 1fr; gap:.5rem }
     #list .bio img{ width:115px; height:115px; object-fit:cover; border:1px solid var(--teal); background:#111; display:block }
-
     #list .copy{ color:#E7F2F1; font-size:.98rem; white-space:pre-wrap }
-
     #list .right iframe{ width:100%; height:108px; border:0; display:block }
 
-    /* Responsive */
+    /* ===== RESPONSIVE (TABLET) ======================================== */
     @media (max-width:1200px){
       #list .mix-row{ grid-template-columns:1fr }
       #list .right{ border-left:0; border-top:2px solid var(--teal) }
@@ -104,39 +112,46 @@
       #list .right iframe{ height:108px }
     }
 
-    /* Mobile: shrink DJ image by ≥50% */
+    /* ===== RESPONSIVE (MOBILE) ======================================== */
     @media (max-width:560px){
-      /* keep two columns so the art stays small next to text */
+      /* Header rules — EXACTLY TWO LINES */
+      header.hd{ padding:.6rem 0; gap:.35rem; }
+      .logo{ height:48px }                /* ~70% smaller (160 -> 48) */
+      .title{ flex:1 1 auto; margin:0 .4rem; }
+      .title h1{
+        white-space:normal;               /* allow two lines total */
+        font-size:clamp(1.2rem, 7.2vw, 2.4rem);
+        line-height:1.02;
+      }
+      /* split into two *non-wrapping* lines */
+      .title .t-line{ display:block; white-space:nowrap; }
+      .title .t-top   { margin-bottom:2px; }
+      .title .t-bottom{ }
+
+      /* tagline must be one line */
+      .title p.tagline{
+        font-size:clamp(.68rem, 3.2vw, .95rem);
+        margin-top:.18rem;
+        white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      }
+
+      /* Make artwork ≥50% smaller and keep two-column bio */
       #list .bio{ grid-template-columns:56px 1fr; align-items:start; gap:.45rem }
-      #list .bio img{ width:56px; height:56px } /* <= 50% of 115px */
-      #list .right iframe{ height:120px }
+      #list .bio img{ width:56px; height:56px }
+      #list .right iframe{ height:120px } /* touch taller for usability */
     }
-
-    /* Admin overlay */
-    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;z-index:9999}
-    .panel{width:min(980px,95vw);max-height:92vh;overflow:auto;background:#0e1414;border:2px solid var(--teal);border-radius:10px;padding:14px}
-    .panel h3{font-family:'Bebas Neue',sans-serif;margin:0 0 10px}
-    .entry{border:1px solid #2a5653;border-radius:8px;padding:10px;margin:10px 0;background:#081111}
-    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0}
-    label{min-width:88px}
-    select,input[type="text"],textarea{flex:1 1 260px;min-width:220px;background:#050808;color:#eaffff;border:1px solid #2a5653;border-radius:6px;padding:8px}
-    textarea{min-height:68px}
-    .btn{padding:8px 12px;border-radius:6px;border:1px solid #2a5653;background:#0b2322;color:#eaffff;cursor:pointer}
-    .muted{color:#a7cbc7;font-size:.9rem}
-    .status{opacity:.9;font-size:.9rem;margin-left:auto}
-
-    /* Login modal */
-    .login-card{width:min(420px,94vw);background:#0e1414;border:2px solid var(--teal);border-radius:10px;padding:16px}
-    .login-card h3{font-family:'Bebas Neue',sans-serif;margin:0 0 10px}
-    .login-row{display:flex;gap:8px;align-items:center;margin-top:8px}
-    .login-input{flex:1;background:#050808;color:#eaffff;border:1px solid #2a5653;border-radius:6px;padding:10px}
-    .error{color:#ff7a7a;font-size:.9rem;margin-top:6px;display:none}
   </style>
 </head>
 <body>
   <header class="hd">
     <img class="logo" src="/images/logo.png" alt="Cutters Choice Radio" loading="lazy">
-    <div class="title"><h1>CUTTERS CHOICE BEST OF 2025 MIXES</h1><p>Relentless flavas. Significant bangers. Certified standouts.</p></div>
+    <div class="title">
+      <!-- Desktop: inline (single line); Mobile: two locked lines via CSS -->
+      <h1>
+        <span class="t-line t-top">Cutters Choice </span><span class="t-line t-bottom">Best of 2025 Mixes</span>
+      </h1>
+      <p class="tagline">Relentless flavas. Significant bangers. Certified standouts.</p>
+    </div>
     <img class="logo" src="/images/logo.png" alt="" loading="lazy" aria-hidden="true">
   </header>
 
@@ -159,7 +174,7 @@
     <p id="empty" class="muted" style="padding:12px;display:none">No mixes yet.</p>
   </main>
 
-  <!-- Admin overlay (after login) -->
+  <!-- Admin overlay (Shift+A to open) -->
   <div id="admin" class="overlay" aria-hidden="true">
     <div class="panel" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
       <h3 id="adminTitle">Best of 2025 — Admin</h3>
@@ -174,7 +189,7 @@
     </div>
   </div>
 
-  <!-- Login overlay (Shift+A) -->
+  <!-- Login overlay -->
   <div id="login" class="overlay" aria-hidden="true">
     <div class="login-card" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
       <h3 id="loginTitle">Admin Login</h3>
@@ -222,12 +237,12 @@
     const $$= (s,r=document)=>[...r.querySelectorAll(s)];
     function isTyping(el){ const t=el?.tagName; return t==='INPUT'||t==='TEXTAREA'||t==='SELECT'||el?.isContentEditable; }
 
-    /* Fisher–Yates shuffle (randomises listing order every render) */
+    /* Randomise order every render */
     function shuffle(arr){
       const a = arr.slice();
       for(let i=a.length-1;i>0;i--){
-        const j = Math.floor(Math.random()*(i+1));
-        [a[i],a[j]] = [a[j],a[i]];
+        const j=Math.floor(Math.random()*(i+1));
+        [a[i],a[j]]=[a[j],a[i]];
       }
       return a;
     }
@@ -254,7 +269,6 @@
       return '';
     }
 
-    /* Radio Cult artists */
     async function loadArtists(){
       const r = await fetch(`${RC.BASE_URL}/station/${RC.STATION_ID}/artists`, { headers:{'x-api-key':RC.API_KEY} });
       if(!r.ok) throw new Error('Artists API '+r.status);
@@ -265,7 +279,6 @@
       );
     }
 
-    /* Server IO */
     async function loadEntries(){
       try{
         const r = await fetch(`${CONFIG_ENDPOINT}?action=load`, {cache:'no-store'});
@@ -286,7 +299,6 @@
       return j.entries || entries;
     }
 
-    /* Render (random order + animated rails) */
     function render(){
       listEl.innerHTML='';
       if(!state.entries.length){ emptyEl.style.display='block'; return; }

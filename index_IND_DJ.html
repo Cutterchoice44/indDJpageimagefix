@@ -7,8 +7,9 @@
   <meta name="description" content="Standout CCR mixes from 2025." />
   <meta name="theme-color" content="#5A8785" />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
+  <script>/* why: enable CSS hooks for animation while keeping a no-JS fallback */document.documentElement.classList.add('js');</script>
   <style>
-    :root{ --teal:#5A8785; --bg:#000; }
+    :root{ --teal:#5A8785; --bg:#000; --line-thickness:6px; }
     *{box-sizing:border-box;margin:0;padding:0}
     body{background:#000;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
 
@@ -29,41 +30,57 @@
     /* Full-bleed content */
     .wrap{width:100%;max-width:none;margin:0;padding:0}
 
-    /* Mix row (full width; solid teal line BETWEEN entries) */
+    /* Mix row (full width; divider handled by title line) */
     .mix-row{
       display:grid;
-      grid-template-columns:minmax(560px,1fr) 1.6fr; /* left column width retained */
+      grid-template-columns:minmax(560px,1fr) 1.6fr;
       grid-template-rows:auto 1fr;
-      gap:8px;                       /* tighter */
+      gap:12px;
       background:#0B0B0B;
       margin:0;
-      border:0;                      /* no per-row borders */
+      border:0;
     }
-    .mix-row + .mix-row{ border-top:2px solid var(--teal); } /* divider between entries */
 
-    /* Title strip */
-    .row-title{grid-column:1 / -1; position:relative; text-align:center; padding:.45rem 0 .2rem} /* tighter */
-    .row-title::before{content:"";position:absolute;left:0;right:0;top:50%;height:2px;background:var(--teal)}
+    /* Title strip with thick, animated teal lines left/right of the name */
+    .row-title{grid-column:1 / -1; position:relative; text-align:center; padding:.45rem 0 .2rem; overflow:hidden}
+    /* default (no-JS) = show lines fully extended */
+    .row-title::before,
+    .row-title::after{
+      content:""; position:absolute; top:50%; height:var(--line-thickness); background:var(--teal);
+      width:50%;
+      transform:scaleX(1);
+    }
+    .row-title::before{ left:0; transform-origin:right; }
+    .row-title::after{ right:0; transform-origin:left; }
+    /* JS-enabled: start collapsed at the name; expand on .animate */
+    .js .row-title::before, .js .row-title::after{ transform:scaleX(0); }
+    .js .row-title.animate::before,
+    .js .row-title.animate::after{ animation: lineGrow 900ms ease-out forwards; }
+    @keyframes lineGrow { to { transform:scaleX(1); } }
+    @media (prefers-reduced-motion: reduce){
+      .js .row-title::before, .js .row-title::after{ animation:none !important; transform:scaleX(1) !important; }
+    }
+
     .label{
       position:relative; z-index:1; display:inline-block;
       background:#000; color:#fff; padding:.08rem .7rem; line-height:1.1;
       font-family:'Bebas Neue',sans-serif; text-transform:uppercase; letter-spacing:.06em;
-      font-size:calc(1.3rem * 1.3); /* +30% */
+      font-size:calc(1.3rem * 1.3); /* DJ name +30% */
     }
 
     /* Columns */
-    .left{padding:.5rem}  /* tighter */
-    .bio{display:grid;grid-template-columns:105px 1fr;gap:.6rem} /* image 105px (was 140), gaps tighter */
+    .left{padding:.5rem}
+    .bio{display:grid;grid-template-columns:105px 1fr;gap:.6rem}
     .bio img{width:105px;height:105px;object-fit:cover;border:1px solid var(--teal);background:#111}
     .copy{color:#E7F2F1;font-size:.95rem;white-space:pre-wrap}
 
     .right{
-      padding:.5rem;                 /* tighter */
+      padding:.5rem;
       border-left:2px solid var(--teal);
       display:flex;align-items:center;justify-content:center;
       background:#0E0E0E;
     }
-    .right iframe{width:100%;height:100px;border:0;display:block} /* shorter widget */
+    .right iframe{width:100%;height:100px;border:0;display:block}
 
     /* Responsive */
     @media (max-width:1200px){
@@ -241,24 +258,35 @@
       return j.entries || entries;
     }
 
-    /* Render (public) */
+    /* Render (public) with animated title lines */
     function render(){
       listEl.innerHTML='';
       if(!state.entries.length){ emptyEl.style.display='block'; return; }
       emptyEl.style.display='none';
-      state.entries.forEach(e=>{
+
+      state.entries.forEach((e, idx)=>{
         const a = state.artistMap.get(String(e.artistId)) || {name:'Unknown',logo:''};
+
         const row=document.createElement('section'); row.className='mix-row';
-        const title=document.createElement('div'); title.className='row-title'; title.innerHTML=`<span class="label">${a.name}</span>`;
+
+        const title=document.createElement('div'); title.className='row-title';
+        title.innerHTML=`<span class="label">${a.name}</span>`;
+
         const left=document.createElement('div'); left.className='left';
         const bio=document.createElement('div'); bio.className='bio';
         const img=document.createElement('img'); img.src=a.logo||''; img.alt=a.name; img.loading='lazy';
         const copy=document.createElement('div'); copy.className='copy'; copy.textContent=e.copy||'';
         bio.append(img,copy); left.append(bio);
+
         const right=document.createElement('div'); right.className='right';
         const ifm=document.createElement('iframe'); ifm.allow='autoplay; encrypted-media'; ifm.loading='lazy'; ifm.title=`${a.name} — Mixcloud`; ifm.src=e.widgetSrc||'';
         right.append(ifm);
-        row.append(title,left,right); listEl.append(row);
+
+        row.append(title,left,right);
+        listEl.append(row);
+
+        // why: trigger the outward line animation once entries exist in DOM
+        requestAnimationFrame(()=> setTimeout(()=> title.classList.add('animate'), 80 + idx*120));
       });
     }
 

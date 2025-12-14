@@ -43,12 +43,12 @@
     .wrap{width:100%;max-width:none;margin:0;padding:0}
     #list{border-bottom:var(--line-thickness) solid var(--teal)} /* bottom divider after last entry */
 
-    /* ===== MIX ROW ===== */
+    /* ===== MIX ROW (tight gaps) ===== */
     #list .mix-row{
       display:grid;
       grid-template-columns:minmax(560px,1fr) 1.6fr;
       grid-template-rows:auto 1fr;
-      row-gap:6px;
+      row-gap:2px;
       column-gap:10px;
       background:#0B0B0B;
     }
@@ -56,7 +56,7 @@
     /* Title strip + animated teal rails */
     #list .row-title{
       grid-column:1 / -1; position:relative; text-align:center;
-      padding:.22rem 0 0;
+      padding:.06rem 0 0;
       overflow:hidden;
     }
     #list .row-title::before,
@@ -76,7 +76,7 @@
       .js #list .row-title::before, .js #list .row-title::after{ animation:none !important; transform:scaleX(1) !important; }
     }
 
-    /* DJ name (20% larger) + slow pulse */
+    /* DJ name + pulse */
     #list .row-title .label{
       position:relative; z-index:1; display:inline-block;
       background:#000; color:#fff; padding:.06rem .7rem; line-height:1.06;
@@ -84,66 +84,46 @@
       font-size:calc(1.3rem * 1.56);
       animation:djFlash 3.2s ease-in-out infinite alternate;
     }
-    @keyframes djFlash{
-      0%   { opacity:1;   text-shadow:0 0 0 rgba(90,135,133,0); }
-      100% { opacity:.92; text-shadow:0 0 12px rgba(90,135,133,.75); }
-    }
-    @media (prefers-reduced-motion: reduce){
-      #list .row-title .label{ animation:none; }
-    }
+    @keyframes djFlash{ 0%{opacity:1;text-shadow:0 0 0 rgba(90,135,133,0)} 100%{opacity:.92;text-shadow:0 0 12px rgba(90,135,133,.75)} }
+    @media (prefers-reduced-motion: reduce){ #list .row-title .label{ animation:none } }
 
-    /* Columns */
-    #list .left{  padding:.34rem .52rem !important; }
-    #list .right{ padding:.34rem .52rem !important; border-left:2px solid var(--teal); display:flex; align-items:center; justify-content:center; background:#0E0E0E; }
-    #list .bio{ display:grid; grid-template-columns:115px 1fr; gap:.5rem }
-    #list .bio img{ width:115px; height:115px; object-fit:cover; border:1px solid var(--teal); background:#111; display:block }
-    #list .copy{ color:#E7F2F1; font-size:.98rem; white-space:pre-wrap }
-    #list .right iframe{ width:100%; height:108px; border:0; display:block }
+    /* Columns (desktop tighter + readable copy) */
+    #list .left{  padding:.22rem .42rem !important; }
+    #list .right{ padding:.22rem .42rem !important; border-left:2px solid var(--teal); display:flex; align-items:center; justify-content:center; background:#0E0E0E; }
+    #list .bio{ display:grid; grid-template-columns:100px 1fr; gap:.34rem }   /* art 100px */
+    #list .bio img{ width:100px; height:100px; object-fit:cover; border:1px solid var(--teal); background:#111; display:block }
+    #list .copy{ color:#E7F2F1; font-size:1rem; line-height:1.28; white-space:pre-wrap }  /* slightly larger for legibility */
+    #list .right iframe{ width:100%; height:102px; border:0; display:block; margin:0 }     /* ~102px widget */
 
     /* ===== TABLET ===== */
     @media (max-width:1200px){
       #list .mix-row{ grid-template-columns:1fr }
       #list .right{ border-left:0; border-top:2px solid var(--teal) }
-      #list .bio{ grid-template-columns:104px 1fr }
-      #list .bio img{ width:104px; height:104px }
-      #list .right iframe{ height:108px }
+      #list .bio{ grid-template-columns:96px 1fr }
+      #list .bio img{ width:96px; height:96px }
+      #list .right iframe{ height:102px }
     }
 
-    /* ===== MOBILE =====
-       Make header perfectly symmetrical with a 3-col grid:
-       [48px logo] [centered title] [48px logo]
-       Logos forced to identical square boxes so alignment is exact. */
+    /* ===== MOBILE (symmetrical header + smaller art) ===== */
     @media (max-width:560px){
       header.hd{
         padding:.6rem 0;
         display:grid; grid-template-columns:48px 1fr 48px; align-items:center;
         column-gap:.35rem;
       }
-      .logo{
-        height:48px; width:48px; object-fit:contain; /* identical footprint both sides */
-        justify-self:center;
-      }
+      .logo{ height:48px; width:48px; object-fit:contain; justify-self:center; }
       .title{ grid-column:2; text-align:center; margin:0 .2rem; }
-      .title h1{
-        white-space:normal;
-        font-size:clamp(1.2rem, 7.2vw, 2.4rem);
-        line-height:1.02;
-      }
+      .title h1{ white-space:normal; font-size:clamp(1.2rem, 7.2vw, 2.4rem); line-height:1.02; }
       .title .t-line{ display:block; white-space:nowrap; }
       .title .t-top{ margin-bottom:2px; }
-      .title p{
-        font-size:clamp(.68rem, 3.2vw, .95rem);
-        margin-top:.18rem;
-        white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-      }
+      .title p{ font-size:clamp(.68rem, 3.2vw, .95rem); margin-top:.18rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-      /* artwork smaller (≥50%) and keep two-column bio */
-      #list .bio{ grid-template-columns:56px 1fr; align-items:start; gap:.45rem }
+      #list .bio{ grid-template-columns:56px 1fr; align-items:start; gap:.34rem }
       #list .bio img{ width:56px; height:56px }
-      #list .right iframe{ height:120px }
+      #list .right iframe{ height:118px }
     }
 
-    /* ===== OVERLAYS (safe default hidden) ===== */
+    /* ===== OVERLAYS (hidden by default) ===== */
     .overlay{
       position:fixed; inset:0; background:rgba(0,0,0,.82);
       display:none; align-items:center; justify-content:center; z-index:9999;
@@ -250,7 +230,7 @@
     const login = document.getElementById('login');
     const pwdInput = document.getElementById('pwd');
     const loginBtn = document.getElementById('loginBtn');
-    theLoginCancel = document.getElementById('loginCancel');
+    const loginCancel = document.getElementById('loginCancel');
     const loginErr = document.getElementById('loginErr');
 
     /* State */
@@ -407,7 +387,7 @@
       if (hex === '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e') { closeLogin(); openAdmin(); } else { loginErr.style.display='block'; }
     }
     loginBtn.addEventListener('click', tryLogin);
-    theLoginCancel.addEventListener('click', closeLogin);
+    loginCancel.addEventListener('click', closeLogin);
     pwdInput.addEventListener('keydown', e=>{ if(e.key==='Enter') tryLogin(); });
 
     window.addEventListener('keydown', (e)=>{

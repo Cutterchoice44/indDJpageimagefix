@@ -13,10 +13,10 @@
       --teal:#5A8785;
       --line-thickness:8px;
 
-      /* Single source of truth for art + widget height */
-      --art:110px;                          /* <= artwork + widget */
-      --row-h: calc(var(--art) + 12px);     /* compact total row height */
-      --copy-bg:#0B0B0B;
+      /* compact row sizing (desktop/tablet) */
+      --row-h:150px;     /* total content height under the DJ name strip */
+      --art:100px;       /* profile image size */
+      --pad-h: .42rem;   /* horizontal padding so label aligns with art/text */
     }
     *{box-sizing:border-box;margin:0;padding:0}
     body{background:#000;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
@@ -36,79 +36,113 @@
 
     /* ===== CONTENT WRAP ===== */
     .wrap{width:100%;max-width:none;margin:0;padding:0}
-    #list{border-bottom:var(--line-thickness) solid var(--teal)}
+    #list{border-bottom:var(--line-thickness) solid var(--teal)} /* bottom divider after last entry */
 
-    /* ===== MIX ROW ===== */
+    /* ===== MIX ROW (fixed height + tight gaps) ===== */
     #list .mix-row{
       display:grid;
       grid-template-columns:minmax(560px,1fr) 1.6fr;
-      grid-template-rows:auto var(--row-h);
-      row-gap:1px;
-      column-gap:8px;
+      grid-template-rows:auto var(--row-h); /* fixed content height row */
+      row-gap:2px;
+      column-gap:10px;
       background:#0B0B0B;
     }
 
-    /* Title + animated rails */
-    #list .row-title{grid-column:1 / -1;position:relative;text-align:center;padding:0;overflow:hidden}
-    #list .row-title::before,#list .row-title::after{
-      content:"";position:absolute;top:50%;height:var(--line-thickness);background:var(--teal);width:50%;transform:scaleX(0)
+    /* Left-aligned title strip with animated rails */
+    #list .row-title{
+      grid-column:1 / -1;
+      display:grid;
+      grid-template-columns:auto 1fr; /* [label][rail] */
+      align-items:center;
+      gap:.6rem;
+      padding:.06rem var(--pad-h) 0 var(--pad-h); /* align with left content */
     }
-    #list .row-title::before{left:0;transform-origin:right}
-    #list .row-title::after{right:0;transform-origin:left}
-    .js #list .row-title.animate::before,.js #list .row-title.animate::after{animation:lineGrow 900ms ease-out forwards}
-    @keyframes lineGrow{to{transform:scaleX(1)}}
+
+    /* Label (DJ name) */
     #list .row-title .label{
-      position:relative;z-index:1;display:inline-block;background:#000;color:#fff;padding:.04rem .6rem;line-height:1.04;
-      font-family:'Bebas Neue',sans-serif;text-transform:uppercase;letter-spacing:.06em;font-size:calc(1.3rem * 1.56);
-      animation:djFlash 3.2s ease-in-out infinite alternate
+      display:inline-flex; align-items:center; gap:.5rem;
+      font-family:'Bebas Neue',sans-serif; text-transform:uppercase; letter-spacing:.06em;
+      background:#000; color:#fff; line-height:1.06;
+      font-size:calc(1.3rem * 1.56);
+      padding:.06rem .2rem .06rem 0;
+      animation:djFlash 3.2s ease-in-out infinite alternate;
     }
-    @keyframes djFlash{0%{opacity:1;text-shadow:0 0 0 rgba(90,135,133,0)}100%{opacity:.92;text-shadow:0 0 12px rgba(90,135,133,.75)}}
-    @media (prefers-reduced-motion:reduce){.js #list .row-title::before,.js #list .row-title::after{animation:none !important;transform:scaleX(1) !important}#list .row-title .label{animation:none}}
+    /* tiny left stub line */
+    #list .row-title .stub{
+      display:inline-block; width:24px; height:var(--line-thickness); background:var(--teal);
+      transform:scaleX(0); transform-origin:right;
+    }
+    /* right rail line (fills rest of row) */
+    #list .row-title .rail{
+      height:var(--line-thickness); background:var(--teal);
+      transform:scaleX(0); transform-origin:left;
+    }
+    .js #list .row-title.animate .stub,
+    .js #list .row-title.animate .rail{ animation:lineGrow 900ms ease-out forwards; }
 
-    /* ===== COLUMNS (exact alignment) ===== */
-    #list .left{padding:.1rem .3rem !important;height:var(--row-h);overflow:hidden;background:var(--copy-bg)}
-    #list .right{padding:.1rem .3rem !important;height:var(--row-h);border-left:2px solid var(--teal);
-      display:flex;align-items:flex-end;justify-content:center;background:#0E0E0E;overflow:hidden}
-
-    /* Left grid: art = widget height, copy fills */
-    #list .bio{display:grid;grid-template-columns:var(--art) 1fr;gap:.22rem;height:100%}
-    #list .bio img{
-      width:var(--art);height:var(--art); /* <-- EXACTLY matches widget */
-      object-fit:cover;border:1px solid var(--teal);background:#111;display:block;align-self:end
+    @keyframes lineGrow { to { transform:scaleX(1); } }
+    @keyframes djFlash{
+      0%   { opacity:1;   text-shadow:0 0 0 rgba(90,135,133,0); }
+      100% { opacity:.92; text-shadow:0 0 12px rgba(90,135,133,.75); }
+    }
+    @media (prefers-reduced-motion: reduce){
+      .js #list .row-title .stub,
+      .js #list .row-title .rail{ animation:none !important; transform:scaleX(1) !important; }
+      #list .row-title .label{ animation:none; }
     }
 
-    /* Scrollable copy + fades */
-    #list .copy{position:relative;color:#E7F2F1;font-size:.95rem;line-height:1.28;white-space:pre-wrap;height:100%;overflow:auto;padding-right:.24rem;background:var(--copy-bg)}
-    #list .copy.scrollable::before,#list .copy.scrollable::after{
-      content:"";position:absolute;left:0;right:0;height:12px;z-index:2;pointer-events:none;opacity:0;transition:opacity .18s ease}
-    #list .copy.scrollable::before{top:0;background:linear-gradient(to bottom, rgba(0,0,0,.85), rgba(0,0,0,0))}
-    #list .copy.scrollable::after{bottom:0;background:linear-gradient(to top, rgba(0,0,0,.85), rgba(0,0,0,0))}
-    #list .copy.shadow-top::before{opacity:1} #list .copy.shadow-bottom::after{opacity:1}
-    #list .copy::-webkit-scrollbar{width:6px} #list .copy::-webkit-scrollbar-thumb{background:#2b5e5b;border-radius:6px}
+    /* ===== COLUMNS (fill fixed height) ===== */
+    #list .left{padding:.18rem var(--pad-h) !important;height:var(--row-h);overflow:hidden}
+    #list .right{padding:.18rem var(--pad-h) !important;height:var(--row-h);border-left:2px solid var(--teal);display:flex;align-items:center;justify-content:center;background:#0E0E0E;overflow:hidden}
 
-    /* Right: widget = art height (no legacy 108px anywhere) */
-    #list .right iframe{width:100%;height:var(--art);min-height:56px;max-height:200px;border:0;display:block;margin:0}
+    /* left side: grid, image + copy scroll area */
+    #list .bio{
+      display:grid;
+      grid-template-columns:var(--art) 1fr;
+      gap:.28rem;
+      height:100%;
+      align-items:start;
+    }
+    #list .bio img{width:var(--art);height:var(--art);object-fit:cover;border:1px solid var(--teal);background:#111;display:block}
+    #list .copy{
+      color:#E7F2F1;font-size:1rem;line-height:1.28;white-space:pre-wrap;
+      height:100%;overflow:auto;padding-right:.25rem; position:relative;
+      mask-image: linear-gradient(180deg, transparent 0, black 10px, black calc(100% - 10px), transparent 100%);
+    }
+    /* compact scrollbars (webkit) */
+    #list .copy::-webkit-scrollbar{width:6px}
+    #list .copy::-webkit-scrollbar-thumb{background:#2b5e5b;border-radius:6px}
+
+    /* right side: make the Mixcloud widget fill the column height */
+    #list .right iframe{
+      width:100%;height:100%;min-height:90px;border:0;display:block;margin:0;
+    }
 
     /* ===== TABLET ===== */
     @media (max-width:1200px){
       #list .mix-row{grid-template-columns:1fr}
       #list .right{border-left:0;border-top:2px solid var(--teal)}
-      :root{--art:100px;--row-h:calc(var(--art) + 12px)}
+      :root{ --row-h:150px; --art:96px; }
     }
 
-    /* ===== MOBILE (symmetrical header) ===== */
+    /* ===== MOBILE ===== */
     @media (max-width:560px){
-      header.hd{padding:.6rem 0;display:grid;grid-template-columns:48px 1fr 48px;align-items:center;column-gap:.35rem}
+      header.hd{
+        padding:.6rem 0;
+        display:grid;grid-template-columns:48px 1fr 48px;align-items:center;column-gap:.35rem;
+      }
       .logo{height:48px;width:48px;object-fit:contain;justify-self:center}
       .title{grid-column:2;text-align:center;margin:0 .2rem}
       .title h1{white-space:normal;font-size:clamp(1.2rem,7.2vw,2.4rem);line-height:1.02}
-      .title .t-line{display:block;white-space:nowrap}.title .t-top{margin-bottom:2px}
+      .title .t-line{display:block;white-space:nowrap}
+      .title .t-top{margin-bottom:2px}
       .title p{font-size:clamp(.68rem,3.2vw,.95rem);margin-top:.18rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-      :root{--art:72px;--row-h:calc(var(--art) + 16px)}
+      :root{ --row-h:170px; --art:56px; } /* slightly taller entry on mobile */
+      #list .bio{gap:.24rem}
     }
 
-    /* ===== OVERLAYS ===== */
+    /* ===== OVERLAYS (hidden by default) ===== */
     .overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;z-index:9999}
     .overlay[aria-hidden="false"]{display:flex}
     .panel{width:min(980px,95vw);max-height:92vh;overflow:auto;background:#0e1414;border:2px solid var(--teal);border-radius:10px;padding:14px}
@@ -160,7 +194,7 @@
     <p id="empty" class="muted" style="padding:12px;display:none">No mixes yet.</p>
   </main>
 
-  <!-- Admin overlay -->
+  <!-- Admin overlay (hidden until Shift+A + password) -->
   <div id="admin" class="overlay" aria-hidden="true" style="display:none">
     <div class="panel" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
       <h3 id="adminTitle">Best of 2025 — Admin</h3>
@@ -175,7 +209,7 @@
     </div>
   </div>
 
-  <!-- Login overlay -->
+  <!-- Login overlay (hidden until Shift+A) -->
   <div id="login" class="overlay" aria-hidden="true" style="display:none">
     <div class="login-card" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
       <h3 id="loginTitle">Admin Login</h3>
@@ -193,7 +227,11 @@
     /* Config */
     const CONFIG_ENDPOINT = 'best-of-2025-mixes-config.php';
     const ADMIN_HASH_HEX  = '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e'; // sha256('ccr2025!')
-    const RC = { BASE_URL:'https://api.radiocult.fm/api', STATION_ID:'cutters-choice-radio', API_KEY:'pk_0b8abc6f834b444f949f727e88a728e0' };
+    const RC = {
+      BASE_URL: 'https://api.radiocult.fm/api',
+      STATION_ID: 'cutters-choice-radio',
+      API_KEY: 'pk_0b8abc6f834b444f949f727e88a728e0'
+    };
 
     /* DOM */
     const listEl = document.getElementById('list');
@@ -212,68 +250,73 @@
     const loginErr = document.getElementById('loginErr');
 
     /* State */
-    const state = { entries: [], artists: [], artistMap:new Map() };
+    const state = { entries: [], artists: [], artistMap:new Map(), authed:false };
 
     /* Utils */
     const $ = (s,r=document)=>r.querySelector(s);
     const $$= (s,r=document)=>[...r.querySelectorAll(s)];
     function isTyping(el){ const t=el?.tagName; return t==='INPUT'||t==='TEXTAREA'||t==='SELECT'||el?.isContentEditable; }
-    function shuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]] } return a }
+
+    /* Randomise entry order each render */
+    function shuffle(arr){
+      const a = arr.slice();
+      for(let i=a.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [a[i],a[j]]=[a[j],a[i]];
+      }
+      return a;
+    }
 
     function normalizeMixcloud(input){
-      const raw=(input||'').trim(); if(!raw) return '';
-      const ifm=raw.match(/<iframe[^>]*\s+src=["']([^"']+)["']/i);
-      const candidate=ifm?ifm[1]:raw;
+      const raw = (input||'').trim(); if(!raw) return '';
+      const ifm = raw.match(/<iframe[^>]*\s+src=["']([^"']+)["']/i);
+      const candidate = ifm ? ifm[1] : raw;
       try{
-        const u=new URL(candidate);
-        if(/mixcloud\.com\/widget\/iframe/i.test(u.href)) return u.href.replace(/^[^:]+:\/\/[^/]+/,'https://www.mixcloud.com');
-        const host=u.hostname.replace(/^www\./,'');
-        if(host==='mixcloud.com'){
-          let p=u.pathname; if(!p.endsWith('/')) p+='/';
-          const m=p.match(/^\/([^/]+)\/([^/]+)\//);
-          if(m){ const feed=encodeURIComponent(`/${m[1]}/${m[2]}/`); return `https://www.mixcloud.com/widget/iframe/?light=1&feed=${feed}`; }
+        const u = new URL(candidate);
+        if (/mixcloud\.com\/widget\/iframe/i.test(u.href)) {
+          return u.href.replace(/^[^:]+:\/\/[^/]+/, 'https://www.mixcloud.com');
+        }
+        const host = u.hostname.replace(/^www\./,'');
+        if (host === 'mixcloud.com') {
+          let p = u.pathname; if(!p.endsWith('/')) p+='/';
+          const m = p.match(/^\/([^/]+)\/([^/]+)\//);
+          if (m) {
+            const feed = encodeURIComponent(`/${m[1]}/${m[2]}/`);
+            return `https://www.mixcloud.com/widget/iframe/?light=1&feed=${feed}`;
+          }
         }
       }catch(_){}
       return '';
     }
 
     async function loadArtists(){
-      const r=await fetch(`${RC.BASE_URL}/station/${RC.STATION_ID}/artists`,{headers:{'x-api-key':RC.API_KEY}});
+      const r = await fetch(`${RC.BASE_URL}/station/${RC.STATION_ID}/artists`, { headers:{'x-api-key':RC.API_KEY} });
       if(!r.ok) throw new Error('Artists API '+r.status);
-      const {artists=[]}=await r.json();
-      state.artists=artists;
-      state.artistMap=new Map(artists.map(a=>[String(a.id),{id:String(a.id),name:a.name,logo:(a.logo&&(a.logo['512x512']||a.logo.default))||''}]));
+      const {artists=[]} = await r.json();
+      state.artists = artists;
+      state.artistMap = new Map(
+        artists.map(a=>[String(a.id), { id:String(a.id), name:a.name, logo:(a.logo&&(a.logo['512x512']||a.logo.default))||'' }])
+      );
     }
 
     async function loadEntries(){
       try{
-        const r=await fetch(`${CONFIG_ENDPOINT}?action=load`,{cache:'no-store'});
-        if(r.ok){ const j=await r.json(); if(Array.isArray(j?.entries)) return j.entries; }
+        const r = await fetch(`${CONFIG_ENDPOINT}?action=load`, {cache:'no-store'});
+        if (r.ok) { const j = await r.json(); if (Array.isArray(j?.entries)) return j.entries; }
       }catch(_){}
-      try{ const s=localStorage.getItem('best_2025_entries'); if(s){ const a=JSON.parse(s); if(Array.isArray(a)) return a; } }catch(_){}
+      try{
+        const s = localStorage.getItem('best_2025_entries'); if (s) { const a = JSON.parse(s); if (Array.isArray(a)) return a; }
+      }catch(_){}
       return [];
     }
     async function saveEntries(entries){
-      const r=await fetch(CONFIG_ENDPOINT+'?action=save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({entries,auth:ADMIN_HASH_HEX})});
-      const txt=await r.text(); let j=null; try{ j=JSON.parse(txt);}catch{}
-      if(!r.ok || !(j&&j.ok)) throw new Error(j?.error?('Server: '+j.error):('HTTP '+r.status+' '+txt.slice(0,160)));
-      return j.entries || entries;
-    }
-
-    function wireCopyFades(scope){
-      scope.querySelectorAll('.copy').forEach(el=>{
-        const update=()=>{
-          const can=el.scrollHeight>el.clientHeight+1;
-          if(!can){ el.classList.remove('scrollable','shadow-top','shadow-bottom'); return;}
-          el.classList.add('scrollable');
-          const max=el.scrollHeight-el.clientHeight-1;
-          const t=el.scrollTop;
-          if(t>1) el.classList.add('shadow-top'); else el.classList.remove('shadow-top');
-          if(t<max) el.classList.add('shadow-bottom'); else el.classList.remove('shadow-bottom');
-        };
-        el.addEventListener('scroll',update,{passive:true});
-        requestAnimationFrame(update);
+      const r = await fetch(CONFIG_ENDPOINT+'?action=save', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ entries, auth: ADMIN_HASH_HEX })
       });
+      const txt = await r.text(); let j=null; try{ j=JSON.parse(txt);}catch{}
+      if(!r.ok || !(j&&j.ok)) throw new Error(j?.error ? ('Server: '+j.error) : ('HTTP '+r.status+' '+txt.slice(0,160)));
+      return j.entries || entries;
     }
 
     function render(){
@@ -281,14 +324,18 @@
       if(!state.entries.length){ emptyEl.style.display='block'; return; }
       emptyEl.style.display='none';
 
-      const randomized=shuffle(state.entries);
-      randomized.forEach((e,idx)=>{
-        const a=state.artistMap.get(String(e.artistId))||{name:'Unknown',logo:''};
+      const randomized = shuffle(state.entries);
+      randomized.forEach((e, idx)=>{
+        const a = state.artistMap.get(String(e.artistId)) || {name:'Unknown',logo:''};
 
         const row=document.createElement('section'); row.className='mix-row';
 
+        // Left-aligned label + animated rails
         const title=document.createElement('div'); title.className='row-title';
-        title.innerHTML=`<span class="label">${a.name}</span>`;
+        title.innerHTML=`
+          <span class="label"><span class="stub"></span>${a.name}</span>
+          <span class="rail" aria-hidden="true"></span>
+        `;
 
         const left=document.createElement('div'); left.className='left';
         const bio=document.createElement('div'); bio.className='bio';
@@ -303,11 +350,11 @@
         row.append(title,left,right);
         listEl.append(row);
 
-        requestAnimationFrame(()=>{ setTimeout(()=>title.classList.add('animate'),60+idx*90); wireCopyFades(row); });
+        requestAnimationFrame(()=> setTimeout(()=> title.classList.add('animate'), 60 + idx*90));
       });
     }
 
-    /* Admin overlay */
+    /* Admin */
     function artistOptions(sel){
       return ['<option value="">Select artist…</option>']
         .concat(state.artists.slice().sort((x,y)=>x.name.localeCompare(y.name))
@@ -320,10 +367,10 @@
                    <div class="row"><label>Mixcloud</label><input class="mix" type="text" placeholder="Mixcloud page URL, widget URL, or &lt;iframe&gt;"></div>
                    <div class="row"><label>Copy</label><textarea class="txt" rows="3" placeholder="Short blurb…"></textarea></div>
                    <div class="row"><button class="btn up">↑</button><button class="btn down">↓</button><button class="btn del">Remove</button></div>`;
-      w.querySelector('.mix').value=data.widgetSrc||''; w.querySelector('.txt').value=data.copy||'';
-      w.querySelector('.up').onclick=()=>{ const p=w.previousElementSibling; if(p) w.parentNode.insertBefore(w,p); };
-      w.querySelector('.down').onclick=()=>{ const n=w.nextElementSibling; if(n) w.parentNode.insertBefore(n,w); };
-      w.querySelector('.del').onclick=()=>w.remove();
+      w.querySelector('.mix').value = data.widgetSrc||''; w.querySelector('.txt').value = data.copy||'';
+      w.querySelector('.up').onclick   = ()=>{ const p=w.previousElementSibling; if(p) w.parentNode.insertBefore(w,p); };
+      w.querySelector('.down').onclick = ()=>{ const n=w.nextElementSibling; if(n) w.parentNode.insertBefore(n,w); };
+      w.querySelector('.del').onclick  = ()=> w.remove();
       return w;
     }
     function openAdmin(){ entriesEl.innerHTML=''; (state.entries||[]).forEach(e=>entriesEl.appendChild(entryEditor(e))); admin.setAttribute('aria-hidden','false'); admin.style.display='flex'; statusEl.textContent=''; }
@@ -331,53 +378,55 @@
     addBtn.addEventListener('click', ()=> entriesEl.appendChild(entryEditor()), {passive:true});
     closeBtn.addEventListener('click', closeAdmin, {passive:true});
     saveBtn.addEventListener('click', async ()=>{
-      const rows=$$('.entry',entriesEl);
-      const out=rows.map(r=>{
+      const rows = $$('.entry', entriesEl);
+      const out = rows.map(r=>{
         const artistId=r.querySelector('.artist').value.trim();
-        const mix=normalizeMixcloud(r.querySelector('.mix').value.trim());
+        const mix = normalizeMixcloud(r.querySelector('.mix').value.trim());
         const copy=r.querySelector('.txt').value.trim();
-        return (artistId && mix)?{artistId,widgetSrc:mix,copy}:null;
+        return (artistId && mix) ? {artistId, widgetSrc:mix, copy} : null;
       }).filter(Boolean);
       if(!out.length){ statusEl.textContent='Nothing to save.'; return; }
       statusEl.textContent='Saving…';
       try{
-        const saved=await saveEntries(out);
-        localStorage.setItem('best_2025_entries',JSON.stringify(saved));
-        state.entries=saved; render(); statusEl.textContent='Saved.';
+        const saved = await saveEntries(out);
+        state.entries = saved;
+        localStorage.setItem('best_2025_entries', JSON.stringify(saved));
+        render(); statusEl.textContent='Saved.';
       }catch(err){
         console.error(err);
-        localStorage.setItem('best_2025_entries',JSON.stringify(out));
-        state.entries=out; render(); statusEl.textContent='Saved locally (check server).';
+        state.entries = out;
+        localStorage.setItem('best_2025_entries', JSON.stringify(out));
+        render(); statusEl.textContent='Saved locally (check server).';
       }
     });
 
-    /* Login modal */
+    /* Login */
     function openLogin(){ login.setAttribute('aria-hidden','false'); login.style.display='flex'; loginErr.style.display='none'; pwdInput.value=''; pwdInput.focus(); }
     function closeLogin(){ login.setAttribute('aria-hidden','true'); login.style.display='none'; }
     async function tryLogin(){
-      const pw=(pwdInput.value||'').trim(); if(!pw) return;
-      const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pw));
-      const hex=[...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
-      if(hex==='446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e'){ closeLogin(); openAdmin(); }
-      else{ loginErr.style.display='block'; }
+      const pw = (pwdInput.value||'').trim(); if(!pw) return;
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+      const hex = [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+      if (hex === '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e') { closeLogin(); openAdmin(); } else { loginErr.style.display='block'; }
     }
-    loginBtn.addEventListener('click',tryLogin);
-    loginCancel.addEventListener('click',closeLogin);
-    pwdInput.addEventListener('keydown',e=>{ if(e.key==='Enter') tryLogin(); });
+    loginBtn.addEventListener('click', tryLogin);
+    loginCancel.addEventListener('click', closeLogin);
+    pwdInput.addEventListener('keydown', e=>{ if(e.key==='Enter') tryLogin(); });
 
-    /* Hotkeys */
-    window.addEventListener('keydown',e=>{
+    window.addEventListener('keydown', (e)=>{
       const key=(e.key||'').toLowerCase();
-      if(e.shiftKey && (key==='a' || e.code==='KeyA')){ if(!isTyping(document.activeElement)){ e.preventDefault(); openLogin(); } }
+      if(e.shiftKey && (key==='a' || e.code==='KeyA')){
+        if (!isTyping(document.activeElement)) { e.preventDefault(); openLogin(); }
+      }
       if(key==='escape'){ if(login.getAttribute('aria-hidden')==='false') closeLogin(); if(admin.getAttribute('aria-hidden')==='false') closeAdmin(); }
-    },true);
+    }, true);
 
-    /* Boot */
     (async function init(){
       try{ await loadArtists(); }catch(err){ console.warn('Artists fetch failed', err); }
-      state.entries=await loadEntries();
+      state.entries = await loadEntries();
       render();
     })();
   </script>
 </body>
 </html>
+

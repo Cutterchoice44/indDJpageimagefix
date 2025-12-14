@@ -13,9 +13,10 @@
       --teal:#5A8785;
       --line-thickness:8px;
 
-      /* compact row sizing (desktop/tablet) */
-      --row-h:150px;     /* total content height under the DJ name strip */
-      --art:100px;       /* profile image size */
+      /* Compact sizes (desktop default) */
+      --art:88px;                       /* artwork + widget height  */
+      --row-h: calc(var(--art) + 12px); /* total row content height */
+      --copy-bg:#0B0B0B;                /* left col background for fades */
     }
     *{box-sizing:border-box;margin:0;padding:0}
     body{background:#000;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
@@ -37,20 +38,20 @@
     .wrap{width:100%;max-width:none;margin:0;padding:0}
     #list{border-bottom:var(--line-thickness) solid var(--teal)} /* bottom divider after last entry */
 
-    /* ===== MIX ROW (fixed height + tight gaps) ===== */
+    /* ===== MIX ROW (compact) ===== */
     #list .mix-row{
       display:grid;
       grid-template-columns:minmax(560px,1fr) 1.6fr;
-      grid-template-rows:auto var(--row-h); /* fixed content height row */
-      row-gap:2px;
-      column-gap:10px;
+      grid-template-rows:auto var(--row-h); /* fixed row height under title */
+      row-gap:1px;
+      column-gap:8px;
       background:#0B0B0B;
     }
 
     /* Title strip + animated teal rails */
     #list .row-title{
       grid-column:1 / -1; position:relative; text-align:center;
-      padding:.06rem 0 0; overflow:hidden;
+      padding:0; overflow:hidden;
     }
     #list .row-title::before,
     #list .row-title::after{
@@ -72,48 +73,75 @@
     /* DJ name + pulse */
     #list .row-title .label{
       position:relative;z-index:1;display:inline-block;background:#000;color:#fff;
-      padding:.06rem .7rem;line-height:1.06;font-family:'Bebas Neue',sans-serif;text-transform:uppercase;letter-spacing:.06em;
+      padding:.04rem .6rem;line-height:1.04;font-family:'Bebas Neue',sans-serif;text-transform:uppercase;letter-spacing:.06em;
       font-size:calc(1.3rem * 1.56);
       animation:djFlash 3.2s ease-in-out infinite alternate;
     }
     @keyframes djFlash{0%{opacity:1;text-shadow:0 0 0 rgba(90,135,133,0)}100%{opacity:.92;text-shadow:0 0 12px rgba(90,135,133,.75)}}
     @media (prefers-reduced-motion: reduce){#list .row-title .label{animation:none}}
 
-    /* ===== COLUMNS (fill fixed height) ===== */
-    #list .left{padding:.18rem .42rem !important;height:var(--row-h);overflow:hidden}
-    #list .right{padding:.18rem .42rem !important;height:var(--row-h);border-left:2px solid var(--teal);display:flex;align-items:center;justify-content:center;background:#0E0E0E;overflow:hidden}
+    /* ===== COLUMNS (fixed heights, bottom aligned) ===== */
+    #list .left{padding:.12rem .32rem !important;height:var(--row-h);overflow:hidden;background:var(--copy-bg)}
+    #list .right{
+      padding:.12rem .32rem !important;height:var(--row-h);
+      border-left:2px solid var(--teal);
+      display:flex;align-items:flex-end;justify-content:center; /* bottom-align widget */
+      background:#0E0E0E;overflow:hidden
+    }
 
-    /* left side: grid, image + copy scroll area */
+    /* Left grid: art bottom-aligned + scrollable copy filling height */
     #list .bio{
       display:grid;
       grid-template-columns:var(--art) 1fr;
-      grid-auto-rows:1fr;
-      gap:.28rem;
+      gap:.24rem;
       height:100%;
-      align-items:start;
+      align-items:stretch;
     }
-    #list .bio img{width:var(--art);height:var(--art);object-fit:cover;border:1px solid var(--teal);background:#111;display:block}
+    #list .bio img{
+      width:var(--art);height:var(--art);
+      object-fit:cover;border:1px solid var(--teal);background:#111;display:block;
+      align-self:end; /* bottom align artwork */
+    }
+
+    /* Scrollable copy with subtle gradient fades */
     #list .copy{
-      color:#E7F2F1;font-size:1rem;line-height:1.28;white-space:pre-wrap;
-      height:100%;overflow:auto;padding-right:.25rem;
+      position:relative;
+      color:#E7F2F1;font-size:.95rem;line-height:1.28;white-space:pre-wrap;
+      height:100%;
+      overflow:auto;
+      padding-right:.24rem; /* allow scrollbar + fade */
+      background:var(--copy-bg);
     }
-    /* compact scrollbars (webkit) */
+    /* only show fades when scrollable; JS toggles classes */
+    #list .copy.scrollable::before,
+    #list .copy.scrollable::after{
+      content:""; position:absolute; left:0; right:0; height:12px; z-index:2; pointer-events:none; opacity:0; transition:opacity .18s ease;
+    }
+    #list .copy.scrollable::before{
+      top:0; background:linear-gradient(to bottom, rgba(0,0,0,.85), rgba(0,0,0,0));
+    }
+    #list .copy.scrollable::after{
+      bottom:0; background:linear-gradient(to top, rgba(0,0,0,.85), rgba(0,0,0,0));
+    }
+    #list .copy.shadow-top::before{ opacity:1 }
+    #list .copy.shadow-bottom::after{ opacity:1 }
+
     #list .copy::-webkit-scrollbar{width:6px}
     #list .copy::-webkit-scrollbar-thumb{background:#2b5e5b;border-radius:6px}
 
-    /* right side: make the Mixcloud widget fill the column height */
+    /* Right: widget equals artwork height (bottom aligned via flex) */
     #list .right iframe{
-      width:100%;height:100%;min-height:90px;border:0;display:block;margin:0;
+      width:100%;height:var(--art);min-height:56px;max-height:160px;border:0;display:block;margin:0;
     }
 
     /* ===== TABLET ===== */
     @media (max-width:1200px){
       #list .mix-row{grid-template-columns:1fr}
       #list .right{border-left:0;border-top:2px solid var(--teal)}
-      :root{ --row-h:150px; --art:96px; }
+      :root{ --art:80px; --row-h: calc(var(--art) + 12px); }
     }
 
-    /* ===== MOBILE (symmetrical header + smaller art + taller row for touch scroll) ===== */
+    /* ===== MOBILE (symmetrical header) ===== */
     @media (max-width:560px){
       header.hd{
         padding:.6rem 0;
@@ -126,8 +154,7 @@
       .title .t-top{margin-bottom:2px}
       .title p{font-size:clamp(.68rem,3.2vw,.95rem);margin-top:.18rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-      :root{ --row-h:170px; --art:56px; } /* slightly taller entry on mobile */
-      #list .bio{gap:.24rem}
+      :root{ --art:56px; --row-h: calc(var(--art) + 16px); }
     }
 
     /* ===== OVERLAYS (hidden by default) ===== */
@@ -245,7 +272,7 @@
     const $$= (s,r=document)=>[...r.querySelectorAll(s)];
     function isTyping(el){ const t=el?.tagName; return t==='INPUT'||t==='TEXTAREA'||t==='SELECT'||el?.isContentEditable; }
 
-    /* Randomise entry order each render */
+    /* Fisher–Yates shuffle */
     function shuffle(arr){
       const a = arr.slice();
       for(let i=a.length-1;i>0;i--){
@@ -277,6 +304,7 @@
       return '';
     }
 
+    /* Radio Cult artists */
     async function loadArtists(){
       const r = await fetch(`${RC.BASE_URL}/station/${RC.STATION_ID}/artists`, { headers:{'x-api-key':RC.API_KEY} });
       if(!r.ok) throw new Error('Artists API '+r.status);
@@ -287,6 +315,7 @@
       );
     }
 
+    /* Server IO */
     async function loadEntries(){
       try{
         const r = await fetch(`${CONFIG_ENDPOINT}?action=load`, {cache:'no-store'});
@@ -307,6 +336,29 @@
       return j.entries || entries;
     }
 
+    /* Wire scroll-fade hints for one row */
+    function wireCopyFades(scope){
+      const copies = scope.querySelectorAll('.copy');
+      copies.forEach(el=>{
+        const update = ()=>{
+          const canScroll = el.scrollHeight > el.clientHeight + 1;
+          if (!canScroll){
+            el.classList.remove('scrollable','shadow-top','shadow-bottom');
+            return;
+          }
+          el.classList.add('scrollable');
+          const max = el.scrollHeight - el.clientHeight - 1;
+          const t = el.scrollTop;
+          if (t > 1) el.classList.add('shadow-top'); else el.classList.remove('shadow-top');
+          if (t < max) el.classList.add('shadow-bottom'); else el.classList.remove('shadow-bottom');
+        };
+        el.addEventListener('scroll', update, {passive:true});
+        // run after layout
+        requestAnimationFrame(update);
+      });
+    }
+
+    /* Render (random order + animated rails) */
     function render(){
       listEl.innerHTML='';
       if(!state.entries.length){ emptyEl.style.display='block'; return; }
@@ -334,11 +386,15 @@
         row.append(title,left,right);
         listEl.append(row);
 
-        requestAnimationFrame(()=> setTimeout(()=> title.classList.add('animate'), 60 + idx*90));
+        // animate rails & wire fades
+        requestAnimationFrame(()=> {
+          setTimeout(()=> title.classList.add('animate'), 60 + idx*90);
+          wireCopyFades(row);
+        });
       });
     }
 
-    /* Admin */
+    /* Admin overlay */
     function artistOptions(sel){
       return ['<option value="">Select artist…</option>']
         .concat(state.artists.slice().sort((x,y)=>x.name.localeCompare(y.name))
@@ -384,19 +440,20 @@
       }
     });
 
-    /* Login */
+    /* Login modal */
     function openLogin(){ login.setAttribute('aria-hidden','false'); login.style.display='flex'; loginErr.style.display='none'; pwdInput.value=''; pwdInput.focus(); }
     function closeLogin(){ login.setAttribute('aria-hidden','true'); login.style.display='none'; }
     async function tryLogin(){
       const pw = (pwdInput.value||'').trim(); if(!pw) return;
       const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
       const hex = [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
-      if (hex === '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e') { closeLogin(); openAdmin(); } else { loginErr.style.display='block'; }
+      if (hex === ADMIN_HASH_HEX) { closeLogin(); openAdmin(); } else { loginErr.style.display='block'; }
     }
     loginBtn.addEventListener('click', tryLogin);
     loginCancel.addEventListener('click', closeLogin);
     pwdInput.addEventListener('keydown', e=>{ if(e.key==='Enter') tryLogin(); });
 
+    /* Hotkeys */
     window.addEventListener('keydown', (e)=>{
       const key=(e.key||'').toLowerCase();
       if(e.shiftKey && (key==='a' || e.code==='KeyA')){
@@ -405,6 +462,7 @@
       if(key==='escape'){ if(login.getAttribute('aria-hidden')==='false') closeLogin(); if(admin.getAttribute('aria-hidden')==='false') closeAdmin(); }
     }, true);
 
+    /* Boot */
     (async function init(){
       try{ await loadArtists(); }catch(err){ console.warn('Artists fetch failed', err); }
       state.entries = await loadEntries();

@@ -16,7 +16,6 @@
       /* compact row sizing (desktop/tablet) */
       --row-h:150px;     /* total content height under the DJ name strip */
       --art:100px;       /* profile image size */
-      --pad-h: .42rem;   /* horizontal padding so label aligns with art/text */
     }
     *{box-sizing:border-box;margin:0;padding:0}
     body{background:#000;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
@@ -48,57 +47,47 @@
       background:#0B0B0B;
     }
 
-    /* Left-aligned title strip with animated rails */
+    /* Title strip + animated teal rails (label aligned left) */
     #list .row-title{
-      grid-column:1 / -1;
-      display:grid;
-      grid-template-columns:auto 1fr; /* [label][rail] */
-      align-items:center;
-      gap:.6rem;
-      padding:.06rem var(--pad-h) 0 var(--pad-h); /* align with left content */
+      grid-column:1 / -1; position:relative; text-align:left;
+      padding:.06rem 0 0 .42rem; overflow:hidden;
+    }
+    #list .row-title::before,
+    #list .row-title::after{
+      content:""; position:absolute; top:50%;
+      height:var(--line-thickness); background:var(--teal); width:50%;
+      transform:scaleX(1);
+    }
+    #list .row-title::before{ left:0;  transform-origin:right; }
+    #list .row-title::after{  right:0; transform-origin:left;  }
+    .js #list .row-title::before,
+    .js #list .row-title::after{ transform:scaleX(0); }
+    .js #list .row-title.animate::before,
+    .js #list .row-title.animate::after{ animation: lineGrow 900ms ease-out forwards; }
+    @keyframes lineGrow { to { transform:scaleX(1); } }
+    @media (prefers-reduced-motion: reduce){
+      .js #list .row-title::before, .js #list .row-title::after{ animation:none !important; transform:scaleX(1) !important; }
     }
 
-    /* Label (DJ name) */
+    /* DJ name + pulse */
     #list .row-title .label{
-      display:inline-flex; align-items:center; gap:.5rem;
-      font-family:'Bebas Neue',sans-serif; text-transform:uppercase; letter-spacing:.06em;
-      background:#000; color:#fff; line-height:1.06;
+      position:relative;z-index:1;display:inline-block;background:#000;color:#fff;
+      padding:.06rem .7rem;line-height:1.06;font-family:'Bebas Neue',sans-serif;text-transform:uppercase;letter-spacing:.06em;
       font-size:calc(1.3rem * 1.56);
-      padding:.06rem .2rem .06rem 0;
       animation:djFlash 3.2s ease-in-out infinite alternate;
     }
-    /* tiny left stub line */
-    #list .row-title .stub{
-      display:inline-block; width:24px; height:var(--line-thickness); background:var(--teal);
-      transform:scaleX(0); transform-origin:right;
-    }
-    /* right rail line (fills rest of row) */
-    #list .row-title .rail{
-      height:var(--line-thickness); background:var(--teal);
-      transform:scaleX(0); transform-origin:left;
-    }
-    .js #list .row-title.animate .stub,
-    .js #list .row-title.animate .rail{ animation:lineGrow 900ms ease-out forwards; }
-
-    @keyframes lineGrow { to { transform:scaleX(1); } }
-    @keyframes djFlash{
-      0%   { opacity:1;   text-shadow:0 0 0 rgba(90,135,133,0); }
-      100% { opacity:.92; text-shadow:0 0 12px rgba(90,135,133,.75); }
-    }
-    @media (prefers-reduced-motion: reduce){
-      .js #list .row-title .stub,
-      .js #list .row-title .rail{ animation:none !important; transform:scaleX(1) !important; }
-      #list .row-title .label{ animation:none; }
-    }
+    @keyframes djFlash{0%{opacity:1;text-shadow:0 0 0 rgba(90,135,133,0)}100%{opacity:.92;text-shadow:0 0 12px rgba(90,135,133,.75)}}
+    @media (prefers-reduced-motion: reduce){#list .row-title .label{animation:none}}
 
     /* ===== COLUMNS (fill fixed height) ===== */
-    #list .left{padding:.18rem var(--pad-h) !important;height:var(--row-h);overflow:hidden}
-    #list .right{padding:.18rem var(--pad-h) !important;height:var(--row-h);border-left:2px solid var(--teal);display:flex;align-items:center;justify-content:center;background:#0E0E0E;overflow:hidden}
+    #list .left{padding:.18rem .42rem !important;height:var(--row-h);overflow:hidden}
+    #list .right{padding:.18rem .42rem !important;height:var(--row-h);border-left:2px solid var(--teal);display:flex;align-items:center;justify-content:center;background:#0E0E0E;overflow:hidden}
 
     /* left side: grid, image + copy scroll area */
     #list .bio{
       display:grid;
       grid-template-columns:var(--art) 1fr;
+      grid-auto-rows:1fr;
       gap:.28rem;
       height:100%;
       align-items:start;
@@ -106,8 +95,7 @@
     #list .bio img{width:var(--art);height:var(--art);object-fit:cover;border:1px solid var(--teal);background:#111;display:block}
     #list .copy{
       color:#E7F2F1;font-size:1rem;line-height:1.28;white-space:pre-wrap;
-      height:100%;overflow:auto;padding-right:.25rem; position:relative;
-      mask-image: linear-gradient(180deg, transparent 0, black 10px, black calc(100% - 10px), transparent 100%);
+      height:100%;overflow:auto;padding-right:.25rem;
     }
     /* compact scrollbars (webkit) */
     #list .copy::-webkit-scrollbar{width:6px}
@@ -125,7 +113,7 @@
       :root{ --row-h:150px; --art:96px; }
     }
 
-    /* ===== MOBILE ===== */
+    /* ===== MOBILE (symmetrical header + smaller art + taller row for touch scroll) ===== */
     @media (max-width:560px){
       header.hd{
         padding:.6rem 0;
@@ -330,12 +318,8 @@
 
         const row=document.createElement('section'); row.className='mix-row';
 
-        // Left-aligned label + animated rails
         const title=document.createElement('div'); title.className='row-title';
-        title.innerHTML=`
-          <span class="label"><span class="stub"></span>${a.name}</span>
-          <span class="rail" aria-hidden="true"></span>
-        `;
+        title.innerHTML=`<span class="label">${a.name}</span>`;
 
         const left=document.createElement('div'); left.className='left';
         const bio=document.createElement('div'); bio.className='bio';
@@ -429,4 +413,3 @@
   </script>
 </body>
 </html>
-

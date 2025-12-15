@@ -1,31 +1,30 @@
-/* ─── RESET & BASE STYLES ─────────────────────────────────────────── */
+/* File: /style.css */
+/* ── RESET & BASE ─────────────────────────────────────────────────── */
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
 :root{
   --brand-teal:#5A8785;
   --bg-dark:#000;
-  --text-light:#fafafa;
+  --text-light:#FAFAFA;
 
-  /* Header video strip sizing */
   --wave-height-desktop:200px;
-  --wave-height-mobile:80px; /* phones override below */
+  --wave-height-mobile:80px;
 
-  /* Logo sizing (space reserved to prevent CLS) */
   --logo-size-desktop:200px;
   --logo-size-mobile:100px;
 }
 
-html,body{
+html, body{
   height:100%;
   background:var(--bg-dark);
   color:var(--text-light);
-  font-family:Arial,sans-serif;
+  font-family:Arial, sans-serif;
   line-height:1.2;
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
 }
 
-/* ─── HEADER (Video strips replacing GIFs) ───────────────────────── */
+/* ── HEADER ───────────────────────────────────────────────────────── */
 .header-banner{
   position:relative;
   display:flex;
@@ -36,11 +35,9 @@ html,body{
   padding:clamp(12px,3vw,24px) 0;
   overflow:hidden;
   isolation:isolate;
-  flex-wrap:nowrap; /* desktop: single row */
+  flex-wrap:nowrap;
 }
-@media (max-width:768px){ .header-banner{ flex-wrap:wrap; } }
-
-.header-gif-right,.header-gif-left{ display:none !important; background:none !important; }
+.header-gif-right,.header-gif-left{ display:none !important; }
 
 .header-wave{
   flex:1 1 0;
@@ -53,12 +50,8 @@ html,body{
   border-top:2px solid #000;
   border-bottom:2px solid #000;
 }
-@media (max-width:768px){
-  .header-wave{ height:var(--wave-height-mobile); min-width:40px; }
-}
 
 header .logo-container, header .title{ position:relative; z-index:1; }
-
 header .logo{
   height:var(--logo-size-desktop);
   width:var(--logo-size-desktop);
@@ -67,20 +60,16 @@ header .logo{
   margin-bottom:.3rem;
   margin-left:.7rem;
 }
-
-/* Title block */
 header .title{ flex:0 1 auto; text-align:center; min-width:260px; }
 header .title h1{ font-size:2rem; margin:0; font-family:'Bebas Neue',sans-serif; }
 header .title .tagline{ font-size:1.2rem; color:var(--brand-teal); margin-top:0; }
 
-@media (max-width:768px){ header .title{ min-width:180px; } }
-
 @media (prefers-reduced-motion:reduce){
-  .header-wave{ display:none !important; }
+  .header-wave{ display:none !important; } /* why: prevent motion for users opting out */
   .header-banner{ justify-content:center; }
 }
 
-/* ─── NAVIGATION BAR ─────────────────────────────────────────────── */
+/* ── NAVIGATION ───────────────────────────────────────────────────── */
 #main-nav{
   position:relative;
   display:flex !important;
@@ -93,28 +82,28 @@ header .title .tagline{ font-size:1.2rem; color:var(--brand-teal); margin-top:0;
   border-bottom:2px solid #000 !important;
   z-index:1000 !important;
 }
-
-#main-nav .nav-item{ position:relative; z-index:1; }
-#main-nav .nav-item a{
-  color:#fff !important; font-size:2rem !important;
-  text-transform:uppercase !important; text-decoration:none !important;
-}
-
 #main-nav .nav-menu{
   display:flex !important;
   align-items:center !important;
   justify-content:space-evenly !important;
   gap:clamp(.25rem,2vw,1.5rem) !important;
   flex:1 1 auto !important;
+  min-width:0 !important;
 }
-
-#main-nav a.nav-link, #main-nav summary.nav-link{
-  color:#fff !important; font-family:'Bebas Neue',sans-serif !important;
-  font-size:2rem !important; text-transform:uppercase !important;
-  text-decoration:none !important; white-space:nowrap !important;
-  list-style:none !important; display:inline-flex; align-items:center; cursor:pointer;
+#main-nav a.nav-link,
+#main-nav button.nav-link,
+#main-nav summary.nav-link{
+  color:#fff !important;
+  font-family:'Bebas Neue',sans-serif !important;
+  font-size:2rem !important;
+  text-transform:uppercase !important;
+  text-decoration:none !important;
+  white-space:nowrap !important;
+  list-style:none !important;
+  display:inline-flex;
+  align-items:center;
+  cursor:pointer;
 }
-
 .nav-details{ position:relative; }
 .nav-details .about-panel{
   position:absolute; top:calc(100% + 8px); right:0; width:min(520px,86vw);
@@ -127,30 +116,24 @@ header .title .tagline{ font-size:1.2rem; color:var(--brand-teal); margin-top:0;
 .nav-details > summary:focus{ outline:2px solid #fff; outline-offset:2px; }
 
 #main-nav .nav-actions{
-  display:flex !important; align-items:center !important; justify-content:flex-end !important; gap:.5rem !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  gap:.6rem !important;
+  flex:0 0 auto !important;
 }
-#main-nav .social-icon, #main-nav .icon-img{
-  margin-left:.25rem !important; vertical-align:middle !important; width:2rem !important; height:auto !important;
-}
-#main-nav .nav-onemusic{ display:flex; align-items:center; margin-left:.5rem; }
+#main-nav .social-icon{ display:inline-flex !important; align-items:center !important; justify-content:center !important; line-height:1 !important; text-decoration:none !important; color:#fff !important; }
+#main-nav .social-icon i{ font-size:2.1rem !important; }
+
+.icon-img{ width:2.6rem !important; height:auto !important; margin-left:.25rem !important; vertical-align:middle !important; display:inline-block !important; }
 #main-nav .nav-onemusic img{ max-height:2rem; width:auto; height:auto; display:block; }
-@media (max-width:400px){ #main-nav .nav-onemusic{ display:none; } }
 
 google-cast-button{ --icon-color:#fff; width:1.5rem; height:1.5rem; margin-left:.5rem; vertical-align:middle; display:inline-block; }
 #manualCastBtn{ display:none; background:none; border:none; color:#fff; font-size:1.8rem; cursor:pointer; margin-left:.25rem; }
 
-/* ─── GRID LAYOUT ─────────────────────────────────────────────────── */
+/* ── GRID LAYOUT & SECTIONS ──────────────────────────────────────── */
 .grid-container{ display:grid; grid-template-columns:1fr; gap:1rem; padding:.6rem; }
 
-/* ─── SLIDESHOW ───────────────────────────────────────────────────── */
-#slideshow{
-  margin:0 auto; border:2px solid var(--brand-teal); box-sizing:border-box;
-  transform:none; transform-origin:center; display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1rem;
-}
-#slideshow > *{ height:100%; }
-
-/* ─── SECTION & TYPOGRAPHY ────────────────────────────────────────── */
 section{
   background:#000;
   border:2px solid var(--brand-teal);
@@ -176,7 +159,16 @@ section h2::after{
 }
 @keyframes drawLineReverse{ to{ width:100%; } }
 
-/* ─── CHAT IFRAME & ACTIONS ──────────────────────────────────────── */
+/* ── SLIDESHOW (kept) ────────────────────────────────────────────── */
+#slideshow{
+  margin:0 auto; border:2px solid var(--brand-teal);
+  box-sizing:border-box; transform:none; transform-origin:center;
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:1rem;
+}
+#slideshow > *{ height:100%; }
+
+/* ── CHAT ────────────────────────────────────────────────────────── */
 .chat iframe{
   width:100%;
   height:1200px;
@@ -197,17 +189,8 @@ section h2::after{
   cursor:pointer;
 }
 
-/* ─── LIVE PLAYER ─────────────────────────────────────────────────── */
-.live-player{
-  background:#000;
-  border:2px solid var(--brand-teal);
-  border-radius:6px;
-  padding:.5rem;
-  text-align:center;
-}
-
-/* We style iframe/audio here, but we DO NOT force generic sizing on video,
-   because #ccrTv is handled separately below. */
+/* ── LIVE PLAYER & CCR TV ───────────────────────────────────────── */
+.live-player{ border-radius:6px; padding:.5rem; text-align:center; }
 .live-player iframe,
 .live-player audio{
   width:100%;
@@ -219,33 +202,6 @@ section h2::after{
   display:block;
 }
 
-/* container for the CCR TV block under the popout buttons
-   NEW: lock aspect ratio and cap width so it can't blow layout */
-.tv-wrapper{
-  position:relative;
-  width:100%;
-  max-width:864px;               /* ↑ increased from 720px */
-  margin:.5rem auto 0;
-  background:#000;               /* safe letterbox background */
-  aspect-ratio:16 / 9;
-  overflow:hidden;
-}
-
-/* the actual CCR TV <video> element */
-#ccrTv{
-  position:absolute;
-  inset:0;
-  display:block;
-  width:100%;
-  height:100%;
-  background:#000;               /* safe letterbox background */
-  object-fit:contain;            /* LETTERBOX */
-  border:2px solid var(--brand-teal);
-  border-radius:4px;
-  /* aspect-ratio handled by wrapper now */
-}
-
-/* text under radio player ("Loading archive show…") */
 .player-container{ max-width:1080px; margin:0 auto; }
 #now-archive{
   font-weight:bold;
@@ -254,332 +210,87 @@ section h2::after{
   margin:.3rem 0 1rem;
 }
 
-/* ─── CURRENT DJ ARTWORK (no longer shown, kept for fallback only) ─ */
-#now-art{
+/* TV wrapper keeps letterbox; video uses contain */
+.tv-wrapper{
+  position:relative;
   width:100%;
-  max-width:450px;
-  height:auto;
-  border-radius:8px;
-  object-fit:contain;
-  display:block;
-  margin:1rem auto;
-}
-
-/* ─── MIXCLOUD ARCHIVE ─────────────────────────────────────────── */
-.mixcloud{
-  display:flex;
-  flex-direction:column;
+  max-width:864px;
+  aspect-ratio:16 / 9;
+  background:#000;
   overflow:hidden;
-  padding:.5rem;
+  margin-inline:auto;
 }
-#mixcloud-list{
-  flex:1;
-  overflow-y:auto;
-  max-height:1900px;
-  padding-right:5px;
-  scroll-behavior:smooth;
-  margin-top:.4rem;
+#ccrTv{
+  position:absolute; inset:0; width:100%; height:100%;
+  object-fit:contain; background:#000;
+  border:2px solid var(--brand-teal); border-radius:4px;
 }
-#mixcloud-list iframe{
-  width:100%;
-  height:120px;
-  margin-bottom:.5rem;
-  border:none;
+
+/* ── SCHEDULE ────────────────────────────────────────────────────── */
+.schedule{ background:#111; border-radius:6px; padding:0 1rem 1rem; overflow-y:auto; font-size:1.4rem; line-height:1.4; }
+.schedule-heading{ position:sticky; top:0; background:#111; z-index:10; padding:.4rem 0; font-size:1.5rem; border-bottom:.4px solid var(--brand-teal); }
+
+#schedule-container h3, #schedule-container .day-title{
+  background:var(--brand-teal); color:#fff; padding:.4rem .6rem; border-radius:4px; margin:.6rem 0 .2rem;
+  font-family:'Bebas Neue',sans-serif; letter-spacing:.5px;
 }
-.add-mixcloud{
-  text-align:center;
-  padding-top:.5rem;
-}
+#schedule-container h3 ~ *, #schedule-container .day-title ~ *{ border-top:2px solid var(--brand-teal); padding:.35rem .6rem; }
+
+/* ── MIXCLOUD ────────────────────────────────────────────────────── */
+.mixcloud{ display:flex; flex-direction:column; overflow:hidden; padding:.5rem; }
+#mixcloud-list{ flex:1; overflow-y:auto; max-height:1900px; padding-right:5px; scroll-behavior:smooth; margin-top:.4rem; }
+#mixcloud-list iframe{ width:100%; height:120px; margin-bottom:.5rem; border:none; }
+.add-mixcloud{ text-align:center; padding-top:.5rem; }
 .add-mixcloud input,.add-mixcloud button{ font-size:1rem; }
-.add-mixcloud input{
-  width:80%;
-  max-width:600px;
-  padding:.5rem;
-}
-.add-mixcloud button{
-  margin-top:.5rem;
-  padding:.5rem 2rem;
-  background:var(--brand-teal);
-  color:#fff;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
-}
+.add-mixcloud input{ width:80%; max-width:600px; padding:.5rem; }
+.add-mixcloud button{ margin-top:.5rem; padding:.5rem 2rem; background:var(--brand-teal); color:#fff; border:none; border-radius:6px; cursor:pointer; }
 
-/* ─── WEEKLY SCHEDULE ───────────────────────────────────────────── */
-.schedule{
-  background:#111;
-  border-radius:6px;
-  padding:0 1rem 1rem;
-  overflow-y:auto;
-  font-size:1.4rem;
-  line-height:1.4;
-}
-.schedule-heading{
-  position:sticky;
-  top:0;
-  background:#111;
-  z-index:10;
-  padding:.4rem 0;
-  font-size:1.5rem;
-  border-bottom:.4px solid var(--brand-teal);
-}
-#schedule-container h3,
-#schedule-container .day-title{
+/* ── FOOTER (matches last HTML) ──────────────────────────────────── */
+footer.banner{
   background:var(--brand-teal);
-  color:#fff;
-  padding:.4rem .6rem;
-  border-radius:4px;
-  margin:.6rem 0 .2rem;
-  font-family:'Bebas Neue',sans-serif;
-  letter-spacing:.5px;
+  padding:.50rem .65rem;
+  border-top:2px solid #000;
+  border-bottom:2px solid #000; /* why: crisp bottom edge on iOS */
 }
-#schedule-container h3 ~ *,
-#schedule-container .day-title ~ *{
-  border-top:2px solid var(--brand-teal);
-  padding:.35rem .6rem;
-}
-
-/* ─── FOOTER BANNER ────────────────────────────────────────────── */
-.banner{
+.footer-bar{
   display:flex;
-  flex-direction:column;
   align-items:center;
-  gap:.5rem;
-  background:var(--brand-teal);
-  padding:1rem;
+  justify-content:space-between;
+  gap:.75rem 1rem;
+  flex-wrap:wrap; /* why: keep logos/text tidy on small screens */
 }
-.banner a{
-  flex:1;
-  text-align:center;
-  text-decoration:none;
-  color:#000;
-  font-weight:700;
-  font-size:1.4rem;
-  letter-spacing:.5px;
+.policy-link{
+  color:#fff;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:2rem;
   text-transform:uppercase;
-  padding:.5rem 1rem;
+  text-decoration:none;
 }
-.banner a:hover{ color:var(--text-light); }
+.legal{
+  color:#fff;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:.85rem;
+  text-transform:uppercase;
+}
+.footer-logos{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:.5rem .75rem;
+  flex-wrap:wrap; /* why: allow clean wrapping */
+}
+.footer-logos img{ height:36px; width:auto; display:block; }
 
-/* ─── MOBILE (≤768px) — EXACT LAYOUT FOR IMAGE B ────────────────── */
+/* subtle affordance */
+.footer-logos a img{ transition:opacity .2s ease; }
+.footer-logos a:hover img,
+.footer-logos a:focus-visible img{ opacity:.85; }
+
+/* ── MOBILE (≤768px) ─────────────────────────────────────────────── */
 @media (max-width:768px){
 
-  /* HEADER: one centered logo, WEBMs left/right; title+tagline below */
-  :root{ --wave-height-mobile:100px; }
-  .header-banner{
-    display:grid !important;
-    grid-template-columns: 1fr auto 1fr;
-    grid-template-rows: auto auto;
-    grid-template-areas:
-      "waveL logo waveR"
-      "title title title";
-    align-items:center;
-    gap:6px;
-    padding:8px 0 6px !important;
-  }
-  .header-wave-left  { grid-area: waveL; height:var(--wave-height-mobile) !important; }
-  .header-wave-right { grid-area: waveR; height:var(--wave-height-mobile) !important; }
-  .header-banner .logo-container:first-of-type { grid-area: logo; }
-  /* Hide the duplicate (right) logo on phones */
-  .header-banner .logo-container:last-of-type{ display:none !important; }
-  /* Remove the decorative black borders on the waves to avoid a line through the tagline */
-  .header-wave{ border:0 !important; }
-
-  header .logo{
-    height:var(--logo-size-mobile) !important;
-    width: var(--logo-size-mobile) !important;
-    max-width:var(--logo-size-mobile) !important;
-    margin:0 auto !important;
-  }
-  .header-banner .title{
-    grid-area:title;
-    width:100%; margin-top:2px; text-align:center;
-  }
-  .header-banner .title h1{ font-size:9.2vw; line-height:1; margin:0; }
-  .header-banner .title .tagline{ font-size:3.8vw; margin-top:4px; }
-
-  /* NAV: real second row under the links */
-  #main-nav{
-    position:relative !important;
-    padding:.40rem .65rem .40rem !important;
-    margin-bottom:46px; /* make room for the second strip */
-  }
-  /* teal strip under the main bar to host row 2 */
-  #main-nav::before{
-    content:"";
-    position:absolute;
-    top:100%;
-    left:0; right:0;
-    height:46px;                     /* height of second row */
-    background:var(--brand-teal);
-    border-top:2px solid #000;       /* thin divider between rows */
-    border-bottom:2px solid #000;
-  }
-
-  /* Row 1 links */
-  #main-nav .nav-menu{
-    flex-wrap:nowrap !important;
-    justify-content:space-between !important;
-    gap:.30rem !important;
-    min-width:0 !important;
-  }
-  #main-nav a.nav-link,
-  #main-nav summary.nav-link{
-    font-size:.95rem !important;
-    letter-spacing:.04em !important;
-    padding:.1rem .2rem !important;
-    white-space:nowrap !important;
-  }
-
-  /* Row 2: ABOUT (left) */
-  #about-overlay{
-    position:absolute !important;
-    left:.65rem;
-    top:calc(100% + 8px);            /* place on the second strip */
-    z-index:1002;
-  }
-  .nav-details > summary.nav-link{
-    font-size:.9rem !important;
-    padding:.35rem .55rem !important;
-    background:rgba(0,0,0,.18);
-    border:1px solid rgba(255,255,255,.28);
-    border-radius:999px;
-  }
-  .nav-details .about-panel{
-    left:0; right:auto;
-    width:calc(100vw - 22px);
-  }
-
-  /* Row 2: social + CAST (right) */
-  #main-nav .nav-actions{
-    position:absolute !important;
-    right:.65rem;
-    top:calc(100% + 6px);
-    gap:.75rem !important;
-    z-index:1002;
-  }
-  #main-nav .social-icon i{ font-size:1.35rem !important; }
-  #main-nav .icon-img, #main-nav .nav-onemusic{ display:none !important; }
-
-  /* Page sections (stacked) */
-  .grid-container{ display:flex; flex-direction:column; padding:0 .5rem; }
-  .mixcloud{ display:none !important; }
-  .live-player{ order:1; }
-  .chat{ order:2; }
-  .schedule{ order:3; }
-
-  .chat iframe{ height:70vh; max-height:70vh; }
-  .schedule{ overflow-y:auto; }
-  #schedule-container{
-    max-height:55vh; overflow-y:auto; padding-right:6px;
-    scroll-behavior:smooth; -webkit-overflow-scrolling:touch;
-  }
-  #schedule-container h3, #schedule-container .day-title{ position:sticky; top:0; z-index:2; }
-
-  /* Footer shrink */
-  .banner{ padding:.35rem .55rem !important; gap:.25rem !important; }
-  footer.banner > div{ padding:.35rem .55rem !important; }
-  .banner a{ font-size:1rem !important; padding:.3rem .5rem !important; }
-  .banner span,.banner p{ font-size:.72rem !important; line-height:1.15 !important; }
-
-  #popOutBtn{ display:none; } /* desktop-only button */
-}
-
-/* ─── DESKTOP LAYOUT OVERWRITES ──────────────────────────────────── */
-@media (min-width:600px){
-  .grid-container{ grid-template-columns:1fr 1.5fr; }
-  .banner{ flex-direction:row; justify-content:space-between; }
-}
-@media (min-width:769px){
-  /* Only iframe/audio get a forced tall height on desktop.
-     We do NOT touch #ccrTv here; its wrapper controls it. */
-  .live-player iframe,
-  .live-player audio{
-    height:720px;                /* ↑ enlarged to match bigger TV presence */
-    max-height:150vh;
-  }
-
-  #slideshow{
-    grid-column:1 / -1;
-    width:100%;
-    height:500px;
-    transform:none;
-    max-width:none;
-    max-height:100vh;
-  }
-  #slideshow > *{ height:100%; }
-
-  .grid-container{ grid-template-columns:1fr 1.5fr 1fr 1fr; }
-  .chat iframe{ height:1200px; }
-}
-/* Desktop polish: tighter gutters for TV block */
-@media (min-width:900px){
-  .live-player{ padding:.35rem; }      /* tighten vertical gutters around TV */
-  .tv-wrapper{ margin:.35rem auto 0; } /* slightly closer to player block */
-}
-@media (min-width:900px){
-  header .title h1{ font-size:8rem; }
-  header .title .tagline{ font-size:2.45rem; }
-  header .logo{
-    height:var(--logo-size-desktop);
-    width:var(--logo-size-desktop);
-    max-width:var(--logo-size-desktop);
-  }
-  #now-art{ max-width:600px; }
-}
-
-/* ─── DESKTOP ONLY: CHAT-SECTION POP-OUT VISIBILITY ──────────────── */
-@media only screen and (min-width:769px){
-  section.chat .chat-actions{ display:none !important; }
-}
-
-/* ─── MIXCLOUD DELETE LINK STYLES ────────────────────────────────── */
-.mixcloud-item{ position:relative; }
-.remove-link{
-  display:none !important;
-  text-align:right;
-  font-size:.9rem;
-  color:var(--brand-teal);
-  text-decoration:underline;
-  margin-top:.3rem;
-  cursor:pointer;
-}
-.admin-mode .remove-link{ display:inline-block !important; }
-
-/* ─── POP-OUT BUTTON VISIBILITY (keep behavior) ──────────────────── */
-@media (max-width:768px){
-  section.chat .chat-actions{ display:none !important; }
-  #chatPopupBtn{
-    display:inline-block !important;
-    margin:.5rem auto 1rem !important;
-  }
-}
-@media (min-width:769px){
-  section.chat .chat-actions{ display:block !important; }
-  #chatPopupBtn{ display:none !important; }
-}
-
-/* ─── SCHEDULE PAGE (headings white) ─────────────────────────────── */
-.page-header h1,
-.month-controls .title{
-  color:#fff !important;
-}
-.week-grid .day-head,
-.week-grid .day-head .dow,
-.week-grid .day-head .date{
-  color:#fff !important;
-  opacity:1 !important;
-  filter:none !important;
-  mix-blend-mode:normal !important;
-}
-
-/* --- Mobile performance: remove header WEBM strips --- */
-@media (max-width: 768px){
-  /* Don’t render the videos at all on phones */
-  .header-wave{ display:none !important; }
-
-  /* Simple stacked header layout when waves are hidden */
+  /* Header: stacked; hide wave videos (prevents layout wobble on iOS) */
+  .header-wave{ display:none !important; } /* why: stability over decoration */
   .header-banner{
     display:flex !important;
     flex-direction:column;
@@ -588,4 +299,82 @@ section h2::after{
     gap:6px;
     padding:8px 0 6px !important;
   }
+  header .logo{
+    height:var(--logo-size-mobile) !important;
+    width: var(--logo-size-mobile) !important;
+    max-width:var(--logo-size-mobile) !important;
+    margin:0 auto !important;
+  }
+  .header-banner .title{ width:100%; margin-top:2px; text-align:center; }
+  .header-banner .title h1{ font-size:9.2vw; line-height:1; margin:0; }
+  .header-banner .title .tagline{ font-size:3.8vw; margin-top:4px; }
+
+  /* Nav: 2-row pattern using a reserved strip under the main bar */
+  #main-nav{ position:relative !important; padding:.40rem .65rem .40rem !important; margin-bottom:46px; }
+  #main-nav::before{
+    content:""; position:absolute; top:100%; left:0; right:0; height:46px;
+    background:var(--brand-teal); border-top:2px solid #000; border-bottom:2px solid #000;
+  }
+  #main-nav .nav-menu{ flex-wrap:nowrap !important; justify-content:space-between !important; gap:.30rem !important; min-width:0 !important; }
+  #main-nav a.nav-link, #main-nav button.nav-link, #main-nav summary.nav-link{
+    font-size:.95rem !important; letter-spacing:.04em !important; padding:.1rem .2rem !important; white-space:nowrap !important;
+  }
+  /* Row 2 left: About */
+  #about-overlay{ position:absolute !important; left:.65rem; top:calc(100% + 8px); z-index:1002; }
+  .nav-details > summary.nav-link{
+    font-size:.9rem !important; padding:.35rem .55rem !important;
+    background:rgba(0,0,0,.18); border:1px solid rgba(255,255,255,.28); border-radius:999px;
+  }
+  .nav-details .about-panel{ left:0; right:auto; width:calc(100vw - 22px); }
+  /* Row 2 right: socials + Cast */
+  #main-nav .nav-actions{ position:absolute !important; right:.65rem; top:calc(100% + 6px); gap:.75rem !important; z-index:1002; }
+  #main-nav .social-icon i{ font-size:1.35rem !important; }
+  .icon-img, .nav-onemusic{ display:none !important; }
+
+  /* Sections order + heights */
+  .grid-container{ display:flex; flex-direction:column; padding:0 .5rem; }
+  .mixcloud{ display:none !important; } /* why: faster initial render */
+  .live-player{ order:1; }
+  .chat{ order:2; }
+  .schedule{ order:3; }
+  .chat iframe{ height:70vh; max-height:70vh; }
+  .schedule{ overflow-y:auto; }
+  #schedule-container{ max-height:55vh; overflow-y:auto; padding-right:6px; scroll-behavior:smooth; -webkit-overflow-scrolling:touch; }
+  #schedule-container h3, #schedule-container .day-title{ position:sticky; top:0; z-index:2; }
+
+  /* Footer tweaks */
+  .policy-link{ font-size:1.4rem; }
+  .legal{ font-size:.72rem; line-height:1.15; }
+  .footer-logos{ justify-content:center; }
+  .footer-logos img{ height:28px; }
+}
+
+/* ── DESKTOP ENHANCEMENTS ────────────────────────────────────────── */
+@media (min-width:600px){ .grid-container{ grid-template-columns:1fr 1.5fr; } }
+@media (min-width:769px){
+  .live-player iframe, .live-player audio{ height:720px; max-height:150vh; }
+  .grid-container{ grid-template-columns:1fr 1.5fr 1fr 1fr; }
+  .chat iframe{ height:1200px; }
+  header .title h1{ font-size:8rem; }
+  header .title .tagline{ font-size:2.45rem; }
+  header .logo{ height:var(--logo-size-desktop); width:var(--logo-size-desktop); max-width:var(--logo-size-desktop); }
+}
+@media (min-width:900px){
+  .live-player{ padding:.35rem; }       /* why: tighter vertical rhythm */
+  .tv-wrapper{ margin:.35rem auto 0; }  /* why: closer to player block */
+}
+
+/* ── ADMIN & MISC (kept) ─────────────────────────────────────────── */
+.mixcloud-item{ position:relative; }
+.remove-link{ display:none !important; text-align:right; font-size:.9rem; color:var(--brand-teal); text-decoration:underline; margin-top:.3rem; cursor:pointer; }
+.admin-mode .remove-link{ display:inline-block !important; }
+
+/* Pop-out visibility parity */
+@media (max-width:768px){ section.chat .chat-actions{ display:none !important; } #chatPopupBtn{ display:inline-block !important; margin:.5rem auto 1rem !important; } }
+@media (min-width:769px){ section.chat .chat-actions{ display:block !important; } #chatPopupBtn{ display:none !important; } }
+
+/* Schedule page fixes (kept) */
+.page-header h1, .month-controls .title{ color:#fff !important; }
+.week-grid .day-head, .week-grid .day-head .dow, .week-grid .day-head .date{
+  color:#fff !important; opacity:1 !important; filter:none !important; mix-blend-mode:normal !important;
 }

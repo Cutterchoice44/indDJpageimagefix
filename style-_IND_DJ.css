@@ -1,10 +1,11 @@
+/* File: /style.css */
 /* ─── RESET & BASE STYLES ─────────────────────────────────────────── */
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
 :root{
   --brand-teal:#5A8785;
   --bg-dark:#000;
-  --text-light:#fafafa;
+  --text-light:#FAFAFA;
 
   --wave-height-desktop:200px;
   --wave-height-mobile:80px;
@@ -236,7 +237,7 @@ section h2::after{
 .add-mixcloud input{ width:80%; max-width:600px; padding:.5rem; }
 .add-mixcloud button{ margin-top:.5rem; padding:.5rem 2rem; background:var(--brand-teal); color:#fff; border:none; border-radius:6px; cursor:pointer; }
 
-/* FOOTER (desktop order + spacing preserved) */
+/* ─── FOOTER (order + spacing) ───────────────────────────────────── */
 footer.banner{
   background:var(--brand-teal);
   padding:.50rem .65rem;
@@ -246,7 +247,7 @@ footer.banner{
 .footer-bar{
   display:flex;
   align-items:center;
-  justify-content:flex-start;    /* keep policy + legal adjacent */
+  justify-content:flex-start; /* keep policy + legal adjacent */
   gap:.75rem 1.25rem;
   flex-wrap:wrap;
 }
@@ -256,7 +257,14 @@ footer.banner{
 .legal{
   color:#fff; font-family:'Bebas Neue',sans-serif; font-size:.85rem; text-transform:uppercase;
 }
-.logo-onemusic img{ height:36px; width:auto; display:block; }
+
+/* OneMusic fixed visual width */
+.logo-onemusic img{
+  height:36px;
+  width:150px;            /* fixed width for visual parity */
+  object-fit:contain;
+  display:block;
+}
 
 /* Remaining logos spaced evenly */
 .footer-logos{
@@ -272,7 +280,7 @@ footer.banner{
 .footer-logos a img{ transition:opacity .2s ease; }
 .footer-logos a:hover img, .footer-logos a:focus-visible img{ opacity:.85; }
 
-/* MOBILE (≤768px) */
+/* ─── MOBILE (≤768px) ───────────────────────────────────────────── */
 @media (max-width:768px){
   .header-wave{ display:none !important; }
   .header-banner{ display:flex !important; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:8px 0 6px !important; }
@@ -297,6 +305,7 @@ footer.banner{
   .live-player{ order:1; }
   .chat{ order:2; }
   .schedule{ order:3; }
+
   .chat iframe{ height:70vh; max-height:70vh; }
   .schedule{ overflow-y:auto; }
   #schedule-container{ max-height:55vh; overflow-y:auto; padding-right:6px; scroll-behavior:smooth; -webkit-overflow-scrolling:touch; }
@@ -304,11 +313,13 @@ footer.banner{
 
   .policy-link{ font-size:1.4rem; }
   .legal{ font-size:.72rem; line-height:1.15; }
-  .footer-logos{ justify-content:center; min-width:0; }
-  .footer-logos img, .logo-onemusic img{ height:28px; }
+
+  /* Smaller badges on phones */
+  .footer-logos img{ height:28px; }
+  .logo-onemusic img{ height:28px; width:120px; }
 }
 
-/* DESKTOP ENHANCEMENTS */
+/* ─── DESKTOP ENHANCEMENTS ──────────────────────────────────────── */
 @media (min-width:600px){ .grid-container{ grid-template-columns:1fr 1.5fr; } }
 @media (min-width:769px){
   .live-player iframe, .live-player audio{ height:720px; max-height:150vh; }
@@ -323,11 +334,15 @@ footer.banner{
   .tv-wrapper{ margin:.35rem auto 0; }
 }
 
-/* Admin/Misc */
+/* ─── ADMIN / MISC ──────────────────────────────────────────────── */
 .mixcloud-item{ position:relative; }
 .remove-link{ display:none !important; text-align:right; font-size:.9rem; color:var(--brand-teal); text-decoration:underline; margin-top:.3rem; cursor:pointer; }
 .admin-mode .remove-link{ display:inline-block !important; }
+
 @media (max-width:768px){ section.chat .chat-actions{ display:none !important; } #chatPopupBtn{ display:inline-block !important; margin:.5rem auto 1rem !important; } }
 @media (min-width:769px){ section.chat .chat-actions{ display:block !important; } #chatPopupBtn{ display:none !important; } }
+
 .page-header h1, .month-controls .title{ color:#fff !important; }
-.week-grid .day-head, .week-grid .day-head .dow, .week-grid .day-head .date{ color:#fff !important; opacity:1 !important; filter:none !important; mix-blend-mode:normal !important; }
+.week-grid .day-head, .week-grid .day-head .dow, .week-grid .day-head .date{
+  color:#fff !important; opacity:1 !important; filter:none !important; mix-blend-mode:normal !important;
+}

@@ -1,90 +1,117 @@
-<!-- /merch.html — resilient Merch embed with graceful fallback -->
+<!-- /pages/merch.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cutters Choice Radio — Merch</title>
+  <style>
+    /* Minimal styling; no framework assumptions */
+    :root { --r:16px; --bd:rgba(255,255,255,.14); --tx:rgba(255,255,255,.92); --sub:rgba(255,255,255,.72); }
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color: var(--tx); background:#000; }
+    main { max-width: 1200px; margin: 0 auto; padding: 1.25rem; }
+    .card { border:1px solid var(--bd); border-radius: var(--r); padding:1rem; }
+    .row { display:flex; gap:.5rem; flex-wrap:wrap; justify-content:center; }
+    .btn { display:inline-block; padding:.7rem 1rem; border:1px solid currentColor; border-radius:12px; background:none; color:inherit; text-decoration:none; cursor:pointer; }
+    .btn.primary { font-weight:600; }
+    .muted { color: var(--sub); }
+    iframe { width:100%; min-height:500px; height:1300px; border:none; border-radius:var(--r); display:block; }
+    .hidden { display:none !important; }
+    .status { margin-bottom:.75rem; }
+    .center { text-align:center; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1 class="center">Cutters Choice Radio — Merch</h1>
 
-<main class="merch-section" role="main" style="max-width:100%;margin:0 auto;">
-  <div id="ccr-merch" data-src="https://direct.app/embed/cutterschoiceradio"
-       style="max-width:100%;">
-    <noscript>
-      <p>JavaScript is required to view the shop. 
-         <a href="https://direct.app/cutterschoiceradio" target="_blank" rel="noopener">Open in new tab</a>.
-      </p>
-    </noscript>
+    <div id="ccr-embed-wrap" class="card" data-slug="cutterschoiceradio" data-src="https://direct.app/embed/cutterschoiceradio">
+      <div id="ccr-status" class="status muted">Loading shop…</div>
 
-    <!-- Visible immediately; hidden if the iframe loads -->
-    <section id="ccr-fallback" aria-live="polite"
-      style="text-align:center;padding:1rem;border:1px solid rgba(255,255,255,.12);border-radius:16px;">
-      <p style="margin:0 0 .75rem 0;font-weight:600;">Cutters Choice Radio — Merch</p>
-      <p style="opacity:.85;margin:.25rem 0 .75rem 0;">
-        The shop provider now blocks embedding inside other sites.
-      </p>
-      <div style="display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;margin-top:.5rem;">
-        <a id="ccr-open-new" href="https://direct.app/cutterschoiceradio" target="_blank" rel="noopener"
-           style="display:inline-block;padding:.65rem 1rem;border:1px solid currentColor;border-radius:12px;text-decoration:none;">
-          Open shop in a new tab
-        </a>
-        <button id="ccr-open-here" type="button"
-           style="padding:.65rem 1rem;border:1px solid currentColor;border-radius:12px;background:none;cursor:pointer;">
-          Open shop in this tab
-        </button>
-      </div>
-      <p style="opacity:.7;font-size:.92rem;margin-top:.75rem">
-        If you recently embedded this successfully: the provider likely added 
-        <code>X-Frame-Options</code> or a CSP <code>frame-ancestors</code> rule.
-      </p>
-    </section>
-  </div>
+      <!-- Fallback UI (shown if embed is blocked) -->
+      <section id="ccr-fallback" class="hidden" aria-live="polite">
+        <p class="center" style="margin:.25rem 0 .75rem 0">
+          The shop provider now blocks embedding inside other sites.
+        </p>
+        <div class="row">
+          <a id="ccr-open-new" class="btn primary" href="https://direct.app/cutterschoiceradio?utm_source=ccr-site&utm_medium=fallback&utm_campaign=merch"
+             target="_blank" rel="noopener">Open shop in a new tab</a>
+          <button id="ccr-open-here" class="btn" type="button">Open shop in this tab</button>
+          <button id="ccr-cancel-auto" class="btn hidden" type="button">Cancel redirect</button>
+        </div>
+        <p id="ccr-countdown" class="center muted hidden" style="margin-top:.75rem"></p>
+      </section>
+    </div>
+  </main>
 
   <script>
-    // Minimal, defensive; no external deps.
+    // Why: graceful UX when provider blocks iframes; gives users a path to buy.
     (function () {
-      var host = document.getElementById('ccr-merch');
-      if (!host) return;
-
-      var src = host.getAttribute('data-src') || '';
+      var wrap = document.getElementById('ccr-embed-wrap');
+      var statusEl = document.getElementById('ccr-status');
       var fb = document.getElementById('ccr-fallback');
-      var openHereBtn = document.getElementById('ccr-open-here');
-      var openNewLink = document.getElementById('ccr-open-new');
+      var openNew = document.getElementById('ccr-open-new');
+      var openHere = document.getElementById('ccr-open-here');
+      var cancelBtn = document.getElementById('ccr-cancel-auto');
+      var countdownEl = document.getElementById('ccr-countdown');
 
-      // In-tab navigation (for users who prefer staying on site)
-      openHereBtn?.addEventListener('click', function () {
-        window.location.assign(openNewLink.href);
-      });
+      if (!wrap) return;
+      var src = wrap.getAttribute('data-src') || '';
+      if (!src) { status('Invalid embed URL'); return; }
 
-      // Try the iframe anyway; if provider ever re-allows framing, this will just work.
-      if (!src) return;
-
+      // Try to embed. If provider re-allows framing this will work again.
       var iframe = document.createElement('iframe');
       iframe.src = src;
       iframe.title = 'Cutters Choice Radio Store';
       iframe.loading = 'lazy';
       iframe.setAttribute('referrerpolicy', 'no-referrer-when-downgrade');
       iframe.setAttribute('allowpaymentrequest', '');
-      iframe.style.width = '100%';
-      iframe.style.minHeight = '500px';
-      iframe.style.height = '1300px';
-      iframe.style.border = 'none';
-      iframe.style.borderRadius = '16px';
-      iframe.style.display = 'block';
-      iframe.style.visibility = 'hidden'; // avoid flash if it will be blocked
+      iframe.style.visibility = 'hidden'; // avoid flash if about to be blocked
+      wrap.insertBefore(iframe, wrap.firstChild);
 
       var loaded = false;
       iframe.addEventListener('load', function () {
-        // If the provider blocks framing, most browsers never fire 'load'.
         loaded = true;
+        status('Loaded ✅');
         iframe.style.visibility = 'visible';
-        if (fb) fb.style.display = 'none';
+        fb.classList.add('hidden');
       });
 
-      host.insertBefore(iframe, host.firstChild);
+      // If not loaded quickly, assume blocked by XFO/CSP and show fallback.
+      var assumedBlockedTimer = setTimeout(function () {
+        if (loaded) return;
+        status('Embedding is blocked by the provider ❌');
+        fb.classList.remove('hidden');
+        try { // remove hidden iframe to save work
+          wrap.removeChild(iframe);
+        } catch (e) {}
 
-      // After short delay, assume blocked and keep fallback visible.
-      setTimeout(function () {
-        if (!loaded) {
-          // Keep fallback shown; remove the hidden iframe to save layout work.
-          try { host.removeChild(iframe); } catch (_) {}
+        // Optional auto redirect after 5s (cancelable)
+        var secs = 5, timer;
+        countdownEl.classList.remove('hidden');
+        cancelBtn.classList.remove('hidden');
+        tick(); timer = setInterval(tick, 1000);
+
+        function tick() {
+          countdownEl.textContent = 'Redirecting to the shop in ' + secs + '…';
+          if (--secs < 0) {
+            clearInterval(timer);
+            window.location.assign(openNew.href);
+          }
         }
-      }, 1500);
+        cancelBtn.addEventListener('click', function () {
+          clearInterval(timer);
+          countdownEl.classList.add('hidden');
+          cancelBtn.classList.add('hidden');
+          status('Embedding blocked — redirect canceled');
+        });
+      }, 1200);
 
-      // Optional: future-proof auto-resize if they postMessage height.
+      openHere.addEventListener('click', function () {
+        window.location.assign(openNew.href);
+      });
+
+      // Accept provider resize messages if they ever add them again.
       var expectedOrigin;
       try { expectedOrigin = new URL(src).origin; } catch (_) {}
       window.addEventListener('message', function (evt) {
@@ -93,16 +120,11 @@
         var h = (typeof d.height === 'number' && d.height) ||
                 (typeof d.directHeight === 'number' && d.directHeight) ||
                 (d.type && /height|resize/i.test(String(d.type)) && typeof d.value === 'number' ? d.value : 0);
-        if (h && h > 300) iframe.style.height = Math.min(h, 5000) + 'px';
+        if (h && h > 300 && h < 5000) iframe.style.height = h + 'px';
       });
+
+      function status(msg) { if (statusEl) statusEl.textContent = msg; }
     })();
   </script>
-
-  <!-- If/when you use a strict CSP on YOUR site, allow any new official script/origin they give you.
-       Example (only if they re-enable embedding or provide a JS SDK):
-       Content-Security-Policy:
-         default-src 'self';
-         script-src 'self' https://<official-script-origin>;
-         frame-src https://direct.app;
-         connect-src 'self' https://direct.app; -->
-</main>
+</body>
+</html>

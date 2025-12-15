@@ -1,129 +1,56 @@
-<!-- /pages/merch.html -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Cutters Choice Radio — Merch</title>
+  <!-- Why: provider blocks iframes; redirect is the only reliable path -->
+  <meta http-equiv="refresh" content="0; url=https://direct.app/cutterschoiceradio?utm_source=ccr-site&utm_medium=redirect&utm_campaign=merch" />
   <style>
-    /* Minimal styling; no framework assumptions */
     :root { --r:16px; --bd:rgba(255,255,255,.14); --tx:rgba(255,255,255,.92); --sub:rgba(255,255,255,.72); }
-    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color: var(--tx); background:#000; }
-    main { max-width: 1200px; margin: 0 auto; padding: 1.25rem; }
-    .card { border:1px solid var(--bd); border-radius: var(--r); padding:1rem; }
-    .row { display:flex; gap:.5rem; flex-wrap:wrap; justify-content:center; }
+    html,body { height:100%; }
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color: var(--tx); background:#000; display:flex; }
+    main { margin:auto; max-width:720px; padding:1.25rem; }
+    .card { border:1px solid var(--bd); border-radius: var(--r); padding:1rem; text-align:center; }
+    .row { display:flex; gap:.5rem; flex-wrap:wrap; justify-content:center; margin-top:.75rem; }
     .btn { display:inline-block; padding:.7rem 1rem; border:1px solid currentColor; border-radius:12px; background:none; color:inherit; text-decoration:none; cursor:pointer; }
-    .btn.primary { font-weight:600; }
     .muted { color: var(--sub); }
-    iframe { width:100%; min-height:500px; height:1300px; border:none; border-radius:var(--r); display:block; }
-    .hidden { display:none !important; }
-    .status { margin-bottom:.75rem; }
-    .center { text-align:center; }
   </style>
 </head>
 <body>
   <main>
-    <h1 class="center">Cutters Choice Radio — Merch</h1>
-
-    <div id="ccr-embed-wrap" class="card" data-slug="cutterschoiceradio" data-src="https://direct.app/embed/cutterschoiceradio">
-      <div id="ccr-status" class="status muted">Loading shop…</div>
-
-      <!-- Fallback UI (shown if embed is blocked) -->
-      <section id="ccr-fallback" class="hidden" aria-live="polite">
-        <p class="center" style="margin:.25rem 0 .75rem 0">
-          The shop provider now blocks embedding inside other sites.
-        </p>
-        <div class="row">
-          <a id="ccr-open-new" class="btn primary" href="https://direct.app/cutterschoiceradio?utm_source=ccr-site&utm_medium=fallback&utm_campaign=merch"
-             target="_blank" rel="noopener">Open shop in a new tab</a>
-          <button id="ccr-open-here" class="btn" type="button">Open shop in this tab</button>
-          <button id="ccr-cancel-auto" class="btn hidden" type="button">Cancel redirect</button>
-        </div>
-        <p id="ccr-countdown" class="center muted hidden" style="margin-top:.75rem"></p>
-      </section>
-    </div>
+    <section class="card" aria-live="polite">
+      <h1 style="margin:.25rem 0 .5rem 0">Cutters Choice Radio — Merch</h1>
+      <p class="muted" id="ccr-status">Redirecting you to the shop…</p>
+      <div class="row">
+        <a id="ccr-open-here" class="btn" href="https://direct.app/cutterschoiceradio?utm_source=ccr-site&utm_medium=redirect&utm_campaign=merch">Open here</a>
+        <a class="btn" href="https://direct.app/cutterschoiceradio?utm_source=ccr-site&utm_medium=redirect&utm_campaign=merch" target="_blank" rel="noopener">Open in new tab</a>
+      </div>
+      <noscript>
+        <p class="muted" style="margin-top:.75rem">If you’re not redirected, use one of the buttons above.</p>
+      </noscript>
+    </section>
   </main>
 
   <script>
-    // Why: graceful UX when provider blocks iframes; gives users a path to buy.
+    // Why: use JS redirect so Back button returns users to your site.
     (function () {
-      var wrap = document.getElementById('ccr-embed-wrap');
+      var url = "https://direct.app/cutterschoiceradio?utm_source=ccr-site&utm_medium=redirect&utm_campaign=merch";
       var statusEl = document.getElementById('ccr-status');
-      var fb = document.getElementById('ccr-fallback');
-      var openNew = document.getElementById('ccr-open-new');
-      var openHere = document.getElementById('ccr-open-here');
-      var cancelBtn = document.getElementById('ccr-cancel-auto');
-      var countdownEl = document.getElementById('ccr-countdown');
-
-      if (!wrap) return;
-      var src = wrap.getAttribute('data-src') || '';
-      if (!src) { status('Invalid embed URL'); return; }
-
-      // Try to embed. If provider re-allows framing this will work again.
-      var iframe = document.createElement('iframe');
-      iframe.src = src;
-      iframe.title = 'Cutters Choice Radio Store';
-      iframe.loading = 'lazy';
-      iframe.setAttribute('referrerpolicy', 'no-referrer-when-downgrade');
-      iframe.setAttribute('allowpaymentrequest', '');
-      iframe.style.visibility = 'hidden'; // avoid flash if about to be blocked
-      wrap.insertBefore(iframe, wrap.firstChild);
-
-      var loaded = false;
-      iframe.addEventListener('load', function () {
-        loaded = true;
-        status('Loaded ✅');
-        iframe.style.visibility = 'visible';
-        fb.classList.add('hidden');
-      });
-
-      // If not loaded quickly, assume blocked by XFO/CSP and show fallback.
-      var assumedBlockedTimer = setTimeout(function () {
-        if (loaded) return;
-        status('Embedding is blocked by the provider ❌');
-        fb.classList.remove('hidden');
-        try { // remove hidden iframe to save work
-          wrap.removeChild(iframe);
-        } catch (e) {}
-
-        // Optional auto redirect after 5s (cancelable)
-        var secs = 5, timer;
-        countdownEl.classList.remove('hidden');
-        cancelBtn.classList.remove('hidden');
-        tick(); timer = setInterval(tick, 1000);
-
-        function tick() {
-          countdownEl.textContent = 'Redirecting to the shop in ' + secs + '…';
-          if (--secs < 0) {
-            clearInterval(timer);
-            window.location.assign(openNew.href);
-          }
+      try {
+        // Replace keeps history cleaner; fall back to assign if needed.
+        if ('replace' in window.location) {
+          window.location.replace(url);
+        } else {
+          window.location.assign(url);
         }
-        cancelBtn.addEventListener('click', function () {
-          clearInterval(timer);
-          countdownEl.classList.add('hidden');
-          cancelBtn.classList.add('hidden');
-          status('Embedding blocked — redirect canceled');
-        });
-      }, 1200);
-
-      openHere.addEventListener('click', function () {
-        window.location.assign(openNew.href);
+      } catch (_) {
+        if (statusEl) statusEl.textContent = 'Could not auto-redirect — use the buttons below.';
+      }
+      // Keep the page usable if popup blockers/extensions interfere.
+      document.getElementById('ccr-open-here')?.addEventListener('click', function (e) {
+        e.preventDefault(); window.location.href = url;
       });
-
-      // Accept provider resize messages if they ever add them again.
-      var expectedOrigin;
-      try { expectedOrigin = new URL(src).origin; } catch (_) {}
-      window.addEventListener('message', function (evt) {
-        if (!expectedOrigin || evt.origin !== expectedOrigin) return;
-        var d = evt.data || {};
-        var h = (typeof d.height === 'number' && d.height) ||
-                (typeof d.directHeight === 'number' && d.directHeight) ||
-                (d.type && /height|resize/i.test(String(d.type)) && typeof d.value === 'number' ? d.value : 0);
-        if (h && h > 300 && h < 5000) iframe.style.height = h + 'px';
-      });
-
-      function status(msg) { if (statusEl) statusEl.textContent = msg; }
     })();
   </script>
 </body>

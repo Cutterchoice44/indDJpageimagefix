@@ -108,7 +108,9 @@
     }
     #list .copy{
       color:#E7F2F1;font-size:1rem;line-height:1.28;white-space:pre-wrap;
-      height:100%;overflow:auto;padding-right:.25rem; /* scrollable, fixed window */
+      height:100%;overflow:auto;
+      padding-right:.3rem;
+      padding-left:.5rem; /* NEW: buffer so text isn’t tight against artwork */
     }
     /* compact scrollbars (webkit) */
     #list .copy::-webkit-scrollbar{width:6px}
@@ -126,7 +128,7 @@
       :root{ --row-h:150px; --art:var(--row-h); } /* keep art matching widget */
     }
 
-    /* ===== MOBILE (keep working header; art still matches widget) ===== */
+    /* ===== MOBILE ===== */
     @media (max-width:560px){
       header.hd{
         padding:.6rem 0;
@@ -141,6 +143,7 @@
 
       :root{ --row-h:170px; --art:var(--row-h); } /* art remains same height as widget */
       #list .bio{gap:.26rem}
+      #list .copy{padding-left:.5rem;padding-right:.3rem}
     }
 
     /* ===== OVERLAYS (hidden by default) ===== */
@@ -152,7 +155,7 @@
     .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0}
     label{min-width:88px}
     select,input[type="text"],textarea{flex:1 1 260px;min-width:220px;background:#050808;color:#eaffff;border:1px solid #2a5653;border-radius:6px;padding:8px}
-    textarea{min-height:140px} /* taller editor for longer blurbs (no front-end limits) */
+    textarea{min-height:140px} /* taller editor for longer blurbs */
     .btn{padding:8px 12px;border-radius:6px;border:1px solid #2a5653;background:#0b2322;color:#eaffff;cursor:pointer}
     .muted{color:#a7cbc7;font-size:.9rem}
     .status{opacity:.9;font-size:.9rem;margin-left:auto}

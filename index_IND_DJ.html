@@ -1,97 +1,86 @@
-<!-- /merch.html — EMBED SECTION ONLY: replace your <main>…</main> with the block below -->
+<!-- /merch-debug block -->
+<div id="merch-debug" style="max-width:100%;margin:0 auto">
+  <div id="merch-status" style="padding:.75rem 1rem;border:1px solid rgba(255,255,255,.2);border-radius:12px;margin-bottom:12px;font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif">
+    <strong>Shop status:</strong> checking…
+  </div>
 
-<main class="merch-section" role="main">
-  <!-- Container for resilient embed -->
-  <div id="direct-embed"
-       data-slug="cutterschoiceradio"
-       data-src="https://direct.app/embed/cutterschoiceradio"
-       style="max-width:100%;margin:0 auto;">
-    <!-- Fallback content (shown briefly, or if the iframe can't load) -->
+  <div id="direct-embed" data-src="https://direct.app/embed/cutterschoiceradio"
+       style="max-width:100%;">
     <div id="direct-fallback" style="text-align:center;padding:1rem;">
-      <p style="margin-bottom:.75rem;">
-        Loading the Cutters Choice Radio shop…
-      </p>
+      <p>Loading the Cutters Choice Radio shop…</p>
       <p style="font-size:.95rem;opacity:.85">
-        If this never loads, your browser or the shop provider may be blocking frames.
+        If this never loads, the shop provider or your site’s security settings may be blocking iframes.
       </p>
       <p style="margin-top:1rem;">
-        <a href="https://direct.app/cutterschoiceradio"
-           target="_blank" rel="noopener"
-           style="display:inline-block;padding:.65rem 1rem;border:1px solid #fff;border-radius:12px;text-decoration:none;">
-          Open the shop in a new tab
+        <a href="https://direct.app/cutterschoiceradio" target="_blank" rel="noopener"
+           style="display:inline-block;padding:.6rem 1rem;border:1px solid #fff;border-radius:12px;text-decoration:none;">
+          Open shop in a new tab
         </a>
       </p>
     </div>
   </div>
+</div>
 
-  <script>
-    // /assets/js/direct-embed.js (inlined here to keep it simple)
-    (function () {
-      var container = document.getElementById('direct-embed');
-      if (!container) return;
+<script>
+(function () {
+  const statusEl = document.getElementById('merch-status');
+  const container = document.getElementById('direct-embed');
+  const fallback = document.getElementById('direct-fallback');
+  const src = container?.getAttribute('data-src') || '';
 
-      var src = container.getAttribute('data-src') || '';
-      var slug = container.getAttribute('data-slug') || '';
-      var fallback = document.getElementById('direct-fallback');
+  function setStatus(msg) { if (statusEl) statusEl.textContent = 'Shop status: ' + msg; }
 
-      // Basic validations
-      if (!src && slug) src = "https://direct.app/embed/" + encodeURIComponent(slug);
-      if (!src) return;
+  if (!container || !src) { setStatus('invalid embed URL'); return; }
 
-      // Build iframe
-      var iframe = document.createElement('iframe');
-      iframe.src = src;
-      iframe.title = 'Cutters Choice Radio Store';
-      iframe.loading = 'lazy';
-      iframe.setAttribute('referrerpolicy', 'no-referrer-when-downgrade');
-      iframe.setAttribute('allowpaymentrequest', '');      // needed if checkout uses Payment Request API
-      iframe.style.width = '100%';
-      iframe.style.minHeight = '500px';
-      iframe.style.height = '1300px';                      // safe default; auto-resize may adjust
-      iframe.style.border = 'none';
-      iframe.style.borderRadius = '16px';
-      iframe.style.display = 'block';
+  // Build iframe
+  const iframe = document.createElement('iframe');
+  iframe.src = src;
+  iframe.title = 'Cutters Choice Radio Store';
+  iframe.loading = 'lazy';
+  iframe.setAttribute('referrerpolicy', 'no-referrer-when-downgrade');
+  iframe.setAttribute('allowpaymentrequest', '');
+  iframe.style.width = '100%';
+  iframe.style.minHeight = '500px';
+  iframe.style.height = '1200px';
+  iframe.style.border = 'none';
+  iframe.style.borderRadius = '16px';
+  iframe.style.display = 'block';
 
-      // Insert iframe
-      container.insertBefore(iframe, container.firstChild);
+  let loaded = false;
+  iframe.addEventListener('load', function () {
+    loaded = true;
+    setStatus('loaded ✅');
+    if (fallback) fallback.style.display = 'none';
+  });
 
-      // Hide fallback on successful load
-      iframe.addEventListener('load', function () {
-        if (fallback) fallback.style.display = 'none';
-      });
+  container.insertBefore(iframe, container.firstChild);
 
-      // Optional auto-resize if provider posts height messages
-      // We accept messages only from the expected origin for safety.
-      var expectedOrigin = new URL(src).origin;
-      window.addEventListener('message', function (evt) {
-        try {
-          if (evt.origin !== expectedOrigin) return; // security: ignore other origins
-          var data = evt.data || {};
-          // Accept common shapes, e.g. {type:'resize', height:1234} or {directHeight:1234}
-          var h = null;
-          if (typeof data === 'object') {
-            if (typeof data.height === 'number') h = data.height;
-            if (typeof data.directHeight === 'number') h = data.directHeight;
-            if (data.type && /height|resize/i.test(String(data.type)) && typeof data.value === 'number') {
-              h = data.value;
-            }
-          }
-          if (h && h > 300) {
-            // minimal clamp; prevents collapsing on weird messages
-            iframe.style.height = (Math.min(h, 5000)) + 'px';
-          }
-        } catch (_) { /* ignore */ }
-      });
+  // Timeout → likely blocked (XFO/CSP/ad-block). onerror won’t fire for cross-origin iframes.
+  setTimeout(function () {
+    if (!loaded) setStatus('did not load after 6s — likely blocked ❌ (check Console & Network headers)');
+  }, 6000);
 
-      // Last resort: if frame can't load (blocked by headers), leave the fallback visible.
-      // Note: onerror isn't reliable for cross-origin iframes; visible fallback covers that case.
-    })();
-  </script>
+  // Surface CSP violations (useful if your site’s CSP is the cause)
+  document.addEventListener('securitypolicyviolation', function (e) {
+    setStatus('CSP violation: ' + e.violatedDirective + ' at ' + e.blockedURI);
+    console.warn('CSP violation', {
+      violatedDirective: e.violatedDirective,
+      blockedURI: e.blockedURI,
+      effectiveDirective: e.effectiveDirective,
+      disposition: e.disposition,
+      originalPolicy: e.originalPolicy
+    });
+  });
 
-  <!-- (Optional) If your site uses strict CSP headers, ensure these directives include direct.app:
-       Content-Security-Policy:
-         default-src 'self';
-         frame-src https://direct.app;
-         child-src https://direct.app;  /* some servers still honor child-src */
-         connect-src 'self' https://direct.app; /* if you fetch assets via JS */ -->
-</main>
+  // Optional: listen for provider resize messages (harmless if none)
+  const expectedOrigin = new URL(src).origin;
+  window.addEventListener('message', function (evt) {
+    if (evt.origin !== expectedOrigin) return;
+    const d = evt.data || {};
+    const h = (typeof d.height === 'number' && d.height) ||
+              (typeof d.directHeight === 'number' && d.directHeight) ||
+              (d.type && /height|resize/i.test(String(d.type)) && typeof d.value === 'number' ? d.value : 0);
+    if (h && h > 300) iframe.style.height = Math.min(h, 5000) + 'px';
+  });
+})();
+</script>

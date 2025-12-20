@@ -1,433 +1,384 @@
+<!-- File: /index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Cutters Choice Best of 2025 Mixes</title>
-  <meta name="description" content="Standout CCR mixes from 2025." />
-  <meta name="theme-color" content="#5A8785" />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
-  <script>document.documentElement.classList.add('js');</script>
-  <style>
-    :root{
-      --teal:#5A8785;
-      --line-thickness:8px;
+  <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-      /* compact row sizing (desktop/tablet) */
-      --row-h:150px;       /* total content height under the DJ name strip */
-      --right-col-fr:1.2fr;/* widgets ~25% shorter vs old 1.6fr */
-      --art:var(--row-h);  /* artwork same height as widget */
-    }
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{background:#000;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  <meta name="google-cast-enabled" content="true">
+  <title>Cutters Choice Radio</title>
+  <link rel="canonical" href="https://cutterschoiceradio.com/">
+  <meta name="description" content="Cutters Choice Radio — underground, community-driven electronic music: breakbeat, bass, rave and more. Listen live 24/7.">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#5A8785">
 
-    /* ===== HEADER ===== */
-    header.hd{display:flex;align-items:center;justify-content:space-between;padding:1rem 0}
-    .logo{height:160px;width:auto}
-    .title{text-align:center;max-width:min(78vw,1100px);margin:0 8px}
-    .title h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.8rem,6.8vw,6rem);line-height:1;text-transform:uppercase;white-space:nowrap}
-    .title p{color:var(--teal);margin-top:.25rem;font-size:calc(1rem * 1.6)} /* ~60% larger */
-    .sep{height:2px;background:var(--teal)}
+  <!-- Social preview -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Cutters Choice Radio">
+  <meta property="og:description" content="Underground, community-driven electronic music: breakbeat, bass, rave and more. Listen live 24/7.">
+  <meta property="og:url" content="https://cutterschoiceradio.com/">
+  <meta property="og:site_name" content="Cutters Choice Radio">
+  <meta property="og:image" content="https://cutterschoiceradio.com/images/logo.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Cutters Choice Radio">
+  <meta name="twitter:description" content="Underground, community-driven electronic music: breakbeat, bass, rave and more. Listen live 24/7.">
+  <meta name="twitter:image" content="https://cutterschoiceradio.com/images/logo.png">
 
-    /* ===== NAV ===== */
-    nav#main{background:var(--teal);border-top:2px solid #000;border-bottom:2px solid #000}
-    nav#main ul{display:flex;list-style:none;justify-content:space-evenly;align-items:center;padding:.35rem .25rem}
-    nav#main a{color:#fff;text-decoration:none;font-family:'Bebas Neue',sans-serif;text-transform:uppercase;font-size:clamp(1rem,2.4vw,2rem);letter-spacing:.5px}
+  <!-- Perf hints -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+  <link rel="preconnect" href="https://app.radiocult.fm" crossorigin>
+  <link rel="preconnect" href="https://cdn.socket.io" crossorigin>
+  <link rel="preconnect" href="https://ccr-tv.cutterschoiceradio.com" crossorigin>
+  <link rel="preconnect" href="https://www.mixcloud.com" crossorigin>
+  <link rel="preconnect" href="https://widget.mixcloud.com" crossorigin>
+  <link rel="preload" href="/images/logo.png" as="image" imagesrcset="/images/logo.png 1x">
 
-    /* ===== CONTENT WRAP ===== */
-    .wrap{width:100%;max-width:none;margin:0;padding:0}
-    #list{border-bottom:var(--line-thickness) solid var(--teal)} /* bottom divider after last entry */
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css?v=2025-12-15-5">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    /* ===== MIX ROW (tightened) ===== */
-    #list .mix-row{
-      display:grid;
-      grid-template-columns:minmax(580px,1fr) var(--right-col-fr); /* left grows; right ~25% shorter */
-      grid-template-rows:auto var(--row-h);
-      row-gap:2px;
-      column-gap:6px; /* smaller gap so blurb meets widget start more tightly */
-      background:#0B0B0B;
-    }
+  <!-- Cast + GA -->
+  <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" defer></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-3MSGZZ5QL6"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-3MSGZZ5QL6');
+  </script>
 
-    /* Title strip + animated teal rails (label aligned left) */
-    #list .row-title{
-      grid-column:1 / -1; position:relative; text-align:left;
-      padding:.06rem 0 0 .62rem; /* slight extra inset to move label in a touch */
-      overflow:hidden;
-    }
-    #list .row-title::before,
-    #list .row-title::after{
-      content:""; position:absolute; top:50%;
-      height:var(--line-thickness); background:var(--teal); width:50%;
-      transform:scaleX(1);
-    }
-    #list .row-title::before{ left:0;  transform-origin:right; }
-    #list .row-title::after{  right:0; transform-origin:left;  }
-    .js #list .row-title::before,
-    .js #list .row-title::after{ transform:scaleX(0); }
-    .js #list .row-title.animate::before,
-    .js #list .row-title.animate::after{ animation: lineGrow 900ms ease-out forwards; }
-    @keyframes lineGrow { to { transform:scaleX(1); } }
-    @media (prefers-reduced-motion: reduce){
-      .js #list .row-title::before, .js #list .row-title::after{ animation:none !important; transform:scaleX(1) !important; }
-    }
-
-    /* DJ name + pulse */
-    #list .row-title .label{
-      position:relative;z-index:1;display:inline-block;background:#000;color:#fff;
-      padding:.06rem .7rem;line-height:1.06;font-family:'Bebas Neue',sans-serif;text-transform:uppercase;letter-spacing:.06em;
-      font-size:calc(1.3rem * 1.56);
-      animation:djFlash 3.2s ease-in-out infinite alternate;
-    }
-    @keyframes djFlash{0%{opacity:1;text-shadow:0 0 0 rgba(90,135,133,0)}100%{opacity:.92;text-shadow:0 0 12px rgba(90,135,133,.75)}}
-    @media (prefers-reduced-motion: reduce){#list .row-title .label{animation:none}}
-
-    /* ===== COLUMNS (fill fixed height) ===== */
-    #list .left{
-      padding:.18rem .42rem .18rem .72rem !important; /* a touch more left padding (art away from frame edge) */
-      height:var(--row-h); overflow:hidden;
-    }
-    #list .right{
-      padding:.18rem .42rem !important;height:var(--row-h);
-      border-left:2px solid var(--teal);
-      display:flex;align-items:center;justify-content:center;background:#0E0E0E;overflow:hidden
-    }
-
-    /* left side: grid, image + copy scroll area */
-    #list .bio{
-      display:grid;
-      grid-template-columns:var(--art) 1fr; /* art now equals row height, same as widget */
-      grid-auto-rows:1fr;
-      gap:.34rem;
-      height:100%;
-      align-items:start;
-    }
-    #list .bio img{
-      width:var(--art); height:var(--art);
-      object-fit:cover;border:1px solid var(--teal);background:#111;display:block;
-      margin-left:.12rem; /* move artwork in from the extreme edge fractionally */
-    }
-    #list .copy{
-      color:#E7F2F1;font-size:1rem;line-height:1.28;white-space:pre-wrap;
-      height:100%;overflow:auto;
-      padding-right:.3rem;
-      padding-left:.5rem; /* NEW: buffer so text isn’t tight against artwork */
-    }
-    /* compact scrollbars (webkit) */
-    #list .copy::-webkit-scrollbar{width:6px}
-    #list .copy::-webkit-scrollbar-thumb{background:#2b5e5b;border-radius:6px}
-
-    /* right side: widget fills the (shorter) column height */
-    #list .right iframe{
-      width:100%; height:100%; min-height:90px; border:0; display:block; margin:0;
-    }
-
-    /* ===== TABLET ===== */
-    @media (max-width:1200px){
-      #list .mix-row{ grid-template-columns:1fr }
-      #list .right{ border-left:0; border-top:2px solid var(--teal) }
-      :root{ --row-h:150px; --art:var(--row-h); } /* keep art matching widget */
-    }
-
-    /* ===== MOBILE ===== */
-    @media (max-width:560px){
-      header.hd{
-        padding:.6rem 0;
-        display:grid;grid-template-columns:48px 1fr 48px;align-items:center;column-gap:.35rem;
-      }
-      .logo{height:48px;width:48px;object-fit:contain;justify-self:center}
-      .title{grid-column:2;text-align:center;margin:0 .2rem}
-      .title h1{white-space:normal;font-size:clamp(1.2rem,7.2vw,2.4rem);line-height:1.02}
-      .title .t-line{display:block;white-space:nowrap}
-      .title .t-top{margin-bottom:2px}
-      .title p{font-size:clamp(.9rem, 3.4vw, 1.15rem);margin-top:.18rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-
-      :root{ --row-h:170px; --art:var(--row-h); } /* art remains same height as widget */
-      #list .bio{gap:.26rem}
-      #list .copy{padding-left:.5rem;padding-right:.3rem}
-    }
-
-    /* ===== OVERLAYS (hidden by default) ===== */
-    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;z-index:9999}
-    .overlay[aria-hidden="false"]{display:flex}
-    .panel{width:min(980px,95vw);max-height:92vh;overflow:auto;background:#0e1414;border:2px solid var(--teal);border-radius:10px;padding:14px}
-    .panel h3{font-family:'Bebas Neue',sans-serif;margin:0 0 10px}
-    .entry{border:1px solid #2a5653;border-radius:8px;padding:10px;margin:10px 0;background:#081111}
-    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0}
-    label{min-width:88px}
-    select,input[type="text"],textarea{flex:1 1 260px;min-width:220px;background:#050808;color:#eaffff;border:1px solid #2a5653;border-radius:6px;padding:8px}
-    textarea{min-height:140px} /* taller editor for longer blurbs */
-    .btn{padding:8px 12px;border-radius:6px;border:1px solid #2a5653;background:#0b2322;color:#eaffff;cursor:pointer}
-    .muted{color:#a7cbc7;font-size:.9rem}
-    .status{opacity:.9;font-size:.9rem;margin-left:auto}
-    .login-card{width:min(420px,94vw);background:#0e1414;border:2px solid var(--teal);border-radius:10px;padding:16px}
-    .login-card h3{font-family:'Bebas Neue',sans-serif;margin:0 0 10px}
-    .login-row{display:flex;gap:8px;align-items:center;margin-top:8px}
-    .login-input{flex:1;background:#050808;color:#eaffff;border:1px solid #2a5653;border-radius:6px;padding:10px}
-    .error{color:#ff7a7a;font-size:.9rem;margin-top:6px;display:none}
-  </style>
+  <!-- Org JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Cutters Choice Radio",
+    "url": "https://cutterschoiceradio.com",
+    "logo": "https://cutterschoiceradio.com/images/logo.png",
+    "sameAs": [
+      "https://www.instagram.com/cutterschoiceradio",
+      "https://www.facebook.com/cutterschoiceradio",
+      "https://www.mixcloud.com/cutterschoiceradio",
+      "https://tunein.com/radio/Cutters-Choice-Radio-s344746/"
+    ]
+  }
+  </script>
 </head>
+
 <body>
-  <header class="hd">
-    <img class="logo" src="/images/logo.png" alt="Cutters Choice Radio" loading="lazy">
-    <div class="title">
-      <h1>
-        <span class="t-line t-top">Cutters Choice</span>
-        <span class="t-line t-bottom">Best of 2025 Mixes</span>
-      </h1>
-      <p>Relentless flavas. Significant bangers. Certified standouts.</p>
+  <!-- HEADER -->
+  <header class="header-banner" role="banner">
+    <div class="header-gif-right"></div>
+    <div class="header-gif-left"></div>
+
+    <div class="logo-container">
+      <img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="eager" decoding="async" width="160" height="160" fetchpriority="high">
     </div>
-    <img class="logo" src="/images/logo.png" alt="" loading="lazy" aria-hidden="true">
+
+    <video class="header-wave header-wave-left" aria-hidden="true" muted loop autoplay playsinline preload="none">
+      <source src="/images/audiowave.webm" type="video/webm">
+    </video>
+
+    <div class="title">
+      <h1>Cutters Choice Radio</h1>
+      <p class="tagline">The home of relentless flavas and significant bangers!</p>
+    </div>
+
+    <video class="header-wave header-wave-right" aria-hidden="true" muted loop autoplay playsinline preload="none">
+      <source src="/images/audiowave.webm" type="video/webm">
+    </video>
+
+    <div class="logo-container">
+      <img class="logo" src="/images/logo.png" alt="Cutters Choice Radio Logo" loading="eager" decoding="async" width="160" height="160">
+    </div>
   </header>
 
-  <div class="sep"></div>
-  <nav id="main" aria-label="Primary">
-    <ul>
-      <li><a href="/index.html">Home</a></li>
-      <li><a href="/our-story.html">Our Story</a></li>
-      <li><a href="/index-ourDJS.html">Our DJs</a></li>
-      <li><a href="/dj-selects.html">DJ Selects</a></li>
-      <li><a href="/cutty-ranks.html">Cutty Ranks</a></li>
-      <li><a href="/schedule.html">Schedule</a></li>
-      <li><a href="/merch.html">Merch</a></li>
-    </ul>
+  <div style="height:2px;background-color:var(--brand-teal);"></div>
+
+  <!-- NAV -->
+  <nav id="main-nav" aria-label="Primary">
+    <div class="nav-menu">
+      <a href="our-story.html"           class="nav-link">OUR STORY</a>
+      <a href="index-ourDJS.html"        class="nav-link">OUR DJS</a>
+      <a href="dj-selects.html"          class="nav-link">DJ SELECTS</a>
+      <a href="best-of-2025-mixes.html"  class="nav-link">BEST OF 25 MIXES</a>
+      <a href="cutty-ranks.html"         class="nav-link">CUTTY RANKS</a>
+      <a href="schedule.html"            class="nav-link">SCHEDULE</a>
+      <a href="merch.html"               class="nav-link">MERCH</a>
+
+      <details class="nav-details" id="about-overlay">
+        <summary class="nav-link" aria-label="About the station">ABOUT THE STATION</summary>
+        <div class="about-panel" id="about-station-content">
+          <p>Cutters Choice Radio is a community of resident DJs and selectors broadcasting across underground music of all genres, representing bass and rave culture. Explore each profile for bios, mixes and show times, and discover new artists on our weekly schedule.</p>
+        </div>
+      </details>
+    </div>
+
+    <div class="nav-actions">
+      <a href="https://facebook.com/cutterschoiceradio"  target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="Facebook">
+        <i class="fab fa-facebook-f"></i>
+      </a>
+      <a href="https://instagram.com/cutterschoiceradio" target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="Instagram">
+        <i class="fab fa-instagram"></i>
+      </a>
+      <google-cast-button id="castBtn" title="Cast"></google-cast-button>
+      <button id="manualCastBtn" class="nav-link" type="button" title="Cast this stream" aria-label="Cast this stream">CAST</button>
+    </div>
   </nav>
-  <div class="sep"></div>
 
-  <main class="wrap">
-    <div id="list" aria-live="polite"></div>
-    <p id="empty" class="muted" style="padding:12px;display:none">No mixes yet.</p>
-  </main>
+  <div style="height:2px;background-color:var(--brand-teal);"></div>
 
-  <!-- Admin overlay (hidden until Shift+A + password) -->
-  <div id="admin" class="overlay" aria-hidden="true" style="display:none">
-    <div class="panel" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
-      <h3 id="adminTitle">Best of 2025 — Admin</h3>
-      <div id="entries"></div>
-      <div class="row" style="gap:8px;align-items:center;flex-wrap:wrap">
-        <button id="add" class="btn">+ Add</button>
-        <button id="save" class="btn">Save</button>
-        <button id="close" class="btn">Close</button>
-        <span id="status" class="status"></span>
+  <!-- MAIN GRID -->
+  <div class="grid-container">
+    <!-- CHAT -->
+    <section class="chat" aria-labelledby="chat-heading">
+      <h2 id="chat-heading">Cutters Chat</h2>
+      <iframe title="Cutters Choice Radio Chat"
+              src="https://app.radiocult.fm/embed/chat/cutters-choice-radio?theme=midnight&primaryColor=%235A8785&corners=sharp"
+              width="100%" height="700" frameborder="0"
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              loading="lazy" seamless></iframe>
+      <div class="chat-actions"><button class="popout-btn" onclick="openChatPopup()">Pop Out Chat</button></div>
+      <div class="rc-user-list-container"><div class="rc-user-list"></div></div>
+    </section>
+
+    <!-- LIVE -->
+    <section class="live-player" aria-labelledby="now-dj">
+      <h2 id="now-dj">Now Playing: Live</h2>
+
+      <div class="player-container">
+        <iframe id="inlinePlayer" title="Cutters Choice Radio player"
+                src="https://app.radiocult.fm/embed/square-player/cutters-choice-radio?theme=midnight&primaryColor=%235A8785&corners=sharp"
+                allow="autoplay; encrypted-media" loading="lazy"></iframe>
+
+        <div id="now-archive" role="status" aria-live="polite">Loading archive show…</div>
+
+        <button id="popOutBtn" class="popout-btn">Pop Out Player</button>
+        <button id="chatPopupBtn" class="popout-btn chat-btn-mobile" onclick="openChatPopup()">Chat</button>
+
+        <div class="tv-wrapper">
+          <video
+            id="ccrTv"
+            playsinline
+            muted
+            autoplay
+            controls
+            preload="none"
+            crossorigin="anonymous"
+            poster="/images/archives-logo.jpeg"
+          ></video>
+        </div>
       </div>
-      <p class="muted" style="margin-top:6px">Shift+A to open; password same as other pages.</p>
-    </div>
+    </section>
+
+    <!-- SCHEDULE -->
+    <section class="schedule" aria-labelledby="schedule-heading">
+      <h2 class="schedule-heading" id="schedule-heading">This Week’s Lineup</h2>
+      <div class="schedule-scroll" id="schedule-container">
+        <p>Loading this week’s schedule…</p>
+      </div>
+    </section>
+
+    <!-- MIXCLOUD -->
+    <section class="mixcloud" aria-labelledby="mixcloud-heading">
+      <h2 id="mixcloud-heading">Latest Archived Shows</h2>
+      <div id="mixcloud-list"></div>
+      <div class="add-mixcloud">
+        <input id="mixcloud-url" type="text" placeholder="Paste Mixcloud URL here…">
+        <button onclick="addMixcloud()">Add Show</button>
+      </div>
+    </section>
   </div>
 
-  <!-- Login overlay (hidden until Shift+A) -->
-  <div id="login" class="overlay" aria-hidden="true" style="display:none">
-    <div class="login-card" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
-      <h3 id="loginTitle">Admin Login</h3>
-      <div class="login-row">
-        <input id="pwd" type="password" class="login-input" placeholder="Password" autocomplete="current-password" />
-        <button id="loginBtn" class="btn">Login</button>
-        <button id="loginCancel" class="btn">Cancel</button>
-      </div>
-      <div id="loginErr" class="error">Incorrect password.</div>
-      <p class="muted" style="margin-top:8px">Press Shift+A anywhere to open this login.</p>
-    </div>
-  </div>
+  <!-- FOOTER -->
+  <footer class="banner">
+    <div class="footer-bar">
+      <a class="policy-link" href="privacy-policy.html">PRIVACY POLICY</a>
+      <span class="legal">Amazon, Alexa and all related logos are trademarks of Amazon.com, Inc. or its affiliates.</span>
 
+      <!-- OneMusic (immediately after legal) -->
+      <a class="logo-onemusic" href="https://onemusicnz.com" target="_blank" rel="noopener noreferrer" aria-label="OneMusic NZ">
+        <img src="/images/ONEMUSICLOGO.png" alt="We’re licensed to play OneMusic NZ" loading="lazy" decoding="async">
+      </a>
+
+      <!-- Remaining logos -->
+      <div class="footer-logos" role="group" aria-label="Listening platforms">
+        <a href="http://www.internet-radio.com/?utm_source=cutterschoiceradio&utm_medium=banner&utm_campaign=partners-2025&utm_content=footer-static"
+           title="Internet Radio" target="_blank"
+           rel="noopener noreferrer nofollow sponsored"
+           data-partner="internet-radio" data-placement="footer" aria-label="Internet Radio">
+          <picture>
+            <source srcset="/images/internet-radio.webp 1x, /images/internet-radio@2x.webp 2x" type="image/webp">
+            <source srcset="/images/internet-radio.png 1x, /images/internet-radio@2x.png 2x" type="image/png">
+            <img src="/images/internet-radio.png" alt="Internet Radio" loading="lazy" decoding="async"
+                 referrerpolicy="no-referrer"
+                 data-fallback="https://www.internet-radio.com/images/banners/Internet-Radio.com_Banner_Ad_Animated_Gif_728x90_v1.gif">
+          </picture>
+        </a>
+
+        <a href="https://radioguide.fm/?utm_source=cutterschoiceradio&utm_medium=banner&utm_campaign=partners-2025&utm_content=footer-static"
+           title="RadioGuide" target="_blank"
+           rel="noopener noreferrer nofollow sponsored"
+           data-partner="radioguide" data-placement="footer" aria-label="RadioGuide">
+          <picture>
+            <source srcset="/images/radioguide.webp 1x, /images/radioguide@2x.webp 2x" type="image/webp">
+            <source srcset="/images/radioguide.png 1x, /images/radioguide@2x.png 2x" type="image/png">
+            <img src="/images/radioguide.png" alt="RadioGuide" loading="lazy" decoding="async"
+                 referrerpolicy="no-referrer"
+                 data-fallback="https://radioguide.fm/public/img/banners/banner0.png">
+          </picture>
+        </a>
+
+        <a href="https://onlineradiobox.com/" title="Online Radio Box" target="_blank"
+           rel="noopener noreferrer nofollow sponsored"
+           data-partner="onlineradiobox" data-placement="footer" aria-label="Online Radio Box">
+          <img src="/images/online_radiobox.png" alt="Online Radio Box" loading="lazy" decoding="async">
+        </a>
+
+        <a href="https://www.amazon.com/Cutters-Choice-Radio/dp/B0FKHBCWS5"
+           title="Alexa Skill – Cutters Choice Radio" target="_blank"
+           rel="noopener noreferrer" data-partner="alexa" data-placement="footer"
+           aria-label="Alexa Skill – Cutters Choice Radio">
+          <img src="/images/alexa-logo.webp" alt="Alexa – Cutters Choice Radio skill" loading="lazy" decoding="async">
+        </a>
+
+        <a href="https://tunein.com/radio/Cutters-Choice-Radio-s344746/" target="_blank" rel="noopener noreferrer" aria-label="TuneIn">
+          <img src="/images/tunein-logo.png" alt="TuneIn" loading="lazy" decoding="async">
+        </a>
+
+        <a href="https://radio.garden" target="_blank" rel="noopener noreferrer" aria-label="Radio Garden">
+          <img src="/images/radio-garden.png" alt="Radio Garden" loading="lazy" decoding="async">
+        </a>
+
+        <!-- NEW: radio.net partner logo (placed far right) -->
+        <a href="https://www.radio.net/s/cutterschoice"
+           title="radio.net" target="_blank"
+           rel="noopener noreferrer nofollow sponsored"
+           data-partner="radio.net" data-placement="footer" aria-label="radio.net">
+          <!-- why: file named radio.net.png per instruction; lazy to keep perf consistent -->
+          <img src="/images/radio.net.png" alt="radio.net" loading="lazy" decoding="async">
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JS -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1" defer></script>
+  <script src="script.js?v=2025-12-15-5" defer></script>
+  <script src="slideshow.js?v=2025-12-15-5" defer></script>
+
+  <!-- Move MERCH to row 2 on mobile -->
   <script>
-    /* Config */
-    const CONFIG_ENDPOINT = 'best-of-2025-mixes-config.php';
-    const ADMIN_HASH_HEX  = '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e'; // sha256('ccr2025!')
-    const RC = {
-      BASE_URL: 'https://api.radiocult.fm/api',
-      STATION_ID: 'cutters-choice-radio',
-      API_KEY: 'pk_0b8abc6f834b444f949f727e88a728e0'
-    };
+    (function(){
+      const mq = window.matchMedia('(max-width: 768px)');
+      const navMenu    = document.querySelector('#main-nav .nav-menu');
+      const navActions = document.querySelector('#main-nav .nav-actions');
+      const merchLink  = document.querySelector('#main-nav .nav-menu a.nav-link[href$="merch.html"]');
+      if (!navMenu || !navActions || !merchLink) return;
 
-    /* DOM */
-    const listEl = document.getElementById('list');
-    const emptyEl = document.getElementById('empty');
-    const admin = document.getElementById('admin');
-    const entriesEl = document.getElementById('entries');
-    const addBtn = document.getElementById('add');
-    const saveBtn = document.getElementById('save');
-    const closeBtn = document.getElementById('close');
-    const statusEl = document.getElementById('status');
+      const anchor = document.createElement('span');
+      anchor.id = 'merch-return-anchor';
+      anchor.style.display = 'none';
+      merchLink.after(anchor);
 
-    const login = document.getElementById('login');
-    const pwdInput = document.getElementById('pwd');
-    const loginBtn = document.getElementById('loginBtn');
-    const loginCancel = document.getElementById('loginCancel');
-    const loginErr = document.getElementById('loginErr');
-
-    /* State */
-    const state = { entries: [], artists: [], artistMap:new Map(), authed:false };
-
-    /* Utils */
-    const $ = (s,r=document)=>r.querySelector(s);
-    const $$= (s,r=document)=>[...r.querySelectorAll(s)];
-    function isTyping(el){ const t=el?.tagName; return t==='INPUT'||t==='TEXTAREA'||t==='SELECT'||el?.isContentEditable; }
-
-    /* Randomise entry order each render */
-    function shuffle(arr){
-      const a = arr.slice();
-      for(let i=a.length-1;i>0;i--){
-        const j=Math.floor(Math.random()*(i+1));
-        [a[i],a[j]]=[a[j],a[i]];
-      }
-      return a;
-    }
-
-    function normalizeMixcloud(input){
-      const raw = (input||'').trim(); if(!raw) return '';
-      const ifm = raw.match(/<iframe[^>]*\s+src=["']([^"']+)["']/i);
-      const candidate = ifm ? ifm[1] : raw;
-      try{
-        const u = new URL(candidate);
-        if (/mixcloud\.com\/widget\/iframe/i.test(u.href)) {
-          return u.href.replace(/^[^:]+:\/\/[^/]+/, 'https://www.mixcloud.com');
-        }
-        const host = u.hostname.replace(/^www\./,'');
-        if (host === 'mixcloud.com') {
-          let p = u.pathname; if(!p.endsWith('/')) p+='/';
-          const m = p.match(/^\/([^/]+)\/([^/]+)\//);
-          if (m) {
-            const feed = encodeURIComponent(`/${m[1]}/${m[2]}/`);
-            return `https://www.mixcloud.com/widget/iframe/?light=1&feed=${feed}`;
+      function moveIfNeeded(e){
+        const isMobile = (e && 'matches' in e) ? e.matches : mq.matches;
+        if (isMobile) {
+          if (!merchLink.dataset.moved) {
+            navActions.insertBefore(merchLink, navActions.firstChild);
+            merchLink.dataset.moved = '1';
           }
+        } else if (merchLink.dataset.moved) {
+          anchor.before(merchLink);
+          merchLink.dataset.moved = '';
         }
-      }catch(_){}
-      return '';
-    }
-
-    /* Radio Cult artists */
-    async function loadArtists(){
-      const r = await fetch(`${RC.BASE_URL}/station/${RC.STATION_ID}/artists`, { headers:{'x-api-key':RC.API_KEY} });
-      if(!r.ok) throw new Error('Artists API '+r.status);
-      const {artists=[]} = await r.json();
-      state.artists = artists;
-      state.artistMap = new Map(
-        artists.map(a=>[String(a.id), { id:String(a.id), name:a.name, logo:(a.logo&&(a.logo['512x512']||a.logo.default))||'' }])
-      );
-    }
-
-    /* Server IO */
-    async function loadEntries(){
-      try{
-        const r = await fetch(`${CONFIG_ENDPOINT}?action=load`, {cache:'no-store'});
-        if (r.ok) { const j = await r.json(); if (Array.isArray(j?.entries)) return j.entries; }
-      }catch(_){}
-      try{
-        const s = localStorage.getItem('best_2025_entries'); if (s) { const a = JSON.parse(s); if (Array.isArray(a)) return a; }
-      }catch(_){}
-      return [];
-    }
-    async function saveEntries(entries){
-      const r = await fetch(CONFIG_ENDPOINT+'?action=save', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ entries, auth: ADMIN_HASH_HEX })
-      });
-      const txt = await r.text(); let j=null; try{ j=JSON.parse(txt);}catch{}
-      if(!r.ok || !(j&&j.ok)) throw new Error(j?.error ? ('Server: '+j.error) : ('HTTP '+r.status+' '+txt.slice(0,160)));
-      return j.entries || entries;
-    }
-
-    /* Render */
-    function render(){
-      listEl.innerHTML='';
-      if(!state.entries.length){ emptyEl.style.display='block'; return; }
-      emptyEl.style.display='none';
-
-      const randomized = shuffle(state.entries);
-      randomized.forEach((e, idx)=>{
-        const a = state.artistMap.get(String(e.artistId)) || {name:'Unknown',logo:''};
-
-        const row=document.createElement('section'); row.className='mix-row';
-
-        const title=document.createElement('div'); title.className='row-title';
-        title.innerHTML=`<span class="label">${a.name}</span>`;
-
-        const left=document.createElement('div'); left.className='left';
-        const bio=document.createElement('div'); bio.className='bio';
-        const img=document.createElement('img'); img.src=a.logo||''; img.alt=a.name; img.loading='lazy';
-        const copy=document.createElement('div'); copy.className='copy'; copy.textContent=e.copy||'';
-        bio.append(img,copy); left.append(bio);
-
-        const right=document.createElement('div'); right.className='right';
-        const ifm=document.createElement('iframe'); ifm.allow='autoplay; encrypted-media'; ifm.loading='lazy'; ifm.title=`${a.name} — Mixcloud`; ifm.src=e.widgetSrc||'';
-        right.append(ifm);
-
-        row.append(title,left,right);
-        listEl.append(row);
-
-        requestAnimationFrame(()=> setTimeout(()=> title.classList.add('animate'), 60 + idx*90));
-      });
-    }
-
-    /* Admin overlay */
-    function artistOptions(sel){
-      return ['<option value="">Select artist…</option>']
-        .concat(state.artists.slice().sort((x,y)=>x.name.localeCompare(y.name))
-        .map(a=>`<option value="${a.id}" ${String(a.id)===String(sel)?'selected':''}>${a.name}</option>`))
-        .join('');
-    }
-    function entryEditor(data={}){
-      const w=document.createElement('div'); w.className='entry';
-      w.innerHTML=`<div class="row"><label>Artist</label><select class="artist">${artistOptions(data.artistId||'')}</select></div>
-                   <div class="row"><label>Mixcloud</label><input class="mix" type="text" placeholder="Mixcloud page URL, widget URL, or &lt;iframe&gt;"></div>
-                   <div class="row"><label>Copy</label><textarea class="txt" placeholder="Blurb or playlist… (long text supported)"></textarea></div>
-                   <div class="row"><button class="btn up">↑</button><button class="btn down">↓</button><button class="btn del">Remove</button></div>`;
-      w.querySelector('.mix').value = data.widgetSrc||''; w.querySelector('.txt').value = data.copy||'';
-      w.querySelector('.up').onclick   = ()=>{ const p=w.previousElementSibling; if(p) w.parentNode.insertBefore(w,p); };
-      w.querySelector('.down').onclick = ()=>{ const n=w.nextElementSibling; if(n) w.parentNode.insertBefore(n,w); };
-      w.querySelector('.del').onclick  = ()=> w.remove();
-      return w;
-    }
-    function openAdmin(){ entriesEl.innerHTML=''; (state.entries||[]).forEach(e=>entriesEl.appendChild(entryEditor(e))); admin.setAttribute('aria-hidden','false'); admin.style.display='flex'; statusEl.textContent=''; }
-    function closeAdmin(){ admin.setAttribute('aria-hidden','true'); admin.style.display='none'; }
-    addBtn.addEventListener('click', ()=> entriesEl.appendChild(entryEditor()), {passive:true});
-    closeBtn.addEventListener('click', closeAdmin, {passive:true});
-    saveBtn.addEventListener('click', async ()=>{
-      const rows = $$('.entry', entriesEl);
-      const out = rows.map(r=>{
-        const artistId=r.querySelector('.artist').value.trim();
-        const mix = normalizeMixcloud(r.querySelector('.mix').value.trim());
-        const copy=r.querySelector('.txt').value; /* no trim so nothing is cut */
-        return (artistId && mix) ? {artistId, widgetSrc:mix, copy} : null;
-      }).filter(Boolean);
-      if(!out.length){ statusEl.textContent='Nothing to save.'; return; }
-      statusEl.textContent='Saving…';
-      try{
-        const saved = await saveEntries(out);
-        state.entries = saved;
-        localStorage.setItem('best_2025_entries', JSON.stringify(saved));
-        render(); statusEl.textContent='Saved.';
-      }catch(err){
-        console.error(err);
-        state.entries = out;
-        localStorage.setItem('best_2025_entries', JSON.stringify(out));
-        render(); statusEl.textContent='Saved locally (check server).';
       }
-    });
+      moveIfNeeded();
+      (mq.addEventListener ? mq.addEventListener('change', moveIfNeeded) : mq.addListener(moveIfNeeded));
+      window.addEventListener('orientationchange', moveIfNeeded);
+    })();
+  </script>
 
-    /* Login */
-    function openLogin(){ login.setAttribute('aria-hidden','false'); login.style.display='flex'; loginErr.style.display='none'; pwdInput.value=''; pwdInput.focus(); }
-    function closeLogin(){ login.setAttribute('aria-hidden','true'); login.style.display='none'; }
-    async function tryLogin(){
-      const pw = (pwdInput.value||'').trim(); if(!pw) return;
-      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
-      const hex = [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
-      if (hex === '446b03243337b8bb55581f2c94647468d02b9dc09aa07968701be1f65071599e') { closeLogin(); openAdmin(); } else { loginErr.style.display='block'; }
-    }
-    loginBtn.addEventListener('click', tryLogin);
-    loginCancel.addEventListener('click', closeLogin);
-    pwdInput.addEventListener('keydown', e=>{ if(e.key==='Enter') tryLogin(); });
+  <!-- JSON-LD events injector (kept) -->
+  <script>
+  (function(){
+    const API_KEY = 'pk_0b8abc6f834b444f949f727e88a728e0';
+    const STATION_ID = 'cutters-choice-radio';
+    const DAYS_AHEAD = 7;
+    const startISO = new Date().toISOString();
+    const endISO   = new Date(Date.now() + DAYS_AHEAD * 24 * 60 * 60 * 1000).toISOString();
+    const url = 'https://api.radiocult.fm/api/station/' + encodeURIComponent(STATION_ID) +
+                '/schedule?startDate=' + encodeURIComponent(startISO) +
+                '&endDate=' + encodeURIComponent(endISO) +
+                '&expand=artist';
+    fetch(url, { headers: { 'x-api-key': API_KEY } })
+      .then(r => r.ok ? r.json() : Promise.reject(new Error('Schedule fetch failed: ' + r.status)))
+      .then(data => {
+        const events = Array.isArray(data?.schedules) ? data.schedules : Array.isArray(data) ? data : [];
+        if (!events.length) return;
 
-    window.addEventListener('keydown', (e)=>{
-      const key=(e.key||'').toLowerCase();
-      if(e.shiftKey && (key==='a' || e.code==='KeyA')){
-        if (!isTyping(document.activeElement)) { e.preventDefault(); openLogin(); }
-      }
-      if(key==='escape'){ if(login.getAttribute('aria-hidden')==='false') closeLogin(); if(admin.getAttribute('aria-hidden')==='false') closeAdmin(); }
-    }, true);
+        const LISTEN_URL = 'https://cutterschoiceradio.com/listen';
+        const ORG = { name: 'Cutters Choice Radio', url: 'https://cutterschoiceradio.com', logo: 'https://cutterschoiceradio.com/images/logo.png' };
+        const items = events.map(ev => {
+          const sISO = ev.startDateUtc || ev.startDate || ev.start;
+          const eISO = ev.endDateUtc   || ev.endDate   || ev.end;
+          const performers = (ev.artists || [])
+            .map(a => a && a.name ? { '@type':'Person', name:a.name } : null)
+            .filter(Boolean);
+          const obj = {
+            '@type': 'Event',
+            name: ev.title || ev.name || 'Show',
+            startDate: sISO, endDate: eISO,
+            eventStatus: 'https://schema.org/EventScheduled',
+            eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
+            location: { '@type': 'VirtualLocation', url: LISTEN_URL },
+            organizer: { '@type': 'Organization', name: ORG.name, url: ORG.url, logo: ORG.logo }
+          };
+          if (performers.length) obj.performer = performers;
+          return obj;
+        });
+        const script = document.createElement('script');
+        script.type = 'application/ld+json';
+        script.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': items });
+        document.head.appendChild(script);
+      })
+      .catch(err => console.warn('[CCR JSON-LD injector]', err));
+  })();
+  </script>
 
-    (async function init(){
-      try{ await loadArtists(); }catch(err){ console.warn('Artists fetch failed', err); }
-      state.entries = await loadEntries();
-      render();
+  <!-- GA4 outbound click + image fallback -->
+  <script>
+    (function () {
+      document.addEventListener('click', function (e) {
+        const a = e.target.closest && e.target.closest('a[href^="http"]');
+        if (!a) return;
+        const url = a.href;
+        const host = (new URL(url)).hostname.replace(/^www\./, '');
+        const partner = a.dataset.partner || host || 'external';
+        const placement = a.dataset.placement || 'unknown';
+        if (typeof gtag === 'function') {
+          gtag('event', 'outbound_click', { event_category: 'engagement', event_label: url, link_url: url, partner, placement });
+        }
+      }, { capture: true });
+    })();
+
+    (function () {
+      document.querySelectorAll('.footer-logos img[data-fallback]').forEach(function(img){
+        img.addEventListener('error', function(){
+          if (img.dataset.fallback && img.src !== img.dataset.fallback) {
+            img.srcset = '';
+            img.src = img.dataset.fallback;
+          }
+        }, { once: true });
+      });
     })();
   </script>
 </body>

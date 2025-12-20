@@ -16,10 +16,11 @@
   --logo-size-desktop: 200px;
   --logo-size-mobile: 100px;
 
-  /* Footer logo grid controls */
-  --footer-logo-min: 120px;       /* min badge cell width */
-  --footer-logo-height: 36px;     /* badge image height */
-  --footer-logo-gap: 1rem;        /* gap between cells */
+  /* Footer logo row controls */
+  --footer-logo-min: 120px;
+  --footer-logo-height: 36px;
+  --footer-logo-gap: 1rem;
+  --footer-logo-count: 8; /* OneMusic + 7 partners */
 }
 
 html, body{
@@ -261,20 +262,21 @@ footer.banner{
   border-bottom: 2px solid #000;
 }
 
-/* Single-row grid:
+/* One row:
    - col 1: Privacy (auto)
-   - col 2: Legal blurb (flexible 1fr)
-   - remaining cols: all logos (OneMusic + partners) evenly spaced */
+   - col 2: Legal blurb (flexible 1fr, clipped if tight)
+   - remaining space: logo cells (evenly sized) */
 .footer-bar{
   display: grid;
-  grid-template-columns: auto 1fr;                /* first two cells */
-  grid-auto-flow: column;                         /* place the rest to the right */
+  grid-template-columns: auto minmax(220px, 1fr);  /* text columns */
+  grid-auto-flow: column;                          /* place logos to the right */
   grid-auto-columns: minmax(var(--footer-logo-min), 1fr);
   align-items: center;
   column-gap: var(--footer-logo-gap);
-  row-gap: .6rem;
+  row-gap: 0;
 }
 
+/* text cells */
 .policy-link{
   grid-column: 1;
   color: #fff;
@@ -284,28 +286,29 @@ footer.banner{
   text-decoration: none;
   white-space: nowrap;
 }
-
 .legal{
   grid-column: 2;
   color: #fff;
   font-family: 'Bebas Neue', sans-serif;
   font-size: .85rem;
   text-transform: uppercase;
-  white-space: nowrap;                            /* keep on one line */
+  white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;                        /* avoid overflow on small screens */
+  text-overflow: ellipsis;
 }
 
-/* Make all partner anchors (incl. OneMusic) be grid items after blurb */
-.footer-logos{ display: contents; }               /* flatten children into .footer-bar grid */
+/* flatten partners so every <a> becomes a grid item after the blurb */
+.footer-logos{ display: contents; } /* why: include OneMusic + all partner logos in same row */
 
+/* every logo cell behaves the same width; image stays centered */
 .logo-onemusic,
 .footer-logos a{
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;                 /* even visual spacing across columns */
+  min-width: 0;
 }
-
 .logo-onemusic img,
 .footer-logos img{
   height: var(--footer-logo-height);
@@ -314,25 +317,22 @@ footer.banner{
   display: block;
 }
 
+/* subtle hover */
 .footer-logos a img{ transition: opacity .2s ease; }
 .footer-logos a:hover img,
 .footer-logos a:focus-visible img{ opacity: .85; }
 
 /* ──────────────────────────────────────────────────────────────────
-   Desktop XL: lock to a single line and pin radio.net far-right
-   (Assumes 8 logos total incl. OneMusic)
+   Desktop XL: lock to a single line with equal columns for logos
    ────────────────────────────────────────────────────────────────── */
 @media (min-width: 1100px){
   .footer-bar{
-    /* Privacy | Blurb | 8 equal logo columns */
-    grid-template-columns: auto 1fr repeat(8, minmax(var(--footer-logo-min), 1fr));
-    grid-auto-flow: column;
-    grid-auto-columns: unset;                     /* rely on explicit logo columns */
+    grid-template-columns: auto 1fr repeat(var(--footer-logo-count), minmax(0, 1fr));
+    grid-auto-columns: unset; /* rely only on the explicit logo slots */
   }
-  .logo-onemusic{ grid-column: 3; }               /* first logo slot */
-  .footer-logos a[data-partner="radio.net"]{
-    grid-column: -1;                               /* last explicit column (far right) */
-  }
+  /* place OneMusic into the first logo slot; radio.net at far right */
+  .logo-onemusic{ grid-column: 3; }
+  .footer-logos a[data-partner="radio.net"]{ grid-column: calc(2 + var(--footer-logo-count)); }
 }
 
 /* ──────────────────────────────────────────────────────────────────
@@ -385,7 +385,7 @@ footer.banner{
   .policy-link{ font-size: 1.4rem; }
   .legal{ font-size: .72rem; line-height: 1.15; }
 
-  /* Smaller badges on phones */
+  /* Smaller badges on phones for fit */
   :root{
     --footer-logo-min: 90px;
     --footer-logo-height: 26px;

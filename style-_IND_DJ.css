@@ -280,6 +280,9 @@ footer.banner{
 .footer-logos a img{ transition:opacity .2s ease; }
 .footer-logos a:hover img, .footer-logos a:focus-visible img{ opacity:.85; }
 
+/* ensure radio.net stays last (why: keep it at far right on desktop) */
+.footer-logos a[data-partner="radio.net"]{ order:999; }
+
 /* ─── MOBILE (≤768px) ───────────────────────────────────────────── */
 @media (max-width:768px){
   .header-wave{ display:none !important; }
@@ -328,6 +331,9 @@ footer.banner{
   header .title h1{ font-size:8rem; }
   header .title .tagline{ font-size:2.45rem; }
   header .logo{ height:var(--logo-size-desktop); width:var(--logo-size-desktop); max-width:var(--logo-size-desktop); }
+
+  /* desktop: push first/last logos to edges (why: anchor last at far right) */
+  .footer-logos{ justify-content:space-between; }
 }
 @media (min-width:900px){
   .live-player{ padding:.35rem; }

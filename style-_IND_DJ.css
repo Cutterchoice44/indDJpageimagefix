@@ -252,7 +252,7 @@ section h2::after{
 .add-mixcloud button{ margin-top: .5rem; padding: .5rem 2rem; background: var(--brand-teal); color: #fff; border: none; border-radius: 6px; cursor: pointer; }
 
 /* ──────────────────────────────────────────────────────────────────
-   Footer: policy/legal row + unified partner grid (incl. OneMusic)
+   Footer: one bottom row (Privacy + Blurb + all logos)
    ────────────────────────────────────────────────────────────────── */
 footer.banner{
   background: var(--brand-teal);
@@ -261,39 +261,43 @@ footer.banner{
   border-bottom: 2px solid #000;
 }
 
-/* Grid with two logical rows:
-   Row 1 -> policy + legal span full width
-   Row 2 -> ALL badges (OneMusic + other partners) share one grid */
+/* Single-row grid:
+   - col 1: Privacy (auto)
+   - col 2: Legal blurb (flexible 1fr)
+   - remaining cols: all logos (OneMusic + partners) evenly spaced */
 .footer-bar{
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(var(--footer-logo-min), 1fr)); /* responsive by default */
-  grid-auto-rows: auto;
-  grid-auto-flow: row dense;
+  grid-template-columns: auto 1fr;                /* first two cells */
+  grid-auto-flow: column;                         /* place the rest to the right */
+  grid-auto-columns: minmax(var(--footer-logo-min), 1fr);
   align-items: center;
   column-gap: var(--footer-logo-gap);
   row-gap: .6rem;
 }
 
-/* Row 1: full-width text row */
 .policy-link{
-  grid-column: 1 / -1;
+  grid-column: 1;
   color: #fff;
   font-family: 'Bebas Neue', sans-serif;
   font-size: 2rem;
   text-transform: uppercase;
   text-decoration: none;
+  white-space: nowrap;
 }
+
 .legal{
-  grid-column: 1 / -1;
+  grid-column: 2;
   color: #fff;
   font-family: 'Bebas Neue', sans-serif;
   font-size: .85rem;
   text-transform: uppercase;
+  white-space: nowrap;                            /* keep on one line */
+  overflow: hidden;
+  text-overflow: ellipsis;                        /* avoid overflow on small screens */
 }
 
-/* Make the inner .footer-logos act as if its children are direct
-   grid items of .footer-bar so they space evenly with OneMusic. */
-.footer-logos{ display: contents; } /* why: unify OneMusic + partners in one grid */
+/* Make all partner anchors (incl. OneMusic) be grid items after blurb */
+.footer-logos{ display: contents; }               /* flatten children into .footer-bar grid */
 
 .logo-onemusic,
 .footer-logos a{
@@ -302,8 +306,8 @@ footer.banner{
   justify-content: center;
 }
 
-.footer-logos img,
-.logo-onemusic img{
+.logo-onemusic img,
+.footer-logos img{
   height: var(--footer-logo-height);
   width: auto;
   max-width: 100%;
@@ -314,8 +318,22 @@ footer.banner{
 .footer-logos a:hover img,
 .footer-logos a:focus-visible img{ opacity: .85; }
 
-/* default: keep radio.net at the last column of its row when wrapping */
-.footer-logos a[data-partner="radio.net"]{ grid-column: -1; }
+/* ──────────────────────────────────────────────────────────────────
+   Desktop XL: lock to a single line and pin radio.net far-right
+   (Assumes 8 logos total incl. OneMusic)
+   ────────────────────────────────────────────────────────────────── */
+@media (min-width: 1100px){
+  .footer-bar{
+    /* Privacy | Blurb | 8 equal logo columns */
+    grid-template-columns: auto 1fr repeat(8, minmax(var(--footer-logo-min), 1fr));
+    grid-auto-flow: column;
+    grid-auto-columns: unset;                     /* rely on explicit logo columns */
+  }
+  .logo-onemusic{ grid-column: 3; }               /* first logo slot */
+  .footer-logos a[data-partner="radio.net"]{
+    grid-column: -1;                               /* last explicit column (far right) */
+  }
+}
 
 /* ──────────────────────────────────────────────────────────────────
    Responsive
@@ -369,8 +387,8 @@ footer.banner{
 
   /* Smaller badges on phones */
   :root{
-    --footer-logo-min: 110px;
-    --footer-logo-height: 28px;
+    --footer-logo-min: 90px;
+    --footer-logo-height: 26px;
   }
 }
 
@@ -385,16 +403,6 @@ footer.banner{
   header .title .tagline{ font-size: 2.45rem; }
   header .logo{ height: var(--logo-size-desktop); width: var(--logo-size-desktop); max-width: var(--logo-size-desktop); }
 }
-
-/* ─── Desktop XL: lock badges to a single line (8 equal columns) ─── */
-@media (min-width: 1100px){
-  .footer-bar{
-    grid-template-columns: repeat(8, minmax(var(--footer-logo-min), 1fr)); /* single badge row */
-  }
-  /* ensure radio.net sits far right on that single row */
-  .footer-logos a[data-partner="radio.net"]{ grid-column: 8; } /* why: explicit last column */
-}
-
 @media (min-width: 900px){
   .live-player{ padding: .35rem; }
   .tv-wrapper{ margin: .35rem auto 0; }

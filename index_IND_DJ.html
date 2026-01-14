@@ -1,31 +1,5 @@
-# =========================
-# Cutters Choice Radio (static) - root .htaccess
-# =========================
-
-Options -Indexes
-
-<IfModule mod_rewrite.c>
-RewriteEngine On
-
-# Force HTTPS
-RewriteCond %{HTTPS} !=on
-RewriteRule ^ https://cutterschoiceradio.com%{REQUEST_URI} [R=301,L]
-
-# Force non-www
-RewriteCond %{HTTP_HOST} ^www\.cutterschoiceradio\.com$ [NC]
-RewriteRule ^ https://cutterschoiceradio.com%{REQUEST_URI} [R=301,L]
-
-# Make the site root always serve the static homepage
-RewriteRule ^$ index.html [L]
-</IfModule>
-
-# Prefer index.html if the server uses DirectoryIndex
-DirectoryIndex index.html index-wp.php index.php
-
-# (Optional) protect your admin scripts
-<FilesMatch "^(add_archive|delete_archive|best-of-2025-mixes-config)\.php$">
-  AuthType Basic
-  AuthName "CCR Admin"
-  AuthUserFile /home/dh_puc7ij/cutterschoiceradio.com/.htpasswd_ccr
-  Require valid-user
-</FilesMatch>
+<?php
+// CCR homepage shim: always serve the static index.html for "/"
+header('Content-Type: text/html; charset=utf-8');
+readfile(__DIR__ . '/index.html');
+exit;

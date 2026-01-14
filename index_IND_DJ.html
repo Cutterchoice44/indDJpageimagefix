@@ -1,30 +1,31 @@
 # =========================
-# Cutters Choice Radio - root .htaccess
+# Cutters Choice Radio (static) - root .htaccess
 # =========================
 
-# Always serve the static homepage first
-DirectoryIndex index.html index.php
-
-# Optional: prevent directory listing
 Options -Indexes
 
-# === Security & Browser Hardening Headers ===
-<IfModule mod_headers.c>
-  Header always set X-Content-Type-Options "nosniff"
-  Header always set X-Frame-Options "SAMEORIGIN"
-  Header always set Referrer-Policy "strict-origin-when-cross-origin"
-  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(), fullscreen=(self), encrypted-media=(self), payment=()"
-  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+<IfModule mod_rewrite.c>
+RewriteEngine On
+
+# Force HTTPS
+RewriteCond %{HTTPS} !=on
+RewriteRule ^ https://cutterschoiceradio.com%{REQUEST_URI} [R=301,L]
+
+# Force non-www
+RewriteCond %{HTTP_HOST} ^www\.cutterschoiceradio\.com$ [NC]
+RewriteRule ^ https://cutterschoiceradio.com%{REQUEST_URI} [R=301,L]
+
+# Make the site root always serve the static homepage
+RewriteRule ^$ index.html [L]
 </IfModule>
 
-# === Protect CCR admin scripts (adjust list if you have more) ===
+# Prefer index.html if the server uses DirectoryIndex
+DirectoryIndex index.html index-wp.php index.php
+
+# (Optional) protect your admin scripts
 <FilesMatch "^(add_archive|delete_archive|best-of-2025-mixes-config)\.php$">
   AuthType Basic
   AuthName "CCR Admin"
   AuthUserFile /home/dh_puc7ij/cutterschoiceradio.com/.htpasswd_ccr
   Require valid-user
 </FilesMatch>
-
-# IMPORTANT:
-# Do NOT include WordPress rewrite rules here.
-# (Any “# BEGIN WordPress … # END WordPress” block will hijack your site.)

@@ -1,4 +1,5 @@
 /* File: /script.js */
+/* After deploying, bump index.html script tag: <script src="script.js?v=YYYYMMDD-X" defer></script> */
 
 // 1) GLOBAL CONFIG & MOBILE DETECTION
 const API_KEY           = "pk_0b8abc6f834b444f949f727e88a728e0"; // ← Radiocult API key
@@ -133,6 +134,54 @@ function shuffleIframesHourly() {
 const normName = s => String(s || "").trim().toLowerCase().replace(/\s+/g, " ");
 
 // 5) MIXCLOUD ARCHIVES
+async function mixcloudFeedFromUrl(rawUrl) {
+  const s = String(rawUrl || "").trim();
+  if (!s) return "";
+
+  if (s.startsWith("/")) return s.endsWith("/") ? s : `${s}/`;
+
+  // Sometimes stored values may already be url-encoded (e.g. %2Fuser%2Fmix%2F)
+  if (/^%2[fF]/.test(s)) {
+    try {
+      const decoded = decodeURIComponent(s);
+      if (decoded.startsWith("/")) return decoded.endsWith("/") ? decoded : `${decoded}/`;
+    } catch {
+      // ignore
+    }
+  }
+
+  try {
+    const u = new URL(s);
+    const path = u.pathname || "";
+    if (!path) return s;
+    return path.startsWith("/") ? (path.endsWith("/") ? path : `${path}/`) : `/${path}/`;
+  } catch {
+    // If it's a bare slug, coerce to a feed path.
+    return s.startsWith("/") ? s : `/${s}${s.endsWith("/") ? "" : "/"}`;
+  }
+}
+
+function buildMixcloudClassicWidgetSrc(rawUrl, { hideCover }) {
+  const feedPath = mixcloudFeedFromUrl(rawUrl);
+  const feed = encodeURIComponent(feedPath);
+
+  // Classic layout (Image B): white player row + square artwork on the left.
+  // Key points:
+  // - feed must be a PATH like /user/mix/ (not the full https:// URL)
+  // - force widget_standard + mini=0 to avoid the "picture" widget
+  const params = [
+    "embed_type=widget_standard",
+    "light=1",
+    "mini=0",
+    "hide_tracklist=1",
+    "replace=0",
+    `hide_cover=${hideCover ? 1 : 0}`,
+    `feed=${feed}`,
+  ].join("&");
+
+  return `https://www.mixcloud.com/widget/iframe/?${params}`;
+}
+
 async function loadArchives() {
   try {
     const res = await fetch("get_archives.php");
@@ -143,22 +192,23 @@ async function loadArchives() {
 
     container.innerHTML = "";
     archives.forEach((entry, idx) => {
-      const feed = encodeURIComponent(entry.url);
       const item = document.createElement("div");
       item.className = "mixcloud-item";
-
 
       const iframe = document.createElement("iframe");
       iframe.className = "mixcloud-iframe";
 
-      // Force the Mixcloud "Classic" widget (thumbnail + white player bar).
-      // Mixcloud recently started defaulting some embeds to the "Picture" widget.
-      iframe.src = `https://www.mixcloud.com/widget/iframe/?embed_type=widget_standard&hide_tracklist=1&replace=0&light=1&feed=${feed}`;
+      // Match the old behavior:
+      // - Desktop: show artwork (hide_cover=0)
+      // - Mobile/small screens: hide artwork (hide_cover=1)
+      const hideCover = isMobile || window.matchMedia?.("(max-width: 640px)")?.matches;
+      iframe.src = buildMixcloudClassicWidgetSrc(entry.url, { hideCover });
 
       iframe.loading = "lazy";
       iframe.width = "100%";
       iframe.height = "120";
       iframe.frameBorder = "0";
+      iframe.setAttribute("allow", "autoplay");
       item.appendChild(iframe);
 
       if (!isMobile) {
@@ -166,9 +216,13 @@ async function loadArchives() {
         remove.href = "#";
         remove.className = "remove-link";
         remove.textContent = "Remove show";
-        remove.addEventListener("click", e => { e.preventDefault(); deleteMixcloud(idx); });
+        remove.addEventListener("click", (e) => {
+          e.preventDefault();
+          deleteMixcloud(idx);
+        });
         item.appendChild(remove);
       }
+
       container.prepend(item);
     });
 

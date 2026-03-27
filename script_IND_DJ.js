@@ -1,3 +1,5 @@
+/* File: /script.js */
+
 // 1) GLOBAL CONFIG & MOBILE DETECTION
 const API_KEY           = "pk_0b8abc6f834b444f949f727e88a728e0"; // ← Radiocult API key
 const STATION_ID        = "cutters-choice-radio";
@@ -130,22 +132,6 @@ function shuffleIframesHourly() {
 // Normalise names for matching (artist directory ↔ schedule)
 const normName = s => String(s || "").trim().toLowerCase().replace(/\s+/g, " ");
 
-// ---- NEW: safer Mixcloud URL validator ----
-function isSafeMixcloudUrl(value) {
-  if (!value) return false;
-  let u;
-  try {
-    u = new URL(value.trim());
-  } catch (e) {
-    return false;
-  }
-  const host = u.hostname.toLowerCase();
-  if (!["mixcloud.com", "www.mixcloud.com", "widget.mixcloud.com"].includes(host)) return false;
-  // Expect at least /username/showname style path
-  if (!/^\/[^/]+\/[^/]+/.test(u.pathname)) return false;
-  return true;
-}
-
 // 5) MIXCLOUD ARCHIVES
 async function loadArchives() {
   try {
@@ -163,7 +149,11 @@ async function loadArchives() {
 
       const iframe = document.createElement("iframe");
       iframe.className = "mixcloud-iframe";
-      iframe.src = `https://www.mixcloud.com/widget/iframe/?hide_cover=1&light=1&feed=${feed}`;
+
+      // FIX: show artwork on desktop; hide only on mobile/small screens
+      const hideCover = isMobile || window.matchMedia?.("(max-width: 640px)")?.matches;
+      iframe.src = `https://www.mixcloud.com/widget/iframe/?${hideCover ? "hide_cover=1&" : ""}light=1&feed=${feed}`;
+
       iframe.loading = "lazy";
       iframe.width = "100%";
       iframe.height = "120";
@@ -192,12 +182,6 @@ async function addMixcloud() {
   if (!input) return;
   const url = input.value.trim();
   if (!url) return alert("Please paste a valid Mixcloud URL");
-  if (!isSafeMixcloudUrl(url)) {
-    return alert(
-      "That doesn't look like a valid Mixcloud show URL.\n\n" +
-      "Please paste something like:\nhttps://www.mixcloud.com/username/show-name/"
-    );
-  }
 
   const pw = prompt("Enter archive password:");
   if (pw !== MIXCLOUD_PASSWORD) return alert("Incorrect password");
@@ -239,7 +223,6 @@ async function fetchLiveNow() {
       md.artist ? `${md.artist} – ${md.title || ct.title || ""}`.trim() :
       ct.title || "No live show";
 
-    // sanitize artwork URL
     const art = trustedArt(md.artwork_url || ct.artwork_url);
     const imgEl = document.getElementById("now-art");
     if (imgEl) imgEl.src = art;
@@ -257,6 +240,17 @@ async function fetchWeeklySchedule() {
   if (!container) return;
   container.innerHTML = "<p>Loading this week’s schedule…</p>";
 
+  const isArchiveLike = title =>
+    /\b(archive|archives|play\s*list|playlist|playback)\b/i.test(String(title || ""));
+
+  const fmtDotTime = iso => {
+    if (!iso) return "--.--";
+    const d = new Date(iso);
+    const h = d.getHours();
+    const m = String(d.getMinutes()).padStart(2, "0");
+    return `${h}.${m}`;
+  };
+
   try {
     const now  = new Date();
     const then = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -271,8 +265,6 @@ async function fetchWeeklySchedule() {
     }
 
     container.innerHTML = "";
-    const fmt = iso =>
-      new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 
     const byDay = schedules.reduce((acc, ev) => {
       const day = new Date(ev.startDateUtc)
@@ -280,6 +272,8 @@ async function fetchWeeklySchedule() {
       (acc[day] = acc[day] || []).push(ev);
       return acc;
     }, {});
+
+    let highlightIndex = 0;
 
     Object.entries(byDay).forEach(([day, evs]) => {
       const h3 = document.createElement("h3");
@@ -291,23 +285,32 @@ async function fetchWeeklySchedule() {
       ul.style.padding = "0";
 
       evs.forEach(ev => {
+        const title = ev.title || "Untitled show";
+        const archiveLike = isArchiveLike(title);
+
         const li = document.createElement("li");
         li.style.marginBottom = "1rem";
 
-        const wrap = document.createElement("div");
-        wrap.style.display = "flex";
-        wrap.style.alignItems = "center";
-        wrap.style.gap = "8px";
+        const row = document.createElement("div");
+        row.className = "schedule-entry";
+        row.classList.add(archiveLike ? "schedule-is-archive" : "schedule-is-show");
 
-        const t = document.createElement("strong");
-        t.textContent = `${fmt(ev.startDateUtc)}–${fmt(ev.endDateUtc)}`;
-        wrap.appendChild(t);
+        if (!archiveLike) {
+          row.dataset.hl = String((highlightIndex % 6) + 1);
+          highlightIndex += 1;
+        }
 
-        const span = document.createElement("span");
-        span.textContent = ev.title || "Untitled show";
-        wrap.appendChild(span);
+        const timeEl = document.createElement("strong");
+        timeEl.className = "schedule-time";
+        timeEl.textContent = `${fmtDotTime(ev.startDateUtc)}-${fmtDotTime(ev.endDateUtc)}`;
+        row.appendChild(timeEl);
 
-        li.appendChild(wrap);
+        const titleEl = document.createElement("span");
+        titleEl.className = "schedule-title";
+        titleEl.textContent = title;
+        row.appendChild(titleEl);
+
+        li.appendChild(row);
         ul.appendChild(li);
       });
 
@@ -460,11 +463,7 @@ function openChatPopup() {
   const url = `https://app.radiocult.fm/embed/chat/${STATION_ID}?theme=midnight&primaryColor=%235A8785&corners=sharp`;
   if (isMobile) window.open(url, "CuttersChatMobile", "noopener");
   else if (chatPopupWindow && !chatPopupWindow.closed) chatPopupWindow.focus();
-  else chatPopupWindow = window.open(
-    url,
-    "CuttersChatPopup",
-    "width=400,height=700,resizable=yes,scrollbars=yes"
-  );
+  else chatPopupWindow = window.open(url, "CuttersChatPopup", "width=400,height=700,resizable=yes,scrollbars=yes");
 }
 window.openChatPopup = openChatPopup;
 
@@ -492,16 +491,14 @@ if (rightEl && leftEl) {
 
 // 9) CCR TV — Robust HLS Player (autoplay, stall watchdog, fast OBS⇄fallback recovery)
 function initCcrTv() {
-  if (window.__ccrTvInitDone) return; // idempotent
+  if (window.__ccrTvInitDone) return;
   window.__ccrTvInitDone = true;
 
   const video = document.getElementById("ccrTv");
   if (!video) return;
 
-  // Hard-cache-buster to force Chrome to pick up symlink switches quickly
   const makeURL = () => `${CCR_TV_M3U8}?t=${Date.now()}`;
 
-  // Required for autoplay across browsers
   video.muted = true;
   video.setAttribute("muted", "");
   video.playsInline = true;
@@ -550,25 +547,20 @@ function initCcrTv() {
         const fatal = data?.fatal;
         const det   = data?.details || "";
         const type  = data?.type;
-        const isFragOrLevelErr =
-          /FRAG_|LEVEL_|MANIFEST_LOAD_ERROR|MANIFEST_PARSING_ERROR|MANIFEST_INCOMPATIBLE_CODECS_ERROR/i
-            .test(det);
+        const isFragOrLevelErr = /FRAG_|LEVEL_|MANIFEST_LOAD_ERROR|MANIFEST_PARSING_ERROR|MANIFEST_INCOMPATIBLE_CODECS_ERROR/i.test(det);
 
-        // Gentle fix for buffer stalls (seen on Firefox sometimes)
         if (det === Hls.ErrorDetails.BUFFER_STALLED_ERROR) {
           try { hls.stopLoad(); } catch(e){}
           try { hls.startLoad(); } catch(e){}
           return;
         }
 
-        // If manifest/frag/level went bad or fatal -> hard reload quickly (picks up symlink switch)
         if (fatal || isFragOrLevelErr) {
           destroyHls();
           setTimeout(() => attachHls(makeURL()), 400);
           return;
         }
 
-        // Non-fatal hints
         if (type === Hls.ErrorTypes.NETWORK_ERROR) {
           try { hls.startLoad(); } catch(e){}
         } else if (type === Hls.ErrorTypes.MEDIA_ERROR) {
@@ -576,14 +568,13 @@ function initCcrTv() {
         }
       });
     } else {
-      // Native (Safari, some mobile)
       attachNative(url);
     }
   }
 
   function hardReloadIfNeeded(reason) {
     const now = Date.now();
-    if (now - lastReload < 1200) return; // throttle
+    if (now - lastReload < 1200) return;
     lastReload = now;
     if (hls) {
       destroyHls();
@@ -597,7 +588,6 @@ function initCcrTv() {
     if (reason) console.warn("[CCR-TV] reload:", reason);
   }
 
-  // Stall watchdog — kick loader if playback time hasn't advanced
   const STALL_MS = 6000;
   setInterval(() => {
     const stalled = (Date.now() - lastActive) > STALL_MS;
@@ -606,7 +596,6 @@ function initCcrTv() {
       if (hls) {
         try { hls.stopLoad(); } catch(e){}
         try { hls.startLoad(); } catch(e){}
-        // If still stalled after a moment, do a hard reload (cache-busted)
         setTimeout(() => {
           if ((Date.now() - lastActive) > STALL_MS && !video.paused) {
             hardReloadIfNeeded("stalled");
@@ -618,14 +607,11 @@ function initCcrTv() {
     }
   }, 2500);
 
-  // Track activity & user intent
   video.addEventListener("timeupdate", () => { lastActive = Date.now(); }, { passive:true });
   video.addEventListener("playing",    () => { lastActive = Date.now(); }, { passive:true });
-  video.addEventListener("waiting",    () => {}, { passive:true });
   video.addEventListener("pause",      () => { userPaused = true; });
   video.addEventListener("play",       () => { userPaused = false; });
 
-  // If tab becomes visible again, nudge loader
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
       if (hls) { try { hls.startLoad(); } catch(e){} }
@@ -633,15 +619,12 @@ function initCcrTv() {
     }
   });
 
-  // Video error -> reload quickly (handles OBS stop → fallback & vice versa)
   video.addEventListener("error", () => hardReloadIfNeeded("video-error"));
 
-  // Kick it off
   const url = makeURL();
   if (video.canPlayType("application/vnd.apple.mpegURL")) attachNative(url);
   else attachHls(url);
 
-  // Expose tiny debug helper
   window.CCRTV = {
     reload: () => hardReloadIfNeeded("manual"),
     status: () => ({ userPaused, lastActive, hls: !!hls })
@@ -650,14 +633,12 @@ function initCcrTv() {
 
 // 10) INITIALIZATION
 document.addEventListener("DOMContentLoaded", () => {
-  // Data/UI
   fetchLiveNow();
   fetchWeeklySchedule();
   fetchNowPlayingArchive();
   fetchNextWeekPreview();
   loadArchives();
 
-  // ---- Chromecast controls: show official OR fallback (accessibility-clean) ----
   const officialBtn = document.querySelector("google-cast-button");
   const manualBtn   = document.getElementById("manualCastBtn");
 
@@ -665,17 +646,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const context = cast.framework.CastContext.getInstance();
 
     const updateCastVisibility = () => {
-      const hasDevices =
-        context.getCastState() !== cast.framework.CastState.NO_DEVICES_AVAILABLE;
+      const hasDevices = context.getCastState() !== cast.framework.CastState.NO_DEVICES_AVAILABLE;
       officialBtn.style.display = hasDevices ? "inline-block" : "none";
       manualBtn.style.display   = hasDevices ? "none"         : "inline-flex";
     };
     updateCastVisibility();
     if (!window.__ccrCastStateBound) {
-      context.addEventListener(
-        cast.framework.CastContextEventType.CAST_STATE_CHANGED,
-        updateCastVisibility
-      );
+      context.addEventListener(cast.framework.CastContextEventType.CAST_STATE_CHANGED, updateCastVisibility);
       window.__ccrCastStateBound = true;
     }
 
@@ -695,8 +672,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const mediaInfo = new chrome.cast.media.MediaInfo(STREAM_URL, mime);
         mediaInfo.streamType = chrome.cast.media.StreamType.LIVE;
         mediaInfo.metadata = new chrome.cast.media.MusicTrackMediaMetadata();
-        mediaInfo.metadata.title =
-          document.getElementById("now-dj")?.textContent || "Cutters Choice Radio";
+        mediaInfo.metadata.title = document.getElementById("now-dj")?.textContent || "Cutters Choice Radio";
         mediaInfo.metadata.albumName = "Cutters Choice Radio";
         const request = new chrome.cast.media.LoadRequest(mediaInfo);
         try { await session.loadMedia(request); console.log("Casting started"); }
@@ -704,26 +680,21 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
   }
-  // ------------------------------------------------------------------------------
 
-  // Mobile cleanup (hide desktop-only chat popout on small screens)
   if (window.matchMedia("(max-width: 768px)").matches) {
     document.querySelectorAll("section.chat .chat-actions").forEach(el => el.remove());
   }
 
-  // Refreshers
   setInterval(fetchLiveNow, 30000);
   setInterval(fetchNowPlayingArchive, 30000);
 
   if (isMobile) document.querySelector(".mixcloud")?.remove();
 
-  // Inject Mixcloud widget script
   const mcScript = document.createElement("script");
   mcScript.src = "https://widget.mixcloud.com/widget.js";
   mcScript.async = true;
   document.body.appendChild(mcScript);
 
-  // Pop-out player
   document.getElementById("popOutBtn")?.addEventListener("click", () => {
     const src = document.getElementById("inlinePlayer").src;
     const w = window.open("", "CCRPlayer", "width=400,height=200,resizable=yes");
@@ -740,10 +711,109 @@ document.addEventListener("DOMContentLoaded", () => {
     w.document.close();
   });
 
-  // Ban check timing (kept)
+  (function initMobileDrawerNav(){
+    const mq = window.matchMedia("(max-width: 768px)");
+    const body = document.body;
+    const navToggle = document.getElementById("navToggle");
+    const navClose = document.getElementById("navClose");
+    const backdrop = document.getElementById("navBackdrop");
+    const navMenu = document.getElementById("main-nav-menu");
+    if (!navToggle || !backdrop || !navMenu) return;
+
+    const isMobileLocal = () => mq.matches;
+
+    const setOpen = (open) => {
+      if (!isMobileLocal()) open = false;
+      body.classList.toggle("nav-open", open);
+      navToggle.setAttribute("aria-expanded", String(open));
+      if (open) navMenu.querySelector("a.nav-link, summary.nav-link, button")?.focus?.();
+    };
+
+    navToggle.addEventListener("click", () => setOpen(!body.classList.contains("nav-open")));
+    navClose?.addEventListener("click", () => setOpen(false));
+    backdrop.addEventListener("click", () => setOpen(false));
+
+    navMenu.addEventListener("click", (e) => {
+      const a = e.target.closest?.("a.nav-link");
+      if (a) setOpen(false);
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") setOpen(false);
+    });
+
+    const onChange = () => { if (!mq.matches) setOpen(false); };
+    (mq.addEventListener ? mq.addEventListener("change", onChange) : mq.addListener(onChange));
+  })();
+
+  document.getElementById("tvPopOutBtn")?.addEventListener("click", () => {
+    const streamUrl = `${CCR_TV_M3U8}${CCR_TV_M3U8.includes("?") ? "&" : "?"}t=${Date.now()}`;
+    const w = window.open("", "CCRTV", "width=980,height=620,resizable=yes,scrollbars=no");
+    if (!w) return;
+
+    w.document.write(`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CCR TV</title>
+<style>
+  html,body{height:100%;margin:0;background:#000;color:#fff;font-family:Arial,sans-serif;}
+  .wrap{height:100%;display:flex;flex-direction:column;gap:10px;padding:10px;box-sizing:border-box;}
+  .note{font-size:14px;opacity:.85;}
+  video{width:100%;height:100%;max-height:calc(100vh - 70px);background:#000;border:2px solid #5A8785;border-radius:6px;object-fit:contain;}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="note">Video only — audio is provided by the main RadioCult player.</div>
+    <video id="tv" playsinline autoplay muted controls></video>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
+  <script>
+    (function(){
+      const url = ${JSON.stringify(streamUrl)};
+      const video = document.getElementById("tv");
+      video.muted = true;
+      video.volume = 0;
+
+      function attachNative(){
+        video.src = url;
+        const p = video.play();
+        if (p && p.catch) p.catch(()=>{});
+      }
+
+      if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        attachNative();
+        return;
+      }
+
+      if (window.Hls && Hls.isSupported()) {
+        const hls = new Hls({ liveDurationInfinity: true });
+        hls.loadSource(url);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, function(){
+          const p = video.play();
+          if (p && p.catch) p.catch(()=>{});
+        });
+        hls.on(Hls.Events.ERROR, function(_, data){
+          if (data && data.fatal) {
+            try{ hls.destroy(); }catch(e){}
+            attachNative();
+          }
+        });
+      } else {
+        attachNative();
+      }
+    })();
+  </script>
+</body>
+</html>`);
+    w.document.close();
+  });
+
   if ("requestIdleCallback" in window) requestIdleCallback(initBanCheck, { timeout: 2000 });
   else setTimeout(initBanCheck, 2000);
 
-  // CCR TV boot (robust HLS)
   initCcrTv();
 });

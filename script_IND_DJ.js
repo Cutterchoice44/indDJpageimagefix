@@ -147,12 +147,13 @@ async function loadArchives() {
       const item = document.createElement("div");
       item.className = "mixcloud-item";
 
+
       const iframe = document.createElement("iframe");
       iframe.className = "mixcloud-iframe";
 
-      // FIX: show artwork on desktop; hide only on mobile/small screens
-      const hideCover = isMobile || window.matchMedia?.("(max-width: 640px)")?.matches;
-      iframe.src = `https://www.mixcloud.com/widget/iframe/?${hideCover ? "hide_cover=1&" : ""}light=1&feed=${feed}`;
+      // Force the Mixcloud "Classic" widget (thumbnail + white player bar).
+      // Mixcloud recently started defaulting some embeds to the "Picture" widget.
+      iframe.src = `https://www.mixcloud.com/widget/iframe/?embed_type=widget_standard&hide_tracklist=1&replace=0&light=1&feed=${feed}`;
 
       iframe.loading = "lazy";
       iframe.width = "100%";

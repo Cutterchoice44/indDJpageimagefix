@@ -8,7 +8,13 @@ const BASE_URL          = "https://api.radiocult.fm/api";
 const FALLBACK_ART      = "/images/archives-logo.jpeg";
 const MIXCLOUD_PASSWORD = "cutters44";
 const STREAM_URL        = "https://cutters-choice-radio.radiocult.fm/stream"; // audio/HLS stream URL
+
+// Keep existing behavior (used elsewhere like chat pop-out logic)
 const isMobile          = /Mobi|Android/i.test(navigator.userAgent);
+
+// Phones only (tablets intentionally excluded)
+const UA = navigator.userAgent || "";
+const isPhone = /iPhone|iPod|Android.*Mobile|IEMobile|Windows Phone|Mobi/i.test(UA);
 
 // HLS TV stream (served via nginx alias /ccr-tv/current/ccr.m3u8 ➜ OBS or fallback)
 const CCR_TV_M3U8       = "https://ccr-tv.cutterschoiceradio.com/ccr-tv/current/ccr.m3u8";
@@ -130,58 +136,53 @@ function shuffleIframesHourly() {
   localStorage.setItem("lastShuffleTime", Date.now());
 }
 
+function decodeURIComponentSafe(value) {
+  try { return decodeURIComponent(value); } catch { return value; }
+}
+
+/**
+ * Accepts any of:
+ * - Mixcloud show URL: https://www.mixcloud.com/user/show/
+ * - Widget URL: https://www.mixcloud.com/widget/iframe/?...&feed=...
+ * - Encoded feed: %2Fuser%2Fshow%2F
+ * - Double-encoded feed: %252Fuser%252Fshow%252F
+ * Returns a canonical full Mixcloud URL.
+ */
+function normalizeMixcloudFeedUrl(raw) {
+  let v = String(raw || "").trim();
+  if (!v) return "";
+
+  // If a full widget URL was stored, extract its feed param.
+  const feedMatch = v.match(/[?&]feed=([^&]+)/);
+  if (feedMatch) v = feedMatch[1];
+
+  // Undo up to 3 layers of encoding (handles %252F... cases).
+  for (let i = 0; i < 3 && /%[0-9A-Fa-f]{2}/.test(v); i++) {
+    const d = decodeURIComponentSafe(v);
+    if (d === v) break;
+    v = d;
+  }
+
+  // If it's a URL or URL-like, reduce to a pathname.
+  if (/^https?:\/\//i.test(v)) {
+    try { v = new URL(v).pathname || v; } catch { /* keep */ }
+  } else if (/^www\./i.test(v) || /mixcloud\.com\//i.test(v)) {
+    try {
+      const u = new URL(v.startsWith("http") ? v : `https://${v.replace(/^\/+/, "")}`);
+      v = u.pathname || v;
+    } catch { /* keep */ }
+  }
+
+  if (!v.startsWith("/")) v = `/${v}`;
+  if (!v.endsWith("/")) v += "/";
+
+  return `https://www.mixcloud.com${v}`;
+}
+
 // Normalise names for matching (artist directory ↔ schedule)
 const normName = s => String(s || "").trim().toLowerCase().replace(/\s+/g, " ");
 
 // 5) MIXCLOUD ARCHIVES
-async function mixcloudFeedFromUrl(rawUrl) {
-  const s = String(rawUrl || "").trim();
-  if (!s) return "";
-
-  if (s.startsWith("/")) return s.endsWith("/") ? s : `${s}/`;
-
-  // Sometimes stored values may already be url-encoded (e.g. %2Fuser%2Fmix%2F)
-  if (/^%2[fF]/.test(s)) {
-    try {
-      const decoded = decodeURIComponent(s);
-      if (decoded.startsWith("/")) return decoded.endsWith("/") ? decoded : `${decoded}/`;
-    } catch {
-      // ignore
-    }
-  }
-
-  try {
-    const u = new URL(s);
-    const path = u.pathname || "";
-    if (!path) return s;
-    return path.startsWith("/") ? (path.endsWith("/") ? path : `${path}/`) : `/${path}/`;
-  } catch {
-    // If it's a bare slug, coerce to a feed path.
-    return s.startsWith("/") ? s : `/${s}${s.endsWith("/") ? "" : "/"}`;
-  }
-}
-
-function buildMixcloudClassicWidgetSrc(rawUrl, { hideCover }) {
-  const feedPath = mixcloudFeedFromUrl(rawUrl);
-  const feed = encodeURIComponent(feedPath);
-
-  // Classic layout (Image B): white player row + square artwork on the left.
-  // Key points:
-  // - feed must be a PATH like /user/mix/ (not the full https:// URL)
-  // - force widget_standard + mini=0 to avoid the "picture" widget
-  const params = [
-    "embed_type=widget_standard",
-    "light=1",
-    "mini=0",
-    "hide_tracklist=1",
-    "replace=0",
-    `hide_cover=${hideCover ? 1 : 0}`,
-    `feed=${feed}`,
-  ].join("&");
-
-  return `https://www.mixcloud.com/widget/iframe/?${params}`;
-}
-
 async function loadArchives() {
   try {
     const res = await fetch("get_archives.php");
@@ -192,17 +193,22 @@ async function loadArchives() {
 
     container.innerHTML = "";
     archives.forEach((entry, idx) => {
+      const feedUrl = normalizeMixcloudFeedUrl(entry.url);
+      if (!feedUrl) return;
+
       const item = document.createElement("div");
       item.className = "mixcloud-item";
 
       const iframe = document.createElement("iframe");
       iframe.className = "mixcloud-iframe";
 
-      // Match the old behavior:
-      // - Desktop: show artwork (hide_cover=0)
-      // - Mobile/small screens: hide artwork (hide_cover=1)
-      const hideCover = isMobile || window.matchMedia?.("(max-width: 640px)")?.matches;
-      iframe.src = buildMixcloudClassicWidgetSrc(entry.url, { hideCover });
+      // Classic Widget (Image B):
+      // - hide_cover=1 prevents Picture Widget layout
+      // - hide_artwork=0 ensures thumbnail artwork is shown
+      const feed = encodeURIComponent(feedUrl);
+      iframe.src =
+        `https://www.mixcloud.com/widget/iframe/?` +
+        `hide_cover=1&hide_artwork=0&hide_tracklist=1&replace=0&light=1&feed=${feed}`;
 
       iframe.loading = "lazy";
       iframe.width = "100%";
@@ -211,7 +217,7 @@ async function loadArchives() {
       iframe.setAttribute("allow", "autoplay");
       item.appendChild(iframe);
 
-      if (!isMobile) {
+      if (!isPhone) {
         const remove = document.createElement("a");
         remove.href = "#";
         remove.className = "remove-link";
@@ -688,12 +694,25 @@ function initCcrTv() {
 
 // 10) INITIALIZATION
 document.addEventListener("DOMContentLoaded", () => {
+  // Data/UI
   fetchLiveNow();
   fetchWeeklySchedule();
   fetchNowPlayingArchive();
   fetchNextWeekPreview();
-  loadArchives();
 
+  // Mixcloud: phones hidden; tablets+desktop shown
+  if (isPhone) {
+    document.querySelector(".mixcloud")?.remove();
+  } else {
+    loadArchives();
+
+    const mcScript = document.createElement("script");
+    mcScript.src = "https://widget.mixcloud.com/widget.js";
+    mcScript.async = true;
+    document.body.appendChild(mcScript);
+  }
+
+  // ---- Chromecast controls: show official OR fallback (accessibility-clean) ----
   const officialBtn = document.querySelector("google-cast-button");
   const manualBtn   = document.getElementById("manualCastBtn");
 
@@ -740,16 +759,11 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll("section.chat .chat-actions").forEach(el => el.remove());
   }
 
+  // Refreshers
   setInterval(fetchLiveNow, 30000);
   setInterval(fetchNowPlayingArchive, 30000);
 
-  if (isMobile) document.querySelector(".mixcloud")?.remove();
-
-  const mcScript = document.createElement("script");
-  mcScript.src = "https://widget.mixcloud.com/widget.js";
-  mcScript.async = true;
-  document.body.appendChild(mcScript);
-
+  // Pop-out player
   document.getElementById("popOutBtn")?.addEventListener("click", () => {
     const src = document.getElementById("inlinePlayer").src;
     const w = window.open("", "CCRPlayer", "width=400,height=200,resizable=yes");
@@ -766,6 +780,7 @@ document.addEventListener("DOMContentLoaded", () => {
     w.document.close();
   });
 
+  // Mobile drawer nav
   (function initMobileDrawerNav(){
     const mq = window.matchMedia("(max-width: 768px)");
     const body = document.body;
@@ -801,6 +816,7 @@ document.addEventListener("DOMContentLoaded", () => {
     (mq.addEventListener ? mq.addEventListener("change", onChange) : mq.addListener(onChange));
   })();
 
+  // TV popout
   document.getElementById("tvPopOutBtn")?.addEventListener("click", () => {
     const streamUrl = `${CCR_TV_M3U8}${CCR_TV_M3U8.includes("?") ? "&" : "?"}t=${Date.now()}`;
     const w = window.open("", "CCRTV", "width=980,height=620,resizable=yes,scrollbars=no");
@@ -867,8 +883,10 @@ document.addEventListener("DOMContentLoaded", () => {
     w.document.close();
   });
 
+  // Ban check timing (kept)
   if ("requestIdleCallback" in window) requestIdleCallback(initBanCheck, { timeout: 2000 });
   else setTimeout(initBanCheck, 2000);
 
+  // CCR TV boot (robust HLS)
   initCcrTv();
 });
